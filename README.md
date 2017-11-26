@@ -23,19 +23,12 @@
     npm i
     ```
 
-1. Register your app with Twitter for login
-    - Go to [Twitter Apps](https://apps.twitter.com/)
-    - Click "Create New App" and fill in your application's information
-    - Once created, click on the "Keys and Access Tokens" tab
-    - Take note of your Twitter API Key and Secret to use in the app configuration
-
-1. Configure Cosmos DB server and Twitter settings
+1. Configure Cosmos DB server settings
 
     Create a file with the following name and location `server/env/development.js` and copy the contents from `server/env/example.js` into it. Replace the values with your specific configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
 
     ```javascript
     const serverPort = 3001;
-    const sessionSecret = 'your-unique-randomly-generated-secret';
 
     const cosmos = {
       accountName: 'your-cosmosdb-account-name',
@@ -44,17 +37,9 @@
       port: 10255
     };
 
-    const twitter = {
-      consumerKey: 'your-twitter-app-key',
-      consumerSecret: 'your-twitter-app-secret',
-      callbackURL: `http://localhost:3001/api/auth/twitter/callback`
-    };
-
     module.exports = {
       serverPort,
-      sessionSecret,
       cosmos,
-      twitter
     };
     ```
 

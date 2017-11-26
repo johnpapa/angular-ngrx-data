@@ -23,9 +23,10 @@ export class HeroService {
   }
 
   getHeroes() {
-    return this.http.get<Array<Hero>>(`${api}/heroes`)
-    .map(heroes => heroes)
-    .catch(this.handleError);
+    return this.http
+      .get<Array<Hero>>(`${api}/heroes`)
+      .map(heroes => heroes)
+      .catch(this.handleError);
   }
 
   private handleError(res: HttpErrorResponse) {

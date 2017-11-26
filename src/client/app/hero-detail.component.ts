@@ -1,12 +1,5 @@
 import {
-  AfterViewInit,
-  Component,
-  Input,
-  ElementRef,
-  EventEmitter,
-  OnInit,
-  Output,
-  ViewChild
+  AfterViewInit, Component, Input, ElementRef, EventEmitter, OnInit, Output, ViewChild
 } from '@angular/core';
 
 import { Hero } from './hero';
@@ -57,8 +50,6 @@ export class HeroDetailComponent implements AfterViewInit, OnInit {
     }
   }
 
-  constructor() {}
-
   ngOnInit() {
     this.addingHero = !this.hero;
     this.editingHero = this.cloneIt();
@@ -78,7 +69,7 @@ export class HeroDetailComponent implements AfterViewInit, OnInit {
     return Object.assign({}, this.hero);
   }
 
-  emitRefresh(mode) {
+  emitRefresh(mode: string) {
     this.heroChanged.emit({ mode: mode, hero: this.editingHero });
     this.clear();
   }

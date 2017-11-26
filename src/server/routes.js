@@ -8,15 +8,15 @@ router.get('/heroes', (req, res) => {
   heroService.getHeroes(req, res);
 });
 
-router.post('/hero', isLoggedIn, (req, res) => {
+router.post('/hero', /* isLoggedIn, */ (req, res) => {
   heroService.postHero(req, res);
 });
 
-router.put('/hero/:id', isLoggedIn, (req, res) => {
+router.put('/hero/:id', /* isLoggedIn, */ (req, res) => {
   heroService.putHero(req, res);
 });
 
-router.delete('/hero/:id', isLoggedIn, (req, res) => {
+router.delete('/hero/:id', /* isLoggedIn, */ (req, res) => {
   heroService.deleteHero(req, res);
 });
 
@@ -32,7 +32,7 @@ function isLoggedIn(req, res, next) {
 
 function isValidAdmin(requestUser) {
   const validUsers = ['john_papa', '_clarkio'];
-  return validUsers.find(user => requestUser.username.toLowerCase() === user.toLowerCase())
+  return validUsers.find(user => requestUser.username.toLowerCase() === user.toLowerCase());
 }
 
 // Starts the login/authentication flow indicating to use Twitter
@@ -50,9 +50,9 @@ router.get(
 router.get('/logout', (req, res) => {
   // The .logout() function is added by passport
   req.logout();
-  res
-    .status(200)
-    .send({ message: `Hey, you should really reconsider and log back in. It's fun in here` });
+  res.status(200).send({
+    message: `Hey, you should really reconsider and log back in. It's fun in here`
+  });
 });
 
 router.get('/profile', (req, res) => {

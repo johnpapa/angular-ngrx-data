@@ -5,11 +5,11 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AppComponent } from './app.component';
 import { HeroService } from './hero.service';
-import { HeroesComponent } from './hero-list.component';
+import { HeroListComponent } from './hero-list.component';
 import { HeroDetailComponent } from './hero-detail.component';
 
 @NgModule({
-  declarations: [AppComponent, HeroesComponent, HeroDetailComponent],
+  declarations: [AppComponent, HeroListComponent, HeroDetailComponent],
   imports: [BrowserModule, FormsModule, HttpClientModule],
   providers: [HeroService],
   bootstrap: [AppComponent]

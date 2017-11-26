@@ -35,7 +35,7 @@ import { HeroService } from './hero.service';
   `,
   styleUrls: [`./hero-list.component.scss`]
 })
-export class HeroesComponent implements OnInit {
+export class HeroListComponent implements OnInit {
   addingHero = false;
   heroes: Hero[] = [];
   selectedHero: Hero = null;
@@ -76,6 +76,7 @@ export class HeroesComponent implements OnInit {
   onSelect(hero: Hero) {
     this.addingHero = false;
     this.selectedHero = hero;
+    console.log('selected', this.selectedHero);
   }
 
   save(arg: { mode: string; hero: Hero }) {

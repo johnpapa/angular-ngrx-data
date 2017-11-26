@@ -1,5 +1,14 @@
 import {
-  AfterViewInit, Component, Input, ElementRef, EventEmitter, OnInit, Output, ViewChild
+  AfterViewInit,
+  Component,
+  Input,
+  ElementRef,
+  EventEmitter,
+  OnChanges,
+  OnInit,
+  Output,
+  ViewChild,
+  SimpleChanges
 } from '@angular/core';
 
 import { Hero } from './hero';
@@ -31,7 +40,7 @@ import { Hero } from './hero';
     `,
   styleUrls: [`./hero-detail.component.scss`]
 })
-export class HeroDetailComponent implements AfterViewInit, OnInit {
+export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Input() hero: Hero;
   @Output() unselect = new EventEmitter<string>();
   @Output() heroChanged = new EventEmitter<{ mode: string; hero: Hero }>();
@@ -43,16 +52,17 @@ export class HeroDetailComponent implements AfterViewInit, OnInit {
   editingHero: Hero;
 
   ngAfterViewInit() {
-    if (this.addingHero && this.editingHero) {
-      this.idElement.nativeElement.focus();
-    } else {
-      this.nameElement.nativeElement.focus();
-    }
+    this.setFocus();
   }
 
-  ngOnInit() {
+  ngOnInit() {}
+
+  ngOnChanges(changes: SimpleChanges) {
     this.addingHero = !this.hero;
     this.editingHero = this.cloneIt();
+    if (!changes.hero.firstChange) {
+      this.setFocus();
+    }
   }
 
   addHero() {
@@ -66,6 +76,7 @@ export class HeroDetailComponent implements AfterViewInit, OnInit {
   }
 
   cloneIt() {
+    console.log(`cloning`, this.hero);
     return Object.assign({}, this.hero);
   }
 
@@ -79,6 +90,14 @@ export class HeroDetailComponent implements AfterViewInit, OnInit {
       this.addHero();
     } else {
       this.updateHero();
+    }
+  }
+
+  setFocus() {
+    if (this.addingHero && this.editingHero) {
+      this.idElement.nativeElement.focus();
+    } else {
+      this.nameElement.nativeElement.focus();
     }
   }
 

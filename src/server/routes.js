@@ -8,17 +8,26 @@ router.get('/heroes', (req, res) => {
   heroService.getHeroes(req, res);
 });
 
-router.post('/hero', /* isLoggedIn, */ (req, res) => {
-  heroService.postHero(req, res);
-});
+router.post(
+  '/hero',
+  /* isLoggedIn, */ (req, res) => {
+    heroService.postHero(req, res);
+  }
+);
 
-router.put('/hero/:id', /* isLoggedIn, */ (req, res) => {
-  heroService.putHero(req, res);
-});
+router.put(
+  '/hero/:id',
+  /* isLoggedIn, */ (req, res) => {
+    heroService.putHero(req, res);
+  }
+);
 
-router.delete('/hero/:id', /* isLoggedIn, */ (req, res) => {
-  heroService.deleteHero(req, res);
-});
+router.delete(
+  '/hero/:id',
+  /* isLoggedIn, */ (req, res) => {
+    heroService.deleteHero(req, res);
+  }
+);
 
 function isLoggedIn(req, res, next) {
   // If user is authenticated in the session

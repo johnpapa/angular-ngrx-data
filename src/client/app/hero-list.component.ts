@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from './model';
@@ -34,7 +34,8 @@ import { HeroService } from './store';
       </app-hero-detail>
     </div>
   `,
-  styleUrls: [`./hero-list.component.scss`]
+  styleUrls: [`./hero-list.component.scss`],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;

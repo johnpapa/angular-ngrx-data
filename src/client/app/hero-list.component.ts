@@ -3,7 +3,6 @@ import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from './hero';
-import { HeroService } from './hero.service';
 import * as HeroAction from './hero.action';
 import * as reducers from './hero.reducer';
 
@@ -49,7 +48,7 @@ export class HeroListComponent implements OnInit {
 
   heroes$: Observable<Hero[]>;
 
-  constructor(private store: Store<reducers.State>, private heroService: HeroService) {}
+  constructor(private store: Store<reducers.State>) {}
 
   ngOnInit() {
     // this.heroes$ = this.store.select(state => state.hero.heroes);

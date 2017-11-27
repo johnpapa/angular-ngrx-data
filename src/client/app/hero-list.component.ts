@@ -82,8 +82,7 @@ export class HeroListComponent implements OnInit {
   }
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
-    const hero = arg.hero;
-    this.heroService.saveHero(hero, arg.mode);
+    this.heroService.saveHero(arg.hero, arg.mode);
   }
 
   unselect() {

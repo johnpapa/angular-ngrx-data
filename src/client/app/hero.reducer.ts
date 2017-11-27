@@ -2,12 +2,14 @@ import { Hero } from './hero';
 import * as HeroActions from './hero.action';
 
 export interface HeroState {
+  searchCriteria: string;
   heroes: Hero[];
   loading: boolean;
   error: boolean;
 }
 
 export const initialHeroState: HeroState = {
+  searchCriteria: '',
   heroes: null,
   loading: false,
   error: false
@@ -25,6 +27,14 @@ export const reducers = {
 
 export function selectHeroes(state: State) {
   return state.hero.heroes;
+}
+
+export function selectHeroState(state: State ) {
+  return state.hero;
+}
+
+export function selectHeroesLoading(state: State) {
+  return state.hero.loading;
 }
 
 export function heroReducer(heroState = initialHeroState, action: HeroActions.All): HeroState {
@@ -56,7 +66,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.GET_HEROES: {
-      const msg = { ...heroState, loading: true };
+      const msg = { ...heroState, searchCriteria: action.payload, loading: true };
       console.log('GET_HEROES ...');
       console.log(msg);
       return msg;

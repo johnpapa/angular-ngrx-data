@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Hero } from './hero';
 import { HeroService } from './hero.service';
 import * as HeroAction from './hero.action';
-import { heroReducer, selectHeroes, HeroState, State } from './hero.reducer';
+import * as reducers from './hero.reducer';
 
 @Component({
   selector: 'app-hero-list',
@@ -48,13 +48,12 @@ export class HeroListComponent implements OnInit {
   selectedHero: Hero = null;
 
   heroes$: Observable<Hero[]>;
-  heroState$: Observable<HeroState>;
 
-  constructor(private store: Store<State>, private heroService: HeroService) {}
+  constructor(private store: Store<reducers.State>, private heroService: HeroService) {}
 
   ngOnInit() {
-    this.heroState$ = this.store.select(state => state.hero);
-    this.heroes$ = this.store.select(state => state.hero.heroes);
+    // this.heroes$ = this.store.select(state => state.hero.heroes);
+    this.heroes$ = this.store.select(reducers.selectHeroes);
     this.getHeroes();
 
     // // Debugging only

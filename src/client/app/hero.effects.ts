@@ -11,7 +11,7 @@ import { Actions, Effect } from '@ngrx/effects';
 
 import * as HeroActions from './hero.action';
 import { Hero } from './hero';
-import { HeroService } from './hero.service';
+import { HeroDataService } from './hero-data.service';
 
 @Injectable()
 export class HeroEffects {
@@ -19,7 +19,7 @@ export class HeroEffects {
   getHeroes$: Observable<Action> = this.actions$
     .ofType(HeroActions.GET_HEROES)
     .map((action: HeroActions.GetHeroes) => action.payload)
-    .switchMap(filterCriteria => this.heroService.getHeroes())
+    .switchMap(filterCriteria => this.heroDataService.getHeroes())
     .map(results => new HeroActions.GetHeroesSuccess(results))
     .catch(() => of(new HeroActions.GetHeroError()));
 
@@ -27,7 +27,7 @@ export class HeroEffects {
   createHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.ADD_HERO)
     .map((action: HeroActions.AddHero) => action.payload)
-    .switchMap(hero => this.heroService.addHero(hero))
+    .switchMap(hero => this.heroDataService.addHero(hero))
     .map((hero: Hero) => new HeroActions.AddHeroSuccess(hero))
     .catch((hero: Hero) => of(new HeroActions.AddHeroError()));
 
@@ -35,7 +35,7 @@ export class HeroEffects {
   deleteHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.DELETE_HERO)
     .map((action: HeroActions.DeleteHero) => action.payload)
-    .switchMap(hero => this.heroService.deleteHero(hero))
+    .switchMap(hero => this.heroDataService.deleteHero(hero))
     .map((hero: Hero) => new HeroActions.DeleteHeroSuccess(hero))
     .catch((hero: Hero) => of(new HeroActions.DeleteHeroError(hero)));
 
@@ -43,9 +43,9 @@ export class HeroEffects {
   updateHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.UPDATE_HERO)
     .map((action: HeroActions.UpdateHero) => action.payload)
-    .switchMap(hero => this.heroService.updateHero(hero))
+    .switchMap(hero => this.heroDataService.updateHero(hero))
     .map((hero: Hero) => new HeroActions.UpdateHeroSuccess(hero))
     .catch((hero: Hero) => of(new HeroActions.UpdateHeroError(hero)));
 
-  constructor(private actions$: Actions, private heroService: HeroService) {}
+  constructor(private actions$: Actions, private heroDataService: HeroDataService) {}
 }

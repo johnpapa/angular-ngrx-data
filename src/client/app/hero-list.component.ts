@@ -1,10 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 
-import { Hero } from './hero';
-import * as HeroAction from './hero.action';
-import * as reducers from './hero.reducer';
+import { Hero, HeroService } from './hero.service';
 
 @Component({
   selector: 'app-hero-list',
@@ -14,9 +11,6 @@ import * as reducers from './hero.reducer';
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
-      <!--
-        <pre>{{heroState$ | async | json}}</pre>
-      -->
       <ul class="heroes" *ngIf="heroes$ | async as heroes">
       <li *ngFor="let hero of heroes"
           class="hero-container"
@@ -48,11 +42,10 @@ export class HeroListComponent implements OnInit {
 
   heroes$: Observable<Hero[]>;
 
-  constructor(private store: Store<reducers.State>) {}
+  constructor(private heroService: HeroService) {}
 
   ngOnInit() {
-    // this.heroes$ = this.store.select(state => state.hero.heroes);
-    this.heroes$ = this.store.select(reducers.selectHeroes);
+    this.heroes$ = this.heroService.heroes$();
     this.getHeroes();
 
     // // Debugging only
@@ -60,9 +53,6 @@ export class HeroListComponent implements OnInit {
     //   console.log('here are the heroes in the component');
     //   console.log(heroes);
     // });
-
-    console.log('store', this.store);
-    console.log('heroStates$', this.heroes$);
   }
 
   clear() {
@@ -71,7 +61,7 @@ export class HeroListComponent implements OnInit {
   }
 
   deleteHero(hero: Hero) {
-    this.store.dispatch(new HeroAction.DeleteHero(hero));
+    this.heroService.deleteHero(hero);
   }
 
   enableAddMode() {
@@ -80,23 +70,17 @@ export class HeroListComponent implements OnInit {
   }
 
   getHeroes() {
-    this.store.dispatch(new HeroAction.GetHeroes());
+    this.heroService.getHeroes();
   }
 
   onSelect(hero: Hero) {
     this.addingHero = false;
     this.selectedHero = hero;
-    console.log('selected', this.selectedHero);
   }
 
-  save(arg: { mode: string; hero: Hero }) {
+  save(arg: { mode: 'add' | 'update'; hero: Hero }) {
     const hero = arg.hero;
-    console.log('hero changed', hero);
-    if (arg.mode === 'add') {
-      this.store.dispatch(new HeroAction.AddHero(hero));
-    } else {
-      this.store.dispatch(new HeroAction.UpdateHero(hero));
-    }
+    this.heroService.saveHero(hero, arg.mode);
   }
 
   unselect() {

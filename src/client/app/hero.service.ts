@@ -1,48 +1,38 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-
+import { Store } from '@ngrx/store';
+import * as HeroAction from './hero.action';
+import * as reducers from './hero.reducer';
+import { tap } from 'rxjs/operators';
 import { Hero } from './hero';
-import { Observable } from 'rxjs/Observable';
 
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/map';
-// import 'rxjs/Rx';
-
-const api = '/api';
+export { Hero } from './hero';
 
 @Injectable()
 export class HeroService {
-  constructor(private http: HttpClient) {}
+  constructor(private store: Store<reducers.State>) {}
 
-  logout() {
-    return this.http.get(`${api}/logout`);
+  deleteHero(hero: Hero) {
+    this.store.dispatch(new HeroAction.DeleteHero(hero));
   }
 
-  getProfile() {
-    return this.http.get<any>(`${api}/profile`);
+  saveHero(hero: Hero, mode: 'add' | 'update') {
+    if (mode === 'add') {
+      this.store.dispatch(new HeroAction.AddHero(hero));
+    } else {
+      this.store.dispatch(new HeroAction.UpdateHero(hero));
+    }
   }
 
   getHeroes() {
-    return this.http
-      .get<Array<Hero>>(`${api}/heroes`)
-      .map(heroes => heroes)
-      .catch(this.handleError);
+    this.store.dispatch(new HeroAction.GetHeroes());
   }
 
-  private handleError(res: HttpErrorResponse) {
-    console.error(res.error);
-    return Observable.throw(res.error || 'Server error');
-  }
-
-  deleteHero(hero: Hero) {
-    return this.http.delete(`${api}/hero/${hero.id}`);
-  }
-
-  addHero(hero: Hero) {
-    return this.http.post<Hero>(`${api}/hero/`, hero);
-  }
-
-  updateHero(hero: Hero) {
-    return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero);
+  heroes$() {
+    return this.store.select(state => state.hero.heroes).pipe(
+      tap(heroes => {
+        console.log('store', this.store);
+        console.log('heroes', heroes);
+      })
+    );
   }
 }

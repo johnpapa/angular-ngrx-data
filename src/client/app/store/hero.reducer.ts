@@ -20,20 +20,13 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
 
   switch (action.type) {
     case HeroActions.ADD_HERO: {
-      return {
-        ...heroState,
-        heroes: heroState.heroes.map(h => {
-          if (h.id === action.payload.id) {
-            heroState.loading = true;
-          }
-          return h;
-        })
-      };
+      return { ...heroState, loading: true };
     }
 
     case HeroActions.ADD_HERO_SUCCESS: {
       return {
         ...heroState,
+        loading: false,
         heroes: [
           ...heroState.heroes.filter(h => {
             return h.id !== 0;
@@ -41,6 +34,10 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
           { ...action.payload }
         ]
       };
+    }
+
+    case HeroActions.ADD_HERO_ERROR: {
+      return { ...heroState, loading: false };
     }
 
     case HeroActions.GET_HEROES: {
@@ -53,7 +50,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
 
     case HeroActions.DELETE_HERO: {
       const splicedHeroes = heroState.heroes.filter(h => h !== action.payload);
-      return { ...heroState, heroes: heroState.heroes.filter(h => h !== action.payload) };
+      return { ...heroState, loading: true, heroes: heroState.heroes.filter(h => h !== action.payload) };
     }
 
     case HeroActions.DELETE_HERO_SUCCESS: {
@@ -61,7 +58,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.DELETE_HERO_ERROR: {
-      return { ...heroState, heroes: [...heroState.heroes, action.payload] };
+      return { ...heroState, loading: false, heroes: [...heroState.heroes, action.payload] };
     }
 
     case HeroActions.UPDATE_HERO: {
@@ -83,6 +80,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     case HeroActions.UPDATE_HERO_ERROR: {
       return {
         ...heroState,
+        loading: false,
         heroes: heroState.heroes.map(h => {
           if (h.id === action.payload.id) {
             heroState.error = true;
@@ -101,6 +99,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
 function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): HeroState {
   return {
     ...heroState,
+    loading: false,
     heroes: heroState.heroes.map(h => {
       if (h.id === heroChanges.id) {
         return { ...h, ...heroChanges };

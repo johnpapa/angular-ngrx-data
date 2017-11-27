@@ -63,6 +63,7 @@ export class HeroListComponent implements OnInit {
   }
 
   deleteHero(hero: Hero) {
+    this.unselect();
     this.heroService.deleteHero(hero);
   }
 

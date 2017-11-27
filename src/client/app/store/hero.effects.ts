@@ -10,7 +10,7 @@ import { Action } from '@ngrx/store';
 import { Actions, Effect } from '@ngrx/effects';
 
 import * as HeroActions from './hero.action';
-import { Hero } from './hero';
+import { Hero } from '../model';
 import { HeroDataService } from './hero-data.service';
 
 @Injectable()

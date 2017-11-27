@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-
-import { Hero } from './hero';
 import { Observable } from 'rxjs/Observable';
-
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
 // import 'rxjs/Rx';
+
+import { Hero } from '../model';
 
 const api = '/api';
 

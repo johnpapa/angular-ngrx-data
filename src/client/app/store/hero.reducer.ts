@@ -1,4 +1,4 @@
-import { Hero } from './hero';
+import { Hero } from '../model';
 import * as HeroActions from './hero.action';
 
 export interface HeroState {
@@ -14,28 +14,6 @@ export const initialHeroState: HeroState = {
   loading: false,
   error: false
 };
-
-export type Action = HeroActions.All;
-
-export interface State {
-  hero: HeroState;
-}
-
-export const reducers = {
-  hero: heroReducer
-};
-
-export function selectHeroes(state: State) {
-  return state.hero.heroes;
-}
-
-export function selectHeroState(state: State ) {
-  return state.hero;
-}
-
-export function selectHeroesLoading(state: State) {
-  return state.hero.loading;
-}
 
 export function heroReducer(heroState = initialHeroState, action: HeroActions.All): HeroState {
   console.log(heroState, action);
@@ -66,23 +44,16 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.GET_HEROES: {
-      const msg = { ...heroState, searchCriteria: action.payload, loading: true };
-      console.log('GET_HEROES ...');
-      console.log(msg);
-      return msg;
+      return { ...heroState, searchCriteria: action.payload, loading: true };
     }
 
     case HeroActions.GET_HEROES_SUCCESS: {
-      const msg = { ...heroState, heroes: action.payload, loading: false };
-      console.log('GET_HEROES_SUCCESS');
-      console.log(msg);
-      return msg;
+      return { ...heroState, heroes: action.payload, loading: false };
     }
 
     case HeroActions.DELETE_HERO: {
       const splicedHeroes = heroState.heroes.filter(h => h !== action.payload);
-      const msg = { ...heroState, heroes: heroState.heroes.filter(h => h !== action.payload) };
-      return msg;
+      return { ...heroState, heroes: heroState.heroes.filter(h => h !== action.payload) };
     }
 
     case HeroActions.DELETE_HERO_SUCCESS: {
@@ -106,7 +77,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.UPDATE_HERO_SUCCESS: {
-      return modifyHeroState(heroState, action.payload, {});
+      return modifyHeroState(heroState, action.payload);
     }
 
     case HeroActions.UPDATE_HERO_ERROR: {
@@ -127,12 +98,12 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
   }
 }
 
-function modifyHeroState(heroState: HeroState, hero: Hero, modifications): HeroState {
+function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): HeroState {
   return {
     ...heroState,
     heroes: heroState.heroes.map(h => {
-      if (h.id === hero.id) {
-        return { ...h, ...hero, ...modifications };
+      if (h.id === heroChanges.id) {
+        return { ...h, ...heroChanges };
       } else {
         return h;
       }

@@ -8,11 +8,11 @@ router.get('/heroes', (req, res) => {
   heroService.getHeroes(req, res);
 });
 
-router.post( '/hero', /* isLoggedIn, */ (req, res) => {
+router.post('/hero', /* isLoggedIn, */ (req, res) => {
   heroService.postHero(req, res);
 });
 
-router.put( '/hero/:id', /* isLoggedIn, */ (req, res) => {
+router.put('/hero/:id', /* isLoggedIn, */ (req, res) => {
   heroService.putHero(req, res);
 });
 

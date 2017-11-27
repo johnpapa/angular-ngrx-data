@@ -1,7 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs/Observable';
 
 import { Hero } from './hero';
 import { HeroService } from './hero.service';
+import * as HeroAction from './hero.action';
+import { heroReducer, selectHeroes, HeroState, State } from './hero.reducer';
 
 @Component({
   selector: 'app-hero-list',
@@ -11,8 +15,11 @@ import { HeroService } from './hero.service';
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
-      <ul class="heroes" *ngIf="heroes && heroes.length">
-        <li *ngFor="let hero of heroes"
+      <!--
+        <pre>{{heroState$ | async | json}}</pre>
+      -->
+      <ul class="heroes" *ngIf="heroes$ | async as heroes">
+      <li *ngFor="let hero of heroes"
           class="hero-container"
           [class.selected]="hero === selectedHero">
           <div class="hero-element">
@@ -40,10 +47,24 @@ export class HeroListComponent implements OnInit {
   heroes: Hero[] = [];
   selectedHero: Hero = null;
 
-  constructor(private heroService: HeroService) {}
+  heroes$: Observable<Hero[]>;
+  heroState$: Observable<HeroState>;
+
+  constructor(private store: Store<State>, private heroService: HeroService) {}
 
   ngOnInit() {
-    this.getHeroes();
+    this.heroState$ = this.store.select(state => state.hero);
+    this.heroes$ = this.store.select(state => state.hero.heroes);
+    this.getHeroes()
+
+    // // Debugging only
+    // this.heroes$.subscribe((heroes: Hero[]) => {
+    //   console.log('here are the heroes in the component');
+    //   console.log(heroes);
+    // });
+
+    console.log('store', this.store);
+    console.log('heroStates$', this.heroes$);
   }
 
   clear() {
@@ -52,12 +73,7 @@ export class HeroListComponent implements OnInit {
   }
 
   deleteHero(hero: Hero) {
-    this.heroService.deleteHero(hero).subscribe(res => {
-      this.heroes = this.heroes.filter((h: Hero) => h !== hero);
-      if (this.selectedHero === hero) {
-        this.selectedHero = null;
-      }
-    });
+    this.store.dispatch(new HeroAction.DeleteHero(hero));
   }
 
   enableAddMode() {
@@ -66,11 +82,7 @@ export class HeroListComponent implements OnInit {
   }
 
   getHeroes() {
-    this.heroes = [];
-    this.clear();
-    return this.heroService.getHeroes().subscribe(heroes => {
-      this.heroes = heroes;
-    });
+    this.store.dispatch(new HeroAction.GetHeroes());
   }
 
   onSelect(hero: Hero) {
@@ -83,17 +95,9 @@ export class HeroListComponent implements OnInit {
     const hero = arg.hero;
     console.log('hero changed', hero);
     if (arg.mode === 'add') {
-      this.heroService.addHero(hero).subscribe(() => {
-        this.addingHero = false;
-        this.selectedHero = null;
-        this.heroes.push(hero);
-      });
+      this.store.dispatch(new HeroAction.AddHero(hero));
     } else {
-      this.heroService.updateHero(hero).subscribe(() => {
-        const index = this.heroes.findIndex((h: Hero) => hero.id === h.id);
-        this.heroes.splice(index, 1, hero);
-        this.clear();
-      });
+      this.store.dispatch(new HeroAction.UpdateHero(hero));
     }
   }
 

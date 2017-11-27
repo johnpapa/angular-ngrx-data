@@ -39,7 +39,7 @@ export class HeroEffects {
     .map((hero: Hero) => new HeroActions.DeleteHeroSuccess(hero))
     .catch((hero: Hero) => of(new HeroActions.DeleteHeroError(hero)));
 
-@Effect()
+  @Effect()
   updateHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.UPDATE_HERO)
     .map((action: HeroActions.UpdateHero) => action.payload)
@@ -47,8 +47,5 @@ export class HeroEffects {
     .map((hero: Hero) => new HeroActions.UpdateHeroSuccess(hero))
     .catch((hero: Hero) => of(new HeroActions.UpdateHeroError(hero)));
 
-  constructor(
-    private actions$: Actions,
-    private heroService: HeroService
-  ) {}
+  constructor(private actions$: Actions, private heroService: HeroService) {}
 }

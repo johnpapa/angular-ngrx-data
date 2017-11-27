@@ -55,7 +55,7 @@ export class HeroListComponent implements OnInit {
   ngOnInit() {
     this.heroState$ = this.store.select(state => state.hero);
     this.heroes$ = this.store.select(state => state.hero.heroes);
-    this.getHeroes()
+    this.getHeroes();
 
     // // Debugging only
     // this.heroes$.subscribe((heroes: Hero[]) => {

@@ -3,14 +3,20 @@ import { Observable } from 'rxjs/Observable';
 
 import { Hero } from './model';
 import { HeroService, HeroState } from './store';
+import { FormControl } from '@angular/forms';
+import { debounceTime, filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-hero-list',
   template: `
     <div>
       <div class="button-group">
-        <button (click)="getHeroes()">Refresh</button>
+        <button (click)="getHeroes('')">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+      </div>
+      <div>
+        <p>Filter the heroes</p>
+        <input [(formControl)]="searchTerms"/>
       </div>
       <div class="todos" *ngIf="heroes$ | async as heroes">
 
@@ -53,13 +59,24 @@ export class HeroListComponent implements OnInit {
 
   heroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
+  // searchCriteria$: Observable<string>;
+  searchTerms: FormControl = new FormControl();
 
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
     this.heroes$ = this.heroService.heroes$();
     this.loading$ = this.heroService.loading$();
-    this.getHeroes();
+    // this.searchCriteria$ = this.heroService.searchCriteria$();
+
+    this.searchTerms.valueChanges
+      .pipe(
+        debounceTime(500)
+        // filter(terms => terms !== '' && terms !== this.value)
+      )
+      .subscribe((val: string) => this.getHeroes(val));
+
+    this.getHeroes('');
 
     // // Debugging only
     // this.heroes$.subscribe((heroes: Hero[]) => {
@@ -83,8 +100,8 @@ export class HeroListComponent implements OnInit {
     this.selectedHero = null;
   }
 
-  getHeroes() {
-    this.heroService.getHeroes();
+  getHeroes(criteria: string) {
+    this.heroService.getHeroes(criteria);
   }
 
   onSelect(hero: Hero) {

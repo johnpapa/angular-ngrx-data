@@ -21,8 +21,8 @@ export class HeroService {
     }
   }
 
-  getHeroes() {
-    this.store.dispatch(new HeroAction.GetHeroes());
+  getHeroes(criteria: string) {
+    this.store.dispatch(new HeroAction.GetHeroes(criteria));
   }
 
   heroes$() {
@@ -41,5 +41,11 @@ export class HeroService {
     return this.store
       .select(state => state.hero.loading)
       .pipe(tap(loading => console.log('loading', loading)));
+  }
+
+  searchCriteria$() {
+    return this.store
+      .select(state => state.hero.searchCriteria)
+      .pipe(tap(searchCriteria => console.log('searchCriteria', searchCriteria)));
   }
 }

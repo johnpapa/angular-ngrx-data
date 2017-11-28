@@ -22,6 +22,13 @@ export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
+export const  SET_CRITERIA = '[Hero] - SET_CRITERIA';
+
+export class SetSearchCriteria implements Action {
+  readonly type = SET_CRITERIA;
+  constructor(public payload: string) {}
+}
+
 export class GetHeroes implements Action {
   readonly type = GET_HEROES;
   constructor(public payload: string = '') {}
@@ -111,4 +118,5 @@ export type All =
   | AddHeroError
   | DeleteHero
   | DeleteHeroSuccess
-  | DeleteHeroError;
+  | DeleteHeroError
+  | SetSearchCriteria;

@@ -24,7 +24,8 @@ export class HeroDataService {
     return this.http.get<any>(`${api}/profile`);
   }
 
-  getHeroes() {
+  getHeroes(criteria: string): Observable<Hero[]> {
+    console.log(`searching for ${criteria}`);
     return this.http
       .get<Array<Hero>>(`${api}/heroes`)
       .pipe(delay(fakeDelay))

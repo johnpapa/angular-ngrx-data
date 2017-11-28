@@ -41,11 +41,15 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.GET_HEROES: {
-      return { ...heroState, searchCriteria: action.payload, loading: true };
+      return { ...heroState, loading: true };
     }
 
     case HeroActions.GET_HEROES_SUCCESS: {
       return { ...heroState, heroes: action.payload, loading: false };
+    }
+
+    case HeroActions.SET_CRITERIA: {
+      return { ...heroState, searchCriteria: action.payload };
     }
 
     case HeroActions.DELETE_HERO: {

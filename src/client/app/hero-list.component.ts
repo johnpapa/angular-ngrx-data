@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { Hero } from './model';
 import { HeroService, HeroState } from './store';
 import { FormControl } from '@angular/forms';
-import { debounceTime, filter } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-hero-list',
@@ -16,7 +16,7 @@ import { debounceTime, filter } from 'rxjs/operators';
       </div>
       <div>
         <p>Filter the heroes</p>
-        <input [(formControl)]="searchTerms"/>
+        <input [value]="searchTerms$ | async" (input)="search($event.target.value)"/>
       </div>
       <div class="todos" *ngIf="heroes$ | async as heroes">
 
@@ -59,30 +59,25 @@ export class HeroListComponent implements OnInit {
 
   heroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
-  // searchCriteria$: Observable<string>;
-  searchTerms: FormControl = new FormControl();
+  searchCriteria$: Observable<string>;
+  public searchTerms$: Observable<string>;
 
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
     this.heroes$ = this.heroService.heroes$();
     this.loading$ = this.heroService.loading$();
-    // this.searchCriteria$ = this.heroService.searchCriteria$();
+    this.searchCriteria$ = this.heroService.searchCriteria$().pipe(skip(1));
 
-    this.searchTerms.valueChanges
-      .pipe(
-        debounceTime(500)
-        // filter(terms => terms !== '' && terms !== this.value)
-      )
+    // this.getHeroes('');
+
+    this.searchCriteria$
+      .pipe(debounceTime(500), distinctUntilChanged())
       .subscribe((val: string) => this.getHeroes(val));
+  }
 
-    this.getHeroes('');
-
-    // // Debugging only
-    // this.heroes$.subscribe((heroes: Hero[]) => {
-    //   console.log('here are the heroes in the component');
-    //   console.log(heroes);
-    // });
+  search(value: string) {
+    this.heroService.setSearchCriteria(value);
   }
 
   clear() {

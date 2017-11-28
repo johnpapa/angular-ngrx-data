@@ -13,6 +13,10 @@ export class HeroService {
     this.store.dispatch(new HeroAction.DeleteHero(hero));
   }
 
+  setSearchCriteria(criteria: string) {
+    this.store.dispatch(new HeroAction.SetSearchCriteria(criteria));
+  }
+
   saveHero(hero: Hero, mode: 'add' | 'update') {
     if (mode === 'add') {
       this.store.dispatch(new HeroAction.AddHero(hero));

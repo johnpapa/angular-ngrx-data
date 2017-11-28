@@ -20,15 +20,21 @@ export class HeroEffects {
   @Effect()
   getHeroes$: Observable<Action> = this.actions$
     .ofType(HeroActions.GET_HEROES)
-    // .switchMap(() => this.store.select(state => state.hero.searchCriteria))
     .switchMap(() => this.store.select(state => state.hero).take(1))
     .switchMap(heroState => {
       const heroes = heroState.heroes;
       if (!heroes || heroes.length === 0) {
-        return this.heroDataService.getHeroes(heroState.searchCriteria);
+        return this.heroDataService.getHeroes('');
       }
-      return of(heroes.filter(h => new RegExp(heroState.searchCriteria, 'i').test(h.name)));
+      return of(heroes);
     })
+    // .switchMap(heroState => {
+    //   const heroes = heroState.heroes;
+    //   if (!heroes || heroes.length === 0) {
+    //     return this.heroDataService.getHeroes(heroState.searchCriteria);
+    //   }
+    //   return of(heroes.filter(h => new RegExp(heroState.searchCriteria, 'i').test(h.name)));
+    // })
     .map(results => new HeroActions.GetHeroesSuccess(results))
     .catch(() => of(new HeroActions.GetHeroError()));
 

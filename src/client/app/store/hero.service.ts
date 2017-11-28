@@ -26,20 +26,20 @@ export class HeroService {
   }
 
   heroes$() {
-    return this.store.select(state => state.hero.heroes).pipe(
-      tap(heroes => {
-        console.log('store', this.store);
-        console.log('heroes', heroes);
-      })
-    );
+    return this.store
+      .select(state => state.hero.heroes)
+      .pipe(tap(heroes => console.log('heroes', heroes)));
   }
 
   heroState$() {
-    return this.store.select(state => state.hero).pipe(
-      tap(heroState => {
-        console.log('store', this.store);
-        console.log('heroes', heroState);
-      })
-    );
+    return this.store
+      .select(state => state.hero)
+      .pipe(tap(heroState => console.log('heroState', heroState)));
+  }
+
+  loading$() {
+    return this.store
+      .select(state => state.hero.loading)
+      .pipe(tap(loading => console.log('loading', loading)));
   }
 }

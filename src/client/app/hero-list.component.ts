@@ -12,13 +12,13 @@ import { HeroService, HeroState } from './store';
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
-      <div class="todos" *ngIf="heroState$ | async as heroState">
+      <div class="todos" *ngIf="heroes$ | async as heroes">
 
-        <div *ngIf="heroState.loading;else heroList">Loading</div>
+        <div *ngIf="loading$ | async;else heroList">Loading</div>
 
         <ng-template #heroList>
           <ul class="heroes">
-            <li *ngFor="let hero of heroState.heroes"
+            <li *ngFor="let hero of heroes"
               class="hero-container"
               [class.selected]="hero === selectedHero">
               <div class="hero-element">
@@ -51,12 +51,14 @@ export class HeroListComponent implements OnInit {
   heroes: Hero[] = [];
   selectedHero: Hero = null;
 
-  heroState$: Observable<HeroState>;
+  heroes$: Observable<Hero[]>;
+  loading$: Observable<boolean>;
 
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
-    this.heroState$ = this.heroService.heroState$();
+    this.heroes$ = this.heroService.heroes$();
+    this.loading$ = this.heroService.loading$();
     this.getHeroes();
 
     // // Debugging only

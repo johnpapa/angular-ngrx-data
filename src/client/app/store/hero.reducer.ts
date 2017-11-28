@@ -54,7 +54,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.DELETE_HERO_SUCCESS: {
-      return heroState;
+      return { ...heroState, loading: false };
     }
 
     case HeroActions.DELETE_HERO_ERROR: {

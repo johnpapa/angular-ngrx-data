@@ -33,4 +33,13 @@ export class HeroService {
       })
     );
   }
+
+  heroState$() {
+    return this.store.select(state => state.hero).pipe(
+      tap(heroState => {
+        console.log('store', this.store);
+        console.log('heroes', heroState);
+      })
+    );
+  }
 }

@@ -3,11 +3,14 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
+import { delay } from 'rxjs/operators/delay';
+
 // import 'rxjs/Rx';
 
 import { Hero } from '../model';
 
 const api = '/api';
+const fakeDelay = 1000;
 
 @Injectable()
 export class HeroDataService {
@@ -24,7 +27,7 @@ export class HeroDataService {
   getHeroes() {
     return this.http
       .get<Array<Hero>>(`${api}/heroes`)
-      .map(heroes => heroes)
+      .pipe(delay(fakeDelay))
       .catch(this.handleError);
   }
 
@@ -34,14 +37,14 @@ export class HeroDataService {
   }
 
   deleteHero(hero: Hero) {
-    return this.http.delete(`${api}/hero/${hero.id}`);
+    return this.http.delete(`${api}/hero/${hero.id}`).pipe(delay(fakeDelay));
   }
 
   addHero(hero: Hero) {
-    return this.http.post<Hero>(`${api}/hero/`, hero);
+    return this.http.post<Hero>(`${api}/hero/`, hero).pipe(delay(fakeDelay));
   }
 
   updateHero(hero: Hero) {
-    return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero);
+    return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero).pipe(delay(fakeDelay));
   }
 }

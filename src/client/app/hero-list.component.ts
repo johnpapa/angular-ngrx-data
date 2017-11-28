@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from './model';
-import { HeroService } from './store';
+import { HeroService, HeroState } from './store';
 
 @Component({
   selector: 'app-hero-list',
@@ -12,20 +12,29 @@ import { HeroService } from './store';
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
-      <ul class="heroes" *ngIf="heroes$ | async as heroes">
-      <li *ngFor="let hero of heroes"
-          class="hero-container"
-          [class.selected]="hero === selectedHero">
-          <div class="hero-element">
-            <div class="badge">{{hero.id}}</div>
-            <div class="hero-text" (click)="onSelect(hero)">
-              <div class="name">{{hero.name}}</div>
-              <div class="saying">{{hero.saying}}</div>
-            </div>
-          </div>
-          <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
-        </li>
-      </ul>
+      <div class="todos" *ngIf="heroState$ | async as heroState">
+
+        <div *ngIf="heroState.loading;else heroList">Loading</div>
+
+        <ng-template #heroList>
+          <ul class="heroes">
+            <li *ngFor="let hero of heroState.heroes"
+              class="hero-container"
+              [class.selected]="hero === selectedHero">
+              <div class="hero-element">
+                <div class="badge">{{hero.id}}</div>
+                <div class="hero-text" (click)="onSelect(hero)">
+                  <div class="name">{{hero.name}}</div>
+                  <div class="saying">{{hero.saying}}</div>
+                </div>
+              </div>
+              <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
+            </li>
+          </ul>
+        </ng-template>
+      </div>
+
+      <ng-template #elseTemplate>Loading</ng-template>
       <app-hero-detail
         *ngIf="selectedHero || addingHero"
         [hero]="selectedHero"
@@ -42,12 +51,12 @@ export class HeroListComponent implements OnInit {
   heroes: Hero[] = [];
   selectedHero: Hero = null;
 
-  heroes$: Observable<Hero[]>;
+  heroState$: Observable<HeroState>;
 
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
-    this.heroes$ = this.heroService.heroes$();
+    this.heroState$ = this.heroService.heroState$();
     this.getHeroes();
 
     // // Debugging only

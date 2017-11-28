@@ -15,7 +15,7 @@ import { HeroDetailComponent } from './hero-detail.component';
   imports: [
     BrowserModule,
     FormsModule,
-    ReactiveFormsModule,
+    // ReactiveFormsModule, // I could add this and then use FormControl with valueChanges
     HttpClientModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([HeroEffects])

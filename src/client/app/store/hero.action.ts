@@ -24,7 +24,6 @@ export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
 export class GetHeroes implements Action {
   readonly type = GET_HEROES;
-
   constructor(public payload: string = '') {}
 }
 
@@ -32,6 +31,7 @@ export class GetHeroesSuccess implements Action {
   readonly type = GET_HEROES_SUCCESS;
   constructor(public payload: Hero[]) {}
 }
+
 export class GetHeroesError implements Action {
   readonly type = GET_HEROES_ERROR;
 }
@@ -40,10 +40,12 @@ export class AddHero implements Action {
   readonly type = ADD_HERO;
   constructor(public payload: Hero) {}
 }
+
 export class AddHeroSuccess implements Action {
   readonly type = ADD_HERO_SUCCESS;
   constructor(public payload: Hero) {}
 }
+
 export class AddHeroError implements Action {
   readonly type = ADD_HERO_ERROR;
 }

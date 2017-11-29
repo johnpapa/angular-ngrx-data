@@ -11,7 +11,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 
-import { Hero } from './hero';
+import { Hero } from './model';
 
 @Component({
   selector: 'app-hero-detail',
@@ -76,7 +76,6 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   }
 
   cloneIt() {
-    console.log(`cloning`, this.hero);
     return Object.assign({}, this.hero);
   }
 

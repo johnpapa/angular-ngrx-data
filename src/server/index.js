@@ -1,5 +1,4 @@
 const express = require('express');
-const security = require('./security');
 const bodyParser = require('body-parser');
 
 const envFile = './env/' + process.env.NODE_ENV;
@@ -9,8 +8,6 @@ const routes = require('./routes');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(security());
 
 app.use(express.static(env.publicWeb));
 console.log(`serving ${env.publicWeb}`);

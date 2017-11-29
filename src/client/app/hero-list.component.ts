@@ -1,7 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 
-import { Hero } from './hero';
-import { HeroService } from './hero.service';
+import { Hero } from './model';
+import { HeroService, HeroState } from './store';
+import { FormControl } from '@angular/forms';
+import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
 @Component({
   selector: 'app-hero-list',
@@ -11,20 +14,33 @@ import { HeroService } from './hero.service';
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
-      <ul class="heroes" *ngIf="heroes && heroes.length">
-        <li *ngFor="let hero of heroes"
-          class="hero-container"
-          [class.selected]="hero === selectedHero">
-          <div class="hero-element">
-            <div class="badge">{{hero.id}}</div>
-            <div class="hero-text" (click)="onSelect(hero)">
-              <div class="name">{{hero.name}}</div>
-              <div class="saying">{{hero.saying}}</div>
-            </div>
-          </div>
-          <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
-        </li>
-      </ul>
+      <div>
+        <p>Filter the heroes</p>
+        <input [value]="filterText$ | async" (input)="setFilter($event.target.value)"/>
+      </div>
+      <div class="todos" *ngIf="filteredHeroes$ | async as heroes">
+
+        <div *ngIf="loading$ | async;else heroList">Loading</div>
+
+        <ng-template #heroList>
+          <ul class="heroes">
+            <li *ngFor="let hero of heroes"
+              class="hero-container"
+              [class.selected]="hero === selectedHero">
+              <div class="hero-element">
+                <div class="badge">{{hero.id}}</div>
+                <div class="hero-text" (click)="onSelect(hero)">
+                  <div class="name">{{hero.name}}</div>
+                  <div class="saying">{{hero.saying}}</div>
+                </div>
+              </div>
+              <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
+            </li>
+          </ul>
+        </ng-template>
+      </div>
+
+      <ng-template #elseTemplate>Loading ...</ng-template>
       <app-hero-detail
         *ngIf="selectedHero || addingHero"
         [hero]="selectedHero"
@@ -33,17 +49,39 @@ import { HeroService } from './hero.service';
       </app-hero-detail>
     </div>
   `,
-  styleUrls: [`./hero-list.component.scss`]
+  styleUrls: [`./hero-list.component.scss`],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;
   heroes: Hero[] = [];
   selectedHero: Hero = null;
 
+  filteredHeroes$: Observable<Hero[]>;
+  loading$: Observable<boolean>;
+  filter$: Observable<string>;
+  searchText = '';
+  filterText$: Observable<string>;
+
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
-    this.getHeroes();
+    this.filteredHeroes$ = this.heroService.filteredHeroes$();
+    // this.heroes$ = this.heroService.heroes$();
+    this.loading$ = this.heroService.loading$();
+    this.filter$ = this.heroService.filter$();
+
+    // this.searchCriteria$
+    //   .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+    //   .subscribe((val: string) => this.filterHeroes(val));
+
+    this.filter$
+      .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+      .subscribe((val: string) => this.filterHeroes(val));
+  }
+
+  setFilter(value: string) {
+    this.heroService.setFilter(value);
   }
 
   clear() {
@@ -52,12 +90,8 @@ export class HeroListComponent implements OnInit {
   }
 
   deleteHero(hero: Hero) {
-    this.heroService.deleteHero(hero).subscribe(res => {
-      this.heroes = this.heroes.filter((h: Hero) => h !== hero);
-      if (this.selectedHero === hero) {
-        this.selectedHero = null;
-      }
-    });
+    this.unselect();
+    this.heroService.deleteHero(hero);
   }
 
   enableAddMode() {
@@ -65,36 +99,21 @@ export class HeroListComponent implements OnInit {
     this.selectedHero = null;
   }
 
+  filterHeroes(filter: string) {
+    this.heroService.getFilteredHeroes(filter);
+  }
+
   getHeroes() {
-    this.heroes = [];
-    this.clear();
-    return this.heroService.getHeroes().subscribe(heroes => {
-      this.heroes = heroes;
-    });
+    this.heroService.getHeroes();
   }
 
   onSelect(hero: Hero) {
     this.addingHero = false;
     this.selectedHero = hero;
-    console.log('selected', this.selectedHero);
   }
 
-  save(arg: { mode: string; hero: Hero }) {
-    const hero = arg.hero;
-    console.log('hero changed', hero);
-    if (arg.mode === 'add') {
-      this.heroService.addHero(hero).subscribe(() => {
-        this.addingHero = false;
-        this.selectedHero = null;
-        this.heroes.push(hero);
-      });
-    } else {
-      this.heroService.updateHero(hero).subscribe(() => {
-        const index = this.heroes.findIndex((h: Hero) => hero.id === h.id);
-        this.heroes.splice(index, 1, hero);
-        this.clear();
-      });
-    }
+  save(arg: { mode: 'add' | 'update'; hero: Hero }) {
+    this.heroService.saveHero(arg.hero, arg.mode);
   }
 
   unselect() {

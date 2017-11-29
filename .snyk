@@ -1,0 +1,40 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.7.1
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - clite > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve-deps > clite > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-module > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-policy > snyk-module > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve-deps > snyk-module > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > needle > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-policy > snyk-resolve > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve-deps > snyk-resolve > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-try-require > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-policy > snyk-try-require > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve-deps > snyk-try-require > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-policy > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-config > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve-deps > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - snyk > snyk-resolve > debug:
+        patched: '2017-11-29T03:57:39.892Z'
+    - needle > debug:
+        patched: '2017-11-29T03:57:39.892Z'

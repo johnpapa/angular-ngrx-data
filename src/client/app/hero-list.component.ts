@@ -11,14 +11,14 @@ import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
   template: `
     <div>
       <div class="button-group">
-        <button (click)="getHeroes('')">Refresh</button>
+        <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
       <div>
         <p>Filter the heroes</p>
-        <input [value]="searchTerms$ | async" (input)="search($event.target.value)"/>
+        <input [value]="filterText$ | async" (input)="setFilter($event.target.value)"/>
       </div>
-      <div class="todos" *ngIf="heroes$ | async as heroes">
+      <div class="todos" *ngIf="filteredHeroes$ | async as heroes">
 
         <div *ngIf="loading$ | async;else heroList">Loading</div>
 
@@ -40,7 +40,7 @@ import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
         </ng-template>
       </div>
 
-      <ng-template #elseTemplate>Loading</ng-template>
+      <ng-template #elseTemplate>Loading ...</ng-template>
       <app-hero-detail
         *ngIf="selectedHero || addingHero"
         [hero]="selectedHero"
@@ -57,27 +57,31 @@ export class HeroListComponent implements OnInit {
   heroes: Hero[] = [];
   selectedHero: Hero = null;
 
-  heroes$: Observable<Hero[]>;
+  filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
-  searchCriteria$: Observable<string>;
-  public searchTerms$: Observable<string>;
+  filter$: Observable<string>;
+  searchText = '';
+  filterText$: Observable<string>;
 
   constructor(private heroService: HeroService) {}
 
   ngOnInit() {
-    this.heroes$ = this.heroService.heroes$();
+    this.filteredHeroes$ = this.heroService.filteredHeroes$();
+    // this.heroes$ = this.heroService.heroes$();
     this.loading$ = this.heroService.loading$();
-    this.searchCriteria$ = this.heroService.searchCriteria$().pipe(skip(1));
+    this.filter$ = this.heroService.filter$();
 
-    // this.getHeroes('');
+    // this.searchCriteria$
+    //   .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+    //   .subscribe((val: string) => this.filterHeroes(val));
 
-    this.searchCriteria$
-      .pipe(debounceTime(500), distinctUntilChanged())
-      .subscribe((val: string) => this.getHeroes(val));
+    this.filter$
+      .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+      .subscribe((val: string) => this.filterHeroes(val));
   }
 
-  search(value: string) {
-    this.heroService.setSearchCriteria(value);
+  setFilter(value: string) {
+    this.heroService.setFilter(value);
   }
 
   clear() {
@@ -95,8 +99,12 @@ export class HeroListComponent implements OnInit {
     this.selectedHero = null;
   }
 
-  getHeroes(criteria: string) {
-    this.heroService.getHeroes(criteria);
+  filterHeroes(filter: string) {
+    this.heroService.getFilteredHeroes(filter);
+  }
+
+  getHeroes() {
+    this.heroService.getHeroes();
   }
 
   onSelect(hero: Hero) {

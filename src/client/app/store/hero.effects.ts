@@ -21,25 +21,26 @@ export class HeroEffects {
   getHeroes$: Observable<Action> = this.actions$
     .ofType(HeroActions.GET_HEROES)
     .switchMap(() => this.store.select(state => state.hero).take(1))
-    .switchMap(heroState => {
-      const heroes = heroState.heroes;
-      if (!heroes || heroes.length === 0) {
-        return this.heroDataService.getHeroes('');
-      }
-      return of(heroes);
-    })
-    // .switchMap(heroState => {
-    //   const heroes = heroState.heroes;
-    //   if (!heroes || heroes.length === 0) {
-    //     return this.heroDataService.getHeroes(heroState.searchCriteria);
-    //   }
-    //   return of(heroes.filter(h => new RegExp(heroState.searchCriteria, 'i').test(h.name)));
-    // })
+    .switchMap(heroState => this.heroDataService.getHeroes())
     .map(results => new HeroActions.GetHeroesSuccess(results))
-    .catch(() => of(new HeroActions.GetHeroError()));
+    .catch(() => of(new HeroActions.GetHeroesError()));
+
+  // @Effect()
+  // searchHeroes$: Observable<Action> = this.actions$
+  //   .ofType(HeroActions.SEARCH_HEROES)
+  //   .switchMap(() => this.store.select(state => state.hero).take(1))
+  //   .switchMap(heroState => {
+  //     const heroes = heroState.heroes;
+  //     if (!heroes || heroes.length === 0) {
+  //       return this.heroDataService.getHeroes(heroState.filter);
+  //     }
+  //     return of(heroes);
+  //   })
+  //   .map(heroes => new HeroActions.SearchHeroesSuccess(heroes))
+  //   .catch(() => of(new HeroActions.SearchHeroesError()));
 
   @Effect()
-  createHero$: Observable<Action> = this.actions$
+  addHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.ADD_HERO)
     .map((action: HeroActions.AddHero) => action.payload)
     .switchMap(hero => this.heroDataService.addHero(hero))

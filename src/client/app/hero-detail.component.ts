@@ -76,7 +76,6 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   }
 
   cloneIt() {
-    console.log(`cloning`, this.hero);
     return Object.assign({}, this.hero);
   }
 

@@ -14,24 +14,47 @@ export const UPDATE_HERO = '[Hero] UPDATE_HERO';
 export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
 export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
 
+export const SET_FILTER = '[Hero] - SET_FILTER';
+export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
+
 export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
 export const GET_HEROES_ERROR = '[Hero] GET_HEROES_ERROR';
+
+// export const SEARCH_HEROES = '[Hero] SEARCH_HEROES';
+// export const SEARCH_HEROES_SUCCESS = '[Hero] SEARCH_HEROES_SUCCESS';
+// export const SEARCH_HEROES_ERROR = '[Hero] SEARCH_HEROES_ERROR';
 
 export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
-export const  SET_CRITERIA = '[Hero] - SET_CRITERIA';
-
-export class SetSearchCriteria implements Action {
-  readonly type = SET_CRITERIA;
+export class SetFilter implements Action {
+  readonly type = SET_FILTER;
   constructor(public payload: string) {}
+}
+
+// export class SearchHeroes implements Action {
+//   readonly type = SEARCH_HEROES;
+//   constructor(public payload: string = '') {}
+// }
+
+// export class SearchHeroesSuccess implements Action {
+//   readonly type = SEARCH_HEROES_SUCCESS;
+//   constructor(public payload: Hero[]) {}
+// }
+
+// export class SearchHeroesError implements Action {
+//   readonly type = SEARCH_HEROES_ERROR;
+// }
+
+export class GetFilteredHeroes implements Action {
+  readonly type = GET_FILTERED_HEROES;
+  constructor(public payload: string = '') {}
 }
 
 export class GetHeroes implements Action {
   readonly type = GET_HEROES;
-  constructor(public payload: string = '') {}
 }
 
 export class GetHeroesSuccess implements Action {
@@ -78,9 +101,7 @@ export class UpdateHero implements Action {
 
 export class UpdateHeroSuccess implements Action {
   readonly type = UPDATE_HERO_SUCCESS;
-  constructor(public payload: Hero) {
-    console.log(this.payload);
-  }
+  constructor(public payload: Hero) {}
 }
 
 export class UpdateHeroError implements Action {
@@ -111,12 +132,16 @@ export type All =
   | UpdateHeroSuccess
   | UpdateHeroError
   | GetHeroes
+  | SetFilter
+  | GetFilteredHeroes
   | GetHeroesSuccess
   | GetHeroesError
+  // | SearchHeroes
+  // | SearchHeroesSuccess
+  // | SearchHeroesError
   | AddHero
   | AddHeroSuccess
   | AddHeroError
   | DeleteHero
   | DeleteHeroSuccess
-  | DeleteHeroError
-  | SetSearchCriteria;
+  | DeleteHeroError;

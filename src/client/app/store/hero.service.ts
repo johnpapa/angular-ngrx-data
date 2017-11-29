@@ -13,8 +13,8 @@ export class HeroService {
     this.store.dispatch(new HeroAction.DeleteHero(hero));
   }
 
-  setSearchCriteria(criteria: string) {
-    this.store.dispatch(new HeroAction.SetSearchCriteria(criteria));
+  setFilter(filter: string) {
+    this.store.dispatch(new HeroAction.SetFilter(filter));
   }
 
   saveHero(hero: Hero, mode: 'add' | 'update') {
@@ -25,14 +25,20 @@ export class HeroService {
     }
   }
 
-  getHeroes(criteria: string) {
-    this.store.dispatch(new HeroAction.GetHeroes(criteria));
+  getHeroes() {
+    this.store.dispatch(new HeroAction.GetHeroes());
+  }
+
+  getFilteredHeroes(filter: string) {
+    this.store.dispatch(new HeroAction.GetFilteredHeroes(filter));
+  }
+
+  filteredHeroes$() {
+    return this.store.select(state => state.hero.filteredHeroes);
   }
 
   heroes$() {
-    return this.store
-      .select(state => state.hero.heroes)
-      .pipe(tap(heroes => console.log('heroes', heroes)));
+    return this.store.select(state => state.hero.heroes);
   }
 
   heroState$() {
@@ -47,9 +53,9 @@ export class HeroService {
       .pipe(tap(loading => console.log('loading', loading)));
   }
 
-  searchCriteria$() {
+  filter$() {
     return this.store
-      .select(state => state.hero.searchCriteria)
-      .pipe(tap(searchCriteria => console.log('searchCriteria', searchCriteria)));
+      .select(state => state.hero.filter)
+      .pipe(tap(filter => console.log('filter', filter)));
   }
 }

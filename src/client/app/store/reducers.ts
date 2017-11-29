@@ -14,11 +14,3 @@ export const reducers = {
   hero: heroReducer
   // here is where i put other reducers, when i have them
 };
-
-// export class AppStore extends Store<State> {}
-
-// export type AppStoreType = Store<State> ;
-
-// export const AppStoreProvider = {
-//   provide: AppStore, useExisting: Store<State>
-// };

@@ -1,6 +1,7 @@
 import { Action } from '@ngrx/store';
 
 import { Hero } from '../model';
+import { HeroDataServiceError } from './hero-data.service';
 
 export const ADD_HERO = '[Hero] ADD_HERO';
 export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
@@ -15,7 +16,7 @@ export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
 export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
 
 export const SET_FILTER = '[Hero] - SET_FILTER';
-export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
+export const SET_FILTERED_HEROES = '[Hero] SET_FILTERED_HEROES';
 
 export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
@@ -49,7 +50,7 @@ export class SetFilter implements Action {
 // }
 
 export class GetFilteredHeroes implements Action {
-  readonly type = GET_FILTERED_HEROES;
+  readonly type = SET_FILTERED_HEROES;
   constructor(public payload: string = '') {}
 }
 
@@ -106,7 +107,7 @@ export class UpdateHeroSuccess implements Action {
 
 export class UpdateHeroError implements Action {
   readonly type = UPDATE_HERO_ERROR;
-  constructor(public payload: Hero) {}
+  constructor(public payload: HeroDataServiceError<Hero>) {}
 }
 
 export class DeleteHero implements Action {
@@ -121,7 +122,7 @@ export class DeleteHeroSuccess implements Action {
 
 export class DeleteHeroError implements Action {
   readonly type = DELETE_HERO_ERROR;
-  constructor(public payload: Hero) {}
+  constructor(public payload: HeroDataServiceError<Hero>) {}
 }
 
 export type All =

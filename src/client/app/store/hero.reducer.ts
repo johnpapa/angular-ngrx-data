@@ -24,27 +24,24 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.ADD_HERO_SUCCESS: {
-      const result = {
+      return {
         ...heroState,
         loading: false,
         heroes: [...heroState.heroes, { ...action.payload }]
       };
-      result.filteredHeroes = [...filterHeroes(result.heroes, heroState.filter)];
-      return result;
     }
 
     case HeroActions.ADD_HERO_ERROR: {
       return { ...heroState, loading: false };
     }
 
-    case HeroActions.GET_FILTERED_HEROES: {
-      const result = {
+    case HeroActions.SET_FILTERED_HEROES: {
+      return {
         ...heroState,
-        filteredHeroes: [
-          ...heroState.heroes.filter(h => new RegExp(heroState.filter, 'i').test(h.name))
-        ]
+        filteredHeroes: heroState.heroes.filter(h =>
+          new RegExp(heroState.filter, 'i').test(h.name)
+        )
       };
-      return result;
     }
 
     case HeroActions.GET_HEROES: {
@@ -57,7 +54,6 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
       return {
         ...heroState,
         heroes: action.payload,
-        filteredHeroes: [...filterHeroes(action.payload, heroState.filter)],
         loading: false
       };
     }
@@ -67,7 +63,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.DELETE_HERO: {
-      const splicedHeroes = heroState.heroes.filter(h => h !== action.payload);
+      // const splicedHeroes = heroState.heroes.filter(h => h !== action.payload);
       return {
         ...heroState,
         loading: true,
@@ -77,12 +73,15 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
 
     case HeroActions.DELETE_HERO_SUCCESS: {
       const result = { ...heroState, loading: false };
-      result.filteredHeroes = [...filterHeroes(result.heroes, heroState.filter)];
       return result;
     }
 
     case HeroActions.DELETE_HERO_ERROR: {
-      return { ...heroState, loading: false, heroes: [...heroState.heroes, action.payload] };
+      return {
+        ...heroState,
+        heroes: [...heroState.heroes, action.payload.requestData],
+        loading: false,
+      };
     }
 
     case HeroActions.UPDATE_HERO: {
@@ -106,7 +105,8 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
         ...heroState,
         loading: false,
         heroes: heroState.heroes.map(h => {
-          if (h.id === action.payload.id) {
+          if (h.id === action.payload.requestData.id) {
+            // Huh? No idea what the error is!
             heroState.error = true;
           }
           return h;
@@ -121,7 +121,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
 }
 
 function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): HeroState {
-  const result = {
+  return {
     ...heroState,
     loading: false,
     heroes: heroState.heroes.map(h => {
@@ -132,10 +132,4 @@ function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): Hero
       }
     })
   };
-  result.filteredHeroes = [...filterHeroes(result.heroes, heroState.filter)];
-  return result;
-}
-
-function filterHeroes(payload: Hero[], filter: string) {
-  return payload.filter(h => new RegExp(filter, 'i').test(h.name));
 }

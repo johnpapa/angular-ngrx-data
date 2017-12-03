@@ -45,12 +45,10 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.GET_HEROES: {
-      // case HeroActions.SEARCH_HEROES: {
       return { ...heroState, loading: true };
     }
 
     case HeroActions.GET_HEROES_SUCCESS: {
-      // case HeroActions.SEARCH_HEROES_SUCCESS:
       return {
         ...heroState,
         heroes: action.payload,
@@ -63,7 +61,6 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     }
 
     case HeroActions.DELETE_HERO: {
-      // const splicedHeroes = heroState.heroes.filter(h => h !== action.payload);
       return {
         ...heroState,
         loading: true,

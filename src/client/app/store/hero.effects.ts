@@ -24,21 +24,6 @@ export class HeroEffects {
       catchError(() => of(new HeroActions.GetHeroesError()))
     );
 
-  // @Effect()
-  // searchHeroes$: Observable<Action> = this.actions$
-  //   .ofType(HeroActions.SEARCH_HEROES).pipe(
-  //     concatMap(() => this.store.select(state => state.hero).pipe(first())),
-  //     concatMap(heroState => {
-  //       const heroes = heroState.heroes;
-  //       if (!heroes || heroes.length === 0) {
-  //         return this.heroDataService.getHeroes(heroState.filter);
-  //       }
-  //       return of(heroes);
-  //     }),
-  //     mergeMap(heroes => [new HeroActions.SearchHeroesSuccess(heroes), filterAction]),
-  //     catchError(() => of(new HeroActions.SearchHeroesError()))
-  //   );
-
   @Effect()
   addHero$: Observable<Action> = this.actions$
     .ofType<HeroActions.AddHero>(HeroActions.ADD_HERO).pipe(

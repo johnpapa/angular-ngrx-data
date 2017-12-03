@@ -1,5 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
+import { environment } from '../environments/environment';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { StoreModule, Store } from '@ngrx/store';
@@ -20,7 +21,7 @@ import { HeroDetailComponent } from './hero-detail.component';
     HttpClientModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([HeroEffects]),
-    StoreDevtoolsModule.instrument()
+    !environment.production ? StoreDevtoolsModule.instrument() : [],
   ],
   providers: [
     HeroDataService,

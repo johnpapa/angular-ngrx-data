@@ -22,10 +22,6 @@ export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
 export const GET_HEROES_ERROR = '[Hero] GET_HEROES_ERROR';
 
-// export const SEARCH_HEROES = '[Hero] SEARCH_HEROES';
-// export const SEARCH_HEROES_SUCCESS = '[Hero] SEARCH_HEROES_SUCCESS';
-// export const SEARCH_HEROES_ERROR = '[Hero] SEARCH_HEROES_ERROR';
-
 export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
@@ -34,20 +30,6 @@ export class SetFilter implements Action {
   readonly type = SET_FILTER;
   constructor(public payload: string) {}
 }
-
-// export class SearchHeroes implements Action {
-//   readonly type = SEARCH_HEROES;
-//   constructor(public payload: string = '') {}
-// }
-
-// export class SearchHeroesSuccess implements Action {
-//   readonly type = SEARCH_HEROES_SUCCESS;
-//   constructor(public payload: Hero[]) {}
-// }
-
-// export class SearchHeroesError implements Action {
-//   readonly type = SEARCH_HEROES_ERROR;
-// }
 
 export class GetFilteredHeroes implements Action {
   readonly type = SET_FILTERED_HEROES;
@@ -137,9 +119,6 @@ export type All =
   | GetFilteredHeroes
   | GetHeroesSuccess
   | GetHeroesError
-  // | SearchHeroes
-  // | SearchHeroesSuccess
-  // | SearchHeroesError
   | AddHero
   | AddHeroSuccess
   | AddHeroError

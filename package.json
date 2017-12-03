@@ -5,6 +5,7 @@
   "scripts": {
     "dev-proxy":
       "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
+    "dev": "concurrently \"npm run start\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "ng": "ng",
     "start-ng": "ng serve",
     "build": "ng build",
@@ -50,6 +51,7 @@
     "@angular/compiler-cli": "^5.0.0",
     "@angular/language-service": "^5.0.0",
     "@ngrx/store-devtools": "^4.1.1",
+    "ngrx-store-freeze": "^0.2.0",
     "@types/jasmine": "~2.5.53",
     "@types/jasminewd2": "~2.0.2",
     "@types/node": "~6.0.60",

@@ -25,22 +25,18 @@
 
 1. Configure Cosmos DB server settings
 
-    Create a file with the following name and location `server/env/development.js` and copy the contents from `server/env/example.js` into it. Replace the values with your specific configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
+    Create a file with the following name and location `.env` and copy the contents from `.env.example` into it. Replace the values with your specific configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
 
     ```javascript
-    const serverPort = 3001;
+    NODE_ENV=development
 
-    const cosmos = {
-      accountName: 'your-cosmosdb-account-name',
-      databaseName: 'your-database-name',
-      key: 'your-cosmosdb-key',
-      port: 10255
-    };
+    SERVER_PORT=3001
+    PUBLICWEB=./publicweb
 
-    module.exports = {
-      serverPort,
-      cosmos,
-    };
+    COSMOSDB_ACCOUNT=your_cosmos_account
+    COSMOSDB_DB=your_cosmos_db
+    COSMOSDB_KEY=your_cosmos_key
+    COSMOSDB_PORT=10255
     ```
 
 ## Running the app

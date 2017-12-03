@@ -38,7 +38,7 @@ import { Hero } from './model';
       </div>
     </div>
     `,
-  styleUrls: [`./hero-detail.component.scss`]
+  styleUrls: ['./hero-detail.component.scss']
 })
 export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Input() hero: Hero;

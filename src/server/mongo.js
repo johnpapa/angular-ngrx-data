@@ -5,16 +5,11 @@ const mongoose = require('mongoose');
  */
 mongoose.Promise = global.Promise;
 
-const envFile = './env/' + (process.env.NODE_ENV || 'development');
-console.log(`reading env file ${envFile}`);
-const env = require(envFile);
-console.log(`env file contains cosmos settings = ${!!env.cosmos.accountName}`);
-
 // Cosmos DB Connection String
 // eslint-disable-next-line max-len
-const mongoUri = `mongodb://${env.cosmos.accountName}:${env.cosmos.key}@${
-  env.cosmos.accountName
-}.documents.azure.com:${env.cosmos.port}/${env.cosmos.databaseName}?ssl=true`;
+const mongoUri = `mongodb://${process.env.COSMOSDB_ACCOUNT}:${process.env.COSMOSDB_KEY}@${
+  process.env.COSMOSDB_ACCOUNT
+}.documents.azure.com:${process.env.COSMOSDB_PORT}/${process.env.COSMOSDB_DB}?ssl=true`;
 //&replicaSet=globaldb`;
 
 // Local MongoDB Connection String

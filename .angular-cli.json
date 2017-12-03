@@ -10,12 +10,14 @@
       "assets": [
         "assets",
         "favicon.ico",
-        {
+      {
+          "allowOutsideOutDir": true,
           "glob": "**/*.*",
           "input": "../server/",
           "output": "../"
         },
         {
+          "allowOutsideOutDir": true,
           "glob": "package.json",
           "input": "../../",
           "output": "../"

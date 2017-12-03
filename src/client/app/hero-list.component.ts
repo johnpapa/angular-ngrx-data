@@ -49,7 +49,7 @@ import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
       </app-hero-detail>
     </div>
   `,
-  styleUrls: ['/hero-list.component.scss'],
+  styleUrls: ['./hero-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroListComponent implements OnInit {

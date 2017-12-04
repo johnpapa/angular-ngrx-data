@@ -1,11 +1,11 @@
 import { Action } from '@ngrx/store';
 
-import { Hero } from '../model';
-import { HeroDataServiceError } from './hero-data.service';
+import { Hero } from '../../model';
+import { HeroDataServiceError } from '../hero-data.service';
 
 export const ADD_HERO = '[Hero] ADD_HERO';
-export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
 export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';
+export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
 
 export const GET_HERO = '[Hero] GET_HERO';
 export const GET_HERO_SUCCESS = '[Hero] GET_HERO_SUCCESS';
@@ -107,7 +107,7 @@ export class DeleteHeroError implements Action {
   constructor(public payload: HeroDataServiceError<Hero>) {}
 }
 
-export type All =
+export type HeroAction =
   | GetHero
   | GetHeroSuccess
   | GetHeroError

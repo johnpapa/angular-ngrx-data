@@ -1,5 +1,5 @@
-import { Hero } from '../model';
-import * as HeroActions from './hero.action';
+import { Hero } from '../../model';
+import * as HeroActions from '../actions';
 
 export interface HeroState {
   filter: string;
@@ -17,7 +17,10 @@ export const initialHeroState: HeroState = {
   error: false
 };
 
-export function heroReducer(heroState = initialHeroState, action: HeroActions.All): HeroState {
+export function reducer(
+  heroState = initialHeroState,
+  action: HeroActions.HeroAction
+): HeroState {
   switch (action.type) {
     case HeroActions.ADD_HERO: {
       return { ...heroState, loading: true };
@@ -38,9 +41,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
     case HeroActions.SET_FILTERED_HEROES: {
       return {
         ...heroState,
-        filteredHeroes: heroState.heroes.filter(h =>
-          new RegExp(heroState.filter, 'i').test(h.name)
-        )
+        filteredHeroes: heroState.heroes.filter(h => new RegExp(heroState.filter, 'i').test(h.name))
       };
     }
 
@@ -77,7 +78,7 @@ export function heroReducer(heroState = initialHeroState, action: HeroActions.Al
       return {
         ...heroState,
         heroes: [...heroState.heroes, action.payload.requestData],
-        loading: false,
+        loading: false
       };
     }
 

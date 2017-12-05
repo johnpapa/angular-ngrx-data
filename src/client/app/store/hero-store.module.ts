@@ -12,13 +12,12 @@ import { services } from './';
 @NgModule({
   imports: [
     CommonModule,
-    // FormsModule,
     HttpClientModule,
-    // StoreModule.forFeature('heroic', reducers),
-    // EffectsModule.forFeature(effects)
+    StoreModule.forFeature('heroic', reducers),
+    EffectsModule.forFeature(effects)
   ],
   providers: [...services],
   declarations: [],
-  exports: [] // re-export our compoennts
+  exports: [StoreModule, EffectsModule]
 })
 export class HeroStoreModule {}

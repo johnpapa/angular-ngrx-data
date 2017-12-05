@@ -11,7 +11,7 @@ import {
   SimpleChanges
 } from '@angular/core';
 
-import { Hero } from './model';
+import { Hero } from '../model';
 
 @Component({
   selector: 'app-hero-detail',

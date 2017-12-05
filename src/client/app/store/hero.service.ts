@@ -3,11 +3,11 @@ import { Store, createSelector, createFeatureSelector } from '@ngrx/store';
 import * as HeroAction from './actions';
 import { tap } from 'rxjs/operators';
 import { Hero } from '../model';
-import { AppState } from './reducers';
+import { HeroicState } from './reducers';
 
 @Injectable()
 export class HeroService {
-  constructor(private store: Store<AppState>) {}
+  constructor(private store: Store<HeroicState>) {}
 
   // dispatchers
   deleteHero(hero: Hero) {
@@ -34,24 +34,24 @@ export class HeroService {
     this.store.dispatch(new HeroAction.GetFilteredHeroes(filter));
   }
 
+  /////////
+  // When using these feature selectors, we need a named feature.
+  // And routing helps.
+  /////////
   // // selectors
-  // export const getProductsState = createFeatureSelector<ProductsState>('products');
-  // tslint:disable-next-line:member-ordering
-  // getHeroesState = createFeatureSelector<AppState>('heroes');
-
-  // // pizzas state
-  // export const getPizzaState = createSelector(
-  //   getProductsState,
-  //   (state: ProductsState) => state.pizzas
+  // // tslint:disable-next-line:member-ordering
+  // getHeroicState = createFeatureSelector<HeroicState>('heroic');
+  // // tslint:disable-next-line:member-ordering
+  // getHeroState = createSelector(this.getHeroicState, (state: HeroicState) => state.heroes);
+  // // tslint:disable-next-line:member-ordering
+  // getAllHeroesFiltered = createSelector(
+  //   this.getHeroicState,
+  //   (state: HeroicState) => state.heroes.filteredHeroes
   // );
-  // tslint:disable-next-line:member-ordering
-  // getHeroState = createSelector(this.getHeroesState, (state: AppState) => state.heroes);
-  // export const getAllPizzas = createSelector(getPizzaState, fromPizzas.getPizzas);
-  // tslint:disable-next-line:member-ordering
-  // getHeroesFiltered = createSelector(this.getHeroesState, (state: AppState) => state.heroes.filteredHeroes);
 
   // observable selectors
   filteredHeroes$() {
+    // return this.store.select(this.getAllHeroesFiltered);
     return this.store.select(state => state.heroes.filteredHeroes);
   }
 

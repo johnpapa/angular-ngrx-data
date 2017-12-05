@@ -16,7 +16,7 @@ export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
 export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
 
 export const SET_FILTER = '[Hero] - SET_FILTER';
-export const SET_FILTERED_HEROES = '[Hero] SET_FILTERED_HEROES';
+export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
 
 export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
@@ -32,7 +32,7 @@ export class SetFilter implements Action {
 }
 
 export class GetFilteredHeroes implements Action {
-  readonly type = SET_FILTERED_HEROES;
+  readonly type = GET_FILTERED_HEROES;
   constructor(public payload: string = '') {}
 }
 
@@ -47,6 +47,7 @@ export class GetHeroesSuccess implements Action {
 
 export class GetHeroesError implements Action {
   readonly type = GET_HEROES_ERROR;
+  constructor(public payload: any) {}
 }
 
 export class AddHero implements Action {
@@ -61,6 +62,7 @@ export class AddHeroSuccess implements Action {
 
 export class AddHeroError implements Action {
   readonly type = ADD_HERO_ERROR;
+  constructor(public payload: any) {}
 }
 
 export class GetHero implements Action {
@@ -75,6 +77,7 @@ export class GetHeroSuccess implements Action {
 
 export class GetHeroError implements Action {
   readonly type = GET_HERO_ERROR;
+  constructor(public payload: any) {}
 }
 
 export class UpdateHero implements Action {

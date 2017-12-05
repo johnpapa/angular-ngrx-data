@@ -4,7 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
-import { Hero } from '../model';
+import { Hero } from '../../model';
 
 const api = '/api';
 const fakeDelays = { select: 1000, save: 200 };

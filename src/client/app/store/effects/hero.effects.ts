@@ -9,7 +9,7 @@ import { Actions, Effect } from '@ngrx/effects';
 
 import * as heroActions from '../actions';
 import { Hero } from '../../model';
-import { HeroDataService, HeroDataServiceError } from '../hero-data.service';
+import { HeroDataService, HeroDataServiceError } from '../services';
 import { HeroicState } from '../reducers';
 
 @Injectable()

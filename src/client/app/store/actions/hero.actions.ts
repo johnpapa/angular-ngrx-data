@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 
 import { Hero } from '../../model';
-import { HeroDataServiceError } from '../hero-data.service';
+import { HeroDataServiceError } from '../services';
 
 export const ADD_HERO = '[Hero] ADD_HERO';
 export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';

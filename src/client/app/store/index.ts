@@ -1,10 +1,8 @@
 export * from './actions';
 export * from './effects';
 export * from './reducers';
-export * from './hero-data.service';
-export * from './hero.service';
+export * from './services';
 
-import { HeroDataService } from './hero-data.service';
-import { HeroService } from './hero.service';
+import { HeroDispatchers, HeroDataService, HeroSelectors } from './services';
 
-export const services = [HeroDataService, HeroService];
+export const services = [HeroDataService, HeroDispatchers, HeroSelectors];

@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from '../model';
-import { HeroService } from '../store/hero.service';
+import { HeroDispatchers, HeroSelectors } from '../store';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
@@ -63,17 +63,12 @@ export class HeroListComponent implements OnInit {
   searchText = '';
   filterText$: Observable<string>;
 
-  constructor(private heroService: HeroService) {}
+  constructor(private heroDispatchers: HeroDispatchers, private heroSelectors: HeroSelectors) {}
 
   ngOnInit() {
-    this.filteredHeroes$ = this.heroService.filteredHeroes$();
-    // this.heroes$ = this.heroService.heroes$();
-    this.loading$ = this.heroService.loading$();
-    this.filter$ = this.heroService.filter$();
-
-    // this.searchCriteria$
-    //   .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
-    //   .subscribe((val: string) => this.filterHeroes(val));
+    this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
+    this.loading$ = this.heroSelectors.loading$();
+    this.filter$ = this.heroSelectors.filter$();
 
     this.filter$
       .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
@@ -81,7 +76,7 @@ export class HeroListComponent implements OnInit {
   }
 
   setFilter(value: string) {
-    this.heroService.setFilter(value);
+    this.heroDispatchers.setFilter(value);
   }
 
   clear() {
@@ -91,7 +86,7 @@ export class HeroListComponent implements OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroService.deleteHero(hero);
+    this.heroDispatchers.deleteHero(hero);
   }
 
   enableAddMode() {
@@ -100,11 +95,11 @@ export class HeroListComponent implements OnInit {
   }
 
   filterHeroes(filter: string) {
-    this.heroService.getFilteredHeroes(filter);
+    this.heroDispatchers.getFilteredHeroes(filter);
   }
 
   getHeroes() {
-    this.heroService.getHeroes();
+    this.heroDispatchers.getHeroes();
   }
 
   onSelect(hero: Hero) {
@@ -113,7 +108,7 @@ export class HeroListComponent implements OnInit {
   }
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
-    this.heroService.saveHero(arg.hero, arg.mode);
+    this.heroDispatchers.saveHero(arg.hero, arg.mode);
   }
 
   unselect() {

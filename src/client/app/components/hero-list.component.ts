@@ -1,10 +1,12 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from '../model';
 import { HeroDispatchers, HeroSelectors } from '../store';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
+
+import { InMemoryDataService } from '../in-memory-data.service';
 
 @Component({
   selector: 'app-hero-list',
@@ -13,6 +15,7 @@ import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
       <div class="button-group">
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
       </div>
       <div>
         <p>Filter the heroes</p>
@@ -55,6 +58,7 @@ import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 export class HeroListComponent implements OnInit {
   addingHero = false;
   heroes: Hero[] = [];
+  nextDataSource: string;
   selectedHero: Hero = null;
 
   filteredHeroes$: Observable<Hero[]>;
@@ -63,7 +67,13 @@ export class HeroListComponent implements OnInit {
   searchText = '';
   filterText$: Observable<string>;
 
-  constructor(private heroDispatchers: HeroDispatchers, private heroSelectors: HeroSelectors) {}
+  constructor(
+    private heroDispatchers: HeroDispatchers,
+    private heroSelectors: HeroSelectors,
+    // tslint:disable-next-line:no-shadowed-variable
+    @Optional() private inMemService: InMemoryDataService) {
+      if (inMemService) { this.nextDataSource = 'Remote'; }
+    }
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
@@ -109,6 +119,12 @@ export class HeroListComponent implements OnInit {
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
     this.heroDispatchers.saveHero(arg.hero, arg.mode);
+  }
+
+  toggleDataSource() {
+    const localSource = this.nextDataSource === 'Local';
+    this.inMemService.active = localSource;
+    this.nextDataSource = localSource ? 'Remote' : 'Local';
   }
 
   unselect() {

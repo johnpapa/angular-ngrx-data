@@ -6,5 +6,9 @@ export class Hero {
       saying: ''
     };
   }
-  constructor(public id: number, public name: string, public saying: string) {}
+  constructor(
+    public readonly id: number,
+    public readonly name: string,
+    public readonly saying: string
+  ) {}
 }

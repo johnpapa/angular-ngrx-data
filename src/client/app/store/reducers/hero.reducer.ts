@@ -17,7 +17,7 @@ export const initialState: HeroState = {
   error: false
 };
 
-export function reducer(state = initialState, action: HeroActions.HeroAction): HeroState {
+export function reducer(state = initialState, action: HeroActions.All): HeroState {
   switch (action.type) {
     case HeroActions.ADD_HERO: {
       return { ...state, loading: true };
@@ -44,6 +44,13 @@ export function reducer(state = initialState, action: HeroActions.HeroAction): H
 
     case HeroActions.GET_HEROES: {
       return { ...state, loading: true };
+    }
+
+    case HeroActions.GET_HEROES_ERROR: {
+      return {
+        ...state,
+        loading: false
+      };
     }
 
     case HeroActions.GET_HEROES_SUCCESS: {

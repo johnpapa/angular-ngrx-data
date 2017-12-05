@@ -19,26 +19,3 @@ export const reducers: ActionReducerMap<HeroicState> = {
 // export const getHeroicState = createFeatureSelector<HeroicState>(
 //   'heroic'
 // );
-
-// export const getHeroes = (state: HeroState) => state.heroes;
-
-// export interface ProductsState {
-//   pizzas: fromPizzas.PizzaState;
-// }
-
-// export const reducers: ActionReducerMap<ProductsState> = {
-//   pizzas: fromPizzas.reducer
-// };
-
-// // selectors
-// export const getProductsState = createFeatureSelector<ProductsState>('products');
-
-// // pizzas state
-// export const getPizzaState = createSelector(
-//   getProductsState,
-//   (state: ProductsState) => state.pizzas
-// );
-
-// export const getAllPizzas = createSelector(getPizzaState, fromPizzas.getPizzas);
-// export const getAllPizzasLoaded = createSelector(getPizzaState, fromPizzas.getPizzasLoaded);
-// export const getAllPizzasLoading = createSelector(getPizzaState, fromPizzas.getPizzasLoading);

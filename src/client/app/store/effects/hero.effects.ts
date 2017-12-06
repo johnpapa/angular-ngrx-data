@@ -2,61 +2,58 @@ import { Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
-import { catchError, mergeMap, switchMap } from 'rxjs/operators';
+import { concatMap, catchError, first, map, mergeMap, switchMap  } from 'rxjs/operators';
 
 import { Action, Store } from '@ngrx/store';
 import { Actions, Effect } from '@ngrx/effects';
 
-import * as heroActions from '../actions';
+import * as HeroActions from '../actions';
+
 import { Hero } from '../../model';
-import { HeroDataService, HeroDataServiceError } from '../services';
+import { HeroDataService, DataServiceError } from '../services';
 import { HeroicState } from '../reducers';
+
+const filterAction = new HeroActions.GetFilteredHeroes();
+const toAction = HeroActions.toAction(filterAction);
+type HeroAction = HeroActions.HeroAction
 
 @Injectable()
 export class HeroEffects {
   @Effect()
   getHeroes$: Observable<Action> = this.actions$
-    .ofType(heroActions.GET_HEROES)
-    .pipe(
-      switchMap(() => this.heroDataService.getHeroes()),
-      mergeMap(heroes => [
-        new heroActions.GetHeroesSuccess(heroes),
-        new heroActions.GetFilteredHeroes()
-      ]),
-      catchError(error => of(new heroActions.GetHeroesError(error)))
+    .ofType(HeroActions.GET_HEROES).pipe(
+      switchMap(() => toAction(
+        this.heroDataService.getHeroes(),
+        HeroActions.GetHeroesSuccess, HeroActions.GetHeroesError
+      ))
     );
 
   @Effect()
   addHero$: Observable<Action> = this.actions$
-    .ofType<heroActions.AddHero>(heroActions.ADD_HERO)
-    .pipe(
-      switchMap(action => this.heroDataService.addHero(action.payload)),
-      mergeMap(hero => [new heroActions.AddHeroSuccess(hero), new heroActions.GetFilteredHeroes()]),
-      catchError(error => of(new heroActions.AddHeroError(error)))
+    .ofType(HeroActions.ADD_HERO).pipe(
+      concatMap((action: HeroAction) => toAction(
+        this.heroDataService.addHero(action.payload),
+        HeroActions.AddHeroSuccess, HeroActions.AddHeroError
+      ))
     );
+
 
   @Effect()
   deleteHero$: Observable<Action> = this.actions$
-    .ofType<heroActions.DeleteHero>(heroActions.DELETE_HERO)
-    .pipe(
-      switchMap(action => this.heroDataService.deleteHero(action.payload)),
-      mergeMap(hero => [
-        new heroActions.DeleteHeroSuccess(hero),
-        new heroActions.GetFilteredHeroes()
-      ]),
-      catchError((err: HeroDataServiceError<Hero>) => of(new heroActions.DeleteHeroError(err)))
+    .ofType(HeroActions.DELETE_HERO).pipe(
+      concatMap((action: HeroAction) => toAction(
+        this.heroDataService.deleteHero(action.payload),
+        HeroActions.DeleteHeroSuccess, HeroActions.DeleteHeroError
+      ))
     );
 
   @Effect()
   updateHero$: Observable<Action> = this.actions$
-    .ofType<heroActions.UpdateHero>(heroActions.UPDATE_HERO)
-    .pipe(
-      switchMap(action => this.heroDataService.updateHero(action.payload)),
-      mergeMap(hero => [
-        new heroActions.UpdateHeroSuccess(hero),
-        new heroActions.GetFilteredHeroes()
-      ]),
-      catchError((err: HeroDataServiceError<Hero>) => of(new heroActions.UpdateHeroError(err)))
+    .ofType<HeroActions.UpdateHero>(HeroActions.UPDATE_HERO).pipe(
+      concatMap((action: HeroAction) => toAction(
+        this.heroDataService.updateHero(action.payload),
+        HeroActions.UpdateHeroSuccess, HeroActions.UpdateHeroError
+      ))
     );
 
   constructor(

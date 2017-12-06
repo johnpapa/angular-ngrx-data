@@ -36,10 +36,14 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
     }
 
     case HeroActions.GET_FILTERED_HEROES: {
-      return {
-        ...state,
-        filteredHeroes: state.heroes.filter(h => new RegExp(state.filter, 'i').test(h.name))
-      };
+      let filteredHeroes: Hero[];
+      if (state.filter) {
+        const filter = new RegExp(state.filter, 'i');
+        filteredHeroes = state.heroes.filter(h => filter.test(h.name));
+      } else {
+        filteredHeroes = state.heroes;
+      }
+      return { ...state, filteredHeroes };
     }
 
     case HeroActions.GET_HEROES: {

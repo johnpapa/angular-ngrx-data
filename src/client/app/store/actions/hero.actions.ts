@@ -27,22 +27,6 @@ export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
-export type EntityOp = 'GET_ALL' | 'GET_BY_ID' | 'ADD' | 'UPDATE' | 'DELETE';
-
-export type EntityClass<T> = new (...x: any[]) => T;
-
-// TODO: We need to start using this
-export class EntityAction<T, P> {
-  readonly type: string;
-
-  constructor(
-    public readonly entityType: EntityClass<T>,
-    public readonly op: EntityOp,
-    public readonly payload?: P
-  ) {
-    this.type = `[${this.entityType.name}] ${this.op}`;
-  }
-}
 
 export abstract class HeroAction implements DataAction<Hero> {
   readonly type: string;

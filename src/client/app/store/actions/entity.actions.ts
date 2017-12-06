@@ -22,12 +22,25 @@ export const DELETE = 'DELETE';
 export const DELETE_SUCCESS = 'DELETE_SUCCESS';
 export const DELETE_ERROR = 'DELETE_ERROR';
 
+export const GET_FILTERED = 'GET_FILTERED';
+export const SET_FILTER = 'SET_FILTER';
+
 export type EntityOp =
-'GET_ALL' | 'GET_ALL_SUCCESS' | 'GET_ALL_ERROR' |
-'GET_BY_ID' |'GET_BY_ID_ALL_SUCCESS' | 'GET_BY_ID_ERROR' |
-'ADD' |'ADD_SUCCESS' | 'ADD_ERROR' |
-'UPDATE' | 'UPDATE_SUCCESS' | 'UPDATE_ERROR' |
-'DELETE' | 'DELETE_SUCCESS' | 'DELETE_ERROR';
+  | 'GET_ALL'
+  | 'GET_ALL_SUCCESS'
+  | 'GET_ALL_ERROR'
+  | 'GET_BY_ID'
+  | 'GET_BY_ID_ALL_SUCCESS'
+  | 'GET_BY_ID_ERROR'
+  | 'ADD'
+  | 'ADD_SUCCESS'
+  | 'ADD_ERROR'
+  | 'UPDATE'
+  | 'UPDATE_SUCCESS'
+  | 'UPDATE_ERROR'
+  | 'DELETE'
+  | 'DELETE_SUCCESS'
+  | 'DELETE_ERROR';
 
 export type EntityClass<T> = new (...x: any[]) => T;
 
@@ -36,10 +49,13 @@ export class EntityAction<T, P> implements Action {
 
   constructor(
     public readonly entityType: EntityClass<T>,
+    public readonly entityTypeName: string,
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
-    this.type = `[${this.entityType.name}] ${this.op}`;
+    this.entityTypeName = this.entityType.name;
+    this.type = this.op;
+    // this.type = `[${this.entityType.name}] ${this.op}`;
   }
 }
 

@@ -4,7 +4,7 @@ import { Hero } from '../../model';
 import { DataServiceError } from '../services';
 import { DataAction, DataErrorAction } from './data.actions';
 
-export const SET_FILTER = '[Hero] - SET_FILTER';
+export const SET_HERO_FILTER = '[Hero] - SET_HERO_FILTER';
 export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
 
 export const GET_HEROES = '[Hero] GET_HEROES';
@@ -39,7 +39,7 @@ export abstract class HeroErrorAction implements DataErrorAction<Hero> {
 }
 
 export class SetFilter implements Action {
-  readonly type = SET_FILTER;
+  readonly type = SET_HERO_FILTER;
   constructor(public readonly payload: string) {}
 }
 

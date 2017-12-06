@@ -87,7 +87,7 @@ export function reducer(state = initialBaseState.Hero, action: HeroActions.All):
       };
     }
 
-    case HeroActions.SET_FILTER: {
+    case HeroActions.SET_HERO_FILTER: {
       return { ...state, filter: action.payload };
     }
 

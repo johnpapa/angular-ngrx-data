@@ -2,10 +2,10 @@ import { Hero } from '../../model';
 import * as HeroActions from '../actions';
 
 export interface EntityState {
-  [name: string]: EntityEntry<any>;
+  [name: string]: EntityCollection<any>;
 }
 
-export class EntityEntry<T> {
+export class EntityCollection<T> {
   filter = '';
   entities: T[] = [];
   filteredEntities: T[] = [];
@@ -13,7 +13,7 @@ export class EntityEntry<T> {
   error = false;
 }
 
-export interface HeroState extends EntityEntry<Hero> {
+export interface HeroState extends EntityCollection<Hero> {
   filter: string;
   entities: Hero[];
   filteredEntities: Hero[];
@@ -22,8 +22,9 @@ export interface HeroState extends EntityEntry<Hero> {
 }
 
 export const initialBaseState: EntityState = {
-  Hero: new EntityEntry<Hero>(),
-  Villain: new EntityEntry<Hero>() // TODO no villain exists
+  // TODO: for now we need to name the entity entries/collections the same as the model
+  Hero: new EntityCollection<Hero>(),
+  Villain: new EntityCollection<Hero>() // TODO no villain exists
 };
 
 // export const initialState: HeroState = {

@@ -4,7 +4,7 @@ import { tap } from 'rxjs/operators';
 
 import { Hero } from '../../model';
 import * as HeroAction from '../actions';
-import { EntityEntry, EntityState } from '../reducers';
+import { EntityCollection, EntityState } from '../reducers';
 
 // selectors
 const getEntityState = createFeatureSelector<EntityState>('entityState');
@@ -14,31 +14,32 @@ const getEntityState = createFeatureSelector<EntityState>('entityState');
 // const getAllHeroesFiltered = getAllFilteredEntities(Hero);
 // function getStuff<T>(entityType: { new (x: ...x): T }) {
 // function getStuff<T>(entityType: new (...x: any[]) => T) {
+
 function getAllEntities<T>(entityType: HeroAction.entityCtor<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
-    (state: EntityState) => (state[name] as EntityEntry<T>).entities
+    (state: EntityState) => (state[name] as EntityCollection<T>).entities
   );
 }
 function getAllFilteredEntities<T>(entityType: HeroAction.entityCtor<T>) {
   const name = entityType.name;
   return createSelector(getEntityState, (state: EntityState) => {
-    return (state[name] as EntityEntry<T>).filteredEntities;
+    return state[name].filteredEntities;
   });
 }
 function getFilter<T>(entityType: HeroAction.entityCtor<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
-    (state: EntityState) => (state[name] as EntityEntry<T>).filter
+    (state: EntityState) => (state[name] as EntityCollection<T>).filter
   );
 }
 function getLoading<T>(entityType: HeroAction.entityCtor<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
-    (state: EntityState) => (state[name] as EntityEntry<T>).loading
+    (state: EntityState) => (state[name] as EntityCollection<T>).loading
   );
 }
 

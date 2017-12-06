@@ -29,18 +29,21 @@ export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
 export type EntityOpType = 'GET_ALL' | 'GET_BY_ID' | 'ADD' | 'UPDATE' | 'DELETE';
 
+export type entityCtor<T> = new (...x: any[]) => T;
+
 export class EntityAction<T, P> {
   readonly type: string;
 
   constructor(
-    public readonly entityType: { new (): T },
+    // function getStuff<T>(entityType: new (...x: any[]) => T) {
+    // public readonly entityType: new (...x: any[]) => T,
+    public readonly entityType: entityCtor<T>,
     public readonly op: EntityOpType,
     public readonly payload?: P
   ) {
     this.type = `[${this.entityType.name}] ${this.op}`;
   }
 }
-
 
 // class Hero2 {
 //   name = 'ward';

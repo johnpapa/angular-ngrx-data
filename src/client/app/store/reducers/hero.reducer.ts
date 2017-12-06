@@ -1,7 +1,7 @@
 import { Hero } from '../../model';
 import * as HeroActions from '../actions';
 
-export interface EntityStore {
+export interface EntityState {
   [name: string]: EntityEntry<any>;
 }
 
@@ -21,9 +21,9 @@ export interface HeroState extends EntityEntry<Hero> {
   error: boolean;
 }
 
-export const initialBaseState: EntityStore = {
-  heroes: new EntityEntry<Hero>(),
-  villains: new EntityEntry<Hero>()
+export const initialBaseState: EntityState = {
+  Hero: new EntityEntry<Hero>(),
+  Villain: new EntityEntry<Hero>() // TODO no villain exists
 };
 
 // export const initialState: HeroState = {
@@ -39,7 +39,7 @@ export const initialBaseState: EntityStore = {
 // state2 = { ...state2, ...{ hero: initialState } };
 // console.log(JSON.stringify(state2));
 
-export function reducer(state = initialBaseState.heroes, action: HeroActions.All): HeroState {
+export function reducer(state = initialBaseState.Hero, action: HeroActions.All): HeroState {
   // export function reducer(state = initialState, action: HeroActions.EntityAction<Hero, any>): HeroState {
   switch (action.type) {
     // case HeroActions.EntityOpType.ADD_HERO: {

@@ -13,7 +13,7 @@ import { services } from './';
   imports: [
     CommonModule,
     HttpClientModule,
-    StoreModule.forFeature('heroic', reducers),
+    StoreModule.forFeature('entityState', reducers),
     EffectsModule.forFeature(effects)
   ],
   providers: [...services],

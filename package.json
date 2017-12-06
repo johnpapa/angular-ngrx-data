@@ -3,8 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev-proxy":
-      "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
+    "dev-proxy": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "dev": "concurrently \"npm run start\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "ng": "ng",
     "start-ng": "ng serve",

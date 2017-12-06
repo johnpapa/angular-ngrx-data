@@ -8,12 +8,13 @@ import { HeroicState } from '../reducers';
 
 // selectors
 const getHeroicState = createFeatureSelector<HeroicState>('heroic');
+const getAllHeroes = createSelector(getHeroicState, (state: HeroicState) => state.heroes.entities);
+
 const getHeroState = createSelector(getHeroicState, (state: HeroicState) => state.heroes);
 const getAllHeroesFiltered = createSelector(
   getHeroicState,
-  (state: HeroicState) => state.heroes.filteredHeroes
+  (state: HeroicState) => state.heroes.filteredEntities
 );
-const getAllHeroes = createSelector(getHeroicState, (state: HeroicState) => state.heroes.heroes);
 const getHeroesLoading = createSelector(
   getHeroicState,
   (state: HeroicState) => state.heroes.loading
@@ -27,6 +28,11 @@ export class HeroSelectors {
   filteredHeroes$() {
     return this.store.select(getAllHeroesFiltered);
     // return this.store.select(state => state.heroes.filteredHeroes);
+  }
+
+  entities$<T>() {
+    return this.store.select(createSelector(createFeatureSelector<HeroicState>('heroic'), (state: HeroicState) => state.heroes.entities))
+    // return this.store.select(state => state.heroes.heroes);
   }
 
   heroes$() {

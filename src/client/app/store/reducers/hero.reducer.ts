@@ -1,24 +1,48 @@
 import { Hero } from '../../model';
 import * as HeroActions from '../actions';
 
-export interface HeroState {
+export interface EntityStore {
+  [name: string]: EntityEntry<any>;
+}
+
+export class EntityEntry<T> {
+  filter = '';
+  entities: T[] = [];
+  filteredEntities: T[] = [];
+  loading = false;
+  error = false;
+}
+
+export interface HeroState extends EntityEntry<Hero> {
   filter: string;
-  heroes: Hero[];
-  filteredHeroes: Hero[];
+  entities: Hero[];
+  filteredEntities: Hero[];
   loading: boolean;
   error: boolean;
 }
 
-export const initialState: HeroState = {
-  filter: '',
-  heroes: [],
-  filteredHeroes: [],
-  loading: false,
-  error: false
+export const initialBaseState: EntityStore = {
+  heroes: new EntityEntry<Hero>(),
+  villains: new EntityEntry<Hero>()
 };
 
-export function reducer(state = initialState, action: HeroActions.All): HeroState {
+// export const initialState: HeroState = {
+//   filter: '',
+//   entities: [],
+//   filteredEntities: [],
+//   loading: false,
+//   error: false
+// };
+
+// let state2: BaseState = { ...initialBaseState, ...{ hero: new EntityEntry<Hero>() } };
+// state2 = { ...state2, ...{ villain: new EntityEntry<Hero>() } };
+// state2 = { ...state2, ...{ hero: initialState } };
+// console.log(JSON.stringify(state2));
+
+export function reducer(state = initialBaseState.heroes, action: HeroActions.All): HeroState {
+  // export function reducer(state = initialState, action: HeroActions.EntityAction<Hero, any>): HeroState {
   switch (action.type) {
+    // case HeroActions.EntityOpType.ADD_HERO: {
     case HeroActions.ADD_HERO: {
       return { ...state, loading: true };
     }
@@ -27,7 +51,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
       return {
         ...state,
         loading: false,
-        heroes: [...state.heroes, { ...action.payload }]
+        entities: [...state.entities, { ...action.payload }]
       };
     }
 
@@ -36,14 +60,14 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
     }
 
     case HeroActions.GET_FILTERED_HEROES: {
-      let filteredHeroes: Hero[];
+      let filteredEntities: Hero[];
       if (state.filter) {
         const filter = new RegExp(state.filter, 'i');
-        filteredHeroes = state.heroes.filter(h => filter.test(h.name));
+        filteredEntities = state.entities.filter(h => filter.test(h.name));
       } else {
-        filteredHeroes = state.heroes;
+        filteredEntities = state.entities;
       }
-      return { ...state, filteredHeroes };
+      return { ...state, filteredEntities };
     }
 
     case HeroActions.GET_HEROES: {
@@ -60,7 +84,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
     case HeroActions.GET_HEROES_SUCCESS: {
       return {
         ...state,
-        heroes: action.payload,
+        entities: action.payload,
         loading: false
       };
     }
@@ -73,7 +97,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
       return {
         ...state,
         loading: true,
-        heroes: state.heroes.filter(h => h !== action.payload)
+        entities: state.entities.filter(h => h !== action.payload)
       };
     }
 
@@ -85,7 +109,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
     case HeroActions.DELETE_HERO_ERROR: {
       return {
         ...state,
-        heroes: [...state.heroes, action.payload.requestData],
+        entities: [...state.entities, action.payload.requestData],
         loading: false
       };
     }
@@ -93,7 +117,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
     case HeroActions.UPDATE_HERO: {
       return {
         ...state,
-        heroes: state.heroes.map(h => {
+        entities: state.entities.map(h => {
           if (h.id === action.payload.id) {
             state.loading = true;
           }
@@ -110,7 +134,7 @@ export function reducer(state = initialState, action: HeroActions.All): HeroStat
       return {
         ...state,
         loading: false,
-        heroes: state.heroes.map(h => {
+        entities: state.entities.map(h => {
           if (h.id === action.payload.requestData.id) {
             // Huh? No idea what the error is!
             state.error = true;
@@ -127,7 +151,7 @@ function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): Hero
   return {
     ...heroState,
     loading: false,
-    heroes: heroState.heroes.map(h => {
+    entities: heroState.entities.map(h => {
       if (h.id === heroChanges.id) {
         return { ...h, ...heroChanges };
       } else {

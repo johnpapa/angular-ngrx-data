@@ -70,10 +70,12 @@ export class HeroListComponent implements OnInit {
   constructor(
     private heroDispatchers: HeroDispatchers,
     private heroSelectors: HeroSelectors,
-    // tslint:disable-next-line:no-shadowed-variable
-    @Optional() private inMemService: InMemoryDataService) {
-      if (inMemService) { this.nextDataSource = 'Go Remote'; }
+    @Optional() private inMemService: InMemoryDataService
+  ) {
+    if (inMemService) {
+      this.nextDataSource = 'Go Remote';
     }
+  }
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
@@ -125,6 +127,7 @@ export class HeroListComponent implements OnInit {
     const localSource = this.nextDataSource === 'Go Local';
     this.inMemService.active = localSource;
     this.nextDataSource = localSource ? 'Go Remote' : 'Go Local';
+    this.getHeroes();
   }
 
   unselect() {

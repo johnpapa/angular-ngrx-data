@@ -57,7 +57,7 @@ import { InMemoryDataService } from '../in-memory-data.service';
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;
-  heroes: Hero[] = [];
+  // heroes: Hero[] = [];
   nextDataSource: string;
   selectedHero: Hero = null;
 

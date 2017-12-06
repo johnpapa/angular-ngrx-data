@@ -4,18 +4,6 @@ import { Hero } from '../../model';
 import { DataServiceError } from '../services';
 import { DataAction, DataErrorAction } from './data.actions';
 
-export const ADD_HERO = '[Hero] ADD_HERO';
-export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';
-export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
-
-export const GET_HERO = '[Hero] GET_HERO';
-export const GET_HERO_SUCCESS = '[Hero] GET_HERO_SUCCESS';
-export const GET_HERO_ERROR = '[Hero] GET_HERO_ERROR';
-
-export const UPDATE_HERO = '[Hero] UPDATE_HERO';
-export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
-export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
-
 export const SET_FILTER = '[Hero] - SET_FILTER';
 export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
 
@@ -23,9 +11,22 @@ export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
 export const GET_HEROES_ERROR = '[Hero] GET_HEROES_ERROR';
 
+export const GET_HERO = '[Hero] GET_HERO';
+export const GET_HERO_SUCCESS = '[Hero] GET_HERO_SUCCESS';
+export const GET_HERO_ERROR = '[Hero] GET_HERO_ERROR';
+
+export const ADD_HERO = '[Hero] ADD_HERO';
+export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';
+export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
+
+export const UPDATE_HERO = '[Hero] UPDATE_HERO';
+export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
+export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
+
 export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
+
 
 export abstract class HeroAction implements DataAction<Hero> {
   readonly type: string;

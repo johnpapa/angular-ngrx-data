@@ -15,39 +15,30 @@ export class HeroDataService {
   addHero(hero: Hero): Observable<Hero> {
     return this.http
       .post<Hero>(`${api}/hero/`, hero)
-      .pipe(
-        delay(fakeDelays.save),
-        catchError(this.handleError(hero))
-      );
+      .pipe(delay(fakeDelays.save), catchError(this.handleError(hero)));
   }
 
   deleteHero(hero: Hero): Observable<Hero> {
-    return this.http
-      .delete(`${api}/hero/${hero.id}`)
-      .pipe(
-        delay(fakeDelays.save),
-        map(() => hero), // return the deleted hero
-        catchError(this.handleError(hero))
-      );
+    return this.http.delete(`${api}/hero/${hero.id}`).pipe(
+      delay(fakeDelays.save),
+      map(() => hero), // return the deleted hero
+      catchError(this.handleError(hero))
+    );
   }
 
   getHeroes(filter?: string): Observable<Hero[]> {
     return this.http
       .get<Array<Hero>>(`${api}/heroes`)
-      .pipe(
-        delay(fakeDelays.select),
-        catchError(this.handleError())
-      );
+      .pipe(delay(fakeDelays.select), catchError(this.handleError()));
   }
 
   updateHero(hero: Hero): Observable<Hero> {
-    return this.http
-      .put<Hero>(`${api}/hero/${hero.id}`, hero)
-      .pipe(
-        delay(fakeDelays.save),
-        map(() => hero), // return the updated hero
-        catchError(this.handleError(hero))
-      );  }
+    return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero).pipe(
+      delay(fakeDelays.save),
+      map(() => hero), // return the updated hero
+      catchError(this.handleError(hero))
+    );
+  }
 
   private handleError<T>(requestData?: T) {
     return (res: HttpErrorResponse) => {

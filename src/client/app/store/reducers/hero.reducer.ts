@@ -28,6 +28,17 @@ export const initialBaseState: EntityState = {
   Villain: new EntityCollection<Hero>() // TODO no villain exists
 };
 
+// export function createReducer<A, E, S>(
+//   state = initialBaseState.Hero,
+//   action: HeroActions.All
+// ): EntityCollection<E> {
+//   return new EntityCollection<E>();
+// }
+// const foo = createReducer<HeroActions.All, Hero, HeroState>(
+//   initialBaseState.Hero,
+//   new HeroActions.GetHero('payload')
+// );
+
 export function reducer(state = initialBaseState.Hero, action: HeroActions.All): HeroState {
   switch (action.type) {
     case HeroActions.ADD_HERO: {

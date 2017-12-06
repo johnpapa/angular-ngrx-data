@@ -9,28 +9,28 @@ import { EntityCollection, EntityState } from '../reducers';
 // selectors
 const getEntityState = createFeatureSelector<EntityState>('entityState');
 
-function getAllEntities<T>(entityType: HeroAction.entityCtor<T>) {
+function getAllEntities<T>(entityType: HeroAction.Entity<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
     (state: EntityState) => (state[name] as EntityCollection<T>).entities
   );
 }
-function getAllFilteredEntities<T>(entityType: HeroAction.entityCtor<T>) {
+function getAllFilteredEntities<T>(entityType: HeroAction.Entity<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
     (state: EntityState) => (state[name] as EntityCollection<T>).filteredEntities
   );
 }
-function getFilter<T>(entityType: HeroAction.entityCtor<T>) {
+function getFilter<T>(entityType: HeroAction.Entity<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,
     (state: EntityState) => (state[name] as EntityCollection<T>).filter
   );
 }
-function getLoading<T>(entityType: HeroAction.entityCtor<T>) {
+function getLoading<T>(entityType: HeroAction.Entity<T>) {
   const name = entityType.name;
   return createSelector(
     getEntityState,

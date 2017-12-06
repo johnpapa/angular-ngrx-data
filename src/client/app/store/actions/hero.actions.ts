@@ -27,36 +27,22 @@ export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
-export type EntityOpType = 'GET_ALL' | 'GET_BY_ID' | 'ADD' | 'UPDATE' | 'DELETE';
+export type EntityOp = 'GET_ALL' | 'GET_BY_ID' | 'ADD' | 'UPDATE' | 'DELETE';
 
-export type entityCtor<T> = new (...x: any[]) => T;
+export type EntityClass<T> = new (...x: any[]) => T;
 
+// TODO: We need to start using this
 export class EntityAction<T, P> {
   readonly type: string;
 
   constructor(
-    // function getStuff<T>(entityType: new (...x: any[]) => T) {
-    // public readonly entityType: new (...x: any[]) => T,
-    public readonly entityType: entityCtor<T>,
-    public readonly op: EntityOpType,
+    public readonly entityType: EntityClass<T>,
+    public readonly op: EntityOp,
     public readonly payload?: P
   ) {
     this.type = `[${this.entityType.name}] ${this.op}`;
   }
 }
-
-// class Hero2 {
-//   name = 'ward';
-// }
-// const foo1 = new EntityAction(Hero2, 'GET_ALL', 'irrelevant');
-// const foo2 = new EntityAction(Hero2, 'GET_ALL', new Hero2());
-// const foo3 = new EntityAction(Hero2, 'UPDATE', [{}, {}]);
-// const foo4 = new EntityAction(Hero2, 'DELETE');
-
-// console.log(JSON.stringify(foo1));
-// console.log(JSON.stringify(foo2));
-// console.log(JSON.stringify(foo3));
-// console.log(JSON.stringify(foo4));
 
 export abstract class HeroAction implements DataAction<Hero> {
   readonly type: string;

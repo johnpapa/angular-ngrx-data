@@ -11,7 +11,7 @@ import * as HeroActions from '../actions';
 
 import { Hero } from '../../model';
 import { HeroDataService, DataServiceError } from '../services';
-import { HeroicState } from '../reducers';
+import { EntityState } from '../reducers';
 
 const filterAction = new HeroActions.GetFilteredHeroes();
 const toAction = HeroActions.toAction(filterAction);
@@ -72,7 +72,7 @@ export class HeroEffects {
     );
 
   constructor(
-    private store: Store<HeroicState>,
+    private store: Store<EntityState>,
     private actions$: Actions,
     private heroDataService: HeroDataService
   ) {}

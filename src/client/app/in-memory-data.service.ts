@@ -9,16 +9,18 @@ import { Hero } from './model';
 
 @Injectable()
 export class InMemoryDataService {
-
   active = true;
   db: { heroes?: Hero[] } = {};
 
   createDb(reqInfo?: RequestInfo) {
     const heroes: Hero[] = [
-      { id: 11, name: 'Mr. Nice',
-        saying: 'Doggone it, people like me.' },
+      {
+        id: 11,
+        name: 'Mr. Nice',
+        saying: 'Doggone it, people like me.'
+      },
       { id: 12, name: 'Narco', saying: 'Sleep, my pretty!' },
-      { id: 13, name: 'Bombasto', saying: 'I am the greatest!' },
+      { id: 13, name: 'Bombasto', saying: 'I am the greatest!' }
     ];
 
     if (reqInfo) {
@@ -28,9 +30,8 @@ export class InMemoryDataService {
       }
 
       this.active = !!body.active;
-
     }
-    return this.db = { heroes } ;
+    return (this.db = { heroes });
   }
 
   // parseRequestUrl override
@@ -42,7 +43,9 @@ export class InMemoryDataService {
   parseRequestUrl(url: string, utils: RequestInfoUtilities): ParsedRequestUrl {
     const parsed = utils.parseRequestUrl(url);
     if (this.active) {
-      if (parsed.collectionName === 'hero') { parsed.collectionName = 'heroes'; }
+      if (parsed.collectionName === 'hero') {
+        parsed.collectionName = 'heroes';
+      }
     } else {
       parsed.collectionName = undefined;
     }

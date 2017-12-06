@@ -11,17 +11,13 @@ import { InMemoryDataService } from './in-memory-data.service';
     AppModule,
     // The HttpClientInMemoryWebApiModule module intercepts HTTP requests
     // and returns simulated server responses.
-    HttpClientInMemoryWebApiModule.forRoot(
-      InMemoryDataService, {
-        dataEncapsulation: false,
-        delay: 0,
-        passThruUnknownUrl: true
-      }
-    )
+    HttpClientInMemoryWebApiModule.forRoot(InMemoryDataService, {
+      dataEncapsulation: false,
+      delay: 0,
+      passThruUnknownUrl: true
+    })
   ],
-  providers: [
-    { provide: InMemoryDataService, useExisting: InMemoryDbService }
-  ],
-  bootstrap: [ AppComponent ]
+  providers: [{ provide: InMemoryDataService, useExisting: InMemoryDbService }],
+  bootstrap: [AppComponent]
 })
 export class AppDevModule {}

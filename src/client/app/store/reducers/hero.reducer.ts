@@ -28,23 +28,8 @@ export const initialBaseState: EntityState = {
   Villain: new EntityCollection<Hero>() // TODO no villain exists
 };
 
-// export const initialState: HeroState = {
-//   filter: '',
-//   entities: [],
-//   filteredEntities: [],
-//   loading: false,
-//   error: false
-// };
-
-// let state2: BaseState = { ...initialBaseState, ...{ hero: new EntityEntry<Hero>() } };
-// state2 = { ...state2, ...{ villain: new EntityEntry<Hero>() } };
-// state2 = { ...state2, ...{ hero: initialState } };
-// console.log(JSON.stringify(state2));
-
 export function reducer(state = initialBaseState.Hero, action: HeroActions.All): HeroState {
-  // export function reducer(state = initialState, action: HeroActions.EntityAction<Hero, any>): HeroState {
   switch (action.type) {
-    // case HeroActions.EntityOpType.ADD_HERO: {
     case HeroActions.ADD_HERO: {
       return { ...state, loading: true };
     }

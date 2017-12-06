@@ -29,18 +29,18 @@ export const initialBaseState: EntityCache = {
 };
 
 export function reducer(
-  cache = initialBaseState,
+  state = initialBaseState,
   action: fromActions.EntityAction<any, any>
 ): EntityCache {
   switch (action.type) {
     case fromActions.ADD: {
       return {
         // entire entity cache (heroes, villains, everything)
-        ...cache,
+        ...state,
         // just the entity collection we want (this is the old state)
         [action.entityTypeName]: {
           // now we spread the existing state
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           // now we are merging in
           loading: true
         }
@@ -49,20 +49,20 @@ export function reducer(
 
     case fromActions.ADD_SUCCESS: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false,
-          entities: [...cache[action.entityTypeName].entities, { ...action.payload }]
+          entities: [...state[action.entityTypeName].entities, { ...action.payload }]
         }
       };
     }
 
     case fromActions.ADD_ERROR: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false
         }
       };
@@ -70,16 +70,16 @@ export function reducer(
 
     case fromActions.GET_FILTERED: {
       let filteredEntities: Hero[];
-      if (cache[action.entityTypeName].filter) {
-        const filter = new RegExp(cache[action.entityTypeName].filter, 'i');
-        filteredEntities = cache[action.entityTypeName].entities.filter(h => filter.test(h.name));
+      if (state[action.entityTypeName].filter) {
+        const filter = new RegExp(state[action.entityTypeName].filter, 'i');
+        filteredEntities = state[action.entityTypeName].entities.filter(h => filter.test(h.name));
       } else {
-        filteredEntities = cache[action.entityTypeName].entities;
+        filteredEntities = state[action.entityTypeName].entities;
       }
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false,
           filteredEntities
         }
@@ -88,9 +88,9 @@ export function reducer(
 
     case fromActions.GET_ALL: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: true
         }
       };
@@ -98,9 +98,9 @@ export function reducer(
 
     case fromActions.GET_ALL_ERROR: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false
         }
       };
@@ -108,9 +108,9 @@ export function reducer(
 
     case fromActions.GET_ALL_SUCCESS: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false,
           entities: [action.payload]
         }
@@ -118,25 +118,25 @@ export function reducer(
     }
 
     case fromActions.SET_FILTER: {
-      return { ...cache, filter: action.payload };
+      return { ...state, filter: action.payload };
     }
 
     case fromActions.DELETE: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: true,
-          entities: cache[action.entityTypeName].entities.filter(h => h !== action.payload)
+          entities: state[action.entityTypeName].entities.filter(h => h !== action.payload)
         }
       };
     }
 
     case fromActions.DELETE_SUCCESS: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false
         }
       };
@@ -144,10 +144,10 @@ export function reducer(
 
     case fromActions.DELETE_ERROR: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
-          entities: [...cache[action.entityTypeName].entities, action.payload.requestData],
+          ...state[action.entityTypeName],
+          entities: [...state[action.entityTypeName].entities, action.payload.requestData],
           loading: false
         }
       };
@@ -155,12 +155,12 @@ export function reducer(
 
     case fromActions.UPDATE: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
-          entities: cache[action.entityTypeName].entities.map(h => {
+          ...state[action.entityTypeName],
+          entities: state[action.entityTypeName].entities.map(h => {
             if (h.id === action.payload.id) {
-              cache[action.entityTypeName].loading = true;
+              state[action.entityTypeName].loading = true;
             }
             return h;
           })
@@ -171,11 +171,11 @@ export function reducer(
     case fromActions.UPDATE_SUCCESS: {
       // return modifyHeroState(cache, action.payload);
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false,
-          entities: cache[action.entityTypeName].entities.map(h => {
+          entities: state[action.entityTypeName].entities.map(h => {
             if (h.id === action.payload.id) {
               return { ...h, ...action.payload };
             } else {
@@ -188,14 +188,14 @@ export function reducer(
 
     case fromActions.UPDATE_ERROR: {
       return {
-        ...cache,
+        ...state,
         [action.entityTypeName]: {
-          ...cache[action.entityTypeName],
+          ...state[action.entityTypeName],
           loading: false,
-          entities: cache[action.entityTypeName].entities.map(h => {
+          entities: state[action.entityTypeName].entities.map(h => {
             if (h.id === action.payload.requestData.id) {
               // Huh? No idea what the error is!
-              cache[action.entityTypeName].error = true;
+              state[action.entityTypeName].error = true;
             }
             return h;
           })
@@ -203,5 +203,5 @@ export function reducer(
       };
     }
   }
-  return cache;
+  return state;
 }

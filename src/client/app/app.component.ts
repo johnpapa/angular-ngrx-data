@@ -6,7 +6,7 @@ import { Component } from '@angular/core';
   <div>
     <h1>{{ title }}</h1>
     <div class="header-bar"></div>
-    <app-heroes></app-heroes>
+    <app-hero-list></app-hero-list>
   </div>
   `
 })

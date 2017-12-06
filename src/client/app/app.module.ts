@@ -12,9 +12,8 @@ import { AppComponent } from './app.component';
 import { storeFreeze } from 'ngrx-store-freeze';
 
 import { HeroStoreModule } from './store/hero-store.module';
-import { HeroesComponent } from './containers/heroes/heroes.component';
-import { HeroListComponent } from './components/hero-list.component';
-import { HeroDetailComponent } from './components/hero-detail.component';
+import { HeroListComponent } from './heroes/hero-list.component';
+import { HeroDetailComponent } from './heroes/hero-detail.component';
 
 // TODO: learn about freeze
 export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []; // [storeFreeze];
@@ -30,7 +29,7 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
     EffectsModule.forRoot([]),
     !environment.production ? StoreDevtoolsModule.instrument() : []
   ],
-  declarations: [AppComponent, HeroesComponent, HeroListComponent, HeroDetailComponent],
+  declarations: [AppComponent, HeroListComponent, HeroDetailComponent],
   providers: [],
   bootstrap: [AppComponent]
 })

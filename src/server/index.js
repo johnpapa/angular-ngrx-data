@@ -1,10 +1,10 @@
 if (!process.env.NODE_ENV) {
-    console.error(
-      'ENV variables are missing.',
-      'Verify that you have set them directly or in a .env file.'
-    );
-    process.exit(1);
-  }
+  console.error(
+    'ENV variables are missing.',
+    'Verify that you have set them directly or in a .env file.'
+  );
+  process.exit(1);
+}
 
 const express = require('express');
 const bodyParser = require('body-parser');

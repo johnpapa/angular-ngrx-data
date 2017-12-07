@@ -44,7 +44,8 @@
 1. Build the Angular app and launch the node server
 
     ```bash
-    npm run start-fresh
+    npm run build
+    npm run dev
     ```
 
 1. Open the browser to http://localhost:3001

@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EntityCache, EntityDispatchers } from '../ngrx-data';
 
-import { Hero } from '../../core';
+import { Villain } from '../../core';
 
 @Injectable()
-export class HeroDispatchers extends EntityDispatchers<Hero> {
+export class VillainDispatchers extends EntityDispatchers<Villain> {
   constructor(store: Store<EntityCache>) {
-    super(Hero, store);
+    super(Villain, store);
   }
 }

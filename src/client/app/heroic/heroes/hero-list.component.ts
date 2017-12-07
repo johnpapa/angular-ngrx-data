@@ -1,27 +1,26 @@
 import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-
-import { Hero } from '../model';
-import { HeroDispatchers, HeroSelectors } from '../store';
 import { FormControl } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
-import { InMemoryDataService } from '../in-memory-data.service';
+import { InMemoryDataService } from '../../core';
+import { Hero } from '../../core';
+import { HeroDispatchers, HeroSelectors } from '../../store/services';
 
 @Component({
   selector: 'app-hero-list',
   template: `
     <div>
       <div class="button-group">
+        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
-        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
       </div>
       <div>
         <p>Filter the heroes</p>
         <input [value]="filterText$ | async" (input)="setFilter($event.target.value)"/>
       </div>
-      <div class="todos" *ngIf="filteredHeroes$ | async as heroes">
+      <div *ngIf="filteredHeroes$ | async as heroes">
 
         <div *ngIf="loading$ | async;else heroList">Loading</div>
 
@@ -57,7 +56,6 @@ import { InMemoryDataService } from '../in-memory-data.service';
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;
-  heroes: Hero[] = [];
   nextDataSource: string;
   selectedHero: Hero = null;
 
@@ -84,7 +82,7 @@ export class HeroListComponent implements OnInit {
 
     this.filter$
       .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
-      .subscribe((val: string) => this.filterHeroes(val));
+      .subscribe((val: string) => this.filterHeroes());
   }
 
   setFilter(value: string) {
@@ -98,7 +96,7 @@ export class HeroListComponent implements OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroDispatchers.deleteHero(hero);
+    this.heroDispatchers.delete(hero);
   }
 
   enableAddMode() {
@@ -106,12 +104,12 @@ export class HeroListComponent implements OnInit {
     this.selectedHero = null;
   }
 
-  filterHeroes(filter: string) {
-    this.heroDispatchers.getFilteredHeroes(filter);
+  filterHeroes() {
+    this.heroDispatchers.getFiltered();
   }
 
   getHeroes() {
-    this.heroDispatchers.getHeroes();
+    this.heroDispatchers.getAll();
   }
 
   onSelect(hero: Hero) {
@@ -120,7 +118,7 @@ export class HeroListComponent implements OnInit {
   }
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
-    this.heroDispatchers.saveHero(arg.hero, arg.mode);
+    this.heroDispatchers.save(arg.hero, arg.mode);
   }
 
   toggleDataSource() {

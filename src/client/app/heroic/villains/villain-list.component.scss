@@ -1,0 +1,85 @@
+.button-group {
+  margin: 0.5em;
+}
+button.delete-button {
+  background-color: rgb(216, 59, 1);
+  color: white;
+  padding: 4px;
+  position: relative;
+  font-size: 12px;
+  max-width: 50px;
+}
+.selected {
+  background-color: rgb(0, 120, 215) !important;
+  color: white;
+}
+.villains {
+  float: left;
+  margin: 0 0 2em 0;
+  list-style-type: none;
+  padding: 0;
+  width: 25em;
+  li {
+    cursor: pointer;
+    position: relative;
+    background-color: #f7f7f7;
+    margin: 0.5em;
+    height: 3.2em;
+    border-radius: 4px;
+    &:hover {
+      color: #607d8b;
+      color: rgb(0, 120, 215);
+      background-color: #ddd;
+      left: 1px;
+    }
+    &.selected:hover {
+      color: white;
+    }
+  }
+  .text {
+    position: relative;
+    top: -3px;
+  }
+  .saying {
+    margin: 5px 2.3px;
+  }
+  .name {
+    font-weight: bold;
+  }
+  .villain-container {
+    display: flex;
+    flex-flow: row wrap;
+  }
+  > * {
+    flex: 1 100%;
+  }
+  .villain-element {
+    display: flex;
+    flex-flow: row wrap;
+    flex: 18 auto;
+    order: 1;
+    padding: 0;
+    margin: 0;
+  }
+  .delete-button {
+    flex: 1 auto;
+    order: 2;
+    border-radius: 0 4px 4px 0;
+  }
+  .villain-text {
+    flex: 1 auto;
+    order: 2;
+    padding: 0.2em 0.5em;
+  }
+  .badge {
+    flex: 1 auto;
+    order: 1;
+    font-size: small;
+    color: #ffffff;
+    padding: 1.2em 1em 0em 1em;
+    background-color: rgb(134, 183, 221);
+    margin: 0em 0em 0em 0em;
+    border-radius: 4px 0 0 4px;
+    max-width: 1.5em;
+  }
+}

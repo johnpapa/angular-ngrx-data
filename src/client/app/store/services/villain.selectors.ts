@@ -2,19 +2,19 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { EntityCache, EntitySelectors } from '../ngrx-data';
 
-import { Hero } from '../../core';
+import { Villain } from '../../core';
 
 @Injectable()
-export class HeroSelectors extends EntitySelectors<Hero> {
+export class VillainSelectors extends EntitySelectors<Villain> {
   constructor(store: Store<EntityCache>) {
-    super(Hero, store);
+    super(Villain, store);
   }
 
-  filteredHeroes$() {
+  filteredVillains$() {
     return this.filteredEntities$();
   }
 
-  heroes$() {
+  villains$() {
     return this.entities$();
   }
 }

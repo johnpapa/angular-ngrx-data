@@ -1,31 +1,40 @@
 import { Action } from '@ngrx/store';
 
-import { Hero } from '../../model';
-import { DataServiceError } from '../services';
-import { DataAction, DataErrorAction } from './data.actions';
+import { Hero } from '../../core';
+import { DataServiceError } from '../ngrx-data';
 
-export const ADD_HERO = '[Hero] ADD_HERO';
-export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';
-export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
-
-export const GET_HERO = '[Hero] GET_HERO';
-export const GET_HERO_SUCCESS = '[Hero] GET_HERO_SUCCESS';
-export const GET_HERO_ERROR = '[Hero] GET_HERO_ERROR';
-
-export const UPDATE_HERO = '[Hero] UPDATE_HERO';
-export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
-export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
-
-export const SET_FILTER = '[Hero] - SET_FILTER';
+export const SET_HERO_FILTER = '[Hero] - SET_HERO_FILTER';
 export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
 
 export const GET_HEROES = '[Hero] GET_HEROES';
 export const GET_HEROES_SUCCESS = '[Hero] GET_HEROES_SUCCESS';
 export const GET_HEROES_ERROR = '[Hero] GET_HEROES_ERROR';
 
+export const GET_HERO = '[Hero] GET_HERO';
+export const GET_HERO_SUCCESS = '[Hero] GET_HERO_SUCCESS';
+export const GET_HERO_ERROR = '[Hero] GET_HERO_ERROR';
+
+export const ADD_HERO = '[Hero] ADD_HERO';
+export const ADD_HERO_ERROR = '[Hero] ADD_HERO_ERROR';
+export const ADD_HERO_SUCCESS = '[Hero] ADD_HERO_SUCCESS';
+
+export const UPDATE_HERO = '[Hero] UPDATE_HERO';
+export const UPDATE_HERO_SUCCESS = '[Hero] UPDATE_HERO_SUCCESS';
+export const UPDATE_HERO_ERROR = '[Hero] UPDATE_HERO_ERROR';
+
 export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
+
+export abstract class DataAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: T) {}
+}
+
+export abstract class DataErrorAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: DataServiceError<T>) {}
+}
 
 export abstract class HeroAction implements DataAction<Hero> {
   readonly type: string;
@@ -38,7 +47,7 @@ export abstract class HeroErrorAction implements DataErrorAction<Hero> {
 }
 
 export class SetFilter implements Action {
-  readonly type = SET_FILTER;
+  readonly type = SET_HERO_FILTER;
   constructor(public readonly payload: string) {}
 }
 

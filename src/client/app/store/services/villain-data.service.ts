@@ -7,44 +7,44 @@ import { catchError, delay, map } from 'rxjs/operators';
 
 import { DataServiceError, EntityCollectionDataService } from '../ngrx-data';
 
-import { Hero } from '../../core';
+import { Villain } from '../../core';
 
 const api = '/api';
 const fakeDelays = { select: 1000, save: 200 };
 
 @Injectable()
-export class HeroDataService implements EntityCollectionDataService<Hero> {
+export class VillainDataService implements EntityCollectionDataService<Villain> {
   constructor(private http: HttpClient) {}
 
-  add(hero: Hero): Observable<Hero> {
+  add(villain: Villain): Observable<Villain> {
     return this.http
-      .post<Hero>(`${api}/hero/`, hero)
-      .pipe(delay(fakeDelays.save), catchError(this.handleError(hero)));
+      .post<Villain>(`${api}/villain/`, villain)
+      .pipe(delay(fakeDelays.save), catchError(this.handleError(villain)));
   }
 
-  delete(hero: Hero): Observable<Hero> {
-    return this.http.delete(`${api}/hero/${hero.id}`).pipe(
+  delete(villain: Villain): Observable<Villain> {
+    return this.http.delete(`${api}/villain/${villain.id}`).pipe(
       delay(fakeDelays.save),
-      map(() => hero), // return the deleted hero
-      catchError(this.handleError(hero))
+      map(() => villain), // return the deleted villain
+      catchError(this.handleError(villain))
     );
   }
 
-  getAll(filter?: string): Observable<Hero[]> {
+  getAll(filter?: string): Observable<Villain[]> {
     return this.http
-      .get<Array<Hero>>(`${api}/heroes`)
+      .get<Array<Villain>>(`${api}/villains`)
       .pipe(delay(fakeDelays.select), catchError(this.handleError()));
   }
 
-  getById(id: any): Observable<Hero> {
+  getById(id: any): Observable<Villain> {
     throw new Error('Method not implemented.');
   }
 
-  update(hero: Hero): Observable<Hero> {
-    return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero).pipe(
+  update(villain: Villain): Observable<Villain> {
+    return this.http.put<Villain>(`${api}/villain/${villain.id}`, villain).pipe(
       delay(fakeDelays.save),
-      map(() => hero), // return the updated hero
-      catchError(this.handleError(hero))
+      map(() => villain), // return the updated villain
+      catchError(this.handleError(villain))
     );
   }
 

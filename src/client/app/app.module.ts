@@ -11,9 +11,10 @@ import { AppComponent } from './app.component';
 
 import { storeFreeze } from 'ngrx-store-freeze';
 
-import { HeroStoreModule } from './store/hero-store.module';
-import { HeroListComponent } from './heroes/hero-list.component';
-import { HeroDetailComponent } from './heroes/hero-detail.component';
+import { AppEntityStoreModule } from './store/app-entity-store.module';
+// import { HeroStoreModule } from './store/hero-store.module';
+import { AppRoutingModule, routedComponents } from './app-routing.module';
+import { CoreModule } from './core/core.module';
 
 // TODO: learn about freeze
 export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []; // [storeFreeze];
@@ -22,14 +23,17 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
   imports: [
     BrowserModule,
     FormsModule,
+    CoreModule,
     // ReactiveFormsModule, // I could add this and then use FormControl with valueChanges
     HttpClientModule,
-    HeroStoreModule,
+    // HeroStoreModule,
+    AppRoutingModule,
+    AppEntityStoreModule,
     StoreModule.forRoot({}, { metaReducers }),
     EffectsModule.forRoot([]),
     !environment.production ? StoreDevtoolsModule.instrument() : []
   ],
-  declarations: [AppComponent, HeroListComponent, HeroDetailComponent],
+  declarations: [AppComponent, routedComponents],
   providers: [],
   bootstrap: [AppComponent]
 })

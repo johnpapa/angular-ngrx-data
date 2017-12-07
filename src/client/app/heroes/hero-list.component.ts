@@ -98,7 +98,7 @@ export class HeroListComponent implements OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroDispatchers.deleteHero(hero);
+    this.heroDispatchers.delete(hero);
   }
 
   enableAddMode() {
@@ -107,11 +107,11 @@ export class HeroListComponent implements OnInit {
   }
 
   filterHeroes() {
-    this.heroDispatchers.getFilteredHeroes();
+    this.heroDispatchers.getFiltered();
   }
 
   getHeroes() {
-    this.heroDispatchers.getHeroes();
+    this.heroDispatchers.getAll();
   }
 
   onSelect(hero: Hero) {
@@ -120,7 +120,7 @@ export class HeroListComponent implements OnInit {
   }
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
-    this.heroDispatchers.saveHero(arg.hero, arg.mode);
+    this.heroDispatchers.save(arg.hero, arg.mode);
   }
 
   toggleDataSource() {

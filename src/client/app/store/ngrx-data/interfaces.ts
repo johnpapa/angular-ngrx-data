@@ -2,15 +2,6 @@ import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-export abstract class DataAction<T> implements Action {
-  readonly type: string;
-  constructor(public readonly payload: T) {}
-}
-
-export abstract class DataErrorAction<T> implements Action {
-  readonly type: string;
-  constructor(public readonly payload: DataServiceError<T>) {}
-}
 export class DataServiceError<T> {
   constructor(public error: any, public requestData: T) {}
 }

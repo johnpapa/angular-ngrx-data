@@ -9,15 +9,19 @@ import { EntityCache } from '../ngrx-data';
 export class HeroDispatchers {
   constructor(private store: Store<EntityCache>) {}
 
-  deleteHero(hero: Hero) {
+  add(hero: Hero) {
+    this.store.dispatch(new HeroAction.AddHero(hero));
+  }
+
+  delete(hero: Hero) {
     this.store.dispatch(new HeroAction.DeleteHero(hero));
   }
 
-  setFilter(filter: string) {
-    this.store.dispatch(new HeroAction.SetFilter(filter));
+  getAll() {
+    this.store.dispatch(new HeroAction.GetHeroes());
   }
 
-  saveHero(hero: Hero, mode: 'add' | 'update') {
+  save(hero: Hero, mode: 'add' | 'update') {
     if (mode === 'add') {
       this.store.dispatch(new HeroAction.AddHero(hero));
     } else {
@@ -25,11 +29,15 @@ export class HeroDispatchers {
     }
   }
 
-  getHeroes() {
-    this.store.dispatch(new HeroAction.GetHeroes());
+  update(hero: Hero) {
+    this.store.dispatch(new HeroAction.UpdateHero(hero));
   }
 
-  getFilteredHeroes() {
+  getFiltered() {
     this.store.dispatch(new HeroAction.GetFilteredHeroes());
+  }
+
+  setFilter(filter: string) {
+    this.store.dispatch(new HeroAction.SetFilter(filter));
   }
 }

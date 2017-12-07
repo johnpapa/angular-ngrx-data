@@ -1,34 +1,28 @@
-import { Action, ActionReducerMap } from '@ngrx/store';
+import { Action } from '@ngrx/store';
 
 import * as EntityActions from './entity.actions';
 import { EntityAction, EntityCache, EntityCollection } from './interfaces';
-
-export const reducers: ActionReducerMap<{[name: string]: EntityCache}> = {
-  EntityCache: reducer // as fromEntities.EntityCollection<Hero>
-};
-
-// TODO: For diagnostics would be great if could nest collections such
-// that the redux tool saw the entity actions, collections, reducers, etc.
-// independently of the cache.
-// Still want the cache object because (a) avoid collection name collisions and
-// (b) some operations will surely apply across the cache.
 
 export function reducer(
   state: EntityCache = {},
   action: EntityAction<any, any>
 ): EntityCache {
   const entityTypeName = action.entityTypeName;
+  if (!entityTypeName) {
+    return state; // not an EntityAction
+  }
+
   const collection = state[entityTypeName];
   // TODO: consider creating a collection if none exists.
   //       Worried now that later implementation would depend upon
   //       missing collection metadata.
   if (!collection) {
-    throw new Error(`Entity collection ${entityTypeName} not found in cache)`);
+    throw new Error(`No cached collection named "${entityTypeName}")`);
   }
-  // Todo: intercept and redirect to entity-specific reducer
+  // Todo: intercept and redirect if there's a custom entity reducer
   const newCollection = entityCollectionReducer(collection, action);
   return (collection === newCollection) ? state :
-    {...state, ...{ [entityTypeName]: collection } };
+    {...state, ...{ [entityTypeName]: newCollection } };
 }
 
 function entityCollectionReducer<T>(

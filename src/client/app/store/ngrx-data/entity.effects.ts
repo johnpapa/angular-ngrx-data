@@ -68,7 +68,6 @@ export class EntityEffects {
 }
 
 function handleSuccess (action: eaType) {
-
   const successOp = <EntityOp> (action.op + '_SUCCESS');
 
   const filteredAction = new EntityAction<any, any>(
@@ -78,7 +77,6 @@ function handleSuccess (action: eaType) {
     new EntityAction<any, any>(action.entityType, successOp, data),
     filteredAction
   ];
-
 }
 
 function handleError (action: eaType) {

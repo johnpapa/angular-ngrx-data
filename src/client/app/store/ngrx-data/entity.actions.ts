@@ -1,4 +1,4 @@
-// General purpose entity action stuff, good for any entity type
+// General purpose entity action types, good for any entity type
 export const GET_ALL = 'GET_ALL';
 export const GET_ALL_SUCCESS = 'GET_ALL_SUCCESS';
 export const GET_ALL_ERROR = 'GET_ALL_ERROR';

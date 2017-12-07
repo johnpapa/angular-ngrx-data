@@ -1,7 +1,7 @@
 import { Action } from '@ngrx/store';
 
 import { Hero } from '../../model';
-import { DataAction, DataErrorAction, DataServiceError } from '../ngrx-data';
+import { DataServiceError } from '../ngrx-data';
 
 export const SET_HERO_FILTER = '[Hero] - SET_HERO_FILTER';
 export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';
@@ -26,6 +26,15 @@ export const DELETE_HERO = '[Hero] DELETE_HERO';
 export const DELETE_HERO_SUCCESS = '[Hero] DELETE_HERO_SUCCESS';
 export const DELETE_HERO_ERROR = '[Hero] DELETE_HERO_ERROR';
 
+export abstract class DataAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: T) {}
+}
+
+export abstract class DataErrorAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: DataServiceError<T>) {}
+}
 
 export abstract class HeroAction implements DataAction<Hero> {
   readonly type: string;

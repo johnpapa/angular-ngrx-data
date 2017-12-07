@@ -1,21 +1,20 @@
 import { NgModule } from '@angular/core';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
+import { EntityEffects, EntityDataService, reducer } from './ngrx-data';
 
-import { EntityEffects, EntityDataService, reducers } from './ngrx-data';
-import { services, AppDataService } from './services';
-
+import { AppDataService, services } from './services';
 import { initialEntityCache } from './app-entities';
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityState', reducers, initialEntityCache ),
+    StoreModule.forFeature('entityCache', reducer, { initialState: initialEntityCache } ),
     EffectsModule.forFeature([EntityEffects])
   ],
   providers: [
     services,
     { provide: EntityDataService, useExisting: AppDataService }
   ],
-  exports: [StoreModule, EffectsModule]
+  exports: [EffectsModule, StoreModule]
 })
-export class HeroStoreModule {}
+export class AppEntityStoreModule { }

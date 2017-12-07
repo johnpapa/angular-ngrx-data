@@ -40,7 +40,10 @@ export type EntityOp =
   | 'UPDATE_ERROR'
   | 'DELETE'
   | 'DELETE_SUCCESS'
-  | 'DELETE_ERROR';
+  | 'DELETE_ERROR'
+  | 'GET_FILTERED'
+  | 'SET_FILTER';
+
 
 export type EntityClass<T> = new (...x: any[]) => T;
 
@@ -58,11 +61,3 @@ export class EntityAction<T, P> implements Action {
     // this.type = `[${this.entityType.name}] ${this.op}`;
   }
 }
-
-// export type All =
-// | Get | GetSuccess | GetError
-// | Get_by_id | Get_by_id_Success | Get_by_id_Error
-// | Update | UpdateSuccess | UpdateError
-// | Get | GetSuccess | GetError
-// | Add | AddSuccess | AddError
-// | Delete | DeleteSuccess | DeleteError;

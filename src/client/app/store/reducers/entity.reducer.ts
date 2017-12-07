@@ -1,5 +1,6 @@
 import { Hero } from '../../model';
 import * as fromActions from '../actions';
+import { Action, ActionReducerMap } from '@ngrx/store';
 
 export interface EntityCache {
   // Must be any since we don't know what type of collections we will have
@@ -14,14 +15,6 @@ export class EntityCollection<T> {
   error = false;
 }
 
-export interface HeroState extends EntityCollection<Hero> {
-  filter: string;
-  entities: Hero[];
-  filteredEntities: Hero[];
-  loading: boolean;
-  error: boolean;
-}
-
 export const initialBaseState: EntityCache = {
   // TODO: for now we need to name the entity entries/collections the same as the model
   Hero: new EntityCollection<Hero>(),
@@ -30,17 +23,18 @@ export const initialBaseState: EntityCache = {
 
 export function reducer(
   state = initialBaseState,
-  action: fromActions.EntityAction<any, any>
+  action: Action
 ): EntityCache {
-  switch (action.type) {
+  const entityAction = action as fromActions.EntityAction<any, any>
+  switch (entityAction.type) {
     case fromActions.ADD: {
       return {
         // entire entity cache (heroes, villains, everything)
         ...state,
         // just the entity collection we want (this is the old state)
-        [action.entityTypeName]: {
+        [entityAction.entityTypeName]: {
           // now we spread the existing state
-          ...state[action.entityTypeName],
+          ...state[entityAction.entityTypeName],
           // now we are merging in
           loading: true
         }
@@ -50,10 +44,10 @@ export function reducer(
     case fromActions.ADD_SUCCESS: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false,
-          entities: [...state[action.entityTypeName].entities, { ...action.payload }]
+          entities: [...state[entityAction.entityTypeName].entities, { ...entityAction.payload }]
         }
       };
     }
@@ -61,8 +55,8 @@ export function reducer(
     case fromActions.ADD_ERROR: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false
         }
       };
@@ -70,16 +64,16 @@ export function reducer(
 
     case fromActions.GET_FILTERED: {
       let filteredEntities: Hero[];
-      if (state[action.entityTypeName].filter) {
-        const filter = new RegExp(state[action.entityTypeName].filter, 'i');
-        filteredEntities = state[action.entityTypeName].entities.filter(h => filter.test(h.name));
+      if (state[entityAction.entityTypeName].filter) {
+        const filter = new RegExp(state[entityAction.entityTypeName].filter, 'i');
+        filteredEntities = state[entityAction.entityTypeName].entities.filter(h => filter.test(h.name));
       } else {
-        filteredEntities = state[action.entityTypeName].entities;
+        filteredEntities = state[entityAction.entityTypeName].entities;
       }
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false,
           filteredEntities
         }
@@ -89,8 +83,8 @@ export function reducer(
     case fromActions.GET_ALL: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: true
         }
       };
@@ -99,8 +93,8 @@ export function reducer(
     case fromActions.GET_ALL_ERROR: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false
         }
       };
@@ -109,25 +103,25 @@ export function reducer(
     case fromActions.GET_ALL_SUCCESS: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false,
-          entities: [action.payload]
+          entities: [entityAction.payload]
         }
       };
     }
 
     case fromActions.SET_FILTER: {
-      return { ...state, filter: action.payload };
+      return { ...state, filter: entityAction.payload };
     }
 
     case fromActions.DELETE: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: true,
-          entities: state[action.entityTypeName].entities.filter(h => h !== action.payload)
+          entities: state[entityAction.entityTypeName].entities.filter(h => h !== entityAction.payload)
         }
       };
     }
@@ -135,8 +129,8 @@ export function reducer(
     case fromActions.DELETE_SUCCESS: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false
         }
       };
@@ -145,9 +139,9 @@ export function reducer(
     case fromActions.DELETE_ERROR: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
-          entities: [...state[action.entityTypeName].entities, action.payload.requestData],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
+          entities: [...state[entityAction.entityTypeName].entities, entityAction.payload.requestData],
           loading: false
         }
       };
@@ -156,11 +150,11 @@ export function reducer(
     case fromActions.UPDATE: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
-          entities: state[action.entityTypeName].entities.map(h => {
-            if (h.id === action.payload.id) {
-              state[action.entityTypeName].loading = true;
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
+          entities: state[entityAction.entityTypeName].entities.map(h => {
+            if (h.id === entityAction.payload.id) {
+              state[entityAction.entityTypeName].loading = true;
             }
             return h;
           })
@@ -172,12 +166,12 @@ export function reducer(
       // return modifyHeroState(cache, action.payload);
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false,
-          entities: state[action.entityTypeName].entities.map(h => {
-            if (h.id === action.payload.id) {
-              return { ...h, ...action.payload };
+          entities: state[entityAction.entityTypeName].entities.map(h => {
+            if (h.id === entityAction.payload.id) {
+              return { ...h, ...entityAction.payload };
             } else {
               return h;
             }
@@ -189,13 +183,13 @@ export function reducer(
     case fromActions.UPDATE_ERROR: {
       return {
         ...state,
-        [action.entityTypeName]: {
-          ...state[action.entityTypeName],
+        [entityAction.entityTypeName]: {
+          ...state[entityAction.entityTypeName],
           loading: false,
-          entities: state[action.entityTypeName].entities.map(h => {
-            if (h.id === action.payload.requestData.id) {
+          entities: state[entityAction.entityTypeName].entities.map(h => {
+            if (h.id === entityAction.payload.requestData.id) {
               // Huh? No idea what the error is!
-              state[action.entityTypeName].error = true;
+              state[entityAction.entityTypeName].error = true;
             }
             return h;
           })
@@ -205,3 +199,8 @@ export function reducer(
   }
   return state;
 }
+
+
+export const reducers: ActionReducerMap<{[name: string]: EntityCache}> = {
+  EntityCache: reducer // as fromEntities.EntityCollection<Hero>
+};

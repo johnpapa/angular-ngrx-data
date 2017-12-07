@@ -5,16 +5,16 @@ import { FormsModule } from '@angular/forms';
 import { StoreModule, MetaReducer } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { reducers } from './reducers/hero.reducer';
-import { HeroEffects as effects } from './effects/hero.effects';
+import { reducers } from './reducers/entity.reducer';
+import { effects } from './effects';
 import { services } from './';
 
 @NgModule({
   imports: [
     CommonModule,
     HttpClientModule,
-    StoreModule.forFeature('heroState', reducers),
-    EffectsModule.forFeature([effects])
+    StoreModule.forFeature('entityState', reducers),
+    EffectsModule.forFeature(effects)
   ],
   providers: [...services],
   declarations: [],

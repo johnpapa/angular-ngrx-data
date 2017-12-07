@@ -4,43 +4,43 @@ import { tap } from 'rxjs/operators';
 
 import { Hero } from '../../model';
 import { EntityClass } from '../actions';
-import { EntityCollection, EntityState } from '../reducers';
+import { EntityCollection, EntityCache } from '../reducers';
 
 // selectors
-const getEntityState = createFeatureSelector<EntityState>('entityState');
+const getEntityCache = createFeatureSelector<EntityCache>('heroState');
 
 function getAllEntities<T>(entityType: EntityClass<T>) {
   const name = entityType.name;
   return createSelector(
-    getEntityState,
-    (state: EntityState) => (state[name] as EntityCollection<T>).entities
+    getEntityCache,
+    (state: EntityCache) => (state[name] as EntityCollection<T>).entities
   );
 }
 function getAllFilteredEntities<T>(entityType: EntityClass<T>) {
   const name = entityType.name;
   return createSelector(
-    getEntityState,
-    (state: EntityState) => (state[name] as EntityCollection<T>).filteredEntities
+    getEntityCache,
+    (state: EntityCache) => (state[name] as EntityCollection<T>).filteredEntities
   );
 }
 function getFilter<T>(entityType: EntityClass<T>) {
   const name = entityType.name;
   return createSelector(
-    getEntityState,
-    (state: EntityState) => (state[name] as EntityCollection<T>).filter
+    getEntityCache,
+    (state: EntityCache) => (state[name] as EntityCollection<T>).filter
   );
 }
 function getLoading<T>(entityType: EntityClass<T>) {
   const name = entityType.name;
   return createSelector(
-    getEntityState,
-    (state: EntityState) => (state[name] as EntityCollection<T>).loading
+    getEntityCache,
+    (state: EntityCache) => (state[name] as EntityCollection<T>).loading
   );
 }
 
 @Injectable()
 export class HeroSelectors {
-  constructor(private store: Store<EntityState>) {}
+  constructor(private store: Store<EntityCache>) {}
 
   filteredHeroes$() {
     return this.store.select(getAllFilteredEntities(Hero));

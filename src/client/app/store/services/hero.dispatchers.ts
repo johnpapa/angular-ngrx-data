@@ -3,11 +3,11 @@ import { Store } from '@ngrx/store';
 
 import { Hero } from '../../model';
 import * as HeroAction from '../actions';
-import { EntityState } from '../reducers';
+import { EntityCache } from '../reducers';
 
 @Injectable()
 export class HeroDispatchers {
-  constructor(private store: Store<EntityState>) {}
+  constructor(private store: Store<EntityCache>) {}
 
   deleteHero(hero: Hero) {
     this.store.dispatch(new HeroAction.DeleteHero(hero));

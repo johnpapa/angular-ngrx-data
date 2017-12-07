@@ -1,18 +1,8 @@
 import { Hero } from '../../model';
 import * as HeroActions from '../actions';
+import { ActionReducerMap } from '@ngrx/store';
 
-export interface EntityState {
-  // Must be any since we don't know what type of collections we will have
-  [name: string]: EntityCollection<any>;
-}
-
-export class EntityCollection<T> {
-  filter = '';
-  entities: T[] = [];
-  filteredEntities: T[] = [];
-  loading = false;
-  error = false;
-}
+import { EntityCache, EntityCollection } from './entity.reducer';
 
 export interface HeroState extends EntityCollection<Hero> {
   filter: string;
@@ -22,7 +12,7 @@ export interface HeroState extends EntityCollection<Hero> {
   error: boolean;
 }
 
-export const initialBaseState: EntityState = {
+export const initialBaseState: EntityCache = {
   // TODO: for now we need to name the entity entries/collections the same as the model
   Hero: new EntityCollection<Hero>(),
   Villain: new EntityCollection<Hero>() // TODO no villain exists
@@ -158,3 +148,16 @@ function modifyHeroState(heroState: HeroState, heroChanges: Partial<Hero>): Hero
     })
   };
 }
+
+export type Action = HeroActions.HeroAction;
+
+export const reducers: ActionReducerMap<EntityCache> = {
+  // TODO: for now the reducer must be named the same as the entity collection
+  Hero: reducer // as fromEntities.EntityCollection<Hero>
+  // here is where i put other reducers, when i have them
+};
+// export const reducers: ActionReducerMap<fromHeroes.EntityCache> = {
+//   // TODO: for now the reducer must be named the same as the entity collection
+//   Hero: fromHeroes.reducer
+//   // here is where i put other reducers, when i have them
+// };

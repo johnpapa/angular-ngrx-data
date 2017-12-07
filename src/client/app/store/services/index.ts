@@ -16,6 +16,9 @@ import { HeroDataService } from './hero-data.service';
 import { EntityDataService } from '../ngrx-data';
 
 export const services = [
-  AppDataService, HeroDataService, HeroDispatchers, HeroSelectors,
+  AppDataService,
+  HeroDataService,
+  HeroDispatchers,
+  HeroSelectors,
   { provide: EntityDataService, useExisting: AppDataService }
 ];

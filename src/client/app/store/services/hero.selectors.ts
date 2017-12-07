@@ -7,7 +7,7 @@ import { Hero } from '../../model';
 @Injectable()
 export class HeroSelectors extends EntitySelectors<Hero> {
   constructor(store: Store<EntityCache>) {
-    super(Hero, store)
+    super(Hero, store);
   }
 
   filteredHeroes$() {

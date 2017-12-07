@@ -7,10 +7,7 @@ import { HeroEffects } from './effects';
 import { services } from './services';
 
 @NgModule({
-  imports: [
-    StoreModule.forFeature('heroState', reducers),
-    EffectsModule.forFeature([HeroEffects])
-  ],
+  imports: [StoreModule.forFeature('heroState', reducers), EffectsModule.forFeature([HeroEffects])],
   providers: [services],
   declarations: [],
   exports: [StoreModule, EffectsModule]

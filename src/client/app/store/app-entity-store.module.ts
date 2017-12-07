@@ -8,13 +8,10 @@ import { initialEntityCache } from './app-entities';
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', reducer, { initialState: initialEntityCache } ),
+    StoreModule.forFeature('entityCache', reducer, { initialState: initialEntityCache }),
     EffectsModule.forFeature([EntityEffects])
   ],
-  providers: [
-    services,
-    { provide: EntityDataService, useExisting: AppDataService }
-  ],
+  providers: [services, { provide: EntityDataService, useExisting: AppDataService }],
   exports: [EffectsModule, StoreModule]
 })
-export class AppEntityStoreModule { }
+export class AppEntityStoreModule {}

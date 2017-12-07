@@ -23,9 +23,9 @@ type HeroAction = HeroActions.HeroAction;
 // an observable of ngrx action(s) from DataService method observable
 export function toActionOld<T>(...actions: Action[]) {
   return (
-  source: Observable<T>,
-  successAction: new (data: T) => Action,
-  errorAction: new (err: DataServiceError<T>) => Action
+    source: Observable<T>,
+    successAction: new (data: T) => Action,
+    errorAction: new (err: DataServiceError<T>) => Action
   ) =>
     source.pipe(
       mergeMap((data: T) => [new successAction(data), ...actions]),
@@ -39,44 +39,52 @@ export class HeroEffects {
   getHeroes$: Observable<Action> = this.actions$
     .ofType(HeroActions.GET_HEROES)
     .pipe(
-      switchMap(() => toHeroAction(
-        this.heroDataService.getAll(),
-        HeroActions.GetHeroesSuccess,
-        HeroActions.GetHeroesError
-      ))
+      switchMap(() =>
+        toHeroAction(
+          this.heroDataService.getAll(),
+          HeroActions.GetHeroesSuccess,
+          HeroActions.GetHeroesError
+        )
+      )
     );
 
   @Effect()
   addHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.ADD_HERO)
     .pipe(
-      concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.add(action.payload),
-        HeroActions.AddHeroSuccess,
-        HeroActions.AddHeroError
-      ))
+      concatMap((action: HeroAction) =>
+        toHeroAction(
+          this.heroDataService.add(action.payload),
+          HeroActions.AddHeroSuccess,
+          HeroActions.AddHeroError
+        )
+      )
     );
 
   @Effect()
   deleteHero$: Observable<Action> = this.actions$
     .ofType(HeroActions.DELETE_HERO)
     .pipe(
-      concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.delete(action.payload),
-        HeroActions.DeleteHeroSuccess,
-        HeroActions.DeleteHeroError
-      ))
+      concatMap((action: HeroAction) =>
+        toHeroAction(
+          this.heroDataService.delete(action.payload),
+          HeroActions.DeleteHeroSuccess,
+          HeroActions.DeleteHeroError
+        )
+      )
     );
 
   @Effect()
   updateHero$: Observable<Action> = this.actions$
     .ofType<HeroActions.UpdateHero>(HeroActions.UPDATE_HERO)
     .pipe(
-      concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.update(action.payload),
-        HeroActions.UpdateHeroSuccess,
-        HeroActions.UpdateHeroError
-      ))
+      concatMap((action: HeroAction) =>
+        toHeroAction(
+          this.heroDataService.update(action.payload),
+          HeroActions.UpdateHeroSuccess,
+          HeroActions.UpdateHeroError
+        )
+      )
     );
 
   constructor(

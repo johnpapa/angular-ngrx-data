@@ -7,6 +7,6 @@ import { Hero } from '../../model';
 @Injectable()
 export class HeroDispatchers extends EntityDispatchers<Hero> {
   constructor(store: Store<EntityCache>) {
-    super(Hero, store)
+    super(Hero, store);
   }
 }

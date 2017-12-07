@@ -6,10 +6,7 @@ import { EntityAction, EntityCache, EntityClass, EntityOp } from './interfaces';
 
 @Injectable()
 export class EntityDispatchers<T> {
-  constructor(
-    private entityClass: EntityClass<T>,
-    private store: Store<EntityCache>
-  ) {}
+  constructor(private entityClass: EntityClass<T>, private store: Store<EntityCache>) {}
 
   private dispatch(op: EntityOp, payload?: any) {
     this.store.dispatch(new EntityAction(this.entityClass, op, payload));

@@ -8,7 +8,9 @@ import { RequestInfo, RequestInfoUtilities, ParsedRequestUrl } from 'angular-in-
 import { Hero, Villain } from './model';
 
 /** In-memory database data */
-interface Db { [collectionName: string]: any[] };
+interface Db {
+  [collectionName: string]: any[];
+}
 
 @Injectable()
 export class InMemoryDataService {
@@ -16,11 +18,10 @@ export class InMemoryDataService {
   active = true;
 
   /** In-memory database data */
-  db: Db = {} ;
+  db: Db = {};
 
   /** Create the in-memory database on start or by command */
   createDb(reqInfo?: RequestInfo) {
-
     this.db = getDbData();
 
     if (reqInfo) {
@@ -47,8 +48,7 @@ export class InMemoryDataService {
    */
   parseRequestUrl(url: string, utils: RequestInfoUtilities): ParsedRequestUrl {
     const parsed = utils.parseRequestUrl(url);
-    parsed.collectionName = (this.active) ?
-      mapCollectionName(parsed.collectionName) : undefined
+    parsed.collectionName = this.active ? mapCollectionName(parsed.collectionName) : undefined;
     return parsed;
   }
 }
@@ -59,10 +59,12 @@ export class InMemoryDataService {
  * @param name - collection name from the parsed URL
  */
 function mapCollectionName(name: string): string {
-  return ({
-    hero: 'heroes',
-    villain: 'villains'
-  } as any)[name] || name;
+  return (
+    ({
+      hero: 'heroes',
+      villain: 'villains'
+    } as any)[name] || name
+  );
 }
 
 /**
@@ -75,12 +77,16 @@ function getDbData() {
       name: 'Mr. Nice',
       saying: 'Doggone it, people like me.'
     },
-    { id: 12,
+    {
+      id: 12,
       name: 'Narco',
-      saying: 'Sleep, my pretty!' },
-    { id: 13,
+      saying: 'Sleep, my pretty!'
+    },
+    {
+      id: 13,
       name: 'Bombasto',
-      saying: 'I am the greatest!' },
+      saying: 'I am the greatest!'
+    }
   ];
 
   const villains: Villain[] = [
@@ -89,19 +95,22 @@ function getDbData() {
       name: 'Dr. Evil',
       saying: 'One million dollars!'
     },
-    { id: 22,
+    {
+      id: 22,
       name: 'Agent Smith',
       saying: 'Human beings are a disease.'
     },
-    { id: 23,
+    {
+      id: 23,
       name: 'Goldfinger',
       saying: 'No, I expect you to die!'
     },
-    { id: 24,
+    {
+      id: 24,
       name: 'Natasha Fatale',
       saying: 'You can say that again, dahling.'
-    },
+    }
   ];
 
-  return {heroes, villains} as Db;
+  return { heroes, villains } as Db;
 }

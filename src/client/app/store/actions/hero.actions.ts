@@ -1,8 +1,7 @@
 import { Action } from '@ngrx/store';
 
 import { Hero } from '../../model';
-import { DataServiceError } from '../services';
-import { DataAction, DataErrorAction } from './data.actions';
+import { DataAction, DataErrorAction, DataServiceError } from '../ngrx-data';
 
 export const SET_HERO_FILTER = '[Hero] - SET_HERO_FILTER';
 export const GET_FILTERED_HEROES = '[Hero] GET_FILTERED_HEROES';

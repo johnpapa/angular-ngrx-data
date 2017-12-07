@@ -1,23 +1,27 @@
 // NOT READY
 import { Injectable } from '@angular/core';
 
+import { Action, Store } from '@ngrx/store';
+import { Actions, Effect } from '@ngrx/effects';
+
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { concatMap, catchError, first, map, mergeMap, switchMap } from 'rxjs/operators';
 
-import { Action, Store } from '@ngrx/store';
-import { Actions, Effect } from '@ngrx/effects';
+import { DataServiceError, EntityCache } from './interfaces';
+import { toAction } from './entity.actions';
+
+///////////////// Refactor from here
+/*
 
 import * as HeroActions from '../actions';
 
 import { Hero } from '../../model';
-import { HeroDataService, DataServiceError } from '../services';
-import { EntityCache } from '../reducers';
+import { HeroDataService } from '../services';
 
 const filterAction = new HeroActions.GetFilteredHeroes();
-const toAction = HeroActions.toAction(filterAction);
-type HeroAction = HeroActions.HeroAction;
 
+type HeroAction = HeroActions.HeroAction;
 @Injectable()
 export class HeroEffects {
   @Effect()
@@ -78,3 +82,4 @@ export class HeroEffects {
     private heroDataService: HeroDataService
   ) {}
 }
+*/

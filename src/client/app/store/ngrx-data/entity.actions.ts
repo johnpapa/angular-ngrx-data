@@ -1,6 +1,10 @@
 import { Action } from '@ngrx/store';
-import { DataServiceError } from '../services';
-import { DataAction, DataErrorAction } from './data.actions';
+import { DataServiceError, EntityClass } from './interfaces';
+// General purpose entity action stuff, good for any entity type
+
+import { Observable } from 'rxjs/Observable';
+import { catchError, mergeMap } from 'rxjs/operators';
+import { of } from 'rxjs/observable/of';
 
 export const GET_ALL = 'GET_ALL';
 export const GET_ALL_SUCCESS = 'GET_ALL_SUCCESS';
@@ -44,9 +48,6 @@ export type EntityOp =
   | 'GET_FILTERED'
   | 'SET_FILTER';
 
-
-export type EntityClass<T extends Object> = new (...x: any[]) => T;
-
 export class EntityAction<T extends Object, P> implements Action {
   readonly type: string;
 
@@ -60,4 +61,29 @@ export class EntityAction<T extends Object, P> implements Action {
     this.type = this.op;
     // this.type = `[${this.entityType.name}] ${this.op}`;
   }
+}
+
+export abstract class DataAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: T) {}
+}
+
+export abstract class DataErrorAction<T> implements Action {
+  readonly type: string;
+  constructor(public readonly payload: DataServiceError<T>) {}
+}
+
+// Function of additional success actions
+// that returns a function that returns
+// an observable of ngrx action(s) from DataService method observable
+export function toAction<T>(...actions: Action[]) {
+  return (
+  source: Observable<T>,
+  successAction: new (data: T) => Action,
+  errorAction: new (err: DataServiceError<T>) => Action
+  ) =>
+    source.pipe(
+      mergeMap((data: T) => [new successAction(data), ...actions]),
+      catchError((err: DataServiceError<T>) => of(new errorAction(err)))
+    );
 }

@@ -1,36 +1,28 @@
-import { Hero } from '../../model';
-import * as Actions from '../actions';
 import { Action, ActionReducerMap } from '@ngrx/store';
 
-export interface EntityCache {
-  // Must be any since we don't know what type of collections we will have
-  [name: string]: EntityCollection<any>;
-}
-
-export class EntityCollection<T> {
-  filter = '';
-  entities: T[] = [];
-  filteredEntities: T[] = [];
-  loading = false;
-  error = false;
-}
-
-export const initialBaseState: EntityCache = {
-  // TODO: for now we need to name the entity entries/collections the same as the model
-  Hero: new EntityCollection<Hero>(),
-  Villain: new EntityCollection<Hero>() // TODO no villain exists
-};
+import { Hero } from '../../model';
+import * as Actions from './entity.actions';
+import { EntityCache, EntityCollection } from './interfaces';
 
 export const reducers: ActionReducerMap<{[name: string]: EntityCache}> = {
   EntityCache: reducer // as fromEntities.EntityCollection<Hero>
 };
 
+// TODO: For diagnostics would be great if could nest collections such
+// that the redux tool saw the entity actions, collections, reducers, etc.
+// independently of the cache.
+// Still want the cache object because (a) avoid collection name collisions and
+// (b) some operations will surely apply across the cache.
+
 export function reducer(
-  state = initialBaseState,
+  state: EntityCache = {},
   action: Actions.EntityAction<any, any>
 ): EntityCache {
   const entityTypeName = action.entityTypeName;
   const collection = state[entityTypeName];
+  // TODO: consider creating a collection if none exists.
+  //       Worried now that later implementation would depend upon
+  //       missing collection metadata.
   if (!collection) {
     throw new Error(`Entity collection ${entityTypeName} not found in cache)`);
   }

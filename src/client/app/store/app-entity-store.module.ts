@@ -5,15 +5,17 @@ import { FormsModule } from '@angular/forms';
 import { StoreModule, MetaReducer } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { reducers } from './reducers/entity.reducer';
+import { reducers } from './ngrx-data';
 import { effects } from './effects';
 import { services } from './';
+
+import { initialEntityCache } from './app-entities';
 
 @NgModule({
   imports: [
     CommonModule,
     HttpClientModule,
-    StoreModule.forFeature('entityState', reducers),
+    StoreModule.forFeature('entityState', reducers, initialEntityCache ),
     EffectsModule.forFeature(effects)
   ],
   providers: [...services],

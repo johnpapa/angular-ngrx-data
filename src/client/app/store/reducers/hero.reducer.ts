@@ -2,7 +2,7 @@ import { Hero } from '../../model';
 import * as HeroActions from '../actions';
 import { ActionReducerMap } from '@ngrx/store';
 
-import { EntityCache, EntityCollection } from './entity.reducer';
+import { EntityCache, EntityCollection } from '../ngrx-data';
 
 export interface HeroState extends EntityCollection<Hero> {
   filter: string;

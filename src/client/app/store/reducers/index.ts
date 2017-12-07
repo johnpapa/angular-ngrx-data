@@ -1,8 +1,6 @@
 import { ActionReducerMap, createFeatureSelector, createSelector } from '@ngrx/store';
 import { Store } from '@ngrx/store';
 
-export * from './entity.reducer';
-
 // export const reducers: ActionReducerMap<fromHeroes.EntityState> = {
 //   // TODO: for now the reducer must be named the same as the entity collection
 //   Hero: fromHeroes.reducer // as fromEntities.EntityCollection<Hero>

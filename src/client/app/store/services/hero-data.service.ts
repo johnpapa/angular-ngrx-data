@@ -4,7 +4,8 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
-import { api, DataServiceError, fakeDelays } from './data.service';
+import { api, fakeDelays } from './data.service';
+import { DataServiceError } from '../ngrx-data';
 
 import { Hero } from '../../model';
 

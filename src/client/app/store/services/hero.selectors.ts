@@ -3,8 +3,7 @@ import { Store, createSelector, createFeatureSelector } from '@ngrx/store';
 import { tap } from 'rxjs/operators';
 
 import { Hero } from '../../model';
-import { EntityClass } from '../actions';
-import { EntityCollection, EntityCache } from '../reducers';
+import { EntityCollection, EntityCache, EntityClass } from '../ngrx-data';
 
 // selectors
 const getEntityCache = createFeatureSelector<EntityCache>('heroState');

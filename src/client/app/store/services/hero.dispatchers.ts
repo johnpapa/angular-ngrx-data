@@ -3,7 +3,7 @@ import { Store } from '@ngrx/store';
 
 import { Hero } from '../../model';
 import * as HeroAction from '../actions';
-import { EntityCache } from '../reducers';
+import { EntityCache } from '../ngrx-data';
 
 @Injectable()
 export class HeroDispatchers {

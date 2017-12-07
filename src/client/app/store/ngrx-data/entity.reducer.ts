@@ -1,8 +1,7 @@
 import { Action, ActionReducerMap } from '@ngrx/store';
 
-import { Hero } from '../../model';
-import * as Actions from './entity.actions';
-import { EntityCache, EntityCollection } from './interfaces';
+import * as EntityActions from './entity.actions';
+import { EntityAction, EntityCache, EntityCollection } from './interfaces';
 
 export const reducers: ActionReducerMap<{[name: string]: EntityCache}> = {
   EntityCache: reducer // as fromEntities.EntityCollection<Hero>
@@ -16,7 +15,7 @@ export const reducers: ActionReducerMap<{[name: string]: EntityCache}> = {
 
 export function reducer(
   state: EntityCache = {},
-  action: Actions.EntityAction<any, any>
+  action: EntityAction<any, any>
 ): EntityCache {
   const entityTypeName = action.entityTypeName;
   const collection = state[entityTypeName];
@@ -34,14 +33,14 @@ export function reducer(
 
 function entityCollectionReducer<T>(
   collection: EntityCollection<T>,
-  action: Actions.EntityAction<T, any>): EntityCollection<T> {
+  action: EntityAction<T, any>): EntityCollection<T> {
 
   switch (action.type) {
-    case Actions.ADD: {
+    case EntityActions.ADD: {
       return { ...collection, loading: true };
     }
 
-    case Actions.ADD_SUCCESS: {
+    case EntityActions.ADD_SUCCESS: {
       return {
         ...collection,
         loading: false,
@@ -49,22 +48,22 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.ADD_ERROR: {
+    case EntityActions.ADD_ERROR: {
       return { ...collection, loading: false };
     }
 
-    case Actions.GET_ALL: {
+    case EntityActions.GET_ALL: {
       return { ...collection, loading: true };
     }
 
-    case Actions.GET_ALL_ERROR: {
+    case EntityActions.GET_ALL_ERROR: {
       return {
         ...collection,
         loading: false
       };
     }
 
-    case Actions.GET_ALL_SUCCESS: {
+    case EntityActions.GET_ALL_SUCCESS: {
       return {
         ...collection,
         entities: action.payload,
@@ -72,7 +71,7 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.DELETE: {
+    case EntityActions.DELETE: {
       return {
         ...collection,
         loading: true,
@@ -80,12 +79,12 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.DELETE_SUCCESS: {
+    case EntityActions.DELETE_SUCCESS: {
       const result = { ...collection, loading: false };
       return result;
     }
 
-    case Actions.DELETE_ERROR: {
+    case EntityActions.DELETE_ERROR: {
       return {
         ...collection,
         entities: [...collection.entities, action.payload.requestData],
@@ -93,7 +92,7 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.UPDATE: {
+    case EntityActions.UPDATE: {
       return {
         ...collection,
         entities: collection.entities.map((entity: any) => {
@@ -105,7 +104,7 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.UPDATE_SUCCESS: {
+    case EntityActions.UPDATE_SUCCESS: {
       return {
         ...collection,
         loading: false,
@@ -119,7 +118,7 @@ function entityCollectionReducer<T>(
         })
       };    }
 
-    case Actions.UPDATE_ERROR: {
+    case EntityActions.UPDATE_ERROR: {
       return {
         ...collection,
         loading: false,
@@ -133,7 +132,7 @@ function entityCollectionReducer<T>(
       };
     }
 
-    case Actions.GET_FILTERED: {
+    case EntityActions.GET_FILTERED: {
       let filteredEntities: T[];
       if (collection.filter) {
         const filter = new RegExp(collection.filter, 'i');
@@ -145,7 +144,7 @@ function entityCollectionReducer<T>(
       return { ...collection, filteredEntities };
     }
 
-    case Actions.SET_FILTER: {
+    case EntityActions.SET_FILTER: {
       return { ...collection, filter: action.payload };
     }
 

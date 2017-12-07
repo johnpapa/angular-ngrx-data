@@ -7,16 +7,31 @@ import { concatMap, catchError, first, map, mergeMap, switchMap } from 'rxjs/ope
 import { Action, Store } from '@ngrx/store';
 import { Actions, Effect } from '@ngrx/effects';
 
-import { EntityCache, toAction } from '../ngrx-data';
+import { DataServiceError, EntityAction, EntityCache } from '../ngrx-data';
 import * as HeroActions from '../actions';
 
 import { Hero } from '../../model';
 import { HeroDataService } from '../services';
 
 const filterAction = new HeroActions.GetFilteredHeroes();
-const toHeroAction = toAction(filterAction);
+const toHeroAction = toActionOld(filterAction);
 
 type HeroAction = HeroActions.HeroAction;
+
+// Function of additional success actions
+// that returns a function that returns
+// an observable of ngrx action(s) from DataService method observable
+export function toActionOld<T>(...actions: Action[]) {
+  return (
+  source: Observable<T>,
+  successAction: new (data: T) => Action,
+  errorAction: new (err: DataServiceError<T>) => Action
+  ) =>
+    source.pipe(
+      mergeMap((data: T) => [new successAction(data), ...actions]),
+      catchError((err: DataServiceError<T>) => of(new errorAction(err)))
+    );
+}
 
 @Injectable()
 export class HeroEffects {

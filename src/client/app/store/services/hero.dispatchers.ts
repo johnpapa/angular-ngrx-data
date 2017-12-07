@@ -3,33 +3,35 @@ import { Store } from '@ngrx/store';
 
 import { Hero } from '../../model';
 import * as HeroAction from '../actions';
-import { EntityCache } from '../ngrx-data';
+
+import { EntityAction, EntityCache } from '../ngrx-data';
+import * as EntityActions from '../ngrx-data/entity.actions';
 
 @Injectable()
 export class HeroDispatchers {
   constructor(private store: Store<EntityCache>) {}
 
   deleteHero(hero: Hero) {
-    this.store.dispatch(new HeroAction.DeleteHero(hero));
+    this.store.dispatch(new EntityAction(Hero, EntityActions.DELETE, hero));
   }
 
   setFilter(filter: string) {
-    this.store.dispatch(new HeroAction.SetFilter(filter));
+    this.store.dispatch(new EntityAction(Hero, EntityActions.SET_FILTER, filter));
   }
 
   saveHero(hero: Hero, mode: 'add' | 'update') {
     if (mode === 'add') {
-      this.store.dispatch(new HeroAction.AddHero(hero));
+      this.store.dispatch(new EntityAction(Hero, EntityActions.ADD, hero));
     } else {
-      this.store.dispatch(new HeroAction.UpdateHero(hero));
+      this.store.dispatch(new EntityAction(Hero, EntityActions.UPDATE, hero));
     }
   }
 
   getHeroes() {
-    this.store.dispatch(new HeroAction.GetHeroes());
+    this.store.dispatch(new EntityAction(Hero, EntityActions.GET_ALL));
   }
 
-  getFilteredHeroes(filter: string) {
-    this.store.dispatch(new HeroAction.GetFilteredHeroes(filter));
+  getFilteredHeroes() {
+    this.store.dispatch(new EntityAction(Hero, EntityActions.GET_FILTERED));
   }
 }

@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/c
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from '../model';
-import { HeroDispatchers, HeroSelectors } from '../store';
+import { HeroDispatchers, HeroSelectors } from '../store/services';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
@@ -21,7 +21,7 @@ import { InMemoryDataService } from '../in-memory-data.service';
         <p>Filter the heroes</p>
         <input [value]="filterText$ | async" (input)="setFilter($event.target.value)"/>
       </div>
-      <div class="todos" *ngIf="filteredHeroes$ | async as heroes">
+      <div *ngIf="filteredHeroes$ | async as heroes">
 
         <div *ngIf="loading$ | async;else heroList">Loading</div>
 
@@ -84,7 +84,7 @@ export class HeroListComponent implements OnInit {
 
     this.filter$
       .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
-      .subscribe((val: string) => this.filterHeroes(val));
+      .subscribe((val: string) => this.filterHeroes());
   }
 
   setFilter(value: string) {
@@ -106,8 +106,8 @@ export class HeroListComponent implements OnInit {
     this.selectedHero = null;
   }
 
-  filterHeroes(filter: string) {
-    this.heroDispatchers.getFilteredHeroes(filter);
+  filterHeroes() {
+    this.heroDispatchers.getFilteredHeroes();
   }
 
   getHeroes() {

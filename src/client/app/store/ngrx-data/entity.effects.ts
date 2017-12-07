@@ -56,7 +56,7 @@ export class EntityEffects {
         return service.delete(action.payload);
       }
       case EntityActions.UPDATE: {
-        return service.delete(action.payload);
+        return service.update(action.payload);
       }
       default:
         throw new Error(`Action ${action.op} is not implemented.`);

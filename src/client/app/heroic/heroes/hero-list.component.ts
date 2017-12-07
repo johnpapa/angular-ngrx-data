@@ -1,21 +1,20 @@
 import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-
-import { Hero } from '../model';
-import { HeroDispatchers, HeroSelectors } from '../store/services';
 import { FormControl } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
-import { InMemoryDataService } from '../in-memory-data.service';
+import { InMemoryDataService } from '../../core';
+import { Hero } from '../../core';
+import { HeroDispatchers, HeroSelectors } from '../../store/services';
 
 @Component({
   selector: 'app-hero-list',
   template: `
     <div>
       <div class="button-group">
+        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
-        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
       </div>
       <div>
         <p>Filter the heroes</p>
@@ -57,7 +56,6 @@ import { InMemoryDataService } from '../in-memory-data.service';
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;
-  // heroes: Hero[] = [];
   nextDataSource: string;
   selectedHero: Hero = null;
 

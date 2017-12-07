@@ -7,23 +7,23 @@ export class DataServiceError<T> {
 }
 
 export type EntityOp =
-| 'GET_ALL'
-| 'GET_ALL_SUCCESS'
-| 'GET_ALL_ERROR'
-| 'GET_BY_ID'
-| 'GET_BY_ID_ALL_SUCCESS'
-| 'GET_BY_ID_ERROR'
-| 'ADD'
-| 'ADD_SUCCESS'
-| 'ADD_ERROR'
-| 'UPDATE'
-| 'UPDATE_SUCCESS'
-| 'UPDATE_ERROR'
-| 'DELETE'
-| 'DELETE_SUCCESS'
-| 'DELETE_ERROR'
-| 'GET_FILTERED'
-| 'SET_FILTER';
+  | 'GET_ALL'
+  | 'GET_ALL_SUCCESS'
+  | 'GET_ALL_ERROR'
+  | 'GET_BY_ID'
+  | 'GET_BY_ID_ALL_SUCCESS'
+  | 'GET_BY_ID_ERROR'
+  | 'ADD'
+  | 'ADD_SUCCESS'
+  | 'ADD_ERROR'
+  | 'UPDATE'
+  | 'UPDATE_SUCCESS'
+  | 'UPDATE_ERROR'
+  | 'DELETE'
+  | 'DELETE_SUCCESS'
+  | 'DELETE_ERROR'
+  | 'GET_FILTERED'
+  | 'SET_FILTER';
 
 export class EntityAction<T extends Object, P> implements Action {
   readonly type: string;

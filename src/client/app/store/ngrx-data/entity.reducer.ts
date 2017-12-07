@@ -3,10 +3,7 @@ import { Action } from '@ngrx/store';
 import * as EntityActions from './entity.actions';
 import { EntityAction, EntityCache, EntityCollection } from './interfaces';
 
-export function reducer(
-  state: EntityCache = {},
-  action: EntityAction<any, any>
-): EntityCache {
+export function reducer(state: EntityCache = {}, action: EntityAction<any, any>): EntityCache {
   const entityTypeName = action.entityTypeName;
   if (!entityTypeName) {
     return state; // not an EntityAction
@@ -21,14 +18,15 @@ export function reducer(
   }
   // Todo: intercept and redirect if there's a custom entity reducer
   const newCollection = entityCollectionReducer(collection, action);
-  return (collection === newCollection) ? state :
-    {...state, ...{ [entityTypeName]: newCollection } };
+  return collection === newCollection
+    ? state
+    : { ...state, ...{ [entityTypeName]: newCollection } };
 }
 
 function entityCollectionReducer<T>(
   collection: EntityCollection<T>,
-  action: EntityAction<T, any>): EntityCollection<T> {
-
+  action: EntityAction<T, any>
+): EntityCollection<T> {
   switch (action.type) {
     case EntityActions.ADD: {
       return { ...collection, loading: true };
@@ -110,7 +108,8 @@ function entityCollectionReducer<T>(
             return entity;
           }
         })
-      };    }
+      };
+    }
 
     case EntityActions.UPDATE_ERROR: {
       return {
@@ -130,8 +129,7 @@ function entityCollectionReducer<T>(
       let filteredEntities: T[];
       if (collection.filter) {
         const filter = new RegExp(collection.filter, 'i');
-        filteredEntities = collection.entities
-          .filter((entity: any) => filter.test(entity.name));
+        filteredEntities = collection.entities.filter((entity: any) => filter.test(entity.name));
       } else {
         filteredEntities = collection.entities;
       }

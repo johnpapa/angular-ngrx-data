@@ -1,4 +1,4 @@
-import { Hero } from '../../model';
+import { Hero } from '../../core';
 import * as HeroActions from '../actions';
 import { ActionReducerMap } from '@ngrx/store';
 

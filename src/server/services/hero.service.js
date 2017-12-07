@@ -1,4 +1,5 @@
-const Hero = require('./hero.model');
+const models = require('../models');
+const Hero = models.Hero;
 const ReadPreference = require('mongodb').ReadPreference;
 
 require('./mongo').connect();

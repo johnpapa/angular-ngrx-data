@@ -10,7 +10,7 @@ import { Actions, Effect } from '@ngrx/effects';
 import { DataServiceError, EntityAction, EntityCache } from '../ngrx-data';
 import * as HeroActions from '../actions';
 
-import { Hero } from '../../model';
+import { Hero } from '../../core';
 import { HeroDataService } from '../services';
 
 const filterAction = new HeroActions.GetFilteredHeroes();

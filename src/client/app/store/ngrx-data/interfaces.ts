@@ -1,4 +1,4 @@
-import { Action } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 

@@ -1,22 +1,17 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
 import { StoreModule, MetaReducer } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
 import { reducers } from './reducers/hero.reducer';
-import { HeroEffects as effects } from './effects/hero.effects';
-import { services } from './';
+import { HeroEffects } from './effects';
+import { services } from './services';
 
 @NgModule({
   imports: [
-    CommonModule,
-    HttpClientModule,
     StoreModule.forFeature('heroState', reducers),
-    EffectsModule.forFeature([effects])
+    EffectsModule.forFeature([HeroEffects])
   ],
-  providers: [...services],
+  providers: [services],
   declarations: [],
   exports: [StoreModule, EffectsModule]
 })

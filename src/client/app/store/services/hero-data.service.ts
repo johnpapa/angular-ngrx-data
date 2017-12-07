@@ -4,22 +4,24 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
-import { api, fakeDelays } from './data.service';
-import { DataServiceError } from '../ngrx-data';
+import { DataServiceError, EntityCollectionDataService } from '../ngrx-data';
 
 import { Hero } from '../../model';
 
+const api = '/api';
+const fakeDelays = { select: 1000, save: 200 };
+
 @Injectable()
-export class HeroDataService {
+export class HeroDataService implements EntityCollectionDataService<Hero> {
   constructor(private http: HttpClient) {}
 
-  addHero(hero: Hero): Observable<Hero> {
+  add(hero: Hero): Observable<Hero> {
     return this.http
       .post<Hero>(`${api}/hero/`, hero)
       .pipe(delay(fakeDelays.save), catchError(this.handleError(hero)));
   }
 
-  deleteHero(hero: Hero): Observable<Hero> {
+  delete(hero: Hero): Observable<Hero> {
     return this.http.delete(`${api}/hero/${hero.id}`).pipe(
       delay(fakeDelays.save),
       map(() => hero), // return the deleted hero
@@ -27,13 +29,17 @@ export class HeroDataService {
     );
   }
 
-  getHeroes(filter?: string): Observable<Hero[]> {
+  getAll(filter?: string): Observable<Hero[]> {
     return this.http
       .get<Array<Hero>>(`${api}/heroes`)
       .pipe(delay(fakeDelays.select), catchError(this.handleError()));
   }
 
-  updateHero(hero: Hero): Observable<Hero> {
+  getById(id: any): Observable<Hero> {
+    throw new Error('Method not implemented.');
+  }
+
+  update(hero: Hero): Observable<Hero> {
     return this.http.put<Hero>(`${api}/hero/${hero.id}`, hero).pipe(
       delay(fakeDelays.save),
       map(() => hero), // return the updated hero

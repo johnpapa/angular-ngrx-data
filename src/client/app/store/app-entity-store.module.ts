@@ -1,25 +1,21 @@
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { HttpClientModule } from '@angular/common/http';
-import { FormsModule } from '@angular/forms';
-import { StoreModule, MetaReducer } from '@ngrx/store';
+import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { reducers } from './ngrx-data';
-import { effects } from './effects';
-import { services } from './';
+import { EntityEffects, EntityDataService, reducers } from './ngrx-data';
+import { services, AppDataService } from './services';
 
 import { initialEntityCache } from './app-entities';
 
 @NgModule({
   imports: [
-    CommonModule,
-    HttpClientModule,
     StoreModule.forFeature('entityState', reducers, initialEntityCache ),
-    EffectsModule.forFeature(effects)
+    EffectsModule.forFeature([EntityEffects])
   ],
-  providers: [...services],
-  declarations: [],
+  providers: [
+    services,
+    { provide: EntityDataService, useExisting: AppDataService }
+  ],
   exports: [StoreModule, EffectsModule]
 })
 export class HeroStoreModule {}

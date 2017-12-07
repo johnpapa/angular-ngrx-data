@@ -40,7 +40,7 @@ export class HeroEffects {
     .ofType(HeroActions.GET_HEROES)
     .pipe(
       switchMap(() => toHeroAction(
-        this.heroDataService.getHeroes(),
+        this.heroDataService.getAll(),
         HeroActions.GetHeroesSuccess,
         HeroActions.GetHeroesError
       ))
@@ -51,7 +51,7 @@ export class HeroEffects {
     .ofType(HeroActions.ADD_HERO)
     .pipe(
       concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.addHero(action.payload),
+        this.heroDataService.add(action.payload),
         HeroActions.AddHeroSuccess,
         HeroActions.AddHeroError
       ))
@@ -62,7 +62,7 @@ export class HeroEffects {
     .ofType(HeroActions.DELETE_HERO)
     .pipe(
       concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.deleteHero(action.payload),
+        this.heroDataService.delete(action.payload),
         HeroActions.DeleteHeroSuccess,
         HeroActions.DeleteHeroError
       ))
@@ -73,7 +73,7 @@ export class HeroEffects {
     .ofType<HeroActions.UpdateHero>(HeroActions.UPDATE_HERO)
     .pipe(
       concatMap((action: HeroAction) => toHeroAction(
-        this.heroDataService.updateHero(action.payload),
+        this.heroDataService.update(action.payload),
         HeroActions.UpdateHeroSuccess,
         HeroActions.UpdateHeroError
       ))

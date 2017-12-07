@@ -45,9 +45,9 @@ export type EntityOp =
   | 'SET_FILTER';
 
 
-export type EntityClass<T> = new (...x: any[]) => T;
+export type EntityClass<T extends Object> = new (...x: any[]) => T;
 
-export class EntityAction<T, P> implements Action {
+export class EntityAction<T extends Object, P> implements Action {
   readonly type: string;
 
   constructor(

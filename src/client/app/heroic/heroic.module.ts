@@ -1,13 +1,13 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
-import { SharedModule } from '../shared/shared.module';
 import { HeroicRoutingModule, routedComponents } from './heroic-routing.module';
 import { HeroDetailComponent } from './heroes/hero-detail.component';
 import { VillainDetailComponent } from './villains/villain-detail.component';
 
 @NgModule({
-  imports: [CommonModule, SharedModule, HeroicRoutingModule],
+  imports: [CommonModule, FormsModule, HeroicRoutingModule],
   exports: [VillainDetailComponent, HeroDetailComponent, routedComponents],
   declarations: [VillainDetailComponent, HeroDetailComponent, routedComponents]
 })

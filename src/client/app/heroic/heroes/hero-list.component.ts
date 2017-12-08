@@ -1,8 +1,7 @@
-import { Component, OnInit, ChangeDetectionStrategy, Optional, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
-import { InMemoryDataService } from '../../core';
 import { Hero } from '../../core';
 import { HeroDispatchers, HeroSelectors } from '../../store/services';
 import { AppSelectors } from '../../store/custom';

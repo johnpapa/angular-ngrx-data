@@ -51,11 +51,15 @@ TODO: Explain how to implement this in a new Angular CLI app
    npm run dev
    ```
 
-1. Open the browser to http://localhost:3001
+1. Open the browser to <http://localhost:3001>
 
 ### Docker
 
 * Install and run [Docker](https://www.docker.com/community-edition)
+
+#### Environment file
+
+Create an empty file named `.env` in the root of the app. We'll fill this in later.
 
 #### Docker Compose with Debugging
 
@@ -73,15 +77,22 @@ Open VS Code, launch the `Docker: Attach to Node` debugging profile
 
 ### Optional Database
 
+NODE_ENV=development
+
+SERVER_PORT=3001 PUBLICWEB=./publicweb
+
+COSMOSDB_ACCOUNT=my-heroes-cosmos COSMOSDB_DB=heroes-db
+COSMOSDB_KEY=fa1fKW9zDtxLcWgNqhtCdxeTT56ohy9fBVIpxDupSYuOEKl8gD3uPxgNqsenhRrrysSQGMZoWq9F46oRPlOAxw==
+COSMOSDB_PORT=10255
+
 Out of the box you can run the demo with an in memory data service instead of a live database. If
 you wish to use a database, you can set up a local mongo server or a remote CosmosDB/MongoDB server
 in the cloud.
 
 1. Configure Cosmos DB server settings
 
-   Create a file with the following name and location `.env` and copy the contents from
-   `.env.example` into it. Replace the values with your specific configuration. Don't worry, this
-   file is in the `.gitignore` so it won't get pushed to github.
+   Copy the contents from `.env.example` into `.env`. Replace the values with your specific
+   configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
 
    ```javascript
    NODE_ENV=development

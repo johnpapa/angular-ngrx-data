@@ -5,7 +5,7 @@ export * from './hero.selectors';
 export * from './villain.dispatchers';
 export * from './villain.selectors';
 
-import { EntityDataService } from '../ngrx-data';
+import { EntityDataService } from '../../../ngrx-data';
 
 import { HeroDispatchers } from './hero.dispatchers';
 import { HeroSelectors } from './hero.selectors';

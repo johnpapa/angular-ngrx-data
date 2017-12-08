@@ -1,7 +1,7 @@
 // Not sure where this file belongs.
 // Is it part of the model? Or part of the store.
 // Do NOT want to mix it with code that will become the entity library
-import { EntityCache, EntityCollection } from './ngrx-data';
+import { EntityCache, EntityCollection } from '../../ngrx-data';
 
 import { Hero, Villain } from '../core';
 

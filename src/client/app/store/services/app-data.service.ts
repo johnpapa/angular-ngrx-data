@@ -6,7 +6,7 @@ import {
   EntityCollection,
   EntityDataService,
   EntityCollectionDataService
-} from '../ngrx-data';
+} from '../../../ngrx-data';
 
 import { HeroDataService } from './hero-data.service';
 import { VillainDataService } from './villain-data.service';

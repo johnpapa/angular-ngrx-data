@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
-import { EntityCache, EntitySelectors } from '../ngrx-data';
+import { EntityCache, EntitySelectors } from '../../../ngrx-data';
 
 import { Villain } from '../../core';
 

@@ -10,7 +10,7 @@
       "assets": [
         "assets",
         "favicon.ico",
-      {
+        {
           "allowOutsideOutDir": true,
           "glob": "**/*.*",
           "input": "../server/",

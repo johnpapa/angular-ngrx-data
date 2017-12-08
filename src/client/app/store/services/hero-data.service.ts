@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
-import { DataServiceError, EntityCollectionDataService } from '../ngrx-data';
+import { DataServiceError, EntityCollectionDataService } from '../../../ngrx-data';
 
 import { Hero } from '../../core';
 

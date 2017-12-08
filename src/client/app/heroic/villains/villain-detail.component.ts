@@ -12,44 +12,52 @@ import {
 } from '@angular/core';
 
 import { Villain } from '../../core';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-villain-detail',
   template: `
     <div class="editarea">
-      <div>
+  <form [formGroup]="form">
         <div class="editfields">
           <div>
             <label>id: </label>
-            <input *ngIf="addingVillain" type="number" [(ngModel)]="editingVillain.id" placeholder="id" #id />
-            <label *ngIf="!addingVillain" class="value">{{editingVillain.id}}</label>
+        <input type="number" formControlName="id" placeholder="id" #id />
           </div>
           <div>
             <label>name: </label>
-            <input [(ngModel)]="editingVillain.name" placeholder="name" #name />
+        <input formControlName="name" placeholder="name" #name />
           </div>
           <div>
             <label>saying: </label>
-            <input [(ngModel)]="editingVillain.saying" placeholder="saying" (keyup.enter)="save()"/>
+        <input formControlName="saying" placeholder="saying" (keyup.enter)="saveVillain(form)"/>
           </div>
         </div>
-        <button (click)="clear()">Cancel</button>
-        <button (click)="save()">Save</button>
+    <button type="button" (click)="clear()">Cancel</button>
+    <button type="button" (click)="saveVillain(form)">Save</button>
+  </form>
       </div>
-    </div>
+
     `,
   styleUrls: ['./villain-detail.component.scss']
 })
 export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Input() villain: Villain;
   @Output() unselect = new EventEmitter<string>();
-  @Output() villainChanged = new EventEmitter<{ mode: string; villain: Villain }>();
+  @Output() add = new EventEmitter<Villain>();
+  @Output() update = new EventEmitter<Villain>();
 
   @ViewChild('id') idElement: ElementRef;
   @ViewChild('name') nameElement: ElementRef;
 
-  addingVillain = false;
-  editingVillain: Villain;
+  addMode = false;
+  form = this.fb.group({
+    id: [, Validators.required],
+    name: ['', Validators.required],
+    saying: ['']
+  });
+
+  constructor(private fb: FormBuilder) {}
 
   ngAfterViewInit() {
     this.setFocus();
@@ -58,50 +66,50 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
   ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges) {
-    this.addingVillain = !this.villain;
-    this.editingVillain = this.cloneIt();
     if (!changes.villain.firstChange) {
       this.setFocus();
     }
+    if (this.villain && this.villain.id) {
+      this.addMode = false;
+      this.form.patchValue(this.villain);
+    } else {
+      this.addMode = true;
+    }
   }
 
-  addVillain() {
-    const villain = this.editingVillain;
-    this.emitRefresh('add');
+  addVillain(form: FormGroup) {
+    const { value, valid, touched } = form;
+    if (touched && valid) {
+      this.add.emit({ ...this.villain, ...value });
+    }
+    this.clear();
   }
 
   clear() {
     this.unselect.emit();
-    this.editingVillain = null;
   }
 
-  cloneIt() {
-    return Object.assign({}, this.villain);
-  }
-
-  emitRefresh(mode: string) {
-    this.villainChanged.emit({ mode: mode, villain: this.editingVillain });
-    this.clear();
-  }
-
-  save() {
-    if (this.addingVillain) {
-      this.addVillain();
+  saveVillain(form: FormGroup) {
+    if (this.addMode) {
+      this.addVillain(form);
     } else {
-      this.updateVillain();
+      this.updateVillain(form);
     }
   }
 
   setFocus() {
-    if (this.addingVillain && this.editingVillain) {
+    if (this.addMode) {
       this.idElement.nativeElement.focus();
     } else {
       this.nameElement.nativeElement.focus();
     }
   }
 
-  updateVillain() {
-    const villain = this.editingVillain;
-    this.emitRefresh('update');
+  updateVillain(form: FormGroup) {
+    const { value, valid, touched } = form;
+    if (touched && valid) {
+      this.update.emit({ ...this.villain, ...value });
+    }
+    this.clear();
   }
 }

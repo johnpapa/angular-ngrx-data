@@ -46,7 +46,8 @@ import { Subject } from 'rxjs/Subject';
         *ngIf="selectedHero || addingHero"
         [hero]="selectedHero"
         (unselect)="unselect()"
-        (heroChanged)="save($event)">
+        (add)="add($event)"
+        (update)="update($event)">
       </app-hero-detail>
     </div>
   `,
@@ -121,8 +122,16 @@ export class HeroListComponent implements OnDestroy, OnInit {
     this.selectedHero = hero;
   }
 
-  save(arg: { mode: 'add' | 'update'; hero: Hero }) {
-    this.heroDispatchers.save(arg.hero, arg.mode);
+  update(hero: Hero) {
+    this.save('update', hero);
+  }
+
+  add(hero: Hero) {
+    this.save('add', hero);
+  }
+
+  save(mode: 'add' | 'update', hero: Hero) {
+    this.heroDispatchers.save(hero, mode);
   }
 
   unselect() {

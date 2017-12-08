@@ -12,30 +12,30 @@ import {
 } from '@angular/core';
 
 import { Hero } from '../../core';
+import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-hero-detail',
   template: `
     <div class="editarea">
-      <div>
+      <form [formGroup]="form">
         <div class="editfields">
           <div>
             <label>id: </label>
-            <input *ngIf="addingHero" type="number" [(ngModel)]="editingHero.id" placeholder="id" #id />
-            <label *ngIf="!addingHero" class="value">{{editingHero.id}}</label>
+            <input type="number" formControlName="id" placeholder="id" #id />
           </div>
           <div>
             <label>name: </label>
-            <input [(ngModel)]="editingHero.name" placeholder="name" #name />
+            <input formControlName="name" placeholder="name" #name />
           </div>
           <div>
             <label>saying: </label>
-            <input [(ngModel)]="editingHero.saying" placeholder="saying" (keyup.enter)="save()"/>
+            <input formControlName="saying" placeholder="saying" (keyup.enter)="saveHero(form)"/>
           </div>
         </div>
-        <button (click)="clear()">Cancel</button>
-        <button (click)="save()">Save</button>
-      </div>
+        <button type="button" (click)="clear()">Cancel</button>
+        <button type="button" (click)="saveHero(form)">Save</button>
+      </form>
     </div>
     `,
   styleUrls: ['./hero-detail.component.scss']
@@ -43,13 +43,21 @@ import { Hero } from '../../core';
 export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Input() hero: Hero;
   @Output() unselect = new EventEmitter<string>();
-  @Output() heroChanged = new EventEmitter<{ mode: string; hero: Hero }>();
+  @Output() add = new EventEmitter<Hero>();
+  @Output() update = new EventEmitter<Hero>();
 
   @ViewChild('id') idElement: ElementRef;
   @ViewChild('name') nameElement: ElementRef;
 
-  addingHero = false;
-  editingHero: Hero;
+  addMode = false;
+
+  form = this.fb.group({
+    id: [, Validators.required],
+    name: ['', Validators.required],
+    saying: ['']
+  });
+
+  constructor(private fb: FormBuilder) {}
 
   ngAfterViewInit() {
     this.setFocus();
@@ -58,50 +66,50 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges) {
-    this.addingHero = !this.hero;
-    this.editingHero = this.cloneIt();
     if (!changes.hero.firstChange) {
       this.setFocus();
     }
+    if (this.hero && this.hero.id) {
+      this.addMode = false;
+      this.form.patchValue(this.hero);
+    } else {
+      this.addMode = true;
+    }
   }
 
-  addHero() {
-    const hero = this.editingHero;
-    this.emitRefresh('add');
+  addHero(form: FormGroup) {
+    const { value, valid, touched } = form;
+    if (touched && valid) {
+      this.add.emit({ ...this.hero, ...value });
+    }
+    this.clear();
   }
 
   clear() {
     this.unselect.emit();
-    this.editingHero = null;
   }
 
-  cloneIt() {
-    return Object.assign({}, this.hero);
-  }
-
-  emitRefresh(mode: string) {
-    this.heroChanged.emit({ mode: mode, hero: this.editingHero });
-    this.clear();
-  }
-
-  save() {
-    if (this.addingHero) {
-      this.addHero();
+  saveHero(form: FormGroup) {
+    if (this.addMode) {
+      this.addHero(form);
     } else {
-      this.updateHero();
+      this.updateHero(form);
     }
   }
 
   setFocus() {
-    if (this.addingHero && this.editingHero) {
+    if (this.addMode) {
       this.idElement.nativeElement.focus();
     } else {
       this.nameElement.nativeElement.focus();
     }
   }
 
-  updateHero() {
-    const hero = this.editingHero;
-    this.emitRefresh('update');
+  updateHero(form: FormGroup) {
+    const { value, valid, touched } = form;
+    if (touched && valid) {
+      this.update.emit({ ...this.hero, ...value });
+    }
+    this.clear();
   }
 }

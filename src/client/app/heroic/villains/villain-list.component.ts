@@ -46,7 +46,8 @@ import { Subject } from 'rxjs/Subject';
         *ngIf="selectedVillain || addingVillain"
         [villain]="selectedVillain"
         (unselect)="unselect()"
-        (villainChanged)="save($event)">
+        (add)="add($event)"
+        (update)="update($event)">
       </app-villain-detail>
     </div>
   `,
@@ -121,8 +122,16 @@ export class VillainListComponent implements OnDestroy, OnInit {
     this.selectedVillain = villain;
   }
 
-  save(arg: { mode: 'add' | 'update'; villain: Villain }) {
-    this.villainDispatchers.save(arg.villain, arg.mode);
+  update(villain: Villain) {
+    this.save('update', villain);
+  }
+
+  add(villain: Villain) {
+    this.save('add', villain);
+  }
+
+  save(mode: 'add' | 'update', villain: Villain) {
+    this.villainDispatchers.save(villain, mode);
   }
 
   unselect() {

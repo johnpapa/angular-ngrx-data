@@ -28,14 +28,6 @@ export class EntityDispatchers<T> {
     this.dispatch(EntityActions.GET_BY_ID, id);
   }
 
-  save(entity: T, mode: 'add' | 'update') {
-    if (mode === 'add') {
-      this.dispatch(EntityActions.ADD, entity);
-    } else {
-      this.dispatch(EntityActions.UPDATE, entity);
-    }
-  }
-
   update(entity: T) {
     this.dispatch(EntityActions.UPDATE, entity);
   }

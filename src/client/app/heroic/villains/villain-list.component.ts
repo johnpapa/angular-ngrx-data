@@ -123,15 +123,11 @@ export class VillainListComponent implements OnDestroy, OnInit {
   }
 
   update(villain: Villain) {
-    this.save('update', villain);
+    this.villainDispatchers.update(villain);
   }
 
   add(villain: Villain) {
-    this.save('add', villain);
-  }
-
-  save(mode: 'add' | 'update', villain: Villain) {
-    this.villainDispatchers.save(villain, mode);
+    this.villainDispatchers.add(villain);
   }
 
   unselect() {

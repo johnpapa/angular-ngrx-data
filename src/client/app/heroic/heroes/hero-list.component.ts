@@ -123,15 +123,11 @@ export class HeroListComponent implements OnDestroy, OnInit {
   }
 
   update(hero: Hero) {
-    this.save('update', hero);
+    this.heroDispatchers.update(hero);
   }
 
   add(hero: Hero) {
-    this.save('add', hero);
-  }
-
-  save(mode: 'add' | 'update', hero: Hero) {
-    this.heroDispatchers.save(hero, mode);
+    this.heroDispatchers.add(hero);
   }
 
   unselect() {

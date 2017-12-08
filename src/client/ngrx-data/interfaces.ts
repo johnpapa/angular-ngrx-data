@@ -66,3 +66,12 @@ export class EntityCollection<T> {
   loading = false;
   error = false;
 }
+
+// TODO:Added this to get around AOT issues in app-entities.ts
+export const initialEntityCollectionState: EntityCollection<any> = {
+  filter: '',
+  entities: [],
+  filteredEntities: [],
+  loading: false,
+  error: false
+};

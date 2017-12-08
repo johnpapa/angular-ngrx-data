@@ -5,7 +5,7 @@ import { Actions, Effect } from '@ngrx/effects';
 
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
-import { concatMap, catchError, mergeMap } from 'rxjs/operators';
+import { concatMap, catchError, filter, mergeMap, tap } from 'rxjs/operators';
 
 import {
   DataServiceError,
@@ -20,19 +20,27 @@ import * as EntityActions from './entity.actions';
 
 type eaType = EntityAction<any, any>;
 
+const persistOps = [
+  EntityActions.GET_ALL,
+  EntityActions.GET_BY_ID,
+  EntityActions.ADD,
+  EntityActions.DELETE,
+  EntityActions.UPDATE
+];
+
+// filter for EntityActions with a persistable EntityOp
+function isPersistOp(action: eaType) {
+  return action.op && persistOps.some(op => op === action.op)
+}
+
 @Injectable()
 export class EntityEffects {
+
   @Effect()
   persist$: Observable<Action> = this.actions$
-    .ofType(
-      EntityActions.GET_ALL,
-      EntityActions.GET_BY_ID,
-      EntityActions.ADD,
-      EntityActions.DELETE,
-      EntityActions.UPDATE
-    )
     .pipe(
-      concatMap((action: eaType) =>
+      filter(isPersistOp),
+      concatMap(action =>
         this.doService(action).pipe(
           mergeMap(handleSuccess(action)),
           catchError(handleError(action))

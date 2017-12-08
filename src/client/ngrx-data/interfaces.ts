@@ -35,8 +35,7 @@ export class EntityAction<T extends Object, P> implements Action {
     public readonly payload?: P
   ) {
     this.entityTypeName = this.entityType.name;
-    this.type = this.op;
-    // this.type = `[${this.entityType.name}] ${this.op}`;
+    this.type = `${this.op} [${this.entityType.name}]`.toUpperCase();
   }
 }
 
@@ -64,7 +63,6 @@ export class EntityCollection<T> {
   entities: T[] = [];
   filteredEntities: T[] = [];
   loading = false;
-  error = false;
 }
 
 // TODO:Added this to get around AOT issues in app-entities.ts
@@ -72,6 +70,5 @@ export const initialEntityCollectionState: EntityCollection<any> = {
   filter: '',
   entities: [],
   filteredEntities: [],
-  loading: false,
-  error: false
+  loading: false
 };

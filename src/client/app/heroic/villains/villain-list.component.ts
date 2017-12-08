@@ -62,7 +62,6 @@ export class VillainListComponent implements OnDestroy, OnInit {
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
-  searchText = '';
 
   private onDestroy = new Subject();
 

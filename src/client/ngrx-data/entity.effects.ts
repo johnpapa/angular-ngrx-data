@@ -41,7 +41,7 @@ export class EntityEffects {
     );
 
   private doService(action: eaType) {
-    const service = this.dataService.getService(action);
+    const service = this.dataService.getService(action.entityTypeName);
     switch (action.op) {
       case EntityActions.GET_ALL: {
         return service.getAll(action.payload);

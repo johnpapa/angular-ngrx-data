@@ -65,7 +65,7 @@ export class EntityCollection<T> {
   loading = false;
 }
 
-// TODO:Added this to get around AOT issues in app-entities.ts
+// This has to be an object and not a new() due to AOT
 export const initialEntityCollectionState: EntityCollection<any> = {
   filter: '',
   entities: [],

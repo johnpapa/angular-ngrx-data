@@ -49,7 +49,7 @@ export abstract class EntityCollectionDataService<T> {
 }
 
 export abstract class EntityDataService {
-  abstract getService(action: EntityAction<any, any>): EntityCollectionDataService<any>;
+  abstract getService<T>(serviceName: string): EntityCollectionDataService<T>;
 }
 
 export type EntityClass<T extends Object> = new (...x: any[]) => T;

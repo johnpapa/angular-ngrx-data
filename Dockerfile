@@ -5,7 +5,7 @@ WORKDIR /usr/src/app
 COPY ["package.json", "npm-shrinkwrap.json*", "./"]
 RUN npm install --silent
 COPY . .
-RUN ng build --prod --build-optimizer
+RUN ng build --prod
 
 # Node server
 FROM node:8.9-alpine as node-server

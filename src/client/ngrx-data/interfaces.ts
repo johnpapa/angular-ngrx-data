@@ -65,10 +65,3 @@ export class EntityCollection<T> {
   loading = false;
 }
 
-// This has to be an object and not a new() due to AOT
-export const initialEntityCollectionState: EntityCollection<any> = {
-  filter: '',
-  entities: [],
-  filteredEntities: [],
-  loading: false
-};

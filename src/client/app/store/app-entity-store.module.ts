@@ -6,7 +6,6 @@ import {
   EntityCollection,
   EntityEffects,
   EntityDataService,
-  initialEntityCollectionState,
   reducer
 } from '../../ngrx-data';
 
@@ -15,9 +14,17 @@ import { Hero, Villain } from '../core';
 import { appConfigReducers } from './app-config/reducer';
 import { appConfigServices } from './app-config';
 
+// This has to be an object and not a new() due to AOT
+const initialEntityCollectionState: EntityCollection<any> = {
+  filter: '',
+  entities: [],
+  filteredEntities: [],
+  loading: false
+};
+
 const initialEntityCache: EntityCache = {
-  Hero: initialEntityCollectionState as EntityCollection<Hero>,
-  Villain: initialEntityCollectionState as EntityCollection<Villain>
+  Hero: initialEntityCollectionState,
+  Villain: initialEntityCollectionState
 };
 
 @NgModule({

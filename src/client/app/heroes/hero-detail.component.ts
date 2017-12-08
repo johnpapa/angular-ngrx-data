@@ -11,46 +11,46 @@ import {
   SimpleChanges
 } from '@angular/core';
 
-import { Villain } from '../../core';
+import { Hero } from '../core';
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
 @Component({
-  selector: 'app-villain-detail',
+  selector: 'app-hero-detail',
   template: `
     <div class="editarea">
-  <form [formGroup]="form">
+      <form [formGroup]="form">
         <div class="editfields">
           <div>
             <label>id: </label>
-        <input type="number" formControlName="id" placeholder="id" #id />
+            <input type="number" formControlName="id" placeholder="id" #id />
           </div>
           <div>
             <label>name: </label>
-        <input formControlName="name" placeholder="name" #name />
+            <input formControlName="name" placeholder="name" #name />
           </div>
           <div>
             <label>saying: </label>
-        <input formControlName="saying" placeholder="saying" (keyup.enter)="saveVillain(form)"/>
+            <input formControlName="saying" placeholder="saying" (keyup.enter)="saveHero(form)"/>
           </div>
         </div>
-    <button type="button" (click)="clear()">Cancel</button>
-    <button type="button" (click)="saveVillain(form)">Save</button>
-  </form>
-      </div>
-
+        <button type="button" (click)="clear()">Cancel</button>
+        <button type="button" (click)="saveHero(form)">Save</button>
+      </form>
+    </div>
     `,
-  styleUrls: ['./villain-detail.component.scss']
+  styleUrls: ['./hero-detail.component.scss']
 })
-export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit {
-  @Input() villain: Villain;
+export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
+  @Input() hero: Hero;
   @Output() unselect = new EventEmitter<string>();
-  @Output() add = new EventEmitter<Villain>();
-  @Output() update = new EventEmitter<Villain>();
+  @Output() add = new EventEmitter<Hero>();
+  @Output() update = new EventEmitter<Hero>();
 
   @ViewChild('id') idElement: ElementRef;
   @ViewChild('name') nameElement: ElementRef;
 
   addMode = false;
+
   form = this.fb.group({
     id: [, Validators.required],
     name: ['', Validators.required],
@@ -66,21 +66,21 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
   ngOnInit() {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (!changes.villain.firstChange) {
+    if (!changes.hero.firstChange) {
       this.setFocus();
     }
-    if (this.villain && this.villain.id) {
+    if (this.hero && this.hero.id) {
       this.addMode = false;
-      this.form.patchValue(this.villain);
+      this.form.patchValue(this.hero);
     } else {
       this.addMode = true;
     }
   }
 
-  addVillain(form: FormGroup) {
+  addHero(form: FormGroup) {
     const { value, valid, touched } = form;
     if (touched && valid) {
-      this.add.emit({ ...this.villain, ...value });
+      this.add.emit({ ...this.hero, ...value });
     }
     this.clear();
   }
@@ -89,11 +89,11 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
     this.unselect.emit();
   }
 
-  saveVillain(form: FormGroup) {
+  saveHero(form: FormGroup) {
     if (this.addMode) {
-      this.addVillain(form);
+      this.addHero(form);
     } else {
-      this.updateVillain(form);
+      this.updateHero(form);
     }
   }
 
@@ -105,10 +105,10 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
     }
   }
 
-  updateVillain(form: FormGroup) {
+  updateHero(form: FormGroup) {
     const { value, valid, touched } = form;
     if (touched && valid) {
-      this.update.emit({ ...this.villain, ...value });
+      this.update.emit({ ...this.hero, ...value });
     }
     this.clear();
   }

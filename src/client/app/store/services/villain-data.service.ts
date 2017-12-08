@@ -6,7 +6,6 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
 import { DataServiceError, EntityCollectionDataService } from '../ngrx-data';
-
 import { Villain } from '../../core';
 
 const api = '/api';

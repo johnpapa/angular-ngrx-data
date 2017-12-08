@@ -7,6 +7,9 @@ import { Hero, Villain } from '../core';
 
 export const initialEntityCache: EntityCache = {
   // TODO: for now we need to name the entity entries/collections the same as the model
-  Hero: new EntityCollection<Hero>(),
-  Villain: new EntityCollection<Villain>()
+
+  // TODO: AOT errors ensue when we new up classes here.
+  //       We need to rectify this.
+  Hero: {} as EntityCollection<Hero>, // new EntityCollection<Hero>(),
+  Villain: {} as EntityCollection<Villain> // new EntityCollection<Villain>()
 };

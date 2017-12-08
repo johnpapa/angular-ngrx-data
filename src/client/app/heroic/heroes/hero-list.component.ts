@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
-import { InMemoryDataService } from '../../core';
 import { Hero } from '../../core';
 import { HeroDispatchers, HeroSelectors } from '../../store/services';
+import { AppSelectors } from '../../store/custom';
+import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'app-hero-list',
@@ -52,27 +53,40 @@ import { HeroDispatchers, HeroSelectors } from '../../store/services';
   styleUrls: ['./hero-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroListComponent implements OnInit {
+export class HeroListComponent implements OnDestroy, OnInit {
   addingHero = false;
   selectedHero: Hero = null;
 
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
   filter$: Observable<string>;
+  dataSource$ = this.appSelectors.dataSource$();
   searchText = '';
 
-  constructor(private heroDispatchers: HeroDispatchers, private heroSelectors: HeroSelectors) {}
+  private onDestroy = new Subject();
+
+  constructor(
+    private heroDispatchers: HeroDispatchers,
+    private heroSelectors: HeroSelectors,
+    private appSelectors: AppSelectors
+  ) {}
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
     this.loading$ = this.heroSelectors.loading$();
     this.filter$ = this.heroSelectors.filter$();
 
-    this.getHeroes();
+    this.dataSource$
+      .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
+      .subscribe((val: string) => this.getHeroes());
 
     this.filter$
-      .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+      .pipe(takeUntil(this.onDestroy), debounceTime(500), distinctUntilChanged(), skip(1))
       .subscribe((val: string) => this.filterHeroes());
+  }
+
+  ngOnDestroy() {
+    this.onDestroy.next(true);
   }
 
   setFilter(value: string) {

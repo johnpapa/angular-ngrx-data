@@ -1,10 +1,11 @@
-import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { Observable } from 'rxjs/Observable';
-import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
-import { InMemoryDataService } from '../../core';
 import { Villain } from '../../core';
 import { VillainDispatchers, VillainSelectors } from '../../store/services';
+import { AppSelectors } from '../../store/custom';
+import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'app-villain-list',
@@ -52,18 +53,22 @@ import { VillainDispatchers, VillainSelectors } from '../../store/services';
   styleUrls: ['./villain-list.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainListComponent implements OnInit {
+export class VillainListComponent implements OnDestroy, OnInit {
   addingVillain = false;
   selectedVillain: Villain = null;
 
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
   filter$: Observable<string>;
+  dataSource$ = this.appSelectors.dataSource$();
   searchText = '';
+
+  private onDestroy = new Subject();
 
   constructor(
     private villainDispatchers: VillainDispatchers,
-    private villainSelectors: VillainSelectors
+    private villainSelectors: VillainSelectors,
+    private appSelectors: AppSelectors
   ) {}
 
   ngOnInit() {
@@ -71,11 +76,17 @@ export class VillainListComponent implements OnInit {
     this.loading$ = this.villainSelectors.loading$();
     this.filter$ = this.villainSelectors.filter$();
 
-    this.getVillains();
+    this.dataSource$
+      .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
+      .subscribe((val: string) => this.getVillains());
 
     this.filter$
-      .pipe(debounceTime(500), distinctUntilChanged(), skip(0))
+      .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
       .subscribe((val: string) => this.filterVillains());
+  }
+
+  ngOnDestroy() {
+    this.onDestroy.next(true);
   }
 
   setFilter(value: string) {

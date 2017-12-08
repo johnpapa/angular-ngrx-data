@@ -1,6 +1,7 @@
 import { Component, OnInit, Optional, EventEmitter } from '@angular/core';
 
 import { InMemoryDataService } from '../core';
+import { AppDispatchers } from '../store/custom';
 
 @Component({
   selector: 'app-nav',
@@ -50,7 +51,10 @@ import { InMemoryDataService } from '../core';
 export class NavComponent {
   nextDataSource: string;
 
-  constructor(@Optional() private inMemService: InMemoryDataService) {
+  constructor(
+    @Optional() private inMemService: InMemoryDataService,
+    private appDispatchers: AppDispatchers
+  ) {
     if (inMemService) {
       this.nextDataSource = 'Go Remote';
     }
@@ -60,6 +64,7 @@ export class NavComponent {
     const localSource = this.nextDataSource === 'Go Local';
     this.inMemService.active = localSource;
     this.nextDataSource = localSource ? 'Go Remote' : 'Go Local';
-    const current = localSource ? 'local' : 'remote';
+    const location = localSource ? 'local' : 'remote';
+    this.appDispatchers.toggleDataSource(location);
   }
 }

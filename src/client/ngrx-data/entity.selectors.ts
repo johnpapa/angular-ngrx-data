@@ -47,8 +47,6 @@ export class EntitySelectors<T> {
       .select(createSelector(entityCache, state => collection(state, this.typeName).filter))
       .pipe(
         // TODO:we are hitting this twice
-        tap(f => console.log(f)),
-        tap(f => console.log(f)),
         tap(filter => console.log('filter', filter))
       );
   }

@@ -8,5 +8,5 @@ import { Hero, Villain } from '../core';
 export const initialEntityCache: EntityCache = {
   // TODO: for now we need to name the entity entries/collections the same as the model
   Hero: new EntityCollection<Hero>(),
-  Villain: new EntityCollection<Villain>() // TODO no villain exists
+  Villain: new EntityCollection<Villain>()
 };

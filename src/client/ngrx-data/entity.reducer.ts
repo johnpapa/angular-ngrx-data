@@ -27,16 +27,17 @@ function entityCollectionReducer<T>(
   collection: EntityCollection<T>,
   action: EntityAction<T, any>
 ): EntityCollection<T> {
-  switch (action.type) {
+  switch (action.op) {
     case EntityActions.ADD: {
+      // pessimistic add; add it only upon success
       return { ...collection, loading: true };
     }
 
     case EntityActions.ADD_SUCCESS: {
       return {
         ...collection,
-        loading: false,
-        entities: [...collection.entities, { ...action.payload }]
+        entities: [...collection.entities, { ...action.payload }],
+        loading: false
       };
     }
 
@@ -49,10 +50,7 @@ function entityCollectionReducer<T>(
     }
 
     case EntityActions.GET_ALL_ERROR: {
-      return {
-        ...collection,
-        loading: false
-      };
+      return { ...collection, loading: false };
     }
 
     case EntityActions.GET_ALL_SUCCESS: {
@@ -66,63 +64,45 @@ function entityCollectionReducer<T>(
     case EntityActions.DELETE: {
       return {
         ...collection,
-        loading: true,
-        entities: collection.entities.filter(h => h !== action.payload)
+        // optimistic deletion
+        entities: collection.entities.filter(h => h !== action.payload),
+        loading: true
       };
     }
 
     case EntityActions.DELETE_SUCCESS: {
-      const result = { ...collection, loading: false };
-      return result;
+      return { ...collection, loading: false };
     }
 
     case EntityActions.DELETE_ERROR: {
       return {
         ...collection,
+        // compensate by restoring deleted entity
         entities: [...collection.entities, action.payload.requestData],
         loading: false
       };
     }
 
     case EntityActions.UPDATE: {
-      return {
-        ...collection,
-        entities: collection.entities.map((entity: any) => {
-          if (entity.id === action.payload.id) {
-            collection.loading = true;
-          }
-          return entity;
-        })
-      };
+      return { ...collection, loading: true };
     }
 
     case EntityActions.UPDATE_SUCCESS: {
       return {
         ...collection,
-        loading: false,
-        entities: collection.entities.map((entity: any) => {
-          if (entity.id === action.payload.id) {
-            return Object.assign({}, entity, action.payload);
-            // return { ...entity, ...action.payload }; // TS hates this
-          } else {
-            return entity;
-          }
-        })
+        // pessimistic add
+        entities: collection.entities.map(
+          (entity: any) => {
+            return entity.id === action.payload.id ?
+              { ...entity, ...action.payload } : // merge changes
+              entity;
+          }),
+        loading: false
       };
     }
 
     case EntityActions.UPDATE_ERROR: {
-      return {
-        ...collection,
-        loading: false,
-        entities: collection.entities.map((entity: any) => {
-          if (entity.id === action.payload.requestData.id) {
-            // Huh? No idea what the error is!
-            collection.error = true;
-          }
-          return entity;
-        })
-      };
+      return { ...collection, loading: false };
     }
 
     case EntityActions.GET_FILTERED: {

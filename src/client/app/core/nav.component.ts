@@ -9,7 +9,6 @@ import { AppDispatchers } from '../store/app-config';
     <div>
       <div class="header-bar"></div>
       <nav>
-        <a routerLink="/dashboard" routerLinkActive="router-link-active">Dashboard</a>
         <a routerLink="/heroic/heroes" routerLinkActive="router-link-active">Heroes</a>
         <a routerLink="/heroic/villains" routerLinkActive="router-link-active">Villains</a>
       </nav>

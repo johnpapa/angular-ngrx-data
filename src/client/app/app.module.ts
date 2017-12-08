@@ -11,7 +11,7 @@ import { AppComponent } from './app.component';
 import { storeFreeze } from 'ngrx-store-freeze';
 
 import { AppEntityStoreModule } from './store/app-entity-store.module';
-import { AppRoutingModule, routedComponents } from './app-routing.module';
+import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 
 export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []; // [storeFreeze];
@@ -27,7 +27,7 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
     EffectsModule.forRoot([]),
     !environment.production ? StoreDevtoolsModule.instrument() : []
   ],
-  declarations: [AppComponent, routedComponents],
+  declarations: [AppComponent],
   providers: [],
   bootstrap: [AppComponent]
 })

@@ -21,7 +21,7 @@ export interface BasicDataServiceOptions {
  * Assumes a common REST-y web API
  * Conforms to API required by ngrx-data library's persist$ API
  */
-export class BasicDataService<T extends {id: any} > implements EntityCollectionDataService<T> {
+export class BasicDataService<T extends { id: any }> implements EntityCollectionDataService<T> {
   protected entityUrl: string;
   protected entitiesUrl: string;
   protected saveDelay: number;
@@ -29,8 +29,7 @@ export class BasicDataService<T extends {id: any} > implements EntityCollectionD
 
   constructor(
     protected http: HttpClient,
-    {api = '/api', entitiesName, entityName, getDelay = 0, saveDelay = 0 }:
-      BasicDataServiceOptions
+    { api = '/api', entitiesName, entityName, getDelay = 0, saveDelay = 0 }: BasicDataServiceOptions
   ) {
     this.entityUrl = `${api}/${entityName}/`;
     this.entitiesUrl = `${api}/${entitiesName}/`;

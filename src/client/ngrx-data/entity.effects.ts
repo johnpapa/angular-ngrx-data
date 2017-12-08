@@ -30,23 +30,18 @@ const persistOps = [
 
 // filter for EntityActions with a persistable EntityOp
 function isPersistOp(action: eaType) {
-  return action.op && persistOps.some(op => op === action.op)
+  return action.op && persistOps.some(op => op === action.op);
 }
 
 @Injectable()
 export class EntityEffects {
-
   @Effect()
-  persist$: Observable<Action> = this.actions$
-    .pipe(
-      filter(isPersistOp),
-      concatMap(action =>
-        this.doService(action).pipe(
-          mergeMap(handleSuccess(action)),
-          catchError(handleError(action))
-        )
-      )
-    );
+  persist$: Observable<Action> = this.actions$.pipe(
+    filter(isPersistOp),
+    concatMap(action =>
+      this.doService(action).pipe(mergeMap(handleSuccess(action)), catchError(handleError(action)))
+    )
+  );
 
   private doService(action: eaType) {
     const service = this.dataService.getService(action.entityTypeName);

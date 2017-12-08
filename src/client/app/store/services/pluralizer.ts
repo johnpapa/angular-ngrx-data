@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 
 export class Pluralizer {
-
   pluralNames: { [name: string]: string } = {
     hero: 'heroes'
   };

@@ -1,10 +1,10 @@
 # Angular-ngrx Demo
 
-## What
+## What is this
 
 Write less code for managing the ngrx redux pattern for multiple entity models in an app.
 
-## Why
+## Why use it
 
 Managing state can be challenging. The Redux pattern that ngrx implements helps manage state in
 Angular apps by adding reducers, actions, states, effects, dispatchers, and selectors. This library

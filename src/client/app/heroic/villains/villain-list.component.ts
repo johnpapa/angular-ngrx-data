@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operat
 
 import { Villain } from '../../core';
 import { VillainDispatchers, VillainSelectors } from '../../store/services';
-import { AppSelectors } from '../../store/custom';
+import { AppSelectors } from '../../store/app-config';
 import { Subject } from 'rxjs/Subject';
 
 @Component({

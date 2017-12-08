@@ -16,6 +16,7 @@ export function reducer(state: EntityCache = {}, action: EntityAction<any, any>)
   if (!collection) {
     throw new Error(`No cached collection named "${entityTypeName}")`);
   }
+
   // Todo: intercept and redirect if there's a custom entity reducer
   const newCollection = entityCollectionReducer(collection, action);
   return collection === newCollection
@@ -91,12 +92,11 @@ function entityCollectionReducer<T>(
       return {
         ...collection,
         // pessimistic add
-        entities: collection.entities.map(
-          (entity: any) => {
-            return entity.id === action.payload.id ?
-              { ...entity, ...action.payload } : // merge changes
-              entity;
-          }),
+        entities: collection.entities.map((entity: any) => {
+          return entity.id === action.payload.id
+            ? { ...entity, ...action.payload } // merge changes
+            : entity;
+        }),
         loading: false
       };
     }

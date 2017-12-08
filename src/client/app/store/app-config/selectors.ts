@@ -4,7 +4,7 @@ import { Store, createFeatureSelector, createSelector } from '@ngrx/store';
 import { App } from '../../core';
 import { AppState } from './reducer';
 
-const getAppState = createFeatureSelector<AppState>('appCache');
+const getAppState = createFeatureSelector<AppState>('appConfig');
 const getDataSource = createSelector(getAppState, (state: AppState) => state.session.dataSource);
 
 @Injectable()

@@ -5,18 +5,18 @@ import { EntityEffects, EntityDataService, reducer } from '../../ngrx-data';
 
 import { AppDataService, services } from './services';
 import { initialEntityCache } from './app-entities';
-import { customReducers } from './custom/reducer';
-import { customServices } from './custom';
+import { appConfigReducers } from './app-config/reducer';
+import { appConfigServices } from './app-config';
 
 @NgModule({
   imports: [
     StoreModule.forFeature('entityCache', reducer, { initialState: initialEntityCache }),
-    StoreModule.forFeature('appCache', customReducers),
+    StoreModule.forFeature('appConfig', appConfigReducers),
     EffectsModule.forFeature([EntityEffects])
   ],
   providers: [
     services,
-    customServices,
+    appConfigServices,
     { provide: EntityDataService, useExisting: AppDataService }
   ],
   exports: [EffectsModule, StoreModule]

@@ -4,7 +4,7 @@ import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operat
 
 import { Hero } from '../../core';
 import { HeroDispatchers, HeroSelectors } from '../../store/services';
-import { AppSelectors } from '../../store/custom';
+import { AppSelectors } from '../../store/app-config';
 import { Subject } from 'rxjs/Subject';
 
 @Component({

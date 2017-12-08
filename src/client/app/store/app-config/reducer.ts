@@ -15,7 +15,7 @@ export interface AppState {
   session: SessionState;
 }
 
-export const customReducers: ActionReducerMap<AppState> = {
+export const appConfigReducers: ActionReducerMap<AppState> = {
   session: sessionReducer
   // here is where i put other reducers, when i have them
 };

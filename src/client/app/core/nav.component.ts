@@ -1,7 +1,7 @@
 import { Component, OnInit, Optional, EventEmitter } from '@angular/core';
 
 import { InMemoryDataService } from '../core';
-import { AppDispatchers } from '../store/custom';
+import { AppDispatchers } from '../store/app-config';
 
 @Component({
   selector: 'app-nav',

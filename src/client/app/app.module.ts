@@ -14,7 +14,6 @@ import { AppEntityStoreModule } from './store/app-entity-store.module';
 import { AppRoutingModule, routedComponents } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 
-// TODO: learn about freeze
 export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []; // [storeFreeze];
 
 @NgModule({

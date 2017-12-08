@@ -2,10 +2,14 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'heroic' },
+  { path: '', pathMatch: 'full', redirectTo: 'heroes' },
   {
-    path: 'heroic',
-    loadChildren: 'app/heroic/heroic.module#HeroicModule'
+    path: 'heroes',
+    loadChildren: 'app/heroes/heroes.module#HeroesModule'
+  },
+  {
+    path: 'villains',
+    loadChildren: 'app/villains/villains.module#VillainsModule'
   }
 ];
 

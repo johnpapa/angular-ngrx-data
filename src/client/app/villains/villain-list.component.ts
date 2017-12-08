@@ -2,9 +2,9 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
-import { Villain } from '../../core';
-import { VillainDispatchers, VillainSelectors } from '../../store/services';
-import { AppSelectors } from '../../store/app-config';
+import { Villain } from '../core';
+import { VillainDispatchers, VillainSelectors } from '../store/services';
+import { AppSelectors } from '../store/app-config';
 import { Subject } from 'rxjs/Subject';
 
 @Component({

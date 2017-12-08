@@ -45,6 +45,10 @@ export class EntitySelectors<T> {
   filter$(): Observable<string> {
     return this.store
       .select(createSelector(entityCache, state => collection(state, this.typeName).filter))
-      .pipe(tap(filter => console.log('filter', filter)));
+      .pipe(
+        tap(f => console.log(f)),
+        tap(f => console.log(f)),
+        tap(filter => console.log('filter', filter))
+      );
   }
 }

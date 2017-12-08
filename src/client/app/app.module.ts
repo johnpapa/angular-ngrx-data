@@ -1,7 +1,7 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { environment } from '../environments/environment';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { StoreModule, Store, MetaReducer } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
@@ -24,7 +24,6 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
     BrowserModule,
     FormsModule,
     CoreModule,
-    // ReactiveFormsModule, // I could add this and then use FormControl with valueChanges
     HttpClientModule,
     // HeroStoreModule,
     AppRoutingModule,

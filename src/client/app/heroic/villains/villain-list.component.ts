@@ -1,5 +1,4 @@
 import { Component, OnInit, ChangeDetectionStrategy, Optional } from '@angular/core';
-import { FormControl } from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, skip } from 'rxjs/operators';
 
@@ -18,7 +17,7 @@ import { VillainDispatchers, VillainSelectors } from '../../store/services';
       </div>
       <div>
         <p>Filter the villains</p>
-        <input [value]="filterText$ | async" (input)="setFilter($event.target.value)"/>
+        <input [value]="filter$ | async" (input)="setFilter($event.target.value)"/>
       </div>
       <div *ngIf="filteredVillains$ | async as villains">
 
@@ -63,7 +62,6 @@ export class VillainListComponent implements OnInit {
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   searchText = '';
-  filterText$: Observable<string>;
 
   constructor(
     private villainDispatchers: VillainDispatchers,
@@ -80,8 +78,10 @@ export class VillainListComponent implements OnInit {
     this.loading$ = this.villainSelectors.loading$();
     this.filter$ = this.villainSelectors.filter$();
 
+    this.getVillains();
+
     this.filter$
-      .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
+      .pipe(debounceTime(500), distinctUntilChanged(), skip(0))
       .subscribe((val: string) => this.filterVillains());
   }
 

@@ -11,7 +11,6 @@ import { HeroDispatchers, HeroSelectors } from '../../store/services';
   template: `
     <div>
       <div class="button-group">
-        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
         <button (click)="getHeroes()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
@@ -55,7 +54,6 @@ import { HeroDispatchers, HeroSelectors } from '../../store/services';
 })
 export class HeroListComponent implements OnInit {
   addingHero = false;
-  nextDataSource: string;
   selectedHero: Hero = null;
 
   filteredHeroes$: Observable<Hero[]>;
@@ -63,15 +61,7 @@ export class HeroListComponent implements OnInit {
   filter$: Observable<string>;
   searchText = '';
 
-  constructor(
-    private heroDispatchers: HeroDispatchers,
-    private heroSelectors: HeroSelectors,
-    @Optional() private inMemService: InMemoryDataService
-  ) {
-    if (inMemService) {
-      this.nextDataSource = 'Go Remote';
-    }
-  }
+  constructor(private heroDispatchers: HeroDispatchers, private heroSelectors: HeroSelectors) {}
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
@@ -79,7 +69,6 @@ export class HeroListComponent implements OnInit {
     this.filter$ = this.heroSelectors.filter$();
 
     this.getHeroes();
-    // this.heroDispatchers.getFilter();
 
     this.filter$
       .pipe(debounceTime(500), distinctUntilChanged(), skip(1))
@@ -120,13 +109,6 @@ export class HeroListComponent implements OnInit {
 
   save(arg: { mode: 'add' | 'update'; hero: Hero }) {
     this.heroDispatchers.save(arg.hero, arg.mode);
-  }
-
-  toggleDataSource() {
-    const localSource = this.nextDataSource === 'Go Local';
-    this.inMemService.active = localSource;
-    this.nextDataSource = localSource ? 'Go Remote' : 'Go Local';
-    this.getHeroes();
   }
 
   unselect() {

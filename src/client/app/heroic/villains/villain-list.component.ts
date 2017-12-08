@@ -11,7 +11,6 @@ import { VillainDispatchers, VillainSelectors } from '../../store/services';
   template: `
     <div>
       <div class="button-group">
-        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
         <button (click)="getVillains()">Refresh</button>
         <button (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain">Add</button>
       </div>
@@ -55,7 +54,6 @@ import { VillainDispatchers, VillainSelectors } from '../../store/services';
 })
 export class VillainListComponent implements OnInit {
   addingVillain = false;
-  nextDataSource: string;
   selectedVillain: Villain = null;
 
   filteredVillains$: Observable<Villain[]>;
@@ -65,13 +63,8 @@ export class VillainListComponent implements OnInit {
 
   constructor(
     private villainDispatchers: VillainDispatchers,
-    private villainSelectors: VillainSelectors,
-    @Optional() private inMemService: InMemoryDataService
-  ) {
-    if (inMemService) {
-      this.nextDataSource = 'Go Remote';
-    }
-  }
+    private villainSelectors: VillainSelectors
+  ) {}
 
   ngOnInit() {
     this.filteredVillains$ = this.villainSelectors.filteredVillains$();
@@ -119,13 +112,6 @@ export class VillainListComponent implements OnInit {
 
   save(arg: { mode: 'add' | 'update'; villain: Villain }) {
     this.villainDispatchers.save(arg.villain, arg.mode);
-  }
-
-  toggleDataSource() {
-    const localSource = this.nextDataSource === 'Go Local';
-    this.inMemService.active = localSource;
-    this.nextDataSource = localSource ? 'Go Remote' : 'Go Local';
-    this.getVillains();
   }
 
   unselect() {

@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Optional, EventEmitter } from '@angular/core';
+
+import { InMemoryDataService } from '../core';
 
 @Component({
   selector: 'app-nav',
@@ -11,6 +13,9 @@ import { Component, OnInit } from '@angular/core';
         <a routerLink="/heroic/villains" routerLinkActive="router-link-active">Villains</a>
       </nav>
       <div class="header-bar"></div>
+      <div class="button-group">
+        <button (click)="toggleDataSource()" *ngIf="nextDataSource">{{nextDataSource}}</button>
+      </div>
     </div>
   `,
   styles: [
@@ -42,4 +47,19 @@ import { Component, OnInit } from '@angular/core';
     `
   ]
 })
-export class NavComponent {}
+export class NavComponent {
+  nextDataSource: string;
+
+  constructor(@Optional() private inMemService: InMemoryDataService) {
+    if (inMemService) {
+      this.nextDataSource = 'Go Remote';
+    }
+  }
+
+  toggleDataSource() {
+    const localSource = this.nextDataSource === 'Go Local';
+    this.inMemService.active = localSource;
+    this.nextDataSource = localSource ? 'Go Remote' : 'Go Local';
+    const current = localSource ? 'local' : 'remote';
+  }
+}

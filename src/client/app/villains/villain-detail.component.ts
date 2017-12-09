@@ -46,7 +46,6 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
   @Output() add = new EventEmitter<Villain>();
   @Output() update = new EventEmitter<Villain>();
 
-  @ViewChild('id') idElement: ElementRef;
   @ViewChild('name') nameElement: ElementRef;
 
   addMode = false;
@@ -97,11 +96,7 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
   }
 
   setFocus() {
-    if (this.addMode) {
-      this.idElement.nativeElement.focus();
-    } else {
-      this.nameElement.nativeElement.focus();
-    }
+    this.nameElement.nativeElement.focus();
   }
 
   updateVillain(form: FormGroup) {

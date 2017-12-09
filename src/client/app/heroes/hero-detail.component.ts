@@ -22,7 +22,7 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
         <div class="editfields">
           <div [hidden]="addMode">
             <label>id: </label>
-            <input type="number" formControlName="id" placeholder="id" #id />
+            <input formControlName="id" #id readonly/>
           </div>
           <div>
             <label>name: </label>

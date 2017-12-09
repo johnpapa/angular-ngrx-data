@@ -14,7 +14,6 @@ function getVillains(req, res) {
 
 function postVillain(req, res) {
   const originalVillain = {
-    id: req.body.id,
     name: req.body.name,
     saying: req.body.saying
   };

@@ -10,6 +10,7 @@ import {
 } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
+import { pipe } from 'rxjs/util/pipe';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
@@ -55,6 +56,10 @@ export class HeroListComponent implements OnDestroy, OnInit {
 
     this.filter$.pipe(takeUntil(this.onDestroy), distinctUntilChanged()).subscribe(value => {
       this.filter.setValue(value);
+    });
+
+    const filterLogic = pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged());
+    this.filter$.pipe(filterLogic).subscribe(value => {
       this.filterHeroes();
     });
   }

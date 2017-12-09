@@ -54,9 +54,14 @@ export class VillainListComponent implements OnDestroy, OnInit {
       .subscribe((value: string) => this.getVillains());
 
     this.filter$.pipe(takeUntil(this.onDestroy), distinctUntilChanged()).subscribe(value => {
-      this.filterVillains();
       this.filter.setValue(value);
     });
+
+    this.filter$
+      .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
+      .subscribe(value => {
+        this.filterVillains();
+      });
   }
 
   ngOnDestroy() {

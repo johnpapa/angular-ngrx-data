@@ -47,10 +47,6 @@ export abstract class EntityCollectionDataService<T> {
   abstract update(entity: T): Observable<T>;
 }
 
-export abstract class EntityDataService {
-  abstract getService<T>(serviceName: string): EntityCollectionDataService<T>;
-}
-
 export type EntityClass<T extends Object> = new (...x: any[]) => T;
 
 export interface EntityCache {
@@ -64,4 +60,3 @@ export class EntityCollection<T> {
   filteredEntities: T[] = [];
   loading = false;
 }
-

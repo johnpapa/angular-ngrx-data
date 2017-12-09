@@ -17,20 +17,28 @@ function collection(state: EntityCache, entityTypeName: string) {
 }
 
 @Injectable()
-export class EntitySelectors<T> {
+export class EntitySelectors {
+  constructor(private store: Store<EntityCache>) {}
+
+  getSelector<T>(entityClass: EntityClass<T>) {
+    return new EntitySelector<T>(entityClass, this.store);
+  }
+}
+
+export class EntitySelector<T> {
   readonly typeName: string;
 
   constructor(private entityClass: EntityClass<T>, private store: Store<EntityCache>) {
     this.typeName = entityClass.name;
   }
 
-  protected filteredEntities$(): Observable<T[]> {
+  filteredEntities$(): Observable<T[]> {
     return this.store.select(
       createSelector(entityCache, state => collection(state, this.typeName).filteredEntities as T[])
     );
   }
 
-  protected entities$(): Observable<T[]> {
+  entities$(): Observable<T[]> {
     return this.store.select(
       createSelector(entityCache, state => collection(state, this.typeName).entities as T[])
     );

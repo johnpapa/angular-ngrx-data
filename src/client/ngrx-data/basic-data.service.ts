@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { catchError, delay, map } from 'rxjs/operators';
 
-import { DataServiceError, EntityCollectionDataService } from '../../../ngrx-data';
+import { DataServiceError, EntityCollectionDataService } from './interfaces';
 
 export interface BasicDataServiceOptions {
   api?: string;
@@ -14,6 +14,10 @@ export interface BasicDataServiceOptions {
   getDelay?: number;
   saveDelay?: number;
 }
+
+// Pass the observable straight through
+const noopOp = <K>(source: Observable<K>) => source;
+type LetOp = typeof noopOp;
 
 /**
  * A basic, generic entity data service
@@ -24,28 +28,28 @@ export interface BasicDataServiceOptions {
 export class BasicDataService<T extends { id: any }> implements EntityCollectionDataService<T> {
   protected entityUrl: string;
   protected entitiesUrl: string;
-  protected saveDelay: number;
-  protected getDelay: number;
+  protected getDelay: LetOp;
+  protected saveDelay: LetOp;
 
   constructor(
     protected http: HttpClient,
-    { api = '/api', entitiesName, entityName, getDelay = 0, saveDelay = 0 }: BasicDataServiceOptions
+    { api, entitiesName, entityName, getDelay = 0, saveDelay = 0 }: BasicDataServiceOptions
   ) {
     this.entityUrl = `${api}/${entityName}/`;
     this.entitiesUrl = `${api}/${entitiesName}/`;
-    this.getDelay = getDelay;
-    this.saveDelay = saveDelay;
+    this.getDelay = getDelay ? delay(getDelay) : noopOp;
+    this.saveDelay = saveDelay ? delay(saveDelay) : noopOp;
   }
 
   add(entity: T): Observable<T> {
     return this.http
       .post<T>(this.entityUrl, entity)
-      .pipe(delay(this.saveDelay), catchError(this.handleError(entity)));
+      .pipe(this.saveDelay, catchError(this.handleError(entity)));
   }
 
   delete(entity: T): Observable<T> {
     return this.http.delete(this.entityUrl + entity.id).pipe(
-      delay(this.saveDelay),
+      this.saveDelay,
       map(() => entity), // return the deleted entity
       catchError(this.handleError(entity))
     );
@@ -54,18 +58,18 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
   getAll(filter?: string): Observable<T[]> {
     return this.http
       .get<Array<T>>(this.entitiesUrl)
-      .pipe(delay(this.getDelay), catchError(this.handleError()));
+      .pipe(this.getDelay, catchError(this.handleError()));
   }
 
   getById(id: any): Observable<T> {
     return this.http
       .get<T>(this.entityUrl + id)
-      .pipe(delay(this.getDelay), catchError(this.handleError()));
+      .pipe(this.getDelay, catchError(this.handleError()));
   }
 
   update(entity: T): Observable<T> {
     return this.http.put<T>(this.entityUrl + entity.id, entity).pipe(
-      delay(this.saveDelay),
+      this.saveDelay,
       map(() => entity), // return the updated entity
       catchError(this.handleError(entity))
     );

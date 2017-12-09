@@ -3,7 +3,10 @@ import { Action } from '@ngrx/store';
 import * as EntityActions from './entity.actions';
 import { EntityAction, EntityCache, EntityCollection } from './interfaces';
 
-export function reducer(state: EntityCache = {}, action: EntityAction<any, any>): EntityCache {
+export function entityReducer(
+  state: EntityCache = {},
+  action: EntityAction<any, any>
+): EntityCache {
   const entityTypeName = action.entityTypeName;
   if (!entityTypeName) {
     return state; // not an EntityAction

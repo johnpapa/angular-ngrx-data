@@ -5,7 +5,15 @@ import * as EntityActions from './entity.actions';
 import { EntityAction, EntityCache, EntityClass, EntityOp } from './interfaces';
 
 @Injectable()
-export class EntityDispatchers<T> {
+export class EntityDispatchers {
+  constructor(private store: Store<EntityCache>) {}
+
+  getDispatcher<T>(entityClass: EntityClass<T>) {
+    return new EntityDispatcher<T>(entityClass, this.store);
+  }
+}
+
+export class EntityDispatcher<T> {
   constructor(private entityClass: EntityClass<T>, private store: Store<EntityCache>) {}
 
   private dispatch(op: EntityOp, payload?: any) {

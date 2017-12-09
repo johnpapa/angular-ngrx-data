@@ -1,12 +1,19 @@
 import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+
+import { AppSelectors } from '../store/app-config';
+import {
+  EntityDispatchers,
+  EntityDispatcher,
+  EntitySelectors,
+  EntitySelector
+} from '../../ngrx-data';
+
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
 import { Hero } from '../core';
-import { HeroDispatchers, HeroSelectors } from '../store/services';
-import { AppSelectors } from '../store/app-config';
 
 @Component({
   selector: 'app-hero-list',
@@ -64,22 +71,27 @@ export class HeroListComponent implements OnDestroy, OnInit {
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
   form = this.fb.group({
-    filter: [''],
+    filter: ['']
   });
 
   private onDestroy = new Subject();
+  private heroDispatcher: EntityDispatcher<Hero>;
+  private heroSelector: EntitySelector<Hero>;
 
   constructor(
     private fb: FormBuilder,
-    private heroDispatchers: HeroDispatchers,
-    private heroSelectors: HeroSelectors,
+    entityDispatchers: EntityDispatchers,
+    entitySelectors: EntitySelectors,
     private appSelectors: AppSelectors
-  ) {}
+  ) {
+    this.heroDispatcher = entityDispatchers.getDispatcher(Hero);
+    this.heroSelector = entitySelectors.getSelector(Hero);
+  }
 
   ngOnInit() {
-    this.filteredHeroes$ = this.heroSelectors.filteredHeroes$();
-    this.loading$ = this.heroSelectors.loading$();
-    this.filter$ = this.heroSelectors.filter$();
+    this.filteredHeroes$ = this.heroSelector.filteredEntities$();
+    this.loading$ = this.heroSelector.loading$();
+    this.filter$ = this.heroSelector.filter$();
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
@@ -97,7 +109,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
   setFilter(form: FormGroup) {
     const { value, valid, touched } = form;
     if (valid) {
-      this.heroDispatchers.setFilter(value.filter);
+      this.heroDispatcher.setFilter(value.filter);
     }
     this.clear();
   }
@@ -109,7 +121,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroDispatchers.delete(hero);
+    this.heroDispatcher.delete(hero);
   }
 
   enableAddMode() {
@@ -118,11 +130,11 @@ export class HeroListComponent implements OnDestroy, OnInit {
   }
 
   filterHeroes() {
-    this.heroDispatchers.getFiltered();
+    this.heroDispatcher.getFiltered();
   }
 
   getHeroes() {
-    this.heroDispatchers.getAll();
+    this.heroDispatcher.getAll();
     this.unselect();
   }
 
@@ -132,11 +144,11 @@ export class HeroListComponent implements OnDestroy, OnInit {
   }
 
   update(hero: Hero) {
-    this.heroDispatchers.update(hero);
+    this.heroDispatcher.update(hero);
   }
 
   add(hero: Hero) {
-    this.heroDispatchers.add(hero);
+    this.heroDispatcher.add(hero);
   }
 
   unselect() {

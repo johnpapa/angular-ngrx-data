@@ -1,12 +1,19 @@
 import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
+
+import { AppSelectors } from '../store/app-config';
+import {
+  EntityDispatchers,
+  EntityDispatcher,
+  EntitySelectors,
+  EntitySelector
+} from '../../ngrx-data';
+
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
 import { Villain } from '../core';
-import { VillainDispatchers, VillainSelectors } from '../store/services';
-import { AppSelectors } from '../store/app-config';
 
 @Component({
   selector: 'app-villain-list',
@@ -63,22 +70,27 @@ export class VillainListComponent implements OnDestroy, OnInit {
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
   form = this.fb.group({
-    filter: [''],
+    filter: ['']
   });
 
   private onDestroy = new Subject();
+  private villainDispatcher: EntityDispatcher<Villain>;
+  private villainSelector: EntitySelector<Villain>;
 
   constructor(
     private fb: FormBuilder,
-    private villainDispatchers: VillainDispatchers,
-    private villainSelectors: VillainSelectors,
+    entityDispatchers: EntityDispatchers,
+    entitySelectors: EntitySelectors,
     private appSelectors: AppSelectors
-  ) {}
+  ) {
+    this.villainDispatcher = entityDispatchers.getDispatcher(Villain);
+    this.villainSelector = entitySelectors.getSelector(Villain);
+  }
 
   ngOnInit() {
-    this.filteredVillains$ = this.villainSelectors.filteredVillains$();
-    this.loading$ = this.villainSelectors.loading$();
-    this.filter$ = this.villainSelectors.filter$();
+    this.filteredVillains$ = this.villainSelector.filteredEntities$();
+    this.loading$ = this.villainSelector.loading$();
+    this.filter$ = this.villainSelector.filter$();
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
@@ -96,7 +108,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
   setFilter(form: FormGroup) {
     const { value, valid, touched } = form;
     if (valid) {
-      this.villainDispatchers.setFilter(value.filter);
+      this.villainDispatcher.setFilter(value.filter);
     }
     this.clear();
   }
@@ -108,7 +120,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
 
   deleteVillain(villain: Villain) {
     this.unselect();
-    this.villainDispatchers.delete(villain);
+    this.villainDispatcher.delete(villain);
   }
 
   enableAddMode() {
@@ -117,11 +129,11 @@ export class VillainListComponent implements OnDestroy, OnInit {
   }
 
   filterVillains() {
-    this.villainDispatchers.getFiltered();
+    this.villainDispatcher.getFiltered();
   }
 
   getVillains() {
-    this.villainDispatchers.getAll();
+    this.villainDispatcher.getAll();
     this.unselect();
   }
 
@@ -131,11 +143,11 @@ export class VillainListComponent implements OnDestroy, OnInit {
   }
 
   update(villain: Villain) {
-    this.villainDispatchers.update(villain);
+    this.villainDispatcher.update(villain);
   }
 
   add(villain: Villain) {
-    this.villainDispatchers.add(villain);
+    this.villainDispatcher.add(villain);
   }
 
   unselect() {

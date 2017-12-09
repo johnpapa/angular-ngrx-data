@@ -9,12 +9,13 @@ import { concatMap, catchError, filter, mergeMap, tap } from 'rxjs/operators';
 
 import {
   DataServiceError,
-  EntityDataService,
   EntityAction,
   EntityCache,
   EntityCollectionDataService,
   EntityOp
 } from './interfaces';
+
+import { EntityDataService } from './entity-data.service';
 
 import * as EntityActions from './entity.actions';
 

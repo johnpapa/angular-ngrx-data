@@ -56,6 +56,7 @@ export class EntityDataService {
     if (!service) {
       const entitiesName = this.pluralizer.pluralize(entityName);
       service = new BasicDataService(this.http, {
+        api: this.api,
         entityName,
         entitiesName,
         getDelay: this.getDelay,

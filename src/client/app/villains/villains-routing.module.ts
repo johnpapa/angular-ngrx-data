@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { VillainListComponent } from './villain-list.component';
+import { VillainListComponent } from './villain-list/villain-list.component';
 
 const routes: Routes = [{ path: '', pathMatch: 'full', component: VillainListComponent }];
 

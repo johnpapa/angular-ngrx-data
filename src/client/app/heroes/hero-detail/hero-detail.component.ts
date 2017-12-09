@@ -8,37 +8,18 @@ import {
   OnInit,
   Output,
   ViewChild,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 
-import { Hero } from '../core';
+import { Hero } from '../../core';
 import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 
 @Component({
   selector: 'app-hero-detail',
-  template: `
-    <div class="editarea">
-      <form [formGroup]="form">
-        <div class="editfields">
-          <div [hidden]="addMode">
-            <label>id: </label>
-            <input formControlName="id" #id readonly/>
-          </div>
-          <div>
-            <label>name: </label>
-            <input formControlName="name" placeholder="name" #name />
-          </div>
-          <div>
-            <label>saying: </label>
-            <input formControlName="saying" placeholder="saying" (keyup.enter)="saveHero(form)"/>
-          </div>
-        </div>
-        <button type="button" (click)="clear()">Cancel</button>
-        <button type="button" (click)="saveHero(form)">Save</button>
-      </form>
-    </div>
-    `,
-  styleUrls: ['./hero-detail.component.scss']
+  templateUrl: './hero-detail.component.html',
+  styleUrls: ['./hero-detail.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Input() hero: Hero;

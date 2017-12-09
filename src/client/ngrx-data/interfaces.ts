@@ -11,17 +11,16 @@ export class DataServiceError<T> {
 
 export class EntityAction<T extends Object, P> implements Action {
   readonly type: string;
-  readonly entityTypeName: string;
-  readonly entityType: EntityClass<T>;
+  readonly entityName: string;
 
   constructor(
-    typeOrAction: EntityClass<T> | EntityAction<T, any>,
+    classOrAction: EntityClass<T> | string | EntityAction<T, any>,
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
-    this.entityType = typeOrAction instanceof EntityAction ? typeOrAction.entityType : typeOrAction;
-    this.entityTypeName = this.entityType.name;
-    this.type = `${this.op} [${this.entityType.name}]`.toUpperCase();
+    this.entityName = classOrAction instanceof EntityAction ?
+      classOrAction.entityName : getEntityName(classOrAction);
+    this.type = `${this.op} [${this.entityName}]`.toUpperCase();
   }
 }
 
@@ -48,9 +47,9 @@ export class EntityCollection<T> {
 }
 
 /**
- * Get canonical name for the entity
+ * Get name of the entity type (e.g. "Hero")
  * @param entityClass - the name of the entity class or the class itself
  */
 export function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return (typeof entityClass === 'string' ? entityClass : entityClass.name).toLowerCase();
+  return typeof entityClass === 'string' ? entityClass : entityClass.name;
 }

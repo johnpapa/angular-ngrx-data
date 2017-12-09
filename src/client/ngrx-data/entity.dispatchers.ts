@@ -2,14 +2,59 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityClass, EntityOp } from './interfaces';
+import { EntityAction, EntityCache, EntityClass, EntityOp, getEntityName
+} from './interfaces';
 
 @Injectable()
 export class EntityDispatchers {
+
+  private dispatchers: { [name: string]: EntityDispatcher<any> } = {};
+
   constructor(private store: Store<EntityCache>) {}
 
-  getDispatcher<T>(entityClass: EntityClass<T>) {
-    return new EntityDispatcher<T>(entityClass, this.store);
+  /**
+   * Get (or create) a dispatcher for entity type
+   * @param entityClass - the class or the name of the class (which must have a dispatcher)
+   *
+   * Examples:
+   *   getDispatcher(Hero);  // dispatcher for Heroes, typed as Hero
+   *   getDispatcher('Hero'); // dispatcher for Heroes, untyped
+   */
+  getDispatcher<T>(entityClass: EntityClass<T> | string): EntityDispatcher<T> {
+    const entityName = getEntityName(entityClass);
+    let dispatcher = this.dispatchers[entityName];
+    if (!dispatcher) {
+      if (typeof entityClass === 'string') {
+        throw new Error(
+          `No dispatcher for ${entityName} and cannot create one without the class.`
+        )
+      }
+      dispatcher = new EntityDispatcher<T>(entityClass, this.store);
+      this.dispatchers[entityName] = dispatcher;
+    }
+    return dispatcher;
+  }
+
+  /**
+   * Register a dispatcher for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param dispatcher - dispatcher for that entity class
+   */
+  registerDispatcher<T>(
+    entityClass: string | EntityClass<T>,
+    dispatcher: EntityDispatcher<T>
+  ) {
+    this.dispatchers[getEntityName(entityClass)] = dispatcher;
+  }
+
+  /**
+   * Register a batch of ds.
+   * @param dispatchers - dispatchers to merge into existing dispatchers
+   */
+  registerDispatchers(
+    dispatchers: { [name: string ]: EntityDispatcher<any> }
+  ) {
+    this.dispatchers = { ...this.dispatchers, ...dispatchers };
   }
 }
 

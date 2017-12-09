@@ -7,24 +7,24 @@ export function entityReducer(
   state: EntityCache = {},
   action: EntityAction<any, any>
 ): EntityCache {
-  const entityTypeName = action.entityTypeName;
-  if (!entityTypeName) {
+  const entityName = action.entityName;
+  if (!entityName) {
     return state; // not an EntityAction
   }
 
-  const collection = state[entityTypeName];
+  const collection = state[entityName];
   // TODO: consider creating a collection if none exists.
   //       Worried now that later implementation would depend upon
   //       missing collection metadata.
   if (!collection) {
-    throw new Error(`No cached collection named "${entityTypeName}")`);
+    throw new Error(`No cached collection named "${entityName}")`);
   }
 
   // Todo: intercept and redirect if there's a custom entity reducer
   const newCollection = entityCollectionReducer(collection, action);
   return collection === newCollection
     ? state
-    : { ...state, ...{ [entityTypeName]: newCollection } };
+    : { ...state, ...{ [entityName]: newCollection } };
 }
 
 function entityCollectionReducer<T>(

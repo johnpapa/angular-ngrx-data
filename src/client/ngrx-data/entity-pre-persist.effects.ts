@@ -27,7 +27,7 @@ export class EntityPrePersistEffects {
   );
 
   private preDelete(action: eaType) {
-    const selector = this.entitySelectors.getSelector(action.entityTypeName);
+    const selector = this.entitySelectors.getSelector(action.entityName);
     const entities$ = selector.entities$();
 
     switch (action.op) {

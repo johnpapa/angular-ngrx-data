@@ -2,14 +2,8 @@ import { Injectable } from '@angular/core';
 import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
-import { tap } from 'rxjs/operators';
 
-import {
-  EntityCache,
-  EntityClass,
-  getEntityName,
-  EntityCollection,
-} from './interfaces';
+import { EntityCache, EntityClass, getEntityName } from './interfaces';
 
 type SelectorFn = <K>(prop: string) => Observable<K>;
 
@@ -17,13 +11,49 @@ type SelectorFn = <K>(prop: string) => Observable<K>;
 export class EntitySelectors {
 
   entityCache = createFeatureSelector<EntityCache>('entityCache');
+  private selectors: { [name: string]: EntitySelector<any> } = {};
 
   constructor(private store: Store<EntityCache>) {}
 
+  /**
+   * Get (or create) a selector class for entity type
+   * @param entityClass - the name of the class or the class itself
+   *
+   * Examples:
+   *   getSelector(Hero);  // selector for Heroes, typed as Hero
+   *   getSelector('Hero'); // selector for Heroes, untyped
+   */
   getSelector<T>(entityClass: EntityClass<T> | string) {
-    const typeName = typeof entityClass === 'string' ? entityClass : entityClass.name;
-    const selectorFn = createSelectorFn(typeName, this.entityCache, this.store);
-    return new EntitySelector<T>(selectorFn);
+    const entityName = getEntityName(entityClass);
+    let selector = this.selectors[entityName];
+    if (!selector) {
+      const selectorFn = createSelectorFn(entityName, this.entityCache, this.store);
+      selector = new EntitySelector<T>(selectorFn);
+      this.selectors[entityName] = selector;
+    }
+    return selector;
+  }
+
+   /**
+   * Register a selector class for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param selector - selector for that entity class
+   */
+  registerSelector<T>(
+    entityClass: string | EntityClass<T>,
+    selector: EntitySelector<T>
+  ) {
+    this.selectors[getEntityName(entityClass)] = selector;
+  }
+
+  /**
+   * Register a batch of selectors.
+   * @param selectors - selectors to merge into existing selectors
+   */
+  registerSelectors(
+    selectors: { [name: string ]: EntitySelector<any> }
+  ) {
+    this.selectors = { ...this.selectors, ...selectors };
   }
 }
 
@@ -60,9 +90,9 @@ export function createSelectorFn (
       (<any> collection(state, typeName))[prop] as K));
   }
 
-  function collection(state: EntityCache, entityTypeName: string) {
-    const c = state[entityTypeName];
+  function collection(state: EntityCache, entityName: string) {
+    const c = state[entityName];
     if (c) { return c; }
-    throw new Error(`No cached collection named "${entityTypeName}")`);
+    throw new Error(`No cached collection named "${entityName}")`);
   }
 }

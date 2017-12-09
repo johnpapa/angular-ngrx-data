@@ -60,7 +60,7 @@ export class EntityPersistEffects {
   }
 
   private callDataService(action: eaType) {
-    const service = this.dataService.getService(action.entityTypeName);
+    const service = this.dataService.getService(action.entityName);
     switch (action.op) {
       case EntityActions.GET_ALL: {
         return service.getAll(action.payload);

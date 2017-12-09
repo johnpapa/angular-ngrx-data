@@ -1,20 +1,12 @@
-import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { environment } from '../environments/environment';
+import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { StoreModule, Store, MetaReducer } from '@ngrx/store';
-import { EffectsModule } from '@ngrx/effects';
-import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 
-import { AppComponent } from './app.component';
-
-import { storeFreeze } from 'ngrx-store-freeze';
-
-import { AppEntityStoreModule } from './store/app-entity-store.module';
+import { AppStoreModule } from './store/app-store.module';
 import { AppRoutingModule } from './app-routing.module';
 import { CoreModule } from './core/core.module';
 
-export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []; // [storeFreeze];
+import { AppComponent } from './app.component';
 
 @NgModule({
   imports: [
@@ -22,10 +14,7 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
     CoreModule,
     HttpClientModule,
     AppRoutingModule,
-    AppEntityStoreModule,
-    StoreModule.forRoot({}, { metaReducers }),
-    EffectsModule.forRoot([]),
-    !environment.production ? StoreDevtoolsModule.instrument() : []
+    AppStoreModule,
   ],
   declarations: [AppComponent],
   providers: [],

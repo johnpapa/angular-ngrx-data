@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { StoreModule } from '@ngrx/store';
-
 import { EffectsModule } from '@ngrx/effects';
+
 import {
   EntityCache,
   EntityCollection,
@@ -12,15 +12,13 @@ import {
   PLURALIZER_NAMES,
 } from '../../ngrx-data';
 
-import { appConfigReducers, appConfigServices } from './app-config';
-
-// This has to be an object and not a new() due to AOT
-const initialEntityCollectionState = new EntityCollection();
-
-const initialEntityCache: EntityCache = {
-  Hero: initialEntityCollectionState,
-  Villain: initialEntityCollectionState
-};
+export function initialState() {
+  const empty = new EntityCollection();
+  return {
+    Hero: empty,
+    Villain: empty,
+  }
+}
 
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
@@ -34,16 +32,13 @@ const pluralNames = {
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', entityReducer, { initialState: initialEntityCache }),
-    StoreModule.forFeature('appConfig', appConfigReducers),
+    StoreModule.forFeature('entityCache', entityReducer, { initialState }),
     EffectsModule.forFeature([EntityEffects]),
     NgrxDataModule,
   ],
   providers: [
-    appConfigServices,
     { provide: PLURALIZER_NAMES, useValue: pluralNames },
     { provide: EntityDataServiceConfig, useValue: entityDataServiceConfig }
-  ],
-  exports: [EffectsModule, StoreModule]
+  ]
 })
-export class AppEntityStoreModule {}
+export class EntityStoreModule {}

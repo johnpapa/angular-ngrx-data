@@ -4,7 +4,7 @@ const counter = require('./counter');
 const Schema = mongoose.Schema;
 const villainSchema = new Schema(
   {
-    id: { type: Number, default: 0},
+    id: { type: Number, default: 0 },
     name: String,
     saying: String
   },

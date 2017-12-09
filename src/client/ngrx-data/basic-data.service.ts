@@ -15,7 +15,6 @@ export interface BasicDataServiceOptions {
   saveDelay?: number;
 }
 
-
 // Pass the observable straight through
 const noopOp = <K>(source: Observable<K>) => source;
 type LetOp = typeof noopOp;
@@ -43,40 +42,33 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
   }
 
   add(entity: T): Observable<T> {
-    return this.http.post<T>(this.entityUrl, entity).pipe(
+    return this.http
+      .post<T>(this.entityUrl, entity)
+      .pipe(this.saveDelay, catchError(this.handleError(entity)));
+  }
+
+  delete(entity: T): Observable<T> {
+    return this.http.delete(this.entityUrl + entity.id).pipe(
       this.saveDelay,
+      map(() => entity), // return the deleted entity
       catchError(this.handleError(entity))
     );
   }
 
-  delete(entity: T): Observable<T> {
-    return this.http.delete(this.entityUrl + entity.id)
-      .pipe(
-        this.saveDelay,
-        map(() => entity), // return the deleted entity
-        catchError(this.handleError(entity))
-      );
-  }
-
   getAll(filter?: string): Observable<T[]> {
-    return this.http.get<Array<T>>(this.entitiesUrl)
-      .pipe(
-        this.getDelay,
-        catchError(this.handleError())
-      );
+    return this.http
+      .get<Array<T>>(this.entitiesUrl)
+      .pipe(this.getDelay, catchError(this.handleError()));
   }
 
   getById(id: any): Observable<T> {
-    return this.http.get<T>(this.entityUrl + id)
-      .pipe(
-        this.getDelay,
-        catchError(this.handleError())
-      );
+    return this.http
+      .get<T>(this.entityUrl + id)
+      .pipe(this.getDelay, catchError(this.handleError()));
   }
 
   update(entity: T): Observable<T> {
-    return this.http.put<T>(this.entityUrl + entity.id, entity)
-    .pipe(
+    return this.http.put<T>(this.entityUrl + entity.id, entity).pipe(
       this.saveDelay,
       map(() => entity), // return the updated entity
       catchError(this.handleError(entity))

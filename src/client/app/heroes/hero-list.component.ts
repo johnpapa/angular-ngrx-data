@@ -3,8 +3,11 @@ import { FormBuilder, FormGroup } from '@angular/forms';
 
 import { AppSelectors } from '../store/app-config';
 import {
-  EntityDispatchers, EntityDispatcher,
-  EntitySelectors, EntitySelector } from '../../ngrx-data';
+  EntityDispatchers,
+  EntityDispatcher,
+  EntitySelectors,
+  EntitySelector
+} from '../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -68,7 +71,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
   form = this.fb.group({
-    filter: [''],
+    filter: ['']
   });
 
   private onDestroy = new Subject();

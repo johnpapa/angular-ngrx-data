@@ -14,14 +14,10 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
   imports: [
     StoreModule.forRoot({}, { metaReducers }),
     EffectsModule.forRoot([]),
-
     StoreModule.forFeature('appConfig', appConfigReducers),
     EntityStoreModule,
-
     environment.production ? [] : StoreDevtoolsModule.instrument()
   ],
-  providers: [
-    appConfigServices
-  ]
+  providers: [appConfigServices]
 })
-export class AppStoreModule { }
+export class AppStoreModule {}

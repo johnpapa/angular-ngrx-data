@@ -6,7 +6,8 @@ import {
   EntityCache,
   EntityClass,
   EntityCollection,
-  EntityCollectionDataService } from './interfaces';
+  EntityCollectionDataService
+} from './interfaces';
 
 export class EntityDataServiceConfig {
   api? = '/api';
@@ -19,7 +20,6 @@ import { Pluralizer } from './pluralizer';
 
 @Injectable()
 export class EntityDataService {
-
   api: string; // base of data service URL, like '/api'
   // Fake delays to simulate network latency
   getDelay: number;
@@ -34,11 +34,11 @@ export class EntityDataService {
     private pluralizer: Pluralizer,
     config: EntityDataServiceConfig
   ) {
-      // tslint:disable-next-line:triple-equals
-      this.api = config.api != undefined ? '/api' : config.api;
-      this.getDelay = config.getDelay || 0;
-      this.saveDelay = config.saveDelay || 0;
-    }
+    // tslint:disable-next-line:triple-equals
+    this.api = config.api != undefined ? '/api' : config.api;
+    this.getDelay = config.getDelay || 0;
+    this.saveDelay = config.saveDelay || 0;
+  }
 
   /**
    * Get (or create) a data service for entity type
@@ -75,6 +75,5 @@ export class EntityDataService {
 }
 
 function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return (typeof entityClass === 'string' ? entityClass : entityClass.name)
-    .toLowerCase();
+  return (typeof entityClass === 'string' ? entityClass : entityClass.name).toLowerCase();
 }

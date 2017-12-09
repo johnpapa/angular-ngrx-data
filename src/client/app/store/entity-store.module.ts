@@ -9,22 +9,22 @@ import {
   EntityDataServiceConfig,
   entityReducer,
   NgrxDataModule,
-  PLURALIZER_NAMES,
+  PLURALIZER_NAMES
 } from '../../ngrx-data';
 
 export function initialState() {
   const empty = new EntityCollection();
   return {
     Hero: empty,
-    Villain: empty,
-  }
+    Villain: empty
+  };
 }
 
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
   getDelay: 1000,
   saveDelay: 200
-}
+};
 
 const pluralNames = {
   hero: 'heroes'
@@ -34,7 +34,7 @@ const pluralNames = {
   imports: [
     StoreModule.forFeature('entityCache', entityReducer, { initialState }),
     EffectsModule.forFeature([EntityEffects]),
-    NgrxDataModule,
+    NgrxDataModule
   ],
   providers: [
     { provide: PLURALIZER_NAMES, useValue: pluralNames },

@@ -11,7 +11,7 @@ import { EntityDataService, EntityDataServiceConfig } from './entity-data.servic
     EntityDataServiceConfig,
     EntityDispatchers,
     EntitySelectors,
-    { provide: PLURALIZER_NAMES, useValue: {}},
+    { provide: PLURALIZER_NAMES, useValue: {} },
     { provide: Pluralizer, useClass: Pluralizer_ }
   ]
 })

@@ -4,15 +4,16 @@ export abstract class Pluralizer {
   abstract pluralize(name: string): string;
 }
 
-interface Indexable { [name: string]: string };
+interface Indexable {
+  [name: string]: string;
+}
 
 export const PLURALIZER_NAMES = new InjectionToken<Indexable>('PLURALIZER_NAMES');
 
 @Injectable()
 // tslint:disable-next-line:class-name
 export class Pluralizer_ {
-
-  constructor(@Inject(PLURALIZER_NAMES) private pluralNames: Indexable) { }
+  constructor(@Inject(PLURALIZER_NAMES) private pluralNames: Indexable) {}
 
   /**
    * Pluralize a singular name.

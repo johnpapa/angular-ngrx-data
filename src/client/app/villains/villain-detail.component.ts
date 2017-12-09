@@ -18,26 +18,25 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
   selector: 'app-villain-detail',
   template: `
     <div class="editarea">
-  <form [formGroup]="form">
+      <form [formGroup]="form">
         <div class="editfields">
-          <div>
+          <div [hidden]="addMode">
             <label>id: </label>
-        <input type="number" formControlName="id" placeholder="id" #id />
+            <input type="number" formControlName="id" placeholder="id" #id />
           </div>
           <div>
             <label>name: </label>
-        <input formControlName="name" placeholder="name" #name />
+            <input formControlName="name" placeholder="name" #name />
           </div>
           <div>
             <label>saying: </label>
-        <input formControlName="saying" placeholder="saying" (keyup.enter)="saveVillain(form)"/>
+            <input formControlName="saying" placeholder="saying" (keyup.enter)="saveVillain(form)"/>
           </div>
         </div>
-    <button type="button" (click)="clear()">Cancel</button>
-    <button type="button" (click)="saveVillain(form)">Save</button>
-  </form>
-      </div>
-
+        <button type="button" (click)="clear()">Cancel</button>
+        <button type="button" (click)="saveVillain(form)">Save</button>
+      </form>
+    </div>
     `,
   styleUrls: ['./villain-detail.component.scss']
 })
@@ -52,7 +51,7 @@ export class VillainDetailComponent implements AfterViewInit, OnChanges, OnInit 
 
   addMode = false;
   form = this.fb.group({
-    id: [, Validators.required],
+    id: [],
     name: ['', Validators.required],
     saying: ['']
   });

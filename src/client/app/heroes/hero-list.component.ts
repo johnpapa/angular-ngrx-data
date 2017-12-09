@@ -1,45 +1,46 @@
 import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
 
 import { Hero } from '../core';
 import { HeroDispatchers, HeroSelectors } from '../store/services';
 import { AppSelectors } from '../store/app-config';
-import { Subject } from 'rxjs/Subject';
 
 @Component({
   selector: 'app-hero-list',
   template: `
     <div>
+      <form [formGroup]="form">
       <div class="button-group">
-        <button (click)="getHeroes()">Refresh</button>
-        <button (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
-      </div>
-      <div>
-        <p>Filter the heroes</p>
-        <input [value]="filter$ | async" (input)="setFilter($event.target.value)"/>
-      </div>
-      <div *ngIf="filteredHeroes$ | async as heroes">
-
-        <div *ngIf="loading$ | async;else heroList">Loading</div>
-
-        <ng-template #heroList>
-          <ul class="heroes">
-            <li *ngFor="let hero of heroes"
-              class="hero-container"
-              [class.selected]="hero === selectedHero">
-              <div class="hero-element">
-                <div class="badge">{{hero.id}}</div>
-                <div class="hero-text" (click)="onSelect(hero)">
-                  <div class="name">{{hero.name}}</div>
-                  <div class="saying">{{hero.saying}}</div>
+          <button type="button" (click)="getHeroes()">Refresh</button>
+          <button type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+        </div>
+        <div>
+          <p>Filter the heroes</p>
+          <input formControlName="filter" (input)="setFilter(form)"/>
+        </div>
+        <div *ngIf="filteredHeroes$ | async as heroes">
+          <div *ngIf="loading$ | async;else heroList">Loading</div>
+          <ng-template #heroList>
+            <ul class="heroes">
+              <li *ngFor="let hero of heroes"
+                class="hero-container"
+                [class.selected]="hero === selectedHero">
+                <div class="hero-element">
+                  <div class="badge">{{hero.id}}</div>
+                  <div class="hero-text" (click)="onSelect(hero)">
+                    <div class="name">{{hero.name}}</div>
+                    <div class="saying">{{hero.saying}}</div>
+                  </div>
                 </div>
-              </div>
-              <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
-            </li>
-          </ul>
-        </ng-template>
-      </div>
+                <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
+              </li>
+            </ul>
+          </ng-template>
+        </div>
+      </form>
 
       <ng-template #elseTemplate>Loading ...</ng-template>
       <app-hero-detail
@@ -62,10 +63,14 @@ export class HeroListComponent implements OnDestroy, OnInit {
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
+  form = this.fb.group({
+    filter: [''],
+  });
 
   private onDestroy = new Subject();
 
   constructor(
+    private fb: FormBuilder,
     private heroDispatchers: HeroDispatchers,
     private heroSelectors: HeroSelectors,
     private appSelectors: AppSelectors
@@ -81,7 +86,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
       .subscribe((val: string) => this.getHeroes());
 
     this.filter$
-      .pipe(takeUntil(this.onDestroy), debounceTime(500), distinctUntilChanged(), skip(1))
+      .pipe(takeUntil(this.onDestroy), debounceTime(500), distinctUntilChanged())
       .subscribe((val: string) => this.filterHeroes());
   }
 
@@ -89,8 +94,12 @@ export class HeroListComponent implements OnDestroy, OnInit {
     this.onDestroy.next(true);
   }
 
-  setFilter(value: string) {
-    this.heroDispatchers.setFilter(value);
+  setFilter(form: FormGroup) {
+    const { value, valid, touched } = form;
+    if (valid) {
+      this.heroDispatchers.setFilter(value.filter);
+    }
+    this.clear();
   }
 
   clear() {
@@ -114,6 +123,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
 
   getHeroes() {
     this.heroDispatchers.getAll();
+    this.unselect();
   }
 
   onSelect(hero: Hero) {

@@ -20,7 +20,7 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
     <div class="editarea">
       <form [formGroup]="form">
         <div class="editfields">
-          <div>
+          <div [hidden]="addMode">
             <label>id: </label>
             <input type="number" formControlName="id" placeholder="id" #id />
           </div>
@@ -52,7 +52,7 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   addMode = false;
 
   form = this.fb.group({
-    id: [, Validators.required],
+    id: [],
     name: ['', Validators.required],
     saying: ['']
   });

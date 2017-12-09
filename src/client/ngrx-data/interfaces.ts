@@ -60,3 +60,11 @@ export class EntityCollection<T> {
   filteredEntities: T[] = [];
   loading = false;
 }
+
+/**
+ * Get canonical name for the entity
+ * @param entityClass - the name of the entity class or the class itself
+ */
+export function getEntityName<T>(entityClass: string | EntityClass<T>) {
+  return (typeof entityClass === 'string' ? entityClass : entityClass.name).toLowerCase();
+}

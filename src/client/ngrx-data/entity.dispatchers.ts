@@ -2,14 +2,49 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityClass, EntityOp } from './interfaces';
+import {
+  EntityAction,
+  EntityCache,
+  EntityClass,
+  EntityOp,
+  getEntityName,
+ } from './interfaces';
 
 @Injectable()
 export class EntityDispatchers {
+
+  private dispatchers: { [name: string]: EntityDispatcher<any> } = {};
+
   constructor(private store: Store<EntityCache>) {}
 
+  /**
+   * Get (or create) a dispatcher for entity type
+   * @param entityClass - the name of the class or the class itself
+   *
+   * Examples:
+   *   getDispatcher(Hero);  // dispatcher for Heroes, typed as Hero
+   *   getDispatcher('Hero'); // dispatcher for Heroes, untyped
+   */
   getDispatcher<T>(entityClass: EntityClass<T>) {
-    return new EntityDispatcher<T>(entityClass, this.store);
+    const entityName = getEntityName(entityClass);
+    let dispatcher = this.dispatchers[entityName];
+    if (!dispatcher) {
+      dispatcher = new EntityDispatcher<T>(entityClass, this.store);
+      this.dispatchers[entityName] = dispatcher;
+    }
+    return dispatcher;
+  }
+
+  /**
+   * Register a dispatcher for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param dispatcher - dispatcher for that entity class
+   */
+  registerDispatcher<T>(
+    entityClass: string | EntityClass<T>,
+    dispatcher: EntityDispatcher<T>
+  ) {
+    this.dispatchers[getEntityName(entityClass)] = dispatcher;
   }
 }
 

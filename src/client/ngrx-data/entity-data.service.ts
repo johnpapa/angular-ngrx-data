@@ -6,7 +6,8 @@ import {
   EntityCache,
   EntityClass,
   EntityCollection,
-  EntityCollectionDataService
+  EntityCollectionDataService,
+  getEntityName,
 } from './interfaces';
 
 export class EntityDataServiceConfig {
@@ -67,14 +68,15 @@ export class EntityDataService {
     return service;
   }
 
+  /**
+   * Register an EntityCollectionDataService for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param service - data service for that entity class
+   */
   registerService<T>(
     entityClass: string | EntityClass<T>,
     service: EntityCollectionDataService<T>
   ) {
     this.services[getEntityName(entityClass)] = service;
   }
-}
-
-function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return (typeof entityClass === 'string' ? entityClass : entityClass.name).toLowerCase();
 }

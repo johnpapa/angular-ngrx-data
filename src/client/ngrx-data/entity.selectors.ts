@@ -45,14 +45,14 @@ export class EntitySelector<T> {
   }
 
   loading$(): Observable<boolean> {
-    return this.store
-      .select(createSelector(entityCache, state => collection(state, this.typeName).loading))
-      .pipe(tap(loading => console.log('loading', loading)));
+    return this.store.select(
+      createSelector(entityCache, state => collection(state, this.typeName).loading)
+    );
   }
 
   filter$(): Observable<string> {
-    return this.store
-      .select(createSelector(entityCache, state => collection(state, this.typeName).filter))
-      .pipe(tap(filter => console.log('filter', filter)));
+    return this.store.select(
+      createSelector(entityCache, state => collection(state, this.typeName).filter)
+    );
   }
 }

@@ -10,7 +10,7 @@ Managing state can be challenging. The Redux pattern that ngrx implements helps 
 Angular apps by adding reducers, actions, states, effects, dispatchers, and selectors. This library
 aims to demonstrate a technique that will reduce the boilerplate to implement ngrx.
 
-TODO: Link to ./docs/faq.md
+TODO: Link to [FAQ](./docs/faq.md)
 
 ## How
 

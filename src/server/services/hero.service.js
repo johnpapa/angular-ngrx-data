@@ -14,7 +14,7 @@ function getHeroes(req, res) {
 
 function postHero(req, res) {
   const originalHero = {
-    id: req.body.id,
+    // id: req.body.id,
     name: req.body.name,
     saying: req.body.saying
   };

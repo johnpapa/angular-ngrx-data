@@ -46,7 +46,6 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   @Output() add = new EventEmitter<Hero>();
   @Output() update = new EventEmitter<Hero>();
 
-  @ViewChild('id') idElement: ElementRef;
   @ViewChild('name') nameElement: ElementRef;
 
   addMode = false;
@@ -98,11 +97,7 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
   }
 
   setFocus() {
-    if (this.addMode) {
-      this.idElement.nativeElement.focus();
-    } else {
-      this.nameElement.nativeElement.focus();
-    }
+    this.nameElement.nativeElement.focus();
   }
 
   updateHero(form: FormGroup) {

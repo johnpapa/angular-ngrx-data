@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 
 import { HeroesRoutingModule } from './heroes-routing.module';
-import { HeroDetailComponent } from './hero-detail.component';
-import { HeroListComponent } from './hero-list.component';
+import { HeroDetailComponent } from './hero-detail/hero-detail.component';
+import { HeroListComponent } from './hero-list/hero-list.component';
 
 @NgModule({
   imports: [CommonModule, ReactiveFormsModule, HeroesRoutingModule],

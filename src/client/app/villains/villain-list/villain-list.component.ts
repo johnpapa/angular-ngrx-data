@@ -11,9 +11,10 @@ import {
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, skip, takeUntil, take } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip, takeUntil, take, tap } from 'rxjs/operators';
 
 import { Villain } from '../../core';
+import { pipe } from 'rxjs/util/pipe';
 
 @Component({
   selector: 'app-villain-list',
@@ -34,6 +35,12 @@ export class VillainListComponent implements OnDestroy, OnInit {
   private onDestroy = new Subject();
   private villainDispatcher: EntityDispatcher<Villain>;
   private villainSelector: EntitySelector<Villain>;
+  private filterLogic = pipe(
+    takeUntil(this.onDestroy),
+    tap(value => this.filter.setValue(value)),
+    debounceTime(300),
+    distinctUntilChanged()
+  );
 
   constructor(
     entityDispatchers: EntityDispatchers,
@@ -53,15 +60,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe((value: string) => this.getVillains());
 
-    this.filter$.pipe(takeUntil(this.onDestroy), distinctUntilChanged()).subscribe(value => {
-      this.filter.setValue(value);
-    });
-
-    this.filter$
-      .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
-      .subscribe(value => {
-        this.filterVillains();
-      });
+    this.filter$.pipe(this.filterLogic).subscribe(value => this.filterVillains());
   }
 
   ngOnDestroy() {

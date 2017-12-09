@@ -12,7 +12,7 @@ import {
 import { Observable } from 'rxjs/Observable';
 import { pipe } from 'rxjs/util/pipe';
 import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, skip, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
 
 import { Hero } from '../../core';
 
@@ -35,6 +35,12 @@ export class HeroListComponent implements OnDestroy, OnInit {
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
   private heroSelector: EntitySelector<Hero>;
+  private filterLogic = pipe(
+    takeUntil(this.onDestroy),
+    tap(value => this.filter.setValue(value)),
+    debounceTime(300),
+    distinctUntilChanged()
+  );
 
   constructor(
     entityDispatchers: EntityDispatchers,
@@ -54,14 +60,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.filter$.pipe(takeUntil(this.onDestroy), distinctUntilChanged()).subscribe(value => {
-      this.filter.setValue(value);
-    });
-
-    const filterLogic = pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged());
-    this.filter$.pipe(filterLogic).subscribe(value => {
-      this.filterHeroes();
-    });
+    this.filter$.pipe(this.filterLogic).subscribe(value => this.filterHeroes());
   }
 
   ngOnDestroy() {

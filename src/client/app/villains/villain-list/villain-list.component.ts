@@ -13,7 +13,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil, take, tap } from 'rxjs/operators';
 
-import { Villain } from '../../core';
+import { Villain, ToastService } from '../../core';
 import { pipe } from 'rxjs/util/pipe';
 
 @Component({
@@ -27,6 +27,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
   selectedVillain: Villain = null;
 
   filteredVillains$: Observable<Villain[]>;
+  villains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
@@ -43,9 +44,10 @@ export class VillainListComponent implements OnDestroy, OnInit {
   );
 
   constructor(
-    entityDispatchers: EntityDispatchers,
-    entitySelectors: EntitySelectors,
-    private appSelectors: AppSelectors
+    private entityDispatchers: EntityDispatchers,
+    private entitySelectors: EntitySelectors,
+    private appSelectors: AppSelectors,
+    private toast: ToastService
   ) {
     this.villainDispatcher = entityDispatchers.getDispatcher(Villain);
     this.villainSelector = entitySelectors.getSelector(Villain);
@@ -53,6 +55,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.filteredVillains$ = this.villainSelector.filteredEntities$();
+    this.villains$ = this.villainSelector.entities$();
     this.loading$ = this.villainSelector.loading$();
     this.filter$ = this.villainSelector.filter$();
 
@@ -61,6 +64,10 @@ export class VillainListComponent implements OnDestroy, OnInit {
       .subscribe((value: string) => this.getVillains());
 
     this.filter$.pipe(this.filterLogic).subscribe(value => this.filterVillains());
+
+    this.villains$
+      .pipe(takeUntil(this.onDestroy), skip(1))
+      .subscribe(villains => this.toast.openSnackBar('Fetched Villains', 'GET'));
   }
 
   ngOnDestroy() {

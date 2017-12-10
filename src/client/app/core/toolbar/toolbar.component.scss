@@ -1,10 +1,12 @@
+@import '../../../styles/mixin';
+
 .pull-right {
-  position:fixed !important;
+  position: fixed !important;
   right: 8px;
 }
 
 .ng-title-icon > i {
-  background-image: url("../../../assets/ng.png");
+  background-image: url('../../../assets/ng.png');
   background-repeat: no-repeat;
   background-position: center center;
   padding: 1.2em;
@@ -14,8 +16,15 @@
   margin-right: 1em;
 }
 
+.item {
+  margin-left: 16px;
+}
+
 .item,
 a {
   vertical-align: middle;
 }
 
+.router-link-active {
+  @include primary-background-contrast-color;
+}

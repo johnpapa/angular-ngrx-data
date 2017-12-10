@@ -1,12 +1,7 @@
-button.delete-button {
-  background-color: rgb(216, 59, 1);
-  color: white;
-  padding: 4px;
-  position: relative;
-  font-size: 12px;
-  max-width: 50px;
-}
-.selected {
+@import '../../../styles/mixin';
+
+.selected,
+.selected > .villain-text * {
   background-color: rgb(0, 120, 215) !important;
   color: white;
 }
@@ -18,29 +13,22 @@ button.delete-button {
   li {
     cursor: pointer;
     position: relative;
-    background-color: #f7f7f7;
     margin: 0.5em;
-    height: 3.2em;
-    border-radius: 4px;
-    &:hover {
-      color: #607d8b;
-      color: rgb(0, 120, 215);
-      background-color: #ddd;
-      left: 1px;
-    }
-    &.selected:hover {
-      color: white;
-    }
+    height: 4em;
   }
   .text {
     position: relative;
     top: -3px;
   }
   .saying {
-    margin: 5px 2.3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 15em;
+    white-space: nowrap;
+    margin: 5px 0px;
   }
   .name {
-    font-weight: bold;
+    @include primary-color;
   }
   .hero-container {
     display: flex;
@@ -56,32 +44,32 @@ button.delete-button {
     order: 1;
     padding: 0;
     margin: 0;
-  }
-  .delete-button {
-    flex: 1 auto;
-    order: 2;
-    border-radius: 0 4px 4px 0;
+    &:hover {
+      color: #607d8b;
+      color: rgb(0, 120, 215);
+      background-color: #ddd;
+      left: 1px;
+    }
+    &.selected:hover {
+      color: white;
+    }
   }
   .hero-text {
     flex: 1 auto;
     order: 2;
-    padding: 0.2em 0.5em;
+    padding: 10px;
   }
   .badge {
     flex: 1 auto;
     order: 1;
     font-size: small;
     color: #ffffff;
-    padding: 1.2em 1em 0em 1em;
+    padding: 1.5em 1em 0em 1em;
     background-color: rgb(134, 183, 221);
     margin: 0em 0em 0em 0em;
-    border-radius: 4px 0 0 4px;
     max-width: 1.5em;
+    text-align: center;
   }
-}
-
-.mat-card-header .mat-card-title {
-  font-size: 24px;
 }
 
 .control-panel {
@@ -111,9 +99,24 @@ button.delete-button {
   .list-container {
     flex: 1 auto;
     order: 1;
+    max-width: 30em;
   }
   .detail-container {
     flex: 1 auto;
     order: 2;
+    max-width: 22em;
   }
+}
+
+button.clear-button {
+  height: 24px;
+  width: 24px;
+  line-height: 24px;
+  * {
+    font-size: 16px;
+  }
+}
+button.delete-button {
+  margin-right: 12px;
+  margin-top: 6px;
 }

@@ -7,53 +7,8 @@ h2 {
   color: #444;
   font-weight: lighter;
 }
-html, body {
+html,
+body {
   margin: 0px;
-}
-
-body,
-input[text] {
-  color: #888;
   font-family: Arial;
-}
-
-button {
-  color: #888;
-  font-family: Arial;
-  font-size: 14px;
-  background-color: #eee;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  width: 100px;
-  &:hover {
-    background-color: #cfd8dc;
-  }
-}
-
-label {
-  display: inline-block;
-  min-width: 4em;
-  margin: 0.5em 0;
-  &.value {
-    margin-left: 10px;
-    font-size: 14px;
-  }
-}
-
-input {
-  height: 2em;
-  font-size: 1em;
-  padding-left: 0.4em;
-  &::placeholder {
-    color: lightgray;
-    font-weight: normal;
-    font-size: 12px;
-    letter-spacing: 3px;
-  }
-}
-
-.router-link-active {
-  @include primary-background-contrast-color;
 }

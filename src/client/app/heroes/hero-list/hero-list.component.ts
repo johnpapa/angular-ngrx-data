@@ -14,7 +14,7 @@ import { pipe } from 'rxjs/util/pipe';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
 
-import { Hero } from '../../core';
+import { Hero, ToastService } from '../../core';
 
 @Component({
   selector: 'app-hero-list',
@@ -27,6 +27,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
   selectedHero: Hero = null;
 
   filteredHeroes$: Observable<Hero[]>;
+  heroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
@@ -43,9 +44,10 @@ export class HeroListComponent implements OnDestroy, OnInit {
   );
 
   constructor(
-    entityDispatchers: EntityDispatchers,
-    entitySelectors: EntitySelectors,
-    private appSelectors: AppSelectors
+    private entityDispatchers: EntityDispatchers,
+    private entitySelectors: EntitySelectors,
+    private appSelectors: AppSelectors,
+    private toast: ToastService
   ) {
     this.heroDispatcher = entityDispatchers.getDispatcher(Hero);
     this.heroSelector = entitySelectors.getSelector(Hero);
@@ -53,6 +55,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelector.filteredEntities$();
+    this.heroes$ = this.heroSelector.entities$();
     this.loading$ = this.heroSelector.loading$();
     this.filter$ = this.heroSelector.filter$();
 
@@ -61,6 +64,10 @@ export class HeroListComponent implements OnDestroy, OnInit {
       .subscribe(value => this.getHeroes());
 
     this.filter$.pipe(this.filterLogic).subscribe(value => this.filterHeroes());
+
+    this.heroes$
+      .pipe(takeUntil(this.onDestroy), skip(1))
+      .subscribe(heroes => this.toast.openSnackBar('Fetched Heroes', 'GET'));
   }
 
   ngOnDestroy() {

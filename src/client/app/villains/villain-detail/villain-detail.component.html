@@ -1,19 +1,25 @@
 <div class="editarea">
   <mat-card>
+    <mat-card-header>
+      <mat-card-title>Villain Details</mat-card-title>
+    </mat-card-header>
     <mat-card-content>
       <form [formGroup]="form">
         <div class="editfields">
           <div [hidden]="addMode">
-            <label>id: </label>
-            <input formControlName="id" #id readonly/>
+            <mat-form-field>
+              <input matInput formControlName="id" placeholder="id" #id readonly>
+            </mat-form-field>
           </div>
           <div>
-            <label>name: </label>
-            <input formControlName="name" placeholder="name" #name />
+            <mat-form-field>
+              <input matInput formControlName="name" placeholder="name" #name>
+            </mat-form-field>
           </div>
           <div>
-            <label>saying: </label>
-            <input formControlName="saying" placeholder="saying" (keyup.enter)="saveVillain(form)" />
+            <mat-form-field>
+              <textarea matInput formControlName="saying" placeholder="saying" #name (keyup.enter)="saveVillain(form)"></textarea>
+            </mat-form-field>
           </div>
         </div>
         <button mat-raised-button color="accent" type="button" (click)="clear()">Cancel</button>

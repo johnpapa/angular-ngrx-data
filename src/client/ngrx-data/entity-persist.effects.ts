@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 
-import { Action, Store } from '@ngrx/store';
+import { Action, } from '@ngrx/store';
 import { Actions, Effect } from '@ngrx/effects';
 
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
-import { concatMap, catchError, filter, mergeMap, tap } from 'rxjs/operators';
+import { concat, concatMap, catchError, filter, map, startWith, tap } from 'rxjs/operators';
 
+import * as EntityActions from './entity.actions';
 import {
   DataServiceError,
   EntityAction,
@@ -14,18 +15,15 @@ import {
   EntityCollectionDataService,
   EntityOp
 } from './interfaces';
+type eaType = EntityAction<any, any>;
 
 import { EntityDataService } from './entity-data.service';
-
-import * as EntityActions from './entity.actions';
-
-type eaType = EntityAction<any, any>;
 
 const persistOps = [
   EntityActions.GET_ALL,
   EntityActions.GET_BY_ID,
   EntityActions.ADD,
-  EntityActions.DELETE,
+  EntityActions._DELETE,
   EntityActions.UPDATE
 ];
 
@@ -35,17 +33,34 @@ function isPersistOp(action: eaType) {
 }
 
 @Injectable()
-export class EntityEffects {
+export class EntityPersistEffects {
+
   @Effect()
-  persist$: Observable<Action> = this.actions$.pipe(
+  persist$ = this.actions$.pipe(
     filter(isPersistOp),
-    concatMap(action =>
-      this.doService(action).pipe(mergeMap(handleSuccess(action)), catchError(handleError(action)))
-    )
+    concatMap(action => this.persist(action))
   );
 
-  private doService(action: eaType) {
-    const service = this.dataService.getService(action.entityTypeName);
+  private persist(action: eaType) {
+    try {
+      return this.callDataService(action).pipe(
+        map(handleSuccess(action)),
+        catchError(handleError(action)),
+        startWith(
+          new EntityAction(action, EntityActions.SET_LOADING, true)
+        ),
+        concat(
+          [ new EntityAction(action, EntityActions.SET_LOADING, false),
+            new EntityAction(action, EntityActions.GET_FILTERED) ]
+        )
+      )
+    } catch (err) {
+      return handleError(action)(err);
+    }
+  }
+
+  private callDataService(action: eaType) {
+    const service = this.dataService.getService(action.entityName);
     switch (action.op) {
       case EntityActions.GET_ALL: {
         return service.getAll(action.payload);
@@ -56,38 +71,34 @@ export class EntityEffects {
       case EntityActions.ADD: {
         return service.add(action.payload);
       }
-      case EntityActions.DELETE: {
-        return service.delete(action.payload);
+      case EntityActions._DELETE: {
+        return service.delete(action.payload.id);
       }
       case EntityActions.UPDATE: {
         return service.update(action.payload);
       }
-      default:
-        throw new Error(`Action ${action.op} is not implemented.`);
+      default: {
+        throw new Error(`Persistence action "${action.op}" is not implemented.`);
+      }
     }
   }
 
   constructor(
-    private store: Store<EntityCache>,
     private actions$: Actions,
     private dataService: EntityDataService
   ) {}
+
 }
 
 function handleSuccess(action: eaType) {
   const successOp = <EntityOp>(action.op + '_SUCCESS');
-
-  const filteredAction = new EntityAction<any, any>(action.entityType, EntityActions.GET_FILTERED);
-
-  return (data: any) => [
-    new EntityAction<any, any>(action.entityType, successOp, data),
-    filteredAction
-  ];
+  return (data: any) =>
+    new EntityAction(action, successOp, data);
 }
 
 function handleError(action: eaType) {
   const errorOp = <EntityOp>(action.op + '_ERROR');
-
-  return (err: DataServiceError<any>) =>
-    of(new EntityAction<any, any>(action.entityType, errorOp, err));
+  return (error: DataServiceError<any>) =>
+    of(new EntityAction(action, errorOp, { originalAction: action, error })
+  );
 }

@@ -2,40 +2,25 @@ import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
+import { EntityOp } from './entity.actions';
+export { EntityOp } from './entity.actions';
+
 export class DataServiceError<T> {
   constructor(public error: any, public requestData: T) {}
 }
 
-export type EntityOp =
-  | 'GET_ALL'
-  | 'GET_ALL_SUCCESS'
-  | 'GET_ALL_ERROR'
-  | 'GET_BY_ID'
-  | 'GET_BY_ID_ALL_SUCCESS'
-  | 'GET_BY_ID_ERROR'
-  | 'ADD'
-  | 'ADD_SUCCESS'
-  | 'ADD_ERROR'
-  | 'UPDATE'
-  | 'UPDATE_SUCCESS'
-  | 'UPDATE_ERROR'
-  | 'DELETE'
-  | 'DELETE_SUCCESS'
-  | 'DELETE_ERROR'
-  | 'GET_FILTERED'
-  | 'SET_FILTER';
-
 export class EntityAction<T extends Object, P> implements Action {
   readonly type: string;
-  readonly entityTypeName: string;
+  readonly entityName: string;
 
   constructor(
-    public readonly entityType: EntityClass<T>,
+    classOrAction: EntityClass<T> | string | EntityAction<T, any>,
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
-    this.entityTypeName = this.entityType.name;
-    this.type = `${this.op} [${this.entityType.name}]`.toUpperCase();
+    this.entityName = classOrAction instanceof EntityAction ?
+      classOrAction.entityName : getEntityName(classOrAction);
+    this.type = `${this.op} [${this.entityName}]`.toUpperCase();
   }
 }
 
@@ -43,7 +28,7 @@ export abstract class EntityCollectionDataService<T> {
   abstract getAll(options?: any): Observable<T[]>;
   abstract getById(id: any): Observable<T>;
   abstract add(entity: T): Observable<T>;
-  abstract delete(entity: T): Observable<T>;
+  abstract delete(id: any): Observable<T>;
   abstract update(entity: T): Observable<T>;
 }
 
@@ -59,4 +44,12 @@ export class EntityCollection<T> {
   entities: T[] = [];
   filteredEntities: T[] = [];
   loading = false;
+}
+
+/**
+ * Get name of the entity type (e.g. "Hero")
+ * @param entityClass - the name of the entity class or the class itself
+ */
+export function getEntityName<T>(entityClass: string | EntityClass<T>) {
+  return typeof entityClass === 'string' ? entityClass : entityClass.name;
 }

@@ -6,7 +6,8 @@ import {
   EntityCache,
   EntityClass,
   EntityCollection,
-  EntityCollectionDataService
+  EntityCollectionDataService,
+  getEntityName,
 } from './interfaces';
 
 export class EntityDataServiceConfig {
@@ -34,8 +35,7 @@ export class EntityDataService {
     private pluralizer: Pluralizer,
     config: EntityDataServiceConfig
   ) {
-    // tslint:disable-next-line:triple-equals
-    this.api = config.api != undefined ? '/api' : config.api;
+    this.api = config.api != null ? '/api' : config.api;
     this.getDelay = config.getDelay || 0;
     this.saveDelay = config.saveDelay || 0;
   }
@@ -50,9 +50,7 @@ export class EntityDataService {
    */
   getService<T>(entityClass: string | EntityClass<T>): EntityCollectionDataService<T> {
     const entityName = getEntityName(entityClass);
-
     let service = this.services[entityName];
-
     if (!service) {
       const entitiesName = this.pluralizer.pluralize(entityName);
       service = new BasicDataService(this.http, {
@@ -67,14 +65,25 @@ export class EntityDataService {
     return service;
   }
 
+  /**
+   * Register an EntityCollectionDataService for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param service - data service for that entity class
+   */
   registerService<T>(
     entityClass: string | EntityClass<T>,
     service: EntityCollectionDataService<T>
   ) {
     this.services[getEntityName(entityClass)] = service;
   }
-}
 
-function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return (typeof entityClass === 'string' ? entityClass : entityClass.name).toLowerCase();
+  /**
+   * Register a batch of data services.
+   * @param services - data services to merge into existing services
+   */
+  registerServices(
+    services: { [name: string ]: EntityCollectionDataService<any> }
+  ) {
+    this.services = { ...this.services, ...services };
+  }
 }

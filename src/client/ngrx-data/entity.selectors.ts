@@ -1,58 +1,98 @@
 import { Injectable } from '@angular/core';
-import { Store, createSelector, createFeatureSelector } from '@ngrx/store';
+import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
-import { tap } from 'rxjs/operators';
 
-import { EntityCollection, EntityCache, EntityClass } from '../ngrx-data';
+import { EntityCache, EntityClass, getEntityName } from './interfaces';
 
-const entityCache = createFeatureSelector<EntityCache>('entityCache');
-
-function collection(state: EntityCache, entityTypeName: string) {
-  const c = state[entityTypeName];
-  if (c) {
-    return c;
-  }
-  throw new Error(`No cached collection named "${entityTypeName}")`);
-}
+type SelectorFn = <K>(prop: string) => Observable<K>;
 
 @Injectable()
 export class EntitySelectors {
+
+  entityCache = createFeatureSelector<EntityCache>('entityCache');
+  private selectors: { [name: string]: EntitySelector<any> } = {};
+
   constructor(private store: Store<EntityCache>) {}
 
-  getSelector<T>(entityClass: EntityClass<T>) {
-    return new EntitySelector<T>(entityClass, this.store);
+  /**
+   * Get (or create) a selector class for entity type
+   * @param entityClass - the name of the class or the class itself
+   *
+   * Examples:
+   *   getSelector(Hero);  // selector for Heroes, typed as Hero
+   *   getSelector('Hero'); // selector for Heroes, untyped
+   */
+  getSelector<T>(entityClass: EntityClass<T> | string) {
+    const entityName = getEntityName(entityClass);
+    let selector = this.selectors[entityName];
+    if (!selector) {
+      const selectorFn = createSelectorFn(entityName, this.entityCache, this.store);
+      selector = new EntitySelector<T>(selectorFn);
+      this.selectors[entityName] = selector;
+    }
+    return selector;
+  }
+
+   /**
+   * Register a selector class for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param selector - selector for that entity class
+   */
+  registerSelector<T>(
+    entityClass: string | EntityClass<T>,
+    selector: EntitySelector<T>
+  ) {
+    this.selectors[getEntityName(entityClass)] = selector;
+  }
+
+  /**
+   * Register a batch of selectors.
+   * @param selectors - selectors to merge into existing selectors
+   */
+  registerSelectors(
+    selectors: { [name: string ]: EntitySelector<any> }
+  ) {
+    this.selectors = { ...this.selectors, ...selectors };
   }
 }
 
 export class EntitySelector<T> {
-  readonly typeName: string;
 
-  constructor(private entityClass: EntityClass<T>, private store: Store<EntityCache>) {
-    this.typeName = entityClass.name;
-  }
+  constructor(private readonly selectorFn: SelectorFn) { }
 
   filteredEntities$(): Observable<T[]> {
-    return this.store.select(
-      createSelector(entityCache, state => collection(state, this.typeName).filteredEntities as T[])
-    );
+    return this.selectorFn<T[]>('filteredEntities');
   }
 
   entities$(): Observable<T[]> {
-    return this.store.select(
-      createSelector(entityCache, state => collection(state, this.typeName).entities as T[])
-    );
+    return this.selectorFn<T[]>('entities');
   }
 
   loading$(): Observable<boolean> {
-    return this.store.select(
-      createSelector(entityCache, state => collection(state, this.typeName).loading)
-    );
+    return this.selectorFn<boolean>('loading');
   }
 
   filter$(): Observable<string> {
-    return this.store.select(
-      createSelector(entityCache, state => collection(state, this.typeName).filter)
-    );
+    return this.selectorFn<string>('filter');
+  }
+}
+
+export function createSelectorFn (
+  typeName: string,
+  cacheSelector: Selector<Object, EntityCache>,
+  store: Store<EntityCache>): SelectorFn {
+
+  return selectorFn;
+
+  function selectorFn<K>(prop: string) {
+    return store.select(createSelector(cacheSelector, state =>
+      (<any> collection(state, typeName))[prop] as K));
+  }
+
+  function collection(state: EntityCache, entityName: string) {
+    const c = state[entityName];
+    if (c) { return c; }
+    throw new Error(`No cached collection named "${entityName}")`);
   }
 }

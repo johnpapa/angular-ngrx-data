@@ -5,12 +5,18 @@ import { EffectsModule } from '@ngrx/effects';
 import {
   EntityCache,
   EntityCollection,
-  EntityEffects,
+  entityEffects,
   EntityDataServiceConfig,
   entityReducer,
   NgrxDataModule,
   PLURALIZER_NAMES
 } from '../../ngrx-data';
+
+const entityDataServiceConfig: EntityDataServiceConfig = {
+  api: '/api',
+  getDelay: 1000,
+  saveDelay: 200
+};
 
 export function initialState() {
   const empty = new EntityCollection();
@@ -20,20 +26,15 @@ export function initialState() {
   };
 }
 
-const entityDataServiceConfig: EntityDataServiceConfig = {
-  api: '/api',
-  getDelay: 1000,
-  saveDelay: 200
-};
-
 const pluralNames = {
-  hero: 'heroes'
+  // Case matters. Match the case of the class name.
+  Hero: 'Heroes'
 };
 
 @NgModule({
   imports: [
     StoreModule.forFeature('entityCache', entityReducer, { initialState }),
-    EffectsModule.forFeature([EntityEffects]),
+    EffectsModule.forFeature(entityEffects),
     NgrxDataModule
   ],
   providers: [

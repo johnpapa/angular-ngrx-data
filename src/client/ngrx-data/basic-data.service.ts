@@ -35,8 +35,9 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
     protected http: HttpClient,
     { api, entitiesName, entityName, getDelay = 0, saveDelay = 0 }: BasicDataServiceOptions
   ) {
-    this.entityUrl = `${api}/${entityName}/`;
-    this.entitiesUrl = `${api}/${entitiesName}/`;
+    // All URLs presumed to be lowercase
+    this.entityUrl = `${api}/${entityName}/`.toLowerCase();
+    this.entitiesUrl = `${api}/${entitiesName}/`.toLowerCase();
     this.getDelay = getDelay ? delay(getDelay) : noopOp;
     this.saveDelay = saveDelay ? delay(saveDelay) : noopOp;
   }
@@ -47,11 +48,10 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
       .pipe(this.saveDelay, catchError(this.handleError(entity)));
   }
 
-  delete(entity: T): Observable<T> {
-    return this.http.delete(this.entityUrl + entity.id).pipe(
+  delete(id: any): Observable<T> {
+    return this.http.delete(this.entityUrl + id).pipe(
       this.saveDelay,
-      map(() => entity), // return the deleted entity
-      catchError(this.handleError(entity))
+      catchError(this.handleError(id))
     );
   }
 

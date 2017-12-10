@@ -9,8 +9,12 @@
         <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
       </div>
       <div class="filter-panel">
-        <label>Filter the heroes</label>
-        <input [formControl]="filter" (input)="setFilter(filter.value)" />
+        <mat-form-field>
+          <input matInput [formControl]="filter" (input)="setFilter(filter.value)" placeholder="filter the heroes">
+        </mat-form-field>
+        <button mat-button *ngIf="filter.value" matSuffix mat-icon-button class="clear-button" aria-label="Clear" (click)="setFilter('')">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
     </div>
     <div class="content-container">
@@ -19,15 +23,17 @@
           <div *ngIf="loading$ | async;else heroList">Loading</div>
           <ng-template #heroList>
             <ul class="heroes">
-              <li *ngFor="let hero of heroes" class="hero-container" [class.selected]="hero === selectedHero">
-                <div class="hero-element">
+              <li *ngFor="let hero of heroes" class="hero-container">
+                <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteHero(hero)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+                <div class="hero-element" [class.selected]="hero === selectedHero">
                   <div class="badge">{{hero.id}}</div>
                   <div class="hero-text" (click)="onSelect(hero)">
                     <div class="name">{{hero.name}}</div>
                     <div class="saying">{{hero.saying}}</div>
                   </div>
                 </div>
-                <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
               </li>
             </ul>
           </ng-template>

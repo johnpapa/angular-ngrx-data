@@ -4,12 +4,16 @@ import { Store, createSelector, createFeatureSelector } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { tap } from 'rxjs/operators';
 
-import { EntityCollection, EntityCache, EntityClass } from '../ngrx-data';
+import {
+  EntityCache,
+  EntityClass,
+  getEntityName,
+} from './interfaces';
 
 const entityCache = createFeatureSelector<EntityCache>('entityCache');
 
-function collection(state: EntityCache, entityTypeName: string) {
-  const c = state[entityTypeName];
+function collection(cache: EntityCache, entityTypeName: string) {
+  const c = cache[entityTypeName];
   if (c) {
     return c;
   }
@@ -18,10 +22,37 @@ function collection(state: EntityCache, entityTypeName: string) {
 
 @Injectable()
 export class EntitySelectors {
+  private selectors: { [name: string]: EntitySelector<any> } = {};
+
   constructor(private store: Store<EntityCache>) {}
 
+  /**
+   * Get (or create) a selector class for entity type
+   * @param entityClass - the name of the class or the class itself
+   *
+   * Examples:
+   *   getSelector(Hero);  // selector for Heroes, typed as Hero
+   *   getSelector('Hero'); // selector for Heroes, untyped
+   */
   getSelector<T>(entityClass: EntityClass<T>) {
-    return new EntitySelector<T>(entityClass, this.store);
+    const entityName = getEntityName(entityClass);
+    let selector = this.selectors[entityName];
+    if (!selector) {
+      selector = new EntitySelector<T>(entityClass, this.store);
+      this.selectors[entityName] = selector;
+    }
+    return selector;
+  }
+   /**
+   * Register a selector class for an entity class
+   * @param entityClass - the name of the entity class or the class itself
+   * @param selector - selector for that entity class
+   */
+  registerSelector<T>(
+    entityClass: string | EntityClass<T>,
+    selector: EntitySelector<T>
+  ) {
+    this.selectors[getEntityName(entityClass)] = selector;
   }
 }
 

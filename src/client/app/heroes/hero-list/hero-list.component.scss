@@ -1,6 +1,3 @@
-.button-group {
-  margin: 0.5em;
-}
 button.delete-button {
   background-color: rgb(216, 59, 1);
   color: white;
@@ -14,7 +11,6 @@ button.delete-button {
   color: white;
 }
 .heroes {
-  float: left;
   margin: 0 0 2em 0;
   list-style-type: none;
   padding: 0;
@@ -81,5 +77,43 @@ button.delete-button {
     margin: 0em 0em 0em 0em;
     border-radius: 4px 0 0 4px;
     max-width: 1.5em;
+  }
+}
+
+.mat-card-header .mat-card-title {
+  font-size: 24px;
+}
+
+.control-panel {
+  margin: 8px;
+  display: flex;
+  flex-flow: column wrap;
+  > * {
+    flex: 1 100%;
+  }
+  .button-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 1;
+  }
+  .filter-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 2;
+  }
+}
+.content-container {
+  display: flex;
+  flex-flow: row wrap;
+  > * {
+    flex: 1 100%;
+  }
+  .list-container {
+    flex: 1 auto;
+    order: 1;
+  }
+  .detail-container {
+    flex: 1 auto;
+    order: 2;
   }
 }

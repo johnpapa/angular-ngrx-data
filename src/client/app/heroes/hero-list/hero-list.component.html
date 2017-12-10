@@ -1,34 +1,43 @@
-<div>
-  <div>
-    <div class="button-group">
-      <button type="button" (click)="getHeroes()">Refresh</button>
-      <button type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Heroes</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="control-panel">
+      <div class="button-panel">
+        <button mat-raised-button color="primary" type="button" (click)="getHeroes()">Refresh</button>
+        <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+      </div>
+      <div class="filter-panel">
+        <label>Filter the heroes</label>
+        <input [formControl]="filter" (input)="setFilter(filter.value)" />
+      </div>
     </div>
-    <div>
-      <p>Filter the heroes</p>
-      <input [formControl]="filter" (input)="setFilter(filter.value)" />
+    <div class="content-container">
+      <div class="list-container">
+        <div *ngIf="filteredHeroes$ | async as heroes">
+          <div *ngIf="loading$ | async;else heroList">Loading</div>
+          <ng-template #heroList>
+            <ul class="heroes">
+              <li *ngFor="let hero of heroes" class="hero-container" [class.selected]="hero === selectedHero">
+                <div class="hero-element">
+                  <div class="badge">{{hero.id}}</div>
+                  <div class="hero-text" (click)="onSelect(hero)">
+                    <div class="name">{{hero.name}}</div>
+                    <div class="saying">{{hero.saying}}</div>
+                  </div>
+                </div>
+                <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
+              </li>
+            </ul>
+          </ng-template>
+        </div>
+      </div>
+      <div class="detail-container">
+        <ng-template #elseTemplate>Loading ...</ng-template>
+        <app-hero-detail *ngIf="selectedHero || addingHero" [hero]="selectedHero" (unselect)="unselect()" (add)="add($event)" (update)="update($event)">
+        </app-hero-detail>
+      </div>
     </div>
-    <div *ngIf="filteredHeroes$ | async as heroes">
-      <div *ngIf="loading$ | async;else heroList">Loading</div>
-      <ng-template #heroList>
-        <ul class="heroes">
-          <li *ngFor="let hero of heroes" class="hero-container" [class.selected]="hero === selectedHero">
-            <div class="hero-element">
-              <div class="badge">{{hero.id}}</div>
-              <div class="hero-text" (click)="onSelect(hero)">
-                <div class="name">{{hero.name}}</div>
-                <div class="saying">{{hero.saying}}</div>
-              </div>
-            </div>
-            <button class="delete-button" (click)="deleteHero(hero)">Delete</button>
-          </li>
-        </ul>
-      </ng-template>
-    </div>
-  </div>
-  <div>
-    <ng-template #elseTemplate>Loading ...</ng-template>
-    <app-hero-detail *ngIf="selectedHero || addingHero" [hero]="selectedHero" (unselect)="unselect()" (add)="add($event)" (update)="update($event)">
-    </app-hero-detail>
-  </div>
-</div>
+  </mat-card-content>
+</mat-card>

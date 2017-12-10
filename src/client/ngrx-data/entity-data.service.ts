@@ -7,7 +7,7 @@ import {
   EntityClass,
   EntityCollection,
   EntityCollectionDataService,
-  getEntityName,
+  getEntityName
 } from './interfaces';
 
 export class EntityDataServiceConfig {
@@ -81,9 +81,7 @@ export class EntityDataService {
    * Register a batch of data services.
    * @param services - data services to merge into existing services
    */
-  registerServices(
-    services: { [name: string ]: EntityCollectionDataService<any> }
-  ) {
+  registerServices(services: { [name: string]: EntityCollectionDataService<any> }) {
     this.services = { ...this.services, ...services };
   }
 }

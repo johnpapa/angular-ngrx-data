@@ -2,12 +2,10 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityClass, EntityOp, getEntityName
-} from './interfaces';
+import { EntityAction, EntityCache, EntityClass, EntityOp, getEntityName } from './interfaces';
 
 @Injectable()
 export class EntityDispatchers {
-
   private dispatchers: { [name: string]: EntityDispatcher<any> } = {};
 
   constructor(private store: Store<EntityCache>) {}
@@ -25,9 +23,7 @@ export class EntityDispatchers {
     let dispatcher = this.dispatchers[entityName];
     if (!dispatcher) {
       if (typeof entityClass === 'string') {
-        throw new Error(
-          `No dispatcher for ${entityName} and cannot create one without the class.`
-        )
+        throw new Error(`No dispatcher for ${entityName} and cannot create one without the class.`);
       }
       dispatcher = new EntityDispatcher<T>(entityClass, this.store);
       this.dispatchers[entityName] = dispatcher;
@@ -40,10 +36,7 @@ export class EntityDispatchers {
    * @param entityClass - the name of the entity class or the class itself
    * @param dispatcher - dispatcher for that entity class
    */
-  registerDispatcher<T>(
-    entityClass: string | EntityClass<T>,
-    dispatcher: EntityDispatcher<T>
-  ) {
+  registerDispatcher<T>(entityClass: string | EntityClass<T>, dispatcher: EntityDispatcher<T>) {
     this.dispatchers[getEntityName(entityClass)] = dispatcher;
   }
 
@@ -51,9 +44,7 @@ export class EntityDispatchers {
    * Register a batch of ds.
    * @param dispatchers - dispatchers to merge into existing dispatchers
    */
-  registerDispatchers(
-    dispatchers: { [name: string ]: EntityDispatcher<any> }
-  ) {
+  registerDispatchers(dispatchers: { [name: string]: EntityDispatcher<any> }) {
     this.dispatchers = { ...this.dispatchers, ...dispatchers };
   }
 }

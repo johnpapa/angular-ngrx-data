@@ -18,8 +18,10 @@ export class EntityAction<T extends Object, P> implements Action {
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
-    this.entityName = classOrAction instanceof EntityAction ?
-      classOrAction.entityName : getEntityName(classOrAction);
+    this.entityName =
+      classOrAction instanceof EntityAction
+        ? classOrAction.entityName
+        : getEntityName(classOrAction);
     this.type = `${this.op} [${this.entityName}]`.toUpperCase();
   }
 }

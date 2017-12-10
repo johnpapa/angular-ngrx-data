@@ -7,7 +7,7 @@ import { AppDispatchers } from '../store/app-config';
   selector: 'app-toggle-data-source',
   template: `
       <mat-slide-toggle [checked]="isRemote" (change)="toggleDataSource($event.checked)">Remote Data</mat-slide-toggle>
-  `,
+  `
 })
 export class ToggleDataSourceComponent {
   nextDataSource: string;

@@ -13,18 +13,13 @@ import { EntitySelectors } from './entity.selectors';
 type eaType = EntityAction<any, any>;
 
 function isDeleteOp(action: eaType) {
-  return action.op === EntityActions.DELETE ||
-         action.op === EntityActions.DELETE_BY_ID;
+  return action.op === EntityActions.DELETE || action.op === EntityActions.DELETE_BY_ID;
 }
 
 @Injectable()
 export class EntityPrePersistEffects {
-
   @Effect()
-  preDelete$ = this.actions$.pipe(
-    filter(isDeleteOp),
-    concatMap(action => this.preDelete(action))
-  );
+  preDelete$ = this.actions$.pipe(filter(isDeleteOp), concatMap(action => this.preDelete(action)));
 
   private preDelete(action: eaType) {
     const selector = this.entitySelectors.getSelector(action.entityName);
@@ -57,17 +52,12 @@ export class EntityPrePersistEffects {
     }
   }
 
-  constructor(
-    private actions$: Actions,
-    private entitySelectors: EntitySelectors
-  ) {}
+  constructor(private actions$: Actions, private entitySelectors: EntitySelectors) {}
 }
 
 function createDeleteActions(action: EntityAction<any, any>, payload: any) {
   const deleteAct = new EntityAction(action, EntityActions._DELETE, payload);
-  return payload.index < 0 ?
-    [ deleteAct ] :
-    [ deleteAct,
-      new EntityAction(action, EntityActions._DELETE_BY_INDEX, payload )
-    ];
+  return payload.index < 0
+    ? [deleteAct]
+    : [deleteAct, new EntityAction(action, EntityActions._DELETE_BY_INDEX, payload)];
 }

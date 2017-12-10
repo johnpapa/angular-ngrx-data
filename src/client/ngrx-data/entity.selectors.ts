@@ -9,7 +9,6 @@ type SelectorFn = <K>(prop: string) => Observable<K>;
 
 @Injectable()
 export class EntitySelectors {
-
   entityCache = createFeatureSelector<EntityCache>('entityCache');
   private selectors: { [name: string]: EntitySelector<any> } = {};
 
@@ -34,15 +33,12 @@ export class EntitySelectors {
     return selector;
   }
 
-   /**
+  /**
    * Register a selector class for an entity class
    * @param entityClass - the name of the entity class or the class itself
    * @param selector - selector for that entity class
    */
-  registerSelector<T>(
-    entityClass: string | EntityClass<T>,
-    selector: EntitySelector<T>
-  ) {
+  registerSelector<T>(entityClass: string | EntityClass<T>, selector: EntitySelector<T>) {
     this.selectors[getEntityName(entityClass)] = selector;
   }
 
@@ -50,16 +46,13 @@ export class EntitySelectors {
    * Register a batch of selectors.
    * @param selectors - selectors to merge into existing selectors
    */
-  registerSelectors(
-    selectors: { [name: string ]: EntitySelector<any> }
-  ) {
+  registerSelectors(selectors: { [name: string]: EntitySelector<any> }) {
     this.selectors = { ...this.selectors, ...selectors };
   }
 }
 
 export class EntitySelector<T> {
-
-  constructor(private readonly selectorFn: SelectorFn) { }
+  constructor(private readonly selectorFn: SelectorFn) {}
 
   filteredEntities$(): Observable<T[]> {
     return this.selectorFn<T[]>('filteredEntities');
@@ -78,21 +71,24 @@ export class EntitySelector<T> {
   }
 }
 
-export function createSelectorFn (
+export function createSelectorFn(
   typeName: string,
   cacheSelector: Selector<Object, EntityCache>,
-  store: Store<EntityCache>): SelectorFn {
-
+  store: Store<EntityCache>
+): SelectorFn {
   return selectorFn;
 
   function selectorFn<K>(prop: string) {
-    return store.select(createSelector(cacheSelector, state =>
-      (<any> collection(state, typeName))[prop] as K));
+    return store.select(
+      createSelector(cacheSelector, state => (<any>collection(state, typeName))[prop] as K)
+    );
   }
 
   function collection(state: EntityCache, entityName: string) {
     const c = state[entityName];
-    if (c) { return c; }
+    if (c) {
+      return c;
+    }
     throw new Error(`No cached collection named "${entityName}")`);
   }
 }

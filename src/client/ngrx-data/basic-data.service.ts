@@ -49,10 +49,9 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
   }
 
   delete(id: any): Observable<T> {
-    return this.http.delete(this.entityUrl + id).pipe(
-      this.saveDelay,
-      catchError(this.handleError(id))
-    );
+    return this.http
+      .delete(this.entityUrl + id)
+      .pipe(this.saveDelay, catchError(this.handleError(id)));
   }
 
   getAll(filter?: string): Observable<T[]> {

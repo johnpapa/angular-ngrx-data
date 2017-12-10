@@ -22,9 +22,7 @@ export function entityReducer(
 
   // Todo: intercept and redirect if there's a custom entity reducer
   const newCollection = entityCollectionReducer(collection, action);
-  return collection === newCollection
-    ? state
-    : { ...state, ...{ [entityName]: newCollection } };
+  return collection === newCollection ? state : { ...state, ...{ [entityName]: newCollection } };
 }
 
 function entityCollectionReducer<T>(
@@ -32,7 +30,7 @@ function entityCollectionReducer<T>(
   action: EntityAction<T, any>
 ): EntityCollection<T> {
   switch (action.op) {
-      case EntityActions.ADD_SUCCESS: {
+    case EntityActions.ADD_SUCCESS: {
       // pessimistic add; add entity only upon success
       return {
         ...collection,
@@ -50,12 +48,12 @@ function entityCollectionReducer<T>(
     case EntityActions._DELETE_BY_INDEX: {
       // optimistic deletion
       const ix: number = action.payload.index;
-      return (ix == null || ix < 0) ? collection :
-        {
-        ...collection,
-        entities: collection.entities.slice(0, ix)
-          .concat(collection.entities.slice(ix + 1))
-        };
+      return ix == null || ix < 0
+        ? collection
+        : {
+            ...collection,
+            entities: collection.entities.slice(0, ix).concat(collection.entities.slice(ix + 1))
+          };
     }
 
     case EntityActions._DELETE_ERROR: {
@@ -63,14 +61,14 @@ function entityCollectionReducer<T>(
       // restore deleted entity to list (if it was known to be in the list)
       const payload = action.payload.originalAction.payload;
       const ix: number = payload.index;
-      return (ix == null || ix < 0 || !payload.entity) ? collection :
-      {
-      ...collection,
-      entities: collection.entities.slice(0, ix).concat(
-          payload.entity,
-          collection.entities.slice(ix + 1)
-        )
-      };
+      return ix == null || ix < 0 || !payload.entity
+        ? collection
+        : {
+            ...collection,
+            entities: collection.entities
+              .slice(0, ix)
+              .concat(payload.entity, collection.entities.slice(ix + 1))
+          };
     }
 
     case EntityActions.UPDATE_SUCCESS: {

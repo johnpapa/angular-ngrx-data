@@ -5,6 +5,7 @@ import { RouterModule } from '@angular/router';
 import { ToggleDataSourceComponent } from './toggle-data-source.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { SharedModule } from '../shared/shared.module';
+import { ToastService } from './toast.service';
 
 @NgModule({
   imports: [
@@ -13,6 +14,7 @@ import { SharedModule } from '../shared/shared.module';
     RouterModule // because we use <router-outlet> and routerLink
   ],
   declarations: [ToggleDataSourceComponent, ToolbarComponent],
-  exports: [ToggleDataSourceComponent, ToolbarComponent]
+  exports: [ToggleDataSourceComponent, ToolbarComponent],
+  providers: [ToastService]
 })
 export class CoreModule {}

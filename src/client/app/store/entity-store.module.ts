@@ -5,7 +5,7 @@ import { EffectsModule } from '@ngrx/effects';
 import {
   EntityCache,
   EntityCollection,
-  EntityEffects,
+  entityEffects,
   EntityDataServiceConfig,
   entityReducer,
   NgrxDataModule,
@@ -33,7 +33,7 @@ const pluralNames = {
 @NgModule({
   imports: [
     StoreModule.forFeature('entityCache', entityReducer, { initialState }),
-    EffectsModule.forFeature([EntityEffects]),
+    EffectsModule.forFeature(entityEffects),
     NgrxDataModule
   ],
   providers: [

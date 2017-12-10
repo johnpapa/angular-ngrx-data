@@ -34,8 +34,7 @@ export class EntityDataService {
     private pluralizer: Pluralizer,
     config: EntityDataServiceConfig
   ) {
-    // tslint:disable-next-line:triple-equals
-    this.api = config.api != undefined ? '/api' : config.api;
+    this.api = config.api != null ? '/api' : config.api;
     this.getDelay = config.getDelay || 0;
     this.saveDelay = config.saveDelay || 0;
   }

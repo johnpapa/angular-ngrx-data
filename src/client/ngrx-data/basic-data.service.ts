@@ -47,11 +47,10 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
       .pipe(this.saveDelay, catchError(this.handleError(entity)));
   }
 
-  delete(entity: T): Observable<T> {
-    return this.http.delete(this.entityUrl + entity.id).pipe(
+  delete(id: any): Observable<T> {
+    return this.http.delete(this.entityUrl + id).pipe(
       this.saveDelay,
-      map(() => entity), // return the deleted entity
-      catchError(this.handleError(entity))
+      catchError(this.handleError(id))
     );
   }
 

@@ -10,6 +10,7 @@ import {
   getEntityName
 } from './interfaces';
 
+@Injectable()
 export class EntityDataServiceConfig {
   api? = '/api';
   getDelay? = 0;
@@ -69,6 +70,10 @@ export class EntityDataService {
    * Register an EntityCollectionDataService for an entity class
    * @param entityClass - the name of the entity class or the class itself
    * @param service - data service for that entity class
+   *
+   * Examples:
+   *   registerService(Hero, MyHeroDataService);
+   *   registerService('Villain', MyVillainDataService);
    */
   registerService<T>(
     entityClass: string | EntityClass<T>,
@@ -80,6 +85,12 @@ export class EntityDataService {
   /**
    * Register a batch of data services.
    * @param services - data services to merge into existing services
+   *
+   * Examples:
+   *   registerServices({
+   *     Hero: MyHeroDataService,
+   *     Villain: MyVillainDataService
+   *   });
    */
   registerServices(services: { [name: string]: EntityCollectionDataService<any> }) {
     this.services = { ...this.services, ...services };

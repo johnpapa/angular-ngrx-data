@@ -35,14 +35,24 @@ export class EntityDispatchers {
    * Register a dispatcher for an entity class
    * @param entityClass - the name of the entity class or the class itself
    * @param dispatcher - dispatcher for that entity class
+   *
+   * Examples:
+   *   registerDispatcher(Hero, MyHeroDispatcher);
+   *   registerDispatcher('Villain', MyVillainDispatcher);
    */
   registerDispatcher<T>(entityClass: string | EntityClass<T>, dispatcher: EntityDispatcher<T>) {
     this.dispatchers[getEntityName(entityClass)] = dispatcher;
   }
 
   /**
-   * Register a batch of ds.
+   * Register a batch of dispatchers.
    * @param dispatchers - dispatchers to merge into existing dispatchers
+   *
+   * Examples:
+   *   registerDispatchers({
+   *     Hero: MyHeroDispatcher,
+   *     Villain: MyVillainDispatcher
+   *   });
    */
   registerDispatchers(dispatchers: { [name: string]: EntityDispatcher<any> }) {
     this.dispatchers = { ...this.dispatchers, ...dispatchers };

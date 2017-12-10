@@ -37,6 +37,10 @@ export class EntitySelectors {
    * Register a selector class for an entity class
    * @param entityClass - the name of the entity class or the class itself
    * @param selector - selector for that entity class
+  *
+   * Examples:
+   *   registerSelector(Hero, MyHeroSelector);
+   *   registerSelector('Villain', MyVillainSelector);
    */
   registerSelector<T>(entityClass: string | EntityClass<T>, selector: EntitySelector<T>) {
     this.selectors[getEntityName(entityClass)] = selector;
@@ -45,6 +49,12 @@ export class EntitySelectors {
   /**
    * Register a batch of selectors.
    * @param selectors - selectors to merge into existing selectors
+   *
+   * Examples:
+   *   registerSelectors({
+   *     Hero: MyHeroSelector,
+   *     Villain: MyVillainSelector
+   *   });
    */
   registerSelectors(selectors: { [name: string]: EntitySelector<any> }) {
     this.selectors = { ...this.selectors, ...selectors };

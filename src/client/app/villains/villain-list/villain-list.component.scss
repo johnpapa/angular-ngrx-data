@@ -80,10 +80,30 @@ button.delete-button {
   }
 }
 
+
+.mat-card-header .mat-card-title {
+  font-size: 24px;
+}
+
 .control-panel {
   margin: 8px;
+  display: flex;
+  flex-flow: column wrap;
+  > * {
+    flex: 1 100%;
+  }
+  .button-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 1;
+  }
+  .filter-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 2;
+  }
 }
-.container {
+.content-container {
   display: flex;
   flex-flow: row wrap;
   > * {

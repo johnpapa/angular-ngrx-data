@@ -6,11 +6,7 @@ import { Component } from '@angular/core';
   <div>
     <app-toolbar></app-toolbar>
     <div class="content">
-      <mat-card>
-        <mat-card-content>
-          <router-outlet></router-outlet>
-        </mat-card-content>
-      </mat-card>
+      <router-outlet></router-outlet>
     </div>
   </div>
   `,

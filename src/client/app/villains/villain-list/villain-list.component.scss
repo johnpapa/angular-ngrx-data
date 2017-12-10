@@ -14,8 +14,7 @@
     cursor: pointer;
     position: relative;
     margin: 0.5em;
-    height: 3.2em;
-    border-radius: 4px;
+    height: 4em;
   }
   .text {
     position: relative;
@@ -58,18 +57,18 @@
   .villain-text {
     flex: 1 auto;
     order: 2;
-    padding: 0.2em 0.5em;
+    padding: 10px;
   }
   .badge {
     flex: 1 auto;
     order: 1;
     font-size: small;
     color: #ffffff;
-    padding: 1.2em 1em 0em 1em;
+    padding: 1.5em 1em 0em 1em;
     background-color: rgb(134, 183, 221);
     margin: 0em 0em 0em 0em;
-    border-radius: 4px 0 0 4px;
     max-width: 1.5em;
+    text-align: center;
   }
 }
 
@@ -119,4 +118,5 @@ button.clear-button {
 }
 button.delete-button {
   margin-right: 12px;
+  margin-top: 6px;
 }

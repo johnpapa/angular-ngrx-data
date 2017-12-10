@@ -7,11 +7,8 @@ h2 {
   color: #444;
   font-weight: lighter;
 }
-html, body {
+html,
+body {
   margin: 0px;
   font-family: Arial;
-}
-
-.router-link-active {
-  @include primary-background-contrast-color;
 }

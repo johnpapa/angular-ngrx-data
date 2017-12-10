@@ -26,6 +26,7 @@ export const DELETE_BY_ID = 'DELETE_BY_ID';
 
 export const GET_FILTERED = 'GET_FILTERED';
 export const SET_FILTER = 'SET_FILTER';
+export const SET_FILTER_PATTERN = 'SET_FILTER_PATTERN';
 
 export const SET_LOADING = 'SET_LOADING';
 
@@ -50,4 +51,5 @@ export type EntityOp =
   | '_DELETE_ERROR'
   | 'GET_FILTERED'
   | 'SET_FILTER'
+  | 'SET_FILTER_PATTERN'
   | 'SET_LOADING';

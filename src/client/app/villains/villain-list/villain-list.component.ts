@@ -3,6 +3,7 @@ import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
 import {
+  EntityFilter,
   EntityDispatchers,
   EntityDispatcher,
   EntitySelectors,
@@ -29,7 +30,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
   filteredVillains$: Observable<Villain[]>;
   villains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
-  filter$: Observable<string>;
+  filter$: Observable<EntityFilter>;
   dataSource$ = this.appSelectors.dataSource$();
   filter: FormControl = new FormControl();
 
@@ -38,7 +39,7 @@ export class VillainListComponent implements OnDestroy, OnInit {
   private villainSelector: EntitySelector<Villain>;
   private filterLogic = pipe(
     takeUntil(this.onDestroy),
-    tap(value => this.filter.setValue(value)),
+    tap((value: EntityFilter) => this.filter.setValue(value.pattern)),
     debounceTime(300),
     distinctUntilChanged()
   );
@@ -74,8 +75,8 @@ export class VillainListComponent implements OnDestroy, OnInit {
     this.onDestroy.next(true);
   }
 
-  setFilter(value: string) {
-    this.villainDispatcher.setFilter(value);
+  setFilter(pattern: string) {
+    this.villainDispatcher.setFilter({ pattern });
     this.clear();
   }
 

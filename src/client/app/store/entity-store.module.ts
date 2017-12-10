@@ -1,16 +1,18 @@
-import { NgModule } from '@angular/core';
-import { StoreModule } from '@ngrx/store';
+import { NgModule, InjectionToken } from '@angular/core';
+import { StoreModule, ActionReducer } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
 import {
-  EntityCache,
   EntityCollection,
   entityEffects,
   EntityDataServiceConfig,
-  entityReducer,
+  EntityFilterService,
+  ENTITY_REDUCER_TOKEN,
   NgrxDataModule,
   PLURALIZER_NAMES
 } from '../../ngrx-data';
+
+import { entityFiltersProvider, NAME_OR_SAYING_FILTER } from '../core/entity-filters';
 
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
@@ -22,7 +24,8 @@ export function initialState() {
   const empty = new EntityCollection();
   return {
     Hero: empty,
-    Villain: empty
+    // Initialize with a custom filter for Villains
+    Villain: {...empty, filter: {name: NAME_OR_SAYING_FILTER}}
   };
 }
 
@@ -33,11 +36,12 @@ const pluralNames = {
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', entityReducer, { initialState }),
+    StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN, { initialState }),
     EffectsModule.forFeature(entityEffects),
     NgrxDataModule
   ],
   providers: [
+    entityFiltersProvider,
     { provide: PLURALIZER_NAMES, useValue: pluralNames },
     { provide: EntityDataServiceConfig, useValue: entityDataServiceConfig }
   ]

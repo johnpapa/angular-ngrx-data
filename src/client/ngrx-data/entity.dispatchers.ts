@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityClass, EntityOp, getEntityName } from './interfaces';
+import {
+  EntityAction, EntityCache, EntityClass,
+  EntityOp, EntityFilter, getEntityName } from './interfaces';
 
 @Injectable()
 export class EntityDispatchers {
@@ -90,7 +92,11 @@ export class EntityDispatcher<T> {
     this.dispatch(EntityActions.GET_FILTERED);
   }
 
-  setFilter(filter: string) {
+  setFilter(filter: EntityFilter) {
     this.dispatch(EntityActions.SET_FILTER, filter);
+  }
+
+  setFilterPattern(pattern: any) {
+    this.dispatch(EntityActions.SET_FILTER_PATTERN, pattern);
   }
 }

@@ -5,6 +5,9 @@ import { Observable } from 'rxjs/Observable';
 import { EntityOp } from './entity.actions';
 export { EntityOp } from './entity.actions';
 
+import { EntityFilter } from './entity-filter.service';
+export { EntityFilter } from './entity-filter.service';
+
 export class DataServiceError<T> {
   constructor(public error: any, public requestData: T) {}
 }
@@ -42,7 +45,7 @@ export interface EntityCache {
 }
 
 export class EntityCollection<T> {
-  filter = '';
+  filter: EntityFilter = {};
   entities: T[] = [];
   filteredEntities: T[] = [];
   loading = false;
@@ -53,5 +56,5 @@ export class EntityCollection<T> {
  * @param entityClass - the name of the entity class or the class itself
  */
 export function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return typeof entityClass === 'string' ? entityClass : entityClass.name;
+  return (typeof entityClass === 'string' ? entityClass : entityClass.name).trim();
 }

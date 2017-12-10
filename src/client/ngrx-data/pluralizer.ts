@@ -12,7 +12,7 @@ export const PLURALIZER_NAMES = new InjectionToken<Indexable>('PLURALIZER_NAMES'
 
 @Injectable()
 // tslint:disable-next-line:class-name
-export class Pluralizer_ {
+export class _Pluralizer {
   constructor(@Inject(PLURALIZER_NAMES) private pluralNames: Indexable) {}
 
   /**

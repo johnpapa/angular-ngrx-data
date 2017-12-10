@@ -1,0 +1,34 @@
+@import 'theme';
+
+@mixin primary-color {
+  $primary-color: map-get($primary, 800);
+  color: $primary-color;
+}
+@mixin primary-background-contrast-color {
+  $primary-color: map-get($primary, 400);
+  $font-color: map-get(map-get($primary, contrast), 400);
+  background-color: $primary-color;
+  color: $font-color !important;
+}
+@mixin accent-color {
+  $accent-font-color: map-get($accent, 800);
+  color: $accent-font-color;
+}
+@mixin selected-style {
+  $background-color: map-get($accent, 800);
+  $font-color: map-get(map-get($accent, contrast), 800);
+  background: $background-color !important;
+  color: $font-color !important;
+}
+@mixin hover-style {
+  $background-color: map-get($accent, 400);
+  $font-color: map-get(map-get($accent, contrast), 900);
+  background: $background-color !important;
+  color: $font-color !important;
+}
+@mixin selected-hover-style {
+  $background-color: map-get($accent, 600);
+  $font-color: map-get(map-get($accent, contrast), 600);
+  background: $background-color !important;
+  color: $font-color !important;
+}

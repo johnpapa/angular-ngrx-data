@@ -1,0 +1,21 @@
+.pull-right {
+  position:fixed !important;
+  right: 8px;
+}
+
+.ng-title-icon > i {
+  background-image: url("../../../assets/ng.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  padding: 1.2em;
+}
+
+.title {
+  margin-right: 1em;
+}
+
+.item,
+a {
+  vertical-align: middle;
+}
+

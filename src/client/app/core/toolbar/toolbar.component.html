@@ -1,0 +1,20 @@
+<mat-toolbar color="primary">
+  <div>
+    <a class="ng-title-icon" href="http://angular.io" target="_blank">
+      <i></i>
+    </a>
+    <span class="title">ngrx data demo</span>
+    <span></span>
+    <a mat-button [routerLink]="['/heroes']" routerLinkActive="router-link-active">
+      <span>Heroes</span>
+    </a>
+    <a mat-button [routerLink]="['/villains']" routerLinkActive="router-link-active">
+      <span>Villains</span>
+    </a>
+    <app-toggle-data-source class="item"></app-toggle-data-source>
+    <a mat-button href="http://twitter.com/john_papa" target="_blank" class="pull-right">
+      <mat-icon>filter_vintage</mat-icon>
+      <span>John Papa</span>
+    </a>
+  </div>
+</mat-toolbar>

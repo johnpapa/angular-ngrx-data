@@ -7,7 +7,8 @@ import { HeroDetailComponent } from './hero-detail/hero-detail.component';
 import { HeroListComponent } from './hero-list/hero-list.component';
 
 @NgModule({
-  imports: [CommonModule, ReactiveFormsModule, HeroesRoutingModule],
+  imports: [CommonModule, ReactiveFormsModule, HeroesRoutingModule,
+  ],
   exports: [HeroListComponent, HeroDetailComponent],
   declarations: [HeroListComponent, HeroDetailComponent]
 })

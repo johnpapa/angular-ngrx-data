@@ -14,8 +14,8 @@ import {
 
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
-  getDelay: 1000,
-  saveDelay: 200
+  getDelay: 300,
+  saveDelay: 100
 };
 
 export function initialState() {

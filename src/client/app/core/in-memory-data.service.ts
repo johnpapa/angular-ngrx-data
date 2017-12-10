@@ -74,18 +74,23 @@ function getDbData() {
   const heroes: Hero[] = [
     {
       id: 11,
-      name: 'Mr. Nice',
-      saying: 'Doggone it, people like me.'
+      name: 'Maxwell Smart',
+      saying: 'Missed it by that much.'
     },
     {
       id: 12,
-      name: 'Narco',
-      saying: 'Sleep, my pretty!'
+      name: 'Bullwinkle J. Moose',
+      saying: 'Watch me pull a rabbit out of a hat.'
     },
     {
       id: 13,
-      name: 'Bombasto',
-      saying: 'I am the greatest!'
+      name: 'Muhammad Ali',
+      saying: 'Float like a butterfly, sting like a bee.'
+    },
+    {
+      id: 14,
+      name: 'Eleanor Roosevelt',
+      saying: 'No one can make you feel inferior without your consent.'
     }
   ];
 
@@ -102,14 +107,24 @@ function getDbData() {
     },
     {
       id: 23,
+      name: 'Natasha Fatale',
+      saying: 'You can say that again, dahling.'
+    },
+    {
+      id: 24,
       name: 'Goldfinger',
       saying: 'No, I expect you to die!'
     },
     {
-      id: 24,
-      name: 'Natasha Fatale',
-      saying: 'You can say that again, dahling.'
-    }
+      id: 25,
+      name: 'West Witch',
+      saying: 'I\'ll get you, my pretty, and your little dog too!'
+    },
+    {
+      id: 26,
+      name: 'Tony Montana',
+      saying: 'Say hello to my little friend.'
+    },
   ];
 
   return { heroes, villains } as Db;

@@ -37,7 +37,7 @@ export class EntitySelectors {
    * Register a selector class for an entity class
    * @param entityClass - the name of the entity class or the class itself
    * @param selector - selector for that entity class
-  *
+   *
    * Examples:
    *   registerSelector(Hero, MyHeroSelector);
    *   registerSelector('Villain', MyVillainSelector);

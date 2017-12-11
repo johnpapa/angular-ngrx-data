@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 
-import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityCollection, EntityFilter } from './interfaces';
-import { EntityFilterService } from './entity-filter.service';
+import { EntityAction, EntityOp  } from './entity.actions';
+import { EntityCache, EntityCollection } from './interfaces';
+import { EntityFilterService, EntityFilter} from './entity-filter.service';
 
 @Injectable()
 export class EntityReducer {
@@ -45,7 +45,7 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
   ): EntityCollection<T> {
 
     switch (action.op) {
-      case EntityActions.ADD_SUCCESS: {
+      case EntityOp.ADD_SUCCESS: {
         // pessimistic add; add entity only upon success
         return {
           ...collection,
@@ -53,14 +53,14 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
         };
       }
 
-      case EntityActions.GET_ALL_SUCCESS: {
+      case EntityOp.GET_ALL_SUCCESS: {
         return {
           ...collection,
           entities: action.payload
         };
       }
 
-      case EntityActions._DELETE_BY_INDEX: {
+      case EntityOp._DELETE_BY_INDEX: {
         // optimistic deletion
         const ix: number = action.payload.index;
         return ix == null || ix < 0
@@ -71,7 +71,7 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
             };
       }
 
-      case EntityActions._DELETE_ERROR: {
+      case EntityOp._DELETE_ERROR: {
         // When delete-to-server fails
         // restore deleted entity to list (if it was known to be in the list)
         const payload = action.payload.originalAction.payload;
@@ -86,7 +86,7 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
             };
       }
 
-      case EntityActions.UPDATE_SUCCESS: {
+      case EntityOp.UPDATE_SUCCESS: {
         // pessimistic update; update entity only upon success
         return {
           ...collection,
@@ -103,7 +103,7 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
       // The following two reducer actions accept all four possibilities.
       // SET_FILTER upgrades the filter to an EntityFilter if the pattern is an EntityFilter.
 
-      case EntityActions.GET_FILTERED: {
+      case EntityOp.GET_FILTERED: {
         let filteredEntities: T[];
         const filter = collection.filter
         if (filter) {
@@ -117,17 +117,17 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
         return { ...collection, filteredEntities };
       }
 
-      case EntityActions.SET_FILTER: {
+      case EntityOp.SET_FILTER: {
         const filter = { ...collection.filter, ...action.payload };
         return { ...collection, filter };
       }
 
-      case EntityActions.SET_FILTER_PATTERN: {
+      case EntityOp.SET_FILTER_PATTERN: {
         const filter = { ...collection.filter, pattern: action.payload }
         return { ...collection, filter }
       }
 
-      case EntityActions.SET_LOADING: {
+      case EntityOp.SET_LOADING: {
         return { ...collection, loading: action.payload };
       }
 

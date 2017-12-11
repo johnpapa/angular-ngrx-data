@@ -7,24 +7,19 @@ import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { concat, concatMap, catchError, filter, map, startWith, tap } from 'rxjs/operators';
 
-import * as EntityActions from './entity.actions';
-import {
-  DataServiceError,
-  EntityAction,
-  EntityCache,
-  EntityCollectionDataService,
-  EntityOp
-} from './interfaces';
+import { EntityAction, EntityOp } from './entity.actions';
+import { DataServiceError, EntityCache, EntityCollectionDataService } from './interfaces';
+
 type eaType = EntityAction<any, any>;
 
 import { EntityDataService } from './entity-data.service';
 
 const persistOps = [
-  EntityActions.GET_ALL,
-  EntityActions.GET_BY_ID,
-  EntityActions.ADD,
-  EntityActions._DELETE,
-  EntityActions.UPDATE
+  EntityOp.GET_ALL,
+  EntityOp.GET_BY_ID,
+  EntityOp.ADD,
+  EntityOp._DELETE,
+  EntityOp.UPDATE
 ];
 
 // filter for EntityActions with a persistable EntityOp
@@ -42,10 +37,10 @@ export class EntityPersistEffects {
       return this.callDataService(action).pipe(
         map(handleSuccess(action)),
         catchError(handleError(action)),
-        startWith(new EntityAction(action, EntityActions.SET_LOADING, true)),
+        startWith(new EntityAction(action, EntityOp.SET_LOADING, true)),
         concat([
-          new EntityAction(action, EntityActions.SET_LOADING, false),
-          new EntityAction(action, EntityActions.GET_FILTERED)
+          new EntityAction(action, EntityOp.SET_LOADING, false),
+          new EntityAction(action, EntityOp.GET_FILTERED)
         ])
       );
     } catch (err) {
@@ -56,19 +51,19 @@ export class EntityPersistEffects {
   private callDataService(action: eaType) {
     const service = this.dataService.getService(action.entityName);
     switch (action.op) {
-      case EntityActions.GET_ALL: {
+      case EntityOp.GET_ALL: {
         return service.getAll(action.payload);
       }
-      case EntityActions.GET_BY_ID: {
+      case EntityOp.GET_BY_ID: {
         return service.getById(action.payload);
       }
-      case EntityActions.ADD: {
+      case EntityOp.ADD: {
         return service.add(action.payload);
       }
-      case EntityActions._DELETE: {
+      case EntityOp._DELETE: {
         return service.delete(action.payload.id);
       }
-      case EntityActions.UPDATE: {
+      case EntityOp.UPDATE: {
         return service.update(action.payload);
       }
       default: {

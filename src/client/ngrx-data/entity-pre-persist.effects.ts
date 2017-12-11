@@ -6,14 +6,14 @@ import { Actions, Effect } from '@ngrx/effects';
 import { Observable } from 'rxjs/Observable';
 import { concatMap, filter, first, mergeMap, tap } from 'rxjs/operators';
 
-import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityOp } from './interfaces';
+import { EntityAction, EntityOp } from './entity.actions';
+import { EntityCache } from './interfaces';
 import { EntitySelectors } from './entity.selectors';
 
 type eaType = EntityAction<any, any>;
 
 function isDeleteOp(action: eaType) {
-  return action.op === EntityActions.DELETE || action.op === EntityActions.DELETE_BY_ID;
+  return action.op === EntityOp.DELETE || action.op === EntityOp.DELETE_BY_ID;
 }
 
 @Injectable()
@@ -26,7 +26,7 @@ export class EntityPrePersistEffects {
     const entities$ = selector.entities$();
 
     switch (action.op) {
-      case EntityActions.DELETE: {
+      case EntityOp.DELETE: {
         const entity = action.payload;
         return entities$.pipe(
           first(),
@@ -38,7 +38,7 @@ export class EntityPrePersistEffects {
         );
       }
 
-      case EntityActions.DELETE_BY_ID: {
+      case EntityOp.DELETE_BY_ID: {
         const id = action.payload;
         return entities$.pipe(
           first(),
@@ -56,8 +56,8 @@ export class EntityPrePersistEffects {
 }
 
 function createDeleteActions(action: EntityAction<any, any>, payload: any) {
-  const deleteAct = new EntityAction(action, EntityActions._DELETE, payload);
+  const deleteAct = new EntityAction(action, EntityOp._DELETE, payload);
   return payload.index < 0
     ? [deleteAct]
-    : [deleteAct, new EntityAction(action, EntityActions._DELETE_BY_INDEX, payload)];
+    : [deleteAct, new EntityAction(action, EntityOp._DELETE_BY_INDEX, payload)];
 }

@@ -2,31 +2,10 @@ import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityOp } from './entity.actions';
-export { EntityOp } from './entity.actions';
-
 import { EntityFilter } from './entity-filter.service';
-export { EntityFilter } from './entity-filter.service';
 
 export class DataServiceError<T> {
-  constructor(public error: any, public requestData: T) {}
-}
-
-export class EntityAction<T extends Object, P> implements Action {
-  readonly type: string;
-  readonly entityName: string;
-
-  constructor(
-    classOrAction: EntityClass<T> | string | EntityAction<T, any>,
-    public readonly op: EntityOp,
-    public readonly payload?: P
-  ) {
-    this.entityName =
-      classOrAction instanceof EntityAction
-        ? classOrAction.entityName
-        : getEntityName(classOrAction);
-    this.type = `${this.op} [${this.entityName}]`.toUpperCase();
-  }
+  constructor(public error: any, public requestData: T) { }
 }
 
 export abstract class EntityCollectionDataService<T> {

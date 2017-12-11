@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
@@ -16,8 +16,7 @@ export interface BasicDataServiceOptions {
 }
 
 // Pass the observable straight through
-const noopOp = <K>(source: Observable<K>) => source;
-type LetOp = typeof noopOp;
+const noDelay = <K>(source: Observable<K>) => source;
 
 /**
  * A basic, generic entity data service
@@ -28,8 +27,8 @@ type LetOp = typeof noopOp;
 export class BasicDataService<T extends { id: any }> implements EntityCollectionDataService<T> {
   protected entityUrl: string;
   protected entitiesUrl: string;
-  protected getDelay: LetOp;
-  protected saveDelay: LetOp;
+  protected getDelay: typeof noDelay;
+  protected saveDelay: typeof noDelay;
 
   constructor(
     protected http: HttpClient,
@@ -38,8 +37,8 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
     // All URLs presumed to be lowercase
     this.entityUrl = `${api}/${entityName}/`.toLowerCase();
     this.entitiesUrl = `${api}/${entitiesName}/`.toLowerCase();
-    this.getDelay = getDelay ? delay(getDelay) : noopOp;
-    this.saveDelay = saveDelay ? delay(saveDelay) : noopOp;
+    this.getDelay = getDelay ? delay(getDelay) : noDelay;
+    this.saveDelay = saveDelay ? delay(saveDelay) : noDelay;
   }
 
   add(entity: T): Observable<T> {
@@ -75,9 +74,10 @@ export class BasicDataService<T extends { id: any }> implements EntityCollection
   }
 
   private handleError(requestData?: any) {
-    return (res: HttpErrorResponse) => {
-      const error = new DataServiceError(res.error, requestData);
-      console.error(error);
+    return (res: any) => {
+      console.error(res);
+      const err = res.error || res.message || (res.body && res.body.error) || res;
+      const error = new DataServiceError(err, requestData);
       return new ErrorObservable(error);
     };
   }

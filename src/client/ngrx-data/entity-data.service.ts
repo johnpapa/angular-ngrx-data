@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
+import { EntityAction } from './entity.actions';
+
 import {
-  EntityAction,
   EntityCache,
   EntityClass,
   EntityCollection,

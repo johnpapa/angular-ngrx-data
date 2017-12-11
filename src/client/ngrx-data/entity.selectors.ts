@@ -4,7 +4,8 @@ import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 import { map } from 'rxjs/operators';
 
-import { EntityCache, EntityClass, EntityFilter, getEntityName } from './interfaces';
+import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityFilter } from './entity-filter.service';
 
 type SelectorFn = <K>(prop: string) => Observable<K>;
 

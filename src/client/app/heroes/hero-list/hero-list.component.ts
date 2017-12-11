@@ -57,7 +57,7 @@ export class HeroListComponent implements OnDestroy, OnInit {
     this.filteredHeroes$ = this.heroSelector.filteredEntities$();
     this.heroes$ = this.heroSelector.entities$();
     this.loading$ = this.heroSelector.loading$();
-    this.filter$ = this.heroSelector.filter$();
+    this.filter$ = this.heroSelector.filterPattern$();
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
@@ -74,8 +74,8 @@ export class HeroListComponent implements OnDestroy, OnInit {
     this.onDestroy.next(true);
   }
 
-  setFilter(value: string) {
-    this.heroDispatcher.setFilter(value);
+  setFilter(pattern: string) {
+    this.heroDispatcher.setFilterPattern(pattern);
     this.clear();
   }
 

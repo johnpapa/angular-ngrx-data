@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
-import * as EntityActions from './entity.actions';
-import { EntityAction, EntityCache, EntityClass, EntityOp, getEntityName } from './interfaces';
+import { EntityAction, EntityOp } from './entity.actions';
+import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityFilter } from './entity-filter.service';
 
 @Injectable()
 export class EntityDispatchers {
@@ -67,30 +68,34 @@ export class EntityDispatcher<T> {
   }
 
   add(entity: T) {
-    this.dispatch(EntityActions.ADD, entity);
+    this.dispatch(EntityOp.ADD, entity);
   }
 
   delete(entity: T) {
-    this.dispatch(EntityActions.DELETE, entity);
+    this.dispatch(EntityOp.DELETE, entity);
   }
 
   getAll(options?: any) {
-    this.dispatch(EntityActions.GET_ALL, options);
+    this.dispatch(EntityOp.GET_ALL, options);
   }
 
   getById(id: any) {
-    this.dispatch(EntityActions.GET_BY_ID, id);
+    this.dispatch(EntityOp.GET_BY_ID, id);
   }
 
   update(entity: T) {
-    this.dispatch(EntityActions.UPDATE, entity);
+    this.dispatch(EntityOp.UPDATE, entity);
   }
 
   getFiltered() {
-    this.dispatch(EntityActions.GET_FILTERED);
+    this.dispatch(EntityOp.GET_FILTERED);
   }
 
-  setFilter(filter: string) {
-    this.dispatch(EntityActions.SET_FILTER, filter);
+  setFilter(filter: EntityFilter) {
+    this.dispatch(EntityOp.SET_FILTER, filter);
+  }
+
+  setFilterPattern(pattern: any) {
+    this.dispatch(EntityOp.SET_FILTER_PATTERN, pattern);
   }
 }

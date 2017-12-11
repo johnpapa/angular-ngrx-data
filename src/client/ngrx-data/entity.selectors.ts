@@ -2,8 +2,10 @@ import { Injectable } from '@angular/core';
 import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
+import { map } from 'rxjs/operators';
 
 import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityFilter } from './entity-filter.service';
 
 type SelectorFn = <K>(prop: string) => Observable<K>;
 
@@ -76,8 +78,14 @@ export class EntitySelector<T> {
     return this.selectorFn<boolean>('loading');
   }
 
-  filter$(): Observable<string> {
-    return this.selectorFn<string>('filter');
+  filter$(): Observable<EntityFilter> {
+    return this.selectorFn<EntityFilter>('filter');
+  }
+
+  filterPattern$(): Observable<any> {
+    return this.selectorFn<EntityFilter>('filter').pipe(
+      map(filter => filter.pattern)
+    );
   }
 }
 

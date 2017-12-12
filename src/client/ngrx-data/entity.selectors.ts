@@ -83,9 +83,7 @@ export class EntitySelector<T> {
   }
 
   filterPattern$(): Observable<any> {
-    return this.selectorFn<EntityFilter>('filter').pipe(
-      map(filter => filter.pattern)
-    );
+    return this.selectorFn<EntityFilter>('filter').pipe(map(filter => filter.pattern));
   }
 }
 

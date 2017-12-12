@@ -22,14 +22,18 @@ export interface EntityFilterDef<T> {
   exclude?: string[]; // entity type names to exclude
 }
 
-export interface EntityFilters { [name: string]: EntityFilterDef<any> }
+export interface EntityFilters {
+  [name: string]: EntityFilterDef<any>;
+}
 
 export const ENTITY_FILTERS = new InjectionToken<EntityFilters>('ENTITY_FILTERS');
 
 /** EntityFilter function: match pattern in the entity name. */
 export function GenericNameFilterFn<T>(entities: T[], pattern: string) {
   pattern = pattern && pattern.trim();
-  if (!pattern) { return entities; }
+  if (!pattern) {
+    return entities;
+  }
   const regEx = new RegExp(pattern, 'i');
   return entities.filter((e: any) => regEx.test(e.name));
 }
@@ -37,18 +41,21 @@ export function GenericNameFilterFn<T>(entities: T[], pattern: string) {
 /** The default EntityFilter */
 export const DefaultEntityFilters: EntityFilters = {
   '': { filterFn: GenericNameFilterFn }
-}
+};
 
 @Injectable()
 export class EntityFilterService {
+  private filters: EntityFilters = {};
 
-  private filters: EntityFilters = { };
-
-  constructor(@Optional() @Inject(ENTITY_FILTERS) filters: EntityFilters[] = []) {
+  constructor(
+    @Optional()
+    @Inject(ENTITY_FILTERS)
+    filters: EntityFilters[] = []
+  ) {
     filters.forEach(f => this.registerFilters(f));
   }
 
- /**
+  /**
    * Get an {EntityFilter} by name.
    * @param name - filter name; empty name is the default filter
    *
@@ -64,18 +71,20 @@ export class EntityFilterService {
     if (!filter) {
       throw new Error(`No filter named "${name}" for ${entityName} entities.`);
     }
-    if (!entityName) { return filter; }
-    if ((filter.exclude && -1 !== filter.exclude.indexOf(entityName)) ||
-        (filter.include && -1 === filter.include.indexOf(entityName))
-      ) {
-        throw new Error(`Filter "${name}" disallowed for ${entityName} entities.`);
+    if (!entityName) {
+      return filter;
+    }
+    if (
+      (filter.exclude && -1 !== filter.exclude.indexOf(entityName)) ||
+      (filter.include && -1 === filter.include.indexOf(entityName))
+    ) {
+      throw new Error(`Filter "${name}" disallowed for ${entityName} entities.`);
     }
     return filter;
   }
   getFilterFn<T>(name = '', entityName?: EntityClass<T> | string): EntityFilterFn<T> {
     return this.getFilter<T>(name, entityName).filterFn;
   }
-
 
   /**
    * Register a filter for an entity class

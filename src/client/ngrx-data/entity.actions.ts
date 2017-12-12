@@ -32,7 +32,7 @@ export enum EntityOp {
   SET_FILTER = 'SET_FILTER',
   SET_FILTER_PATTERN = 'SET_FILTER_PATTERN',
 
-  SET_LOADING = 'SET_LOADING',
+  SET_LOADING = 'SET_LOADING'
 }
 
 export class EntityAction<T extends Object, P> implements Action {

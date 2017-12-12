@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { EntityFilter } from './entity-filter.service';
 
 export class DataServiceError<T> {
-  constructor(public error: any, public requestData: T) { }
+  constructor(public error: any, public requestData: T) {}
 }
 
 export abstract class EntityCollectionDataService<T> {

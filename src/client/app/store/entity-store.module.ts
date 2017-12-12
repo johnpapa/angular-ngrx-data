@@ -25,7 +25,7 @@ export function initialState() {
   return {
     Hero: empty,
     // Initialize with a custom filter for Villains
-    Villain: {...empty, filter: {name: NAME_OR_SAYING_FILTER}}
+    Villain: { ...empty, filter: { name: NAME_OR_SAYING_FILTER } }
   };
 }
 

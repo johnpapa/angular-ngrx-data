@@ -1,22 +1,23 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 
-import { EntityAction, EntityOp  } from './entity.actions';
+import { EntityAction, EntityOp } from './entity.actions';
 import { EntityCache, EntityCollection } from './interfaces';
-import { EntityFilterService, EntityFilter} from './entity-filter.service';
+import { EntityFilterService, EntityFilter } from './entity-filter.service';
 
 @Injectable()
 export class EntityReducer {
-  constructor(private filterService: EntityFilterService) { }
-  getReducer() { return entityReducerFactory(this.filterService); }
+  constructor(private filterService: EntityFilterService) {}
+  getReducer() {
+    return entityReducerFactory(this.filterService);
+  }
 }
 
-export function entityReducerFactory(filterService: EntityFilterService ) {
-
+export function entityReducerFactory(filterService: EntityFilterService) {
   return function entityReducer(
-    state: EntityCache = {}, action: EntityAction<any, any>
+    state: EntityCache = {},
+    action: EntityAction<any, any>
   ): EntityCache {
-
     const entityName = action.entityName;
     if (!entityName) {
       return state; // not an EntityAction
@@ -33,17 +34,15 @@ export function entityReducerFactory(filterService: EntityFilterService ) {
     // Todo: intercept and redirect if there's a custom entityCollectionReducerFactory
     const newCollection = entityCollectionReducerFactory(filterService)(collection, action);
 
-    return collection === newCollection ? state :
-      { ...state, ...{ [entityName]: newCollection } };
-  }
+    return collection === newCollection ? state : { ...state, ...{ [entityName]: newCollection } };
+  };
 }
 
 export function entityCollectionReducerFactory<T>(filterService: EntityFilterService) {
-
   return function entityCollectionReducer(
-    collection: EntityCollection<T>, action: EntityAction<T, any>
+    collection: EntityCollection<T>,
+    action: EntityAction<T, any>
   ): EntityCollection<T> {
-
     switch (action.op) {
       case EntityOp.ADD_SUCCESS: {
         // pessimistic add; add entity only upon success
@@ -105,11 +104,10 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
 
       case EntityOp.GET_FILTERED: {
         let filteredEntities: T[];
-        const filter = collection.filter
+        const filter = collection.filter;
         if (filter) {
-          const { name = '', pattern } =
-            typeof filter === 'string' ? { pattern: filter } : filter;
-          const filterFn = filterService.getFilterFn<T>(name, action.entityName );
+          const { name = '', pattern } = typeof filter === 'string' ? { pattern: filter } : filter;
+          const filterFn = filterService.getFilterFn<T>(name, action.entityName);
           filteredEntities = filterFn(collection.entities, pattern);
         } else {
           filteredEntities = collection.entities;
@@ -123,8 +121,8 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
       }
 
       case EntityOp.SET_FILTER_PATTERN: {
-        const filter = { ...collection.filter, pattern: action.payload }
-        return { ...collection, filter }
+        const filter = { ...collection.filter, pattern: action.payload };
+        return { ...collection, filter };
       }
 
       case EntityOp.SET_LOADING: {
@@ -135,5 +133,5 @@ export function entityCollectionReducerFactory<T>(filterService: EntityFilterSer
         return collection;
       }
     }
-  }
+  };
 }

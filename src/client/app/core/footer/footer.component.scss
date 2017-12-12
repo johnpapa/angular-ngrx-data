@@ -26,19 +26,8 @@ a {
 .footer-container {
   display: flex;
   flex-flow: row wrap;
-  // > * {
-  //   flex: 1 100%;
-  // }
 }
 .commands {
   flex: 10 auto;
   order: 0;
 }
-// .avatar-1 {
-//   flex: 1 auto;
-//   order: 1;
-// }
-// .avatar-2 {
-//   flex: 1 auto;
-//   order: 2;
-// }

@@ -80,16 +80,16 @@
   > * {
     flex: 1 100%;
   }
-  .button-panel {
-    flex: 1 auto;
-    margin: 8px 0px;
-    order: 1;
-  }
-  .filter-panel {
-    flex: 1 auto;
-    margin: 8px 0px;
-    order: 2;
-  }
+}
+.button-panel {
+  flex: 1 auto;
+  margin: 8px 0px;
+  order: 1;
+}
+.filter-panel {
+  flex: 1 auto;
+  margin: 8px 0px;
+  order: 2;
 }
 .content-container {
   display: flex;
@@ -97,16 +97,16 @@
   > * {
     flex: 1 100%;
   }
-  .list-container {
-    flex: 1 auto;
-    order: 1;
-    max-width: 30em;
-  }
-  .detail-container {
-    flex: 1 auto;
-    order: 2;
-    max-width: 22em;
-  }
+}
+.list-container {
+  flex: 1 auto;
+  order: 1;
+  max-width: 30em;
+}
+.detail-container {
+  flex: 1 auto;
+  order: 2;
+  max-width: 22em;
 }
 
 button.clear-button {

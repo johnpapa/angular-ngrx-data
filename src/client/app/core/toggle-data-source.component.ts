@@ -1,4 +1,4 @@
-import { Component, OnInit, Optional, EventEmitter } from '@angular/core';
+import { Component, OnInit, Optional, EventEmitter, HostBinding } from '@angular/core';
 
 import { InMemoryDataService } from '../core';
 import { AppDispatchers } from '../store/app-config';
@@ -6,11 +6,13 @@ import { AppDispatchers } from '../store/app-config';
 @Component({
   selector: 'app-toggle-data-source',
   template: `
-      <mat-slide-toggle [checked]="isRemote" (change)="toggleDataSource($event.checked)">Remote Data</mat-slide-toggle>
+  <mat-slide-toggle [checked]="isRemote" (change)="toggleDataSource($event.checked)">Remote Data</mat-slide-toggle>
   `
 })
 export class ToggleDataSourceComponent {
+  @HostBinding('title')
   nextDataSource: string;
+
   isRemote: boolean;
 
   constructor(
@@ -18,12 +20,14 @@ export class ToggleDataSourceComponent {
     private appDispatchers: AppDispatchers
   ) {
     this.isRemote = !inMemService;
+    this.nextDataSource = `getting data from local data source.`
   }
 
   toggleDataSource(isRemote: boolean) {
     this.isRemote = isRemote;
     this.inMemService.active = !isRemote;
     const location = isRemote ? 'remote' : 'local';
+    this.nextDataSource = `getting data from ${location} data source.`
     this.appDispatchers.toggleDataSource(location);
   }
 }

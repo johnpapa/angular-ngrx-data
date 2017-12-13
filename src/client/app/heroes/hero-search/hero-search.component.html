@@ -1,0 +1,29 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Heroes</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="control-panel">
+      <div class="button-panel">
+        <button mat-raised-button color="primary" type="button" (click)="getHeroes()">Refresh</button>
+        <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+      </div>
+      <app-filter [filterPattern]="filterPattern" (onFilterChange)="setFilter($event)" class="filter-panel"></app-filter>
+    </div>
+    <div class="content-container">
+      <div class="list-container">
+        <div *ngIf="filteredHeroes$ | async as heroes">
+          <div *ngIf="loading$ | async;else heroList">Loading</div>
+          <ng-template #heroList>
+            <app-hero-list [heroes]="heroes" [selectedHero]="selectedHero" (deleted)="deleteHero($event)" (selected)="onSelect($event)"></app-hero-list>
+          </ng-template>
+        </div>
+      </div>
+      <div class="detail-container">
+        <ng-template #elseTemplate>Loading ...</ng-template>
+        <app-hero-detail *ngIf="selectedHero || addingHero" [hero]="selectedHero" (unselect)="unselect()" (add)="add($event)" (update)="update($event)">
+        </app-hero-detail>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

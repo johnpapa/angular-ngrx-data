@@ -1,0 +1,30 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Villains</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <div class="control-panel">
+      <div class="button-panel">
+        <button mat-raised-button color="primary" type="button" (click)="getVillains()">Refresh</button>
+        <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain">Add</button>
+      </div>
+      <app-filter [filterPattern]="filterPattern" (onFilterChange)="setFilter($event)" class="filter-panel"></app-filter>
+    </div>
+    <div class="content-container">
+      <div class="list-container">
+        <div *ngIf="filteredVillains$ | async as villains">
+          <div *ngIf="loading$ | async;else villainList">Loading</div>
+          <ng-template #villainList>
+            <app-villain-list [villains]="villains" [selectedVillain]="selectedVillain" (deleted)="deleteVillain($event)" (selected)="onSelect($event)"></app-villain-list>
+          </ng-template>
+        </div>
+      </div>
+      <div class="detail-container">
+        <ng-template #elseTemplate>Loading ...</ng-template>
+        <app-villain-detail *ngIf="selectedVillain || addingVillain" [villain]="selectedVillain" (unselect)="unselect()" (add)="add($event)"
+          (update)="update($event)">
+        </app-villain-detail>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

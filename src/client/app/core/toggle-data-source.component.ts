@@ -20,14 +20,14 @@ export class ToggleDataSourceComponent {
     private appDispatchers: AppDispatchers
   ) {
     this.isRemote = !inMemService;
-    this.nextDataSource = `getting data from local data source.`
+    this.nextDataSource = `Getting data from local data source.`
   }
 
   toggleDataSource(isRemote: boolean) {
     this.isRemote = isRemote;
     this.inMemService.active = !isRemote;
     const location = isRemote ? 'remote' : 'local';
-    this.nextDataSource = `getting data from ${location} data source.`
+    this.nextDataSource = `Getting data from ${location} data source.`
     this.appDispatchers.toggleDataSource(location);
   }
 }

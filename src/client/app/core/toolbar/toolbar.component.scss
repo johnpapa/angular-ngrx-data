@@ -28,3 +28,55 @@ a {
 .router-link-active {
   @include primary-background-contrast-color;
 }
+
+.footer-container {
+  display: flex;
+  flex-flow: row wrap;
+  width: 100%;
+  > * {
+    // padding: 10px;
+    // flex: 1 100%;
+    display: flex;
+  }
+}
+
+.commands {
+  flex: 18 0px;
+  order: 1;
+  align-self: center;
+  padding-left: 8px;
+}
+
+.avatar {
+  flex: 1 auto;
+}
+
+.avatar-1 {
+  order: 2;
+}
+
+.avatar-2 {
+  order: 3;
+}
+
+.avatar-1 > i,
+.avatar-2 > i {
+  background-repeat: no-repeat;
+  background-position: center center;
+  padding: 16px;
+
+  border: 0;
+  border-radius: 50%;
+  opacity: 1;
+}
+.avatar-1 > i {
+  background-image: url('../../../assets/wb.jpg');
+}
+.avatar-2 > i {
+  background-image: url('../../../assets/jp.jpg');
+}
+
+.row-commands {
+  height: 40px;
+  border-top: 1px solid white;
+}

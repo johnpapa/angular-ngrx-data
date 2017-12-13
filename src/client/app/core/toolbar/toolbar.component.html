@@ -1,15 +1,28 @@
 <mat-toolbar color="primary">
-  <div>
-    <a class="ng-title-icon" href="http://angular.io" target="_blank">
-      <i></i>
-    </a>
-    <span class="title">ngrx data demo</span>
-    <span></span>
-    <a mat-button [routerLink]="['/heroes']" routerLinkActive="router-link-active">
-      <span>Heroes</span>
-    </a>
-    <a mat-button [routerLink]="['/villains']" routerLinkActive="router-link-active">
-      <span>Villains</span>
-    </a>
-  </div>
-</mat-toolbar>
+  <mat-toolbar-row>
+    <div>
+      <a class="ng-title-icon" href="http://angular.io" target="_blank">
+        <i></i>
+      </a>
+      <span class="title">ngrx data demo</span>
+      <span></span>
+      <a mat-button [routerLink]="['/heroes']" routerLinkActive="router-link-active">
+        <span>Heroes</span>
+      </a>
+      <a mat-button [routerLink]="['/villains']" routerLinkActive="router-link-active">
+        <span>Villains</span>
+      </a>
+    </div>
+  </mat-toolbar-row>
+  <mat-toolbar-row class="row-commands">
+      <div class="footer-container">
+        <app-toggle-data-source class="commands"></app-toggle-data-source>
+        <a href="http://twitter.com/wardbell" target="_blank" class="avatar avatar-1">
+          <i></i>
+        </a>
+        <a href="http://twitter.com/john_papa" target="_blank" class="avatar avatar-2">
+          <i></i>
+        </a>
+      </div>
+    </mat-toolbar-row>
+  </mat-toolbar>

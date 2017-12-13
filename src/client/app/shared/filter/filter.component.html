@@ -1,0 +1,8 @@
+<div class="filter-panel">
+  <mat-form-field>
+    <input matInput [formControl]="filter" (input)="setFilter(filter.value)" placeholder="filter">
+  </mat-form-field>
+  <button mat-button *ngIf="filter.value" matSuffix mat-icon-button class="clear-button" aria-label="Clear" (click)="setFilter('')">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>

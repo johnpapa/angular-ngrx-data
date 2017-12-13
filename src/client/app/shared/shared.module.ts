@@ -9,6 +9,9 @@ import {
   MatToolbarModule,
   MatInputModule
 } from '@angular/material';
+import { ReactiveFormsModule } from '@angular/forms';
+
+import { FilterComponent } from './filter/filter.component';
 
 @NgModule({
   imports: [
@@ -19,17 +22,20 @@ import {
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatToolbarModule
+    MatToolbarModule,
+    ReactiveFormsModule
   ],
   exports: [
+    FilterComponent,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
     MatInputModule,
     MatSlideToggleModule,
     MatSnackBarModule,
-    MatToolbarModule
+    MatToolbarModule,
+    ReactiveFormsModule
   ],
-  declarations: []
+  declarations: [FilterComponent]
 })
 export class SharedModule {}

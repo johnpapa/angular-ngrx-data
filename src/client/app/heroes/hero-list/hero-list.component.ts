@@ -31,17 +31,11 @@ export class HeroListComponent implements OnDestroy, OnInit {
   loading$: Observable<boolean>;
   filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
-  filter: FormControl = new FormControl();
+  filterPattern: string;
 
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
   private heroSelector: EntitySelector<Hero>;
-  private filterLogic = pipe(
-    takeUntil(this.onDestroy),
-    tap(value => this.filter.setValue(value)),
-    debounceTime(300),
-    distinctUntilChanged()
-  );
 
   constructor(
     private entityDispatchers: EntityDispatchers,
@@ -63,7 +57,10 @@ export class HeroListComponent implements OnDestroy, OnInit {
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.filter$.pipe(this.filterLogic).subscribe(value => this.filterHeroes());
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe((value: string) => {
+      this.filterPattern = value;
+      this.filterHeroes();
+    });
 
     this.heroes$
       .pipe(takeUntil(this.onDestroy), skip(1))

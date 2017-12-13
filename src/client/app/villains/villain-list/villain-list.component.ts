@@ -32,17 +32,11 @@ export class VillainListComponent implements OnDestroy, OnInit {
   loading$: Observable<boolean>;
   filter$: Observable<EntityFilter>;
   dataSource$ = this.appSelectors.dataSource$();
-  filter: FormControl = new FormControl();
+  filterPattern: string;
 
   private onDestroy = new Subject();
   private villainDispatcher: EntityDispatcher<Villain>;
   private villainSelector: EntitySelector<Villain>;
-  private filterLogic = pipe(
-    takeUntil(this.onDestroy),
-    tap((value: EntityFilter) => this.filter.setValue(value.pattern)),
-    debounceTime(300),
-    distinctUntilChanged()
-  );
 
   constructor(
     private entityDispatchers: EntityDispatchers,
@@ -64,7 +58,10 @@ export class VillainListComponent implements OnDestroy, OnInit {
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe((value: string) => this.getVillains());
 
-    this.filter$.pipe(this.filterLogic).subscribe(value => this.filterVillains());
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe((filter: any) => {
+      this.filterPattern = filter.pattern;
+      this.filterVillains();
+    });
 
     this.villains$
       .pipe(takeUntil(this.onDestroy), skip(1))

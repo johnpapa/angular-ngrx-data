@@ -8,14 +8,7 @@
         <button mat-raised-button color="primary" type="button" (click)="getVillains()">Refresh</button>
         <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain">Add</button>
       </div>
-      <div class="filter-panel">
-        <mat-form-field>
-          <input matInput [formControl]="filter" (input)="setFilter(filter.value)" placeholder="filter the villains">
-        </mat-form-field>
-        <button mat-button *ngIf="filter.value" matSuffix mat-icon-button class="clear-button" aria-label="Clear" (click)="setFilter('')">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
+      <app-filter [filterPattern]="filterPattern" (onFilterChange)="setFilter($event)"></app-filter>
     </div>
     <div class="content-container">
       <div class="list-container">

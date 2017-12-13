@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { HeroListComponent } from './hero-list/hero-list.component';
+import { HeroSearchComponent } from './hero-search/hero-search.component';
 
-const routes: Routes = [{ path: '', pathMatch: 'full', component: HeroListComponent }];
+const routes: Routes = [{ path: '', pathMatch: 'full', component: HeroSearchComponent }];
 
 @NgModule({
   imports: [RouterModule.forChild(routes)],

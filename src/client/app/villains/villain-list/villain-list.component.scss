@@ -1,15 +1,15 @@
 @import '../../../styles/mixin';
 
-.selected,
-.selected > .villain-text * {
-  background-color: rgb(0, 120, 215) !important;
-  color: white;
-}
 .villains {
   margin: 0 0 2em 0;
   list-style-type: none;
   padding: 0;
   width: 25em;
+  .selected,
+  .selected > .villain-text * {
+    background-color: rgb(0, 120, 215) !important;
+    color: white;
+  }
   li {
     cursor: pointer;
     position: relative;
@@ -70,53 +70,8 @@
     max-width: 1.5em;
     text-align: center;
   }
-}
-
-.control-panel {
-  margin: 8px;
-  display: flex;
-  flex-flow: column wrap;
-  > * {
-    flex: 1 100%;
+  button.delete-button {
+    margin-right: 12px;
+    margin-top: 6px;
   }
-}
-.button-panel {
-  flex: 1 auto;
-  margin: 8px 0px;
-  order: 1;
-}
-.filter-panel {
-  flex: 1 auto;
-  margin: 8px 0px;
-  order: 2;
-}
-.content-container {
-  display: flex;
-  flex-flow: row wrap;
-  > * {
-    flex: 1 100%;
-  }
-}
-.list-container {
-  flex: 1 auto;
-  order: 1;
-  max-width: 30em;
-}
-.detail-container {
-  flex: 1 auto;
-  order: 2;
-  max-width: 22em;
-}
-
-button.clear-button {
-  height: 24px;
-  width: 24px;
-  line-height: 24px;
-  * {
-    font-size: 16px;
-  }
-}
-button.delete-button {
-  margin-right: 12px;
-  margin-top: 6px;
 }

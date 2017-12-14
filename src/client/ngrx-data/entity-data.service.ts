@@ -3,12 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { EntityAction } from './entity.actions';
 
-import {
-  EntityCache,
-  EntityClass,
-  EntityCollection,
-  EntityCollectionDataService,
-  getEntityName
+import { EntityClass, EntityCollectionDataService, getEntityName
 } from './interfaces';
 
 @Injectable()
@@ -37,6 +32,7 @@ export class EntityDataService {
     private pluralizer: Pluralizer,
     config: EntityDataServiceConfig
   ) {
+    config = config || {};
     this.api = config.api != null ? '/api' : config.api;
     this.getDelay = config.getDelay || 0;
     this.saveDelay = config.saveDelay || 0;

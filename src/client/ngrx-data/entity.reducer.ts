@@ -1,132 +1,163 @@
-import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
+import { EntityAdapter } from '@ngrx/entity';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCache, EntityCollection } from './interfaces';
-import { EntityFilterService, EntityFilter } from './entity-filter.service';
+import { EntityMetadata } from './entity-metadata';
+import { EntityCollection, EntityDefinitions } from './entity-definition';
+import { EntityDefinitionService } from './entity-definition.service';
+import { EntityCache } from './interfaces'
 
-@Injectable()
-export class EntityReducer {
-  constructor(private filterService: EntityFilterService) {}
-  getReducer() {
-    return entityReducerFactory(this.filterService);
-  }
+export type EntityCollectionReducer<T> = (collection: EntityCollection<T>,
+  action: EntityAction<T, any>) => EntityCollection<T>;
+
+export interface EntityCollectionReducers {
+  [entity: string]: EntityCollectionReducer<any>;
 }
 
-export function entityReducerFactory(filterService: EntityFilterService) {
+/** Create the reducer for the EntityCache */
+export function createEntityReducer(
+  entityDefinitionService: EntityDefinitionService) {
+
+  let entityReducers:  EntityCollectionReducers = {};
+
+  function initializeState() {
+    entityReducers = entityDefinitionService.getAllEntityReducers();
+    return entityDefinitionService.getAllInitialStates();
+  }
+
+  /** Perform Actions against the entity collections in the EntityCache */
   return function entityReducer(
-    state: EntityCache = {},
+    state: EntityCache,
     action: EntityAction<any, any>
   ): EntityCache {
+
     const entityName = action.entityName;
     if (!entityName) {
       return state; // not an EntityAction
     }
 
+    if (!state || Object.keys(state).length === 0) {
+      state = initializeState();
+    }
+
     const collection = state[entityName];
-    // TODO: consider creating a collection if none exists.
-    //       Worried now that later implementation would depend upon
-    //       missing collection metadata.
     if (!collection) {
       throw new Error(`No cached collection named "${entityName}")`);
     }
 
-    // Todo: intercept and redirect if there's a custom entityCollectionReducerFactory
-    const newCollection = entityCollectionReducerFactory(filterService)(collection, action);
+    const reducer = entityReducers[entityName];
+    if (!reducer) {
+      throw new Error(`No reducer for collection named "${entityName}")`)
+    }
+
+    const newCollection = reducer(collection, action);
 
     return collection === newCollection ? state : { ...state, ...{ [entityName]: newCollection } };
   };
 }
 
-export function entityCollectionReducerFactory<T>(filterService: EntityFilterService) {
+/** Create a reducer for a specific entity collection */
+export function createEntityCollectionReducer<T>(
+  entityName: string,
+  adapter: EntityAdapter<T>,
+  metadata: EntityMetadata<T>
+) {
+  /** Perform Actions against a particular entity collection in the EntityCache */
   return function entityCollectionReducer(
     collection: EntityCollection<T>,
     action: EntityAction<T, any>
   ): EntityCollection<T> {
     switch (action.op) {
-      case EntityOp.ADD_SUCCESS: {
-        // pessimistic add; add entity only upon success
+
+      // Only the QUERY_ALL and QUERY_MANY methods set loading: true
+      case EntityOp.QUERY_ALL:
+      case EntityOp.QUERY_MANY: {
+        return collection.loading ?
+           collection : { ...collection, loading: true };
+      }
+
+      case EntityOp.QUERY_ALL_SUCCESS: {
         return {
-          ...collection,
-          entities: [...collection.entities, { ...action.payload }]
+          ...adapter.addAll(action.payload, collection),
+          loading: false
         };
       }
 
-      case EntityOp.GET_ALL_SUCCESS: {
+      case EntityOp.QUERY_MANY_SUCCESS: {
         return {
-          ...collection,
-          entities: action.payload
+          ...adapter.addMany(action.payload, collection),
+          loading: false
         };
       }
 
-      case EntityOp._DELETE_BY_INDEX: {
-        // optimistic deletion
-        const ix: number = action.payload.index;
-        return ix == null || ix < 0
-          ? collection
-          : {
-              ...collection,
-              entities: collection.entities.slice(0, ix).concat(collection.entities.slice(ix + 1))
-            };
+      case EntityOp.QUERY_ALL_ERROR:
+      case EntityOp.QUERY_MANY_ERROR: {
+        return  collection.loading ?
+          { ...collection, loading: false } : collection;
       }
 
-      case EntityOp._DELETE_ERROR: {
-        // When delete-to-server fails
-        // restore deleted entity to list (if it was known to be in the list)
-        const payload = action.payload.originalAction.payload;
-        const ix: number = payload.index;
-        return ix == null || ix < 0 || !payload.entity
-          ? collection
-          : {
-              ...collection,
-              entities: collection.entities
-                .slice(0, ix)
-                .concat(payload.entity, collection.entities.slice(ix + 1))
-            };
+      // Do nothing on other save errors.
+      // The app should listen for those and do something.
+
+      case EntityOp.QUERY_BY_KEY_SUCCESS: {
+        const exists = !!collection.entities[metadata.selectId(action.payload)];
+        const result = exists ?
+          adapter.updateOne(action.payload, collection) :
+          adapter.addOne(action.payload, collection)
+        return result;
       }
 
-      case EntityOp.UPDATE_SUCCESS: {
-        // pessimistic update; update entity only upon success
-        return {
-          ...collection,
-          entities: collection.entities.map((entity: any) => {
-            return entity.id === action.payload.id
-              ? { ...entity, ...action.payload } // merge changes
-              : entity;
-          })
-        };
+      // pessimistic add; add entity only upon success
+      case EntityOp.SAVE_ADD_SUCCESS: {
+        return adapter.addOne(action.payload, collection);
       }
 
-      // Filter getting and setting is tricky because both the existing filter and
-      // incoming payload value could be either a string or an EntityFilter.
-      // The following two reducer actions accept all four possibilities.
-      // SET_FILTER upgrades the filter to an EntityFilter if the pattern is an EntityFilter.
+      // optimistic delete
+      case EntityOp.SAVE_DELETE: {
+        return adapter.removeOne(action.payload, collection);
+      }
 
-      case EntityOp.GET_FILTERED: {
-        let filteredEntities: T[];
-        const filter = collection.filter;
-        if (filter) {
-          const { name = '', pattern } = typeof filter === 'string' ? { pattern: filter } : filter;
-          const filterFn = filterService.getFilterFn<T>(name, action.entityName);
-          filteredEntities = filterFn(collection.entities, pattern);
-        } else {
-          filteredEntities = collection.entities;
-        }
-        return { ...collection, filteredEntities };
+      // pessimistic update; update entity only upon success
+      case EntityOp.SAVE_UPDATE_SUCCESS: {
+        return adapter.updateOne(action.payload, collection);
+      }
+
+      // Cache-only operations
+
+      case EntityOp.ADD_ALL: {
+        return adapter.addAll(action.payload, collection)
+      }
+
+      case EntityOp.ADD_MANY: {
+        return adapter.addMany(action.payload, collection)
+      }
+
+      case EntityOp.ADD_ONE: {
+        return adapter.addOne(action.payload, collection)
+      }
+
+      case EntityOp.REMOVE_ALL: {
+        return adapter.removeAll(collection)
+      }
+
+      case EntityOp.REMOVE_MANY: {
+        return adapter.removeMany(action.payload, collection)
+      }
+
+      case EntityOp.REMOVE_ONE: {
+        return adapter.removeOne(action.payload, collection)
+      }
+
+      case EntityOp.UPDATE_MANY: {
+        return adapter.updateMany(action.payload, collection)
+      }
+
+      case EntityOp.UPDATE_ONE: {
+        return adapter.updateOne(action.payload, collection)
       }
 
       case EntityOp.SET_FILTER: {
-        const filter = { ...collection.filter, ...action.payload };
-        return { ...collection, filter };
-      }
-
-      case EntityOp.SET_FILTER_PATTERN: {
-        const filter = { ...collection.filter, pattern: action.payload };
-        return { ...collection, filter };
-      }
-
-      case EntityOp.SET_LOADING: {
-        return { ...collection, loading: action.payload };
+        return { ...collection, filter: action.payload };
       }
 
       default: {

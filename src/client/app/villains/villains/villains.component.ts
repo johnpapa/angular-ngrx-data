@@ -19,8 +19,8 @@ import { pipe } from 'rxjs/util/pipe';
 
 @Component({
   selector: 'app-villain-search',
-  templateUrl: './villain-search.component.html',
-  styleUrls: ['./villain-search.component.scss'],
+  templateUrl: './villains.component.html',
+  styleUrls: ['./villains.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VillainSearchComponent implements OnDestroy, OnInit {

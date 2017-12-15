@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
-import { HeroSearchComponent } from './hero-search/hero-search.component';
+import { HeroSearchComponent } from './heroes/heroes.component';
 
 const routes: Routes = [{ path: '', pathMatch: 'full', component: HeroSearchComponent }];
 

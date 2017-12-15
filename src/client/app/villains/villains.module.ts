@@ -6,7 +6,7 @@ import { VillainsRoutingModule } from './villains-routing.module';
 import { VillainListComponent } from './villain-list/villain-list.component';
 import { VillainDetailComponent } from './villain-detail/villain-detail.component';
 import { SharedModule } from '../shared/shared.module';
-import { VillainSearchComponent } from './villain-search/villain-search.component';
+import { VillainSearchComponent } from './villains/villains.component';
 
 @NgModule({
   imports: [CommonModule, ReactiveFormsModule, VillainsRoutingModule, SharedModule],

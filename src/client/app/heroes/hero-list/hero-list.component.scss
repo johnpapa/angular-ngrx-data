@@ -6,7 +6,7 @@
   padding: 0;
   width: 25em;
   .selected,
-  .selected > .hero-text {
+  .selected > .hero-text * {
     background-color: rgb(0, 120, 215) !important;
     color: white;
   }

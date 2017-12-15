@@ -119,3 +119,12 @@
     padding: 24px;
   }
 }
+
+@mixin editarea-margins {
+  button {
+    margin: 0.5em 1em;
+  }
+  .editfields {
+    margin: 1em;
+  }
+}

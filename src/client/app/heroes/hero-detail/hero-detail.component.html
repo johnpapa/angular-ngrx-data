@@ -1,30 +1,28 @@
-<div class="editarea">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Hero Details</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <form [formGroup]="form">
-        <div class="editfields">
-          <div [hidden]="addMode">
-            <mat-form-field>
-              <input matInput formControlName="id" placeholder="id" #id readonly>
-            </mat-form-field>
-          </div>
-          <div>
-            <mat-form-field>
-              <input matInput formControlName="name" placeholder="name" #name>
-            </mat-form-field>
-          </div>
-          <div>
-            <mat-form-field>
-              <textarea matInput formControlName="saying" placeholder="saying" #name (keyup.enter)="saveHero(form)"></textarea>
-            </mat-form-field>
-          </div>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Hero Details</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <form [formGroup]="form">
+      <div class="editfields">
+        <div [hidden]="addMode">
+          <mat-form-field>
+            <input matInput formControlName="id" placeholder="id" #id readonly>
+          </mat-form-field>
         </div>
-        <button mat-raised-button color="accent" type="button" (click)="clear()" matTooltip="Cancel all changes">Cancel</button>
-        <button mat-raised-button color="primary" type="button" (click)="saveHero(form)" matTooltip="Save all changes">Save</button>
-      </form>
-    </mat-card-content>
-  </mat-card>
-</div>
+        <div>
+          <mat-form-field>
+            <input matInput formControlName="name" placeholder="name" #name>
+          </mat-form-field>
+        </div>
+        <div>
+          <mat-form-field>
+            <textarea matInput formControlName="saying" placeholder="saying" #name (keyup.enter)="saveHero(form)"></textarea>
+          </mat-form-field>
+        </div>
+      </div>
+      <button mat-raised-button color="accent" type="button" (click)="clear()" matTooltip="Cancel all changes">Cancel</button>
+      <button mat-raised-button color="primary" type="button" (click)="saveHero(form)" matTooltip="Save all changes">Save</button>
+    </form>
+  </mat-card-content>
+</mat-card>

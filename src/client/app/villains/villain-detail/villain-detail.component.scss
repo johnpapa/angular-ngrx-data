@@ -1,27 +1,6 @@
-.editarea {
-  input {
-    margin: 4px;
-    height: 20px;
-    color: rgb(0, 120, 215);
-  }
-  button {
-    margin: 8px;
-  }
-  .editfields {
-    margin-left: 12px;
-  }
-}
+@import '../../../styles/mixin';
 
 .mat-card {
-  width: 366px;
-  margin: 1em;
-  padding: 0px;
-}
-.mat-card-header {
-  background-color: #85b7de;
-  padding: 18px 12px 6px 24px;
-  color: #ffffff;
-}
-.mat-card-content {
-  padding: 24px;
+  @include mat-card-layout;
+  @include editarea-margins;
 }

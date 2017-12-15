@@ -17,7 +17,7 @@ import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/o
 import { Hero, ToastService } from '../../core';
 
 @Component({
-  selector: 'app-hero-search',
+  selector: 'app-heroes',
   templateUrl: './heroes.component.html',
   styleUrls: ['./heroes.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush

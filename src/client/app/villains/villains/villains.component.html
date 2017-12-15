@@ -1,9 +1,11 @@
 <div class="control-panel">
   <div class="button-panel">
     <button mat-raised-button color="primary" type="button" (click)="getVillains()" matTooltip="Refresh the villains">Refresh</button>
-    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain" matTooltip="Add a new villain">Add</button>
+    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain"
+      matTooltip="Add a new villain">Add</button>
   </div>
-  <app-filter [filterPattern]="filterPattern" (onFilterChange)="setFilter($event)" class="filter-panel"></app-filter>
+  <app-filter [filterPattern]="filterPattern" filterPlaceholder="Filter by each villain's name and saying" (onFilterChange)="setFilter($event)"
+    class="filter-panel"></app-filter>
 </div>
 <div class="content-container">
   <div class="list-container">

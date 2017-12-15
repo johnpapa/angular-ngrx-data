@@ -41,7 +41,7 @@
     display: flex;
     flex-flow: row wrap;
     flex: 18 auto;
-    order: 1;
+    order: 0;
     padding: 0;
     margin: 0;
     &:hover {
@@ -73,6 +73,7 @@
   button.delete-button {
     margin-right: 12px;
     margin-top: 6px;
+    order: 1;
   }
 }
 

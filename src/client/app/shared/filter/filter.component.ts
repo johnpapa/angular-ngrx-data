@@ -21,6 +21,7 @@ import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/o
 export class FilterComponent implements OnDestroy, OnChanges, OnInit {
   filter: FormControl = new FormControl();
   @Input() filterPattern: string;
+  @Input() filterPlaceholder: string;
   @Output() onFilterChange = new EventEmitter<string>();
 
   private onDestroy = new Subject();

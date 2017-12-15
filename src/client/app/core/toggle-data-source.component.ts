@@ -6,7 +6,8 @@ import { AppDispatchers } from '../store/app-config';
 @Component({
   selector: 'app-toggle-data-source',
   template: `
-  <mat-slide-toggle [checked]="isRemote" (change)="toggleDataSource($event.checked)">Remote Data</mat-slide-toggle>
+  <mat-slide-toggle [checked]="isRemote" (change)="toggleDataSource($event.checked)"
+    matTooltip="Toggle between in-memory or remote data">Remote Data</mat-slide-toggle>
   `
 })
 export class ToggleDataSourceComponent {

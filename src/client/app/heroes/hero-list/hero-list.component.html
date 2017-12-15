@@ -4,8 +4,9 @@
   </mat-card-header>
   <mat-card-content>
     <ul class="heroes">
-      <li *ngFor="let hero of heroes" class="hero-container">
-        <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteHero(hero)">
+      <li *ngFor="let hero of heroes" class="hero-container" matTooltip="Select {{hero.name}}">
+        <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteHero(hero)"
+          matTooltip="Delete the hero">
           <mat-icon>delete</mat-icon>
         </button>
         <div class="hero-element" [class.selected]="hero === selectedHero">

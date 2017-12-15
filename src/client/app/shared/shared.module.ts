@@ -7,6 +7,7 @@ import {
   MatProgressSpinnerModule,
   MatSlideToggleModule,
   MatSnackBarModule,
+  MatTooltipModule,
   MatToolbarModule,
   MatInputModule
 } from '@angular/material';
@@ -25,6 +26,7 @@ import { FilterComponent } from './filter/filter.component';
     MatSlideToggleModule,
     MatSnackBarModule,
     MatToolbarModule,
+    MatTooltipModule,
     ReactiveFormsModule
   ],
   exports: [
@@ -37,6 +39,7 @@ import { FilterComponent } from './filter/filter.component';
     MatSlideToggleModule,
     MatSnackBarModule,
     MatToolbarModule,
+    MatTooltipModule,
     ReactiveFormsModule
   ],
   declarations: [FilterComponent]

@@ -1,7 +1,7 @@
 <div class="control-panel">
   <div class="button-panel">
-    <button mat-raised-button color="primary" type="button" (click)="getHeroes()">Refresh</button>
-    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero">Add</button>
+    <button mat-raised-button color="primary" type="button" (click)="getHeroes()" matTooltip="Refresh the heroes">Refresh</button>
+    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero" matTooltip="Add a new hero">Add</button>
   </div>
   <app-filter [filterPattern]="filterPattern" (onFilterChange)="setFilter($event)" class="filter-panel"></app-filter>
 </div>

@@ -126,6 +126,9 @@
   }
   .editfields {
     margin: 1em;
+    .mat-form-field {
+      width: 100%;
+    }
   }
 }
 

@@ -10,8 +10,7 @@ import { AppDispatchers } from '../store/app-config';
   `
 })
 export class ToggleDataSourceComponent {
-  @HostBinding('title')
-  nextDataSource: string;
+  @HostBinding('title') nextDataSource: string;
 
   isRemote: boolean;
 
@@ -20,14 +19,14 @@ export class ToggleDataSourceComponent {
     private appDispatchers: AppDispatchers
   ) {
     this.isRemote = !inMemService;
-    this.nextDataSource = `Getting data from local data source.`
+    this.nextDataSource = `Getting data from local data source.`;
   }
 
   toggleDataSource(isRemote: boolean) {
     this.isRemote = isRemote;
     this.inMemService.active = !isRemote;
     const location = isRemote ? 'remote' : 'local';
-    this.nextDataSource = `Getting data from ${location} data source.`
+    this.nextDataSource = `Getting data from ${location} data source.`;
     this.appDispatchers.toggleDataSource(location);
   }
 }

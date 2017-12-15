@@ -128,3 +128,41 @@
     margin: 1em;
   }
 }
+
+@mixin control-panel-layout {
+  margin: 8px;
+  margin-left: 1em;
+  display: flex;
+  flex-flow: column wrap;
+  > * {
+    flex: 1 100%;
+  }
+  .button-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 1;
+  }
+  .filter-panel {
+    flex: 1 auto;
+    margin: 8px 0px;
+    order: 2;
+  }
+}
+
+@mixin content-container-layout {
+  display: flex;
+  flex-flow: row wrap;
+  > * {
+    flex: 1 100%;
+  }
+  .list-container {
+    flex: 1 auto;
+    order: 1;
+    max-width: 30em;
+  }
+  .detail-container {
+    flex: 1 auto;
+    order: 2;
+    max-width: 22em;
+  }
+}

@@ -1,14 +1,21 @@
-<ul class="villains">
-    <li *ngFor="let villain of villains" class="villain-container">
-      <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteVillain(villain)">
-        <mat-icon>delete</mat-icon>
-      </button>
-      <div class="villain-element" [class.selected]="villain === selectedVillain">
-        <div class="badge">{{villain.id}}</div>
-        <div class="villain-text" (click)="onSelect(villain)">
-          <div class="name">{{villain.name}}</div>
-          <div class="saying">{{villain.saying}}</div>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Villains</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <ul class="villains">
+      <li *ngFor="let villain of villains" class="villain-container">
+        <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteVillain(villain)">
+          <mat-icon>delete</mat-icon>
+        </button>
+        <div class="villain-element" [class.selected]="villain === selectedVillain">
+          <div class="badge">{{villain.id}}</div>
+          <div class="villain-text" (click)="onSelect(villain)">
+            <div class="name">{{villain.name}}</div>
+            <div class="saying">{{villain.saying}}</div>
+          </div>
         </div>
-      </div>
-    </li>
-  </ul>
+      </li>
+    </ul>
+  </mat-card-content>
+</mat-card>

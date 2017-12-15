@@ -1,14 +1,21 @@
-<ul class="heroes">
-  <li *ngFor="let hero of heroes" class="hero-container">
-    <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteHero(hero)">
-      <mat-icon>delete</mat-icon>
-    </button>
-    <div class="hero-element" [class.selected]="hero === selectedHero">
-      <div class="badge">{{hero.id}}</div>
-      <div class="hero-text" (click)="onSelect(hero)">
-        <div class="name">{{hero.name}}</div>
-        <div class="saying">{{hero.saying}}</div>
-      </div>
-    </div>
-  </li>
-</ul>
+<mat-card>
+  <mat-card-header>
+    <mat-card-title>Heroes</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <ul class="heroes">
+      <li *ngFor="let hero of heroes" class="hero-container">
+        <button mat-button mat-suffix mat-icon-button color="accent" class="delete-button" aria-label="Delete" (click)="deleteHero(hero)">
+          <mat-icon>delete</mat-icon>
+        </button>
+        <div class="hero-element" [class.selected]="hero === selectedHero">
+          <div class="badge">{{hero.id}}</div>
+          <div class="hero-text" (click)="onSelect(hero)">
+            <div class="name">{{hero.name}}</div>
+            <div class="saying">{{hero.saying}}</div>
+          </div>
+        </div>
+      </li>
+    </ul>
+  </mat-card-content>
+</mat-card>

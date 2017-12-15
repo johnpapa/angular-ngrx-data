@@ -22,7 +22,6 @@
         </div>
       </div>
       <div class="detail-container">
-        <ng-template #elseTemplate>Loading ...</ng-template>
         <app-hero-detail *ngIf="selectedHero || addingHero" [hero]="selectedHero" (unselect)="unselect()" (add)="add($event)" (update)="update($event)">
         </app-hero-detail>
       </div>

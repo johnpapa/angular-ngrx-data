@@ -22,7 +22,6 @@
         </div>
       </div>
       <div class="detail-container">
-        <ng-template #elseTemplate>Loading ...</ng-template>
         <app-villain-detail *ngIf="selectedVillain || addingVillain" [villain]="selectedVillain" (unselect)="unselect()" (add)="add($event)"
           (update)="update($event)">
         </app-villain-detail>

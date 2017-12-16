@@ -2,7 +2,6 @@ import { Component, OnDestroy, OnInit, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { Subject } from 'rxjs/Subject';
-import { of } from 'rxjs/observable/of';
 import { debounceTime, distinctUntilChanged, takeUntil, take, tap } from 'rxjs/operators';
 
 import { EntityDispatcherService, EntitySelectorsService } from '../../../ngrx-data';

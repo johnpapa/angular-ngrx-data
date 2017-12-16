@@ -1,52 +1,50 @@
-import {
-  Component,
-  OnDestroy,
-  OnInit,
-  EventEmitter,
-  Input,
-  Output,
-  OnChanges
-} from '@angular/core';
+import { Component, OnDestroy, OnInit, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { pipe } from 'rxjs/util/pipe';
 import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
+import { of } from 'rxjs/observable/of';
+import { debounceTime, distinctUntilChanged, takeUntil, take, tap } from 'rxjs/operators';
+
+import { EntityDispatcherService, EntitySelectorsService } from '../../../ngrx-data';
 
 @Component({
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss']
 })
-export class FilterComponent implements OnDestroy, OnChanges, OnInit {
-  filter: FormControl = new FormControl();
-  @Input() filterPattern: string;
+export class FilterComponent implements OnDestroy, OnInit {
+
+  @Input() entityType: string;
   @Input() filterPlaceholder: string;
-  @Output() onFilterChange = new EventEmitter<string>();
+
+  filter: FormControl = new FormControl();
+  updateFilter: (pattern: any) => void;
 
   private onDestroy = new Subject();
-  private filterLogic = pipe(
-    takeUntil(this.onDestroy),
-    // tap(value => this.filter.setValue(value)),
-    debounceTime(300),
-    distinctUntilChanged()
-  );
+
+  constructor(
+    private dispatcherService: EntityDispatcherService,
+    private selectorsService: EntitySelectorsService
+  ) {}
 
   ngOnInit() {
-    this.filter.valueChanges
-      .pipe(this.filterLogic)
-      .subscribe((pattern: string) => this.setFilter(pattern));
-  }
+    // Set the filter to the current value from store or ''
+    const ss = this. selectorsService.getSelectors$(this.entityType);
+    ss.selectFilter$.pipe(take(1),
+      // always completes so no need to unsubscribe
+    ).subscribe(value => this.filter.setValue(value));
 
-  ngOnChanges() {
-    this.filter.setValue(this.filterPattern);
+    const ds = this. dispatcherService.getDispatcher(this.entityType);
+    this.updateFilter = ds.setFilter.bind(ds);
+    this.filter.valueChanges.pipe(
+      takeUntil(this.onDestroy),
+      debounceTime(300),
+      distinctUntilChanged()
+    )
+    .subscribe(pattern => this.updateFilter(pattern));
   }
 
   ngOnDestroy() {
     this.onDestroy.next(true);
-  }
-
-  private setFilter(pattern: string) {
-    this.onFilterChange.emit(pattern);
   }
 }

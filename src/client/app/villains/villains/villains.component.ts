@@ -29,9 +29,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   filteredVillains$: Observable<Villain[]>;
   villains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
-  filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
-  filterPattern: string;
 
   private onDestroy = new Subject();
   private villainDispatcher: EntityDispatcher<Villain>;
@@ -51,15 +49,10 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
     this.filteredVillains$ = this.villainSelector.selectFilteredEntities$;
     this.villains$ = this.villainSelector.selectAll$;
     this.loading$ = this.villainSelector.selectLoading$;
-    this.filter$ = this.villainSelector.selectFilter$;
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe((value: string) => this.getVillains());
-
-    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => {
-      this.filterPattern = value;
-    });
 
     this.villains$
       .pipe(takeUntil(this.onDestroy), skip(1))
@@ -68,11 +61,6 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
   ngOnDestroy() {
     this.onDestroy.next();
-  }
-
-  setFilter(pattern: string) {
-    this.villainDispatcher.setFilter(pattern);
-    this.clear();
   }
 
   clear() {

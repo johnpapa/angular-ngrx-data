@@ -2,7 +2,7 @@
   <mat-form-field>
     <input matInput [formControl]="filter"[placeholder]="filterPlaceholder">
   </mat-form-field>
-  <button mat-button *ngIf="filter.value" matSuffix mat-icon-button class="clear-button" aria-label="Clear" (click)="setFilter('')"
+  <button mat-button *ngIf="filter.value" matSuffix mat-icon-button class="clear-button" aria-label="Clear" (click)="updateFilter('')"
     matTooltip="Clear filter">
     <mat-icon>close</mat-icon>
   </button>

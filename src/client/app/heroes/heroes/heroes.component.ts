@@ -28,9 +28,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   filteredHeroes$: Observable<Hero[]>;
   heroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
-  filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
-  filterPattern: string;
 
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
@@ -50,13 +48,10 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
     this.filteredHeroes$ = this.heroSelectors.selectFilteredEntities$;
     this.heroes$ = this.heroSelectors.selectAll$;
     this.loading$ = this.heroSelectors.selectLoading$;
-    this.filter$ = this.heroSelectors.selectFilter$;
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
-
-    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => (this.filterPattern = value));
 
     this.heroes$
       .pipe(takeUntil(this.onDestroy), skip(1))
@@ -65,11 +60,6 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
 
   ngOnDestroy() {
     this.onDestroy.next();
-  }
-
-  setFilter(pattern: string) {
-    this.heroDispatcher.setFilter(pattern);
-    this.clear();
   }
 
   clear() {

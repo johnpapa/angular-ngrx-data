@@ -16,19 +16,13 @@ export interface EntityCollectionReducers {
 }
 
 /** Create the reducer for the EntityCache */
-export function createEntityReducer(
-  entityDefinitionService: EntityDefinitionService) {
+export function createEntityReducer(entityDefinitionService: EntityDefinitionService) {
 
-  let entityReducers:  EntityCollectionReducers = {};
-
-  function initializeState() {
-    entityReducers = entityDefinitionService.getAllEntityReducers();
-    return entityDefinitionService.getAllInitialStates();
-  }
+  const entityReducers:  EntityCollectionReducers = {};
 
   /** Perform Actions against the entity collections in the EntityCache */
   return function entityReducer(
-    state: EntityCache,
+    state: EntityCache = { },
     action: EntityAction<any, any>
   ): EntityCache {
 
@@ -37,18 +31,18 @@ export function createEntityReducer(
       return state; // not an EntityAction
     }
 
-    if (!state || Object.keys(state).length === 0) {
-      state = initializeState();
-    }
-
-    const collection = state[entityName];
-    if (!collection) {
-      throw new Error(`No cached collection named "${entityName}")`);
-    }
-
-    const reducer = entityReducers[entityName];
-    if (!reducer) {
-      throw new Error(`No reducer for collection named "${entityName}")`)
+    let collection = state[entityName];
+    let reducer: EntityCollectionReducer<any>;
+    if (collection) {
+      reducer = entityReducers[entityName]
+    } else {
+      // Collection not in cache; create it from entity defs
+      const def = entityDefinitionService.definitions[entityName];
+      if (!def) {
+        throw new Error(`The entity "${entityName}" type is not defined.`);
+      }
+      state = { ...state, [entityName]: collection = def.initialState };
+      entityReducers[entityName] = reducer = def.reducer;
     }
 
     const newCollection = reducer(collection, action);
@@ -147,7 +141,10 @@ export function createEntityCollectionReducer<T>(
       }
 
       case EntityOp.REMOVE_ALL: {
-        return adapter.removeAll(collection)
+        return {
+          ...adapter.removeAll(collection),
+          loading: false
+        };
       }
 
       case EntityOp.REMOVE_MANY: {

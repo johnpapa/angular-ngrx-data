@@ -102,7 +102,7 @@ export function createEntitySelectors<T>(
 
   const selectFilteredEntities = filterFn ?
     createSelector( selectAll, selectFilter,
-      (entities: T[], filter: string): any => filterFn(entities, filter)
+      (entities: T[], pattern: any): T[] => filterFn(entities, pattern)
     ) : selectAll;
 
   const selectLoading = (c: EntityCollection<T>) => c.loading;

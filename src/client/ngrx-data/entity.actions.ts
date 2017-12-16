@@ -38,7 +38,7 @@ export enum EntityOp {
   UPDATE_MANY = 'UPDATE_MANY',
   UPDATE_ONE = 'UPDATE_ONE',
 
-  SET_FILTER = 'SET_FILTER',
+  SET_FILTER = 'SET_FILTER'
 }
 
 export class EntityAction<T extends Object, P> implements Action {

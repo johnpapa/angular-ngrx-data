@@ -15,7 +15,7 @@ const entityDataServiceConfig: EntityDataServiceConfig = {
     NgrxDataModule.forRoot({
       entityDataServiceConfig,
       entityMetadata: entityMetadata,
-      pluralNames: pluralNames,
+      pluralNames: pluralNames
     })
   ]
 })

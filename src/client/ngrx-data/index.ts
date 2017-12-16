@@ -5,7 +5,7 @@ export * from './entity-dispatcher';
 export * from './entity-dispatcher.service';
 export * from './entity-definition';
 export * from './entity-definition.service';
-export * from './entity.effects'
+export * from './entity.effects';
 export * from './entity-filters';
 export * from './entity-metadata';
 export * from './entity.reducer';

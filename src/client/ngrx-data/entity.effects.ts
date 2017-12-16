@@ -66,10 +66,7 @@ export class EntityEffects {
     }
   }
 
-  constructor(
-    private actions$: Actions,
-    private dataService: EntityDataService
-  ) {}
+  constructor(private actions$: Actions, private dataService: EntityDataService) {}
 }
 
 function handleSuccess(action: eaType) {

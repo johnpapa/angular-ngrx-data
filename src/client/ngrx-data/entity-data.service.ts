@@ -3,8 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { EntityAction } from './entity.actions';
 
-import { EntityClass, EntityCollectionDataService, getEntityName
-} from './interfaces';
+import { EntityClass, EntityCollectionDataService, getEntityName } from './interfaces';
 
 @Injectable()
 export class EntityDataServiceConfig {

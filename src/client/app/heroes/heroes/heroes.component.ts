@@ -56,11 +56,11 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => this.filterPattern = value);
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => (this.filterPattern = value));
 
     this.heroes$
-      .pipe(takeUntil(this.onDestroy), skip(1)).subscribe(
-        heroes => this.toast.openSnackBar('Fetched Heroes', 'GET'));
+      .pipe(takeUntil(this.onDestroy), skip(1))
+      .subscribe(heroes => this.toast.openSnackBar('Fetched Heroes', 'GET'));
   }
 
   ngOnDestroy() {

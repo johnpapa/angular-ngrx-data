@@ -7,16 +7,17 @@ import { EntitySelectors$ } from './entity.selectors';
 
 @Injectable()
 export class EntitySelectorsService {
-
   private readonly selectorSets: { [name: string]: EntitySelectors$<any> };
 
   constructor(
     entityDefinitionService: EntityDefinitionService,
-    @Optional() @Inject(ENTITY_CACHE_NAME) public cacheName: string,
+    @Optional()
+    @Inject(ENTITY_CACHE_NAME)
+    public cacheName: string,
     private store: Store<EntityCache>
   ) {
     this.cacheName = this.cacheName || 'entityCache';
-    this.selectorSets = entityDefinitionService.getAllEntitySelectors$(store, this.cacheName)
+    this.selectorSets = entityDefinitionService.getAllEntitySelectors$(store, this.cacheName);
   }
 
   /**
@@ -34,7 +35,7 @@ export class EntitySelectorsService {
     const entityName = getEntityName(entityClass);
     const selectors$: EntitySelectors$<T> = this.selectorSets[entityName];
     if (!selectors$) {
-      throw new Error(`Cannot find entity selectors$ for "${entityName}".`)
+      throw new Error(`Cannot find entity selectors$ for "${entityName}".`);
     }
     return selectors$;
   }

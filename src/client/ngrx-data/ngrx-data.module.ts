@@ -23,15 +23,15 @@ export function getEntityReducer(service: EntityDefinitionService) {
 }
 
 export interface NgrxDataModuleConfig {
-  entityDataServiceConfig?: EntityDataServiceConfig
-  entityMetadata?: EntityMetadataMap,
-  pluralNames?: { [name: string]: string },
+  entityDataServiceConfig?: EntityDataServiceConfig;
+  entityMetadata?: EntityMetadataMap;
+  pluralNames?: { [name: string]: string };
 }
 
 @NgModule({
   imports: [
     StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN),
-    EffectsModule.forFeature(entityEffects),
+    EffectsModule.forFeature(entityEffects)
   ],
   providers: [
     EntityDataService,
@@ -39,12 +39,13 @@ export interface NgrxDataModuleConfig {
     EntityDefinitionService,
     EntityDispatcherService,
     EntitySelectorsService,
-    { provide: ENTITY_REDUCER_TOKEN,
+    {
+      provide: ENTITY_REDUCER_TOKEN,
       deps: [EntityDefinitionService],
-      useFactory: getEntityReducer },
+      useFactory: getEntityReducer
+    },
 
-    { provide: Pluralizer, useClass: _Pluralizer },
-
+    { provide: Pluralizer, useClass: _Pluralizer }
   ]
 })
 export class NgrxDataModule {
@@ -54,8 +55,8 @@ export class NgrxDataModule {
       providers: [
         { provide: EntityDataServiceConfig, useValue: config.entityDataServiceConfig },
         { provide: ENTITY_METADATA, multi: true, useValue: config.entityMetadata },
-        { provide: PLURALIZER_NAMES, useValue: config.pluralNames },
+        { provide: PLURALIZER_NAMES, useValue: config.pluralNames }
       ]
-    }
+    };
   }
 }

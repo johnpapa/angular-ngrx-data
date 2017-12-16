@@ -2,22 +2,27 @@ import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
 import { Store, createFeatureSelector, Selector } from '@ngrx/store';
 
-import { EntityMetadata, EntityMetadataMap } from './entity-metadata'
-import { createEntityDefinition, EntityDefinition, EntityDefinitions } from './entity-definition'
+import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
+import { createEntityDefinition, EntityDefinition, EntityDefinitions } from './entity-definition';
 import { EntityCache, EntityClass, getEntityName } from './interfaces';
 import { createEntityReducer, EntityCollectionReducers } from './entity.reducer';
-import { createEntitySelectors$Factory, EntitySelectors, EntitySelectors$ } from './entity.selectors';
+import {
+  createEntitySelectors$Factory,
+  EntitySelectors,
+  EntitySelectors$
+} from './entity.selectors';
 
-export const ENTITY_METADATA = new InjectionToken<EntityMetadataMap>('ENTITY_METADATA')
+export const ENTITY_METADATA = new InjectionToken<EntityMetadataMap>('ENTITY_METADATA');
 
 @Injectable()
 export class EntityDefinitionService {
-
   /** {EntityDefinitions} for all cached entity types */
   readonly definitions: EntityDefinitions = {};
 
   constructor(
-    @Optional() @Inject(ENTITY_METADATA) entityMetadataMaps: EntityMetadataMap[]
+    @Optional()
+    @Inject(ENTITY_METADATA)
+    entityMetadataMaps: EntityMetadataMap[]
   ) {
     if (entityMetadataMaps) {
       entityMetadataMaps.forEach(map => this.registerMetadataMap(map));
@@ -50,34 +55,33 @@ export class EntityDefinitionService {
   getAllEntityReducers() {
     const definitions = this.definitions;
     const reducers: EntityCollectionReducers = {};
-    Object.keys(definitions).forEach(name =>
-      reducers[name] = definitions[name].reducer);
+    Object.keys(definitions).forEach(name => (reducers[name] = definitions[name].reducer));
     return reducers;
   }
 
   getAllEntitySelectors() {
     const definitions = this.definitions;
     const selectors: { [name: string]: EntitySelectors<any> } = {};
-    Object.keys(definitions).forEach(name =>
-      selectors[name] = definitions[name].selectors);
+    Object.keys(definitions).forEach(name => (selectors[name] = definitions[name].selectors));
     return selectors;
   }
 
   getAllEntitySelectors$(store: Store<EntityCache>, cacheName = 'entityCache') {
     const definitions = this.definitions;
     const selectors$: { [name: string]: EntitySelectors$<any> } = {};
-    const cacheSelector = createFeatureSelector<EntityCache>(cacheName)
-    Object.keys(definitions).forEach(name =>
-      selectors$[name] = definitions[name].selectors$Factory(store, cacheSelector)
+    const cacheSelector = createFeatureSelector<EntityCache>(cacheName);
+    Object.keys(definitions).forEach(
+      name => (selectors$[name] = definitions[name].selectors$Factory(store, cacheSelector))
     );
     return selectors$;
   }
 
   getAllInitialStates() {
     const definitions = this.definitions;
-    const initialStates: {[entityName: string]: any} = {};
-    Object.keys(definitions).forEach(name =>
-      initialStates[name] = definitions[name].initialState);
+    const initialStates: { [entityName: string]: any } = {};
+    Object.keys(definitions).forEach(
+      name => (initialStates[name] = definitions[name].initialState)
+    );
     return initialStates;
   }
 
@@ -93,11 +97,9 @@ export class EntityDefinitionService {
    *   registerMetadata(Hero, myHeroEntityDefinition); // typed, Hero is a class
    *   registerMetadata<Hero>('Hero', myHeroEntityDefinition); // typed, Hero is an interface
    */
-  registerMetadata<T>(
-    entityType: EntityClass<T> | string,
-    metadata: EntityMetadata<T>) {
+  registerMetadata<T>(entityType: EntityClass<T> | string, metadata: EntityMetadata<T>) {
     if (metadata) {
-      const definition = createEntityDefinition(entityType, metadata)
+      const definition = createEntityDefinition(entityType, metadata);
       this.registerDefinition(definition);
     }
   }
@@ -113,8 +115,7 @@ export class EntityDefinitionService {
    *   });
    */
   registerMetadataMap(metadataMap: EntityMetadataMap = {}) {
-    Object.keys(metadataMap).forEach(name =>
-      this.registerMetadata(name, metadataMap[name]))
+    Object.keys(metadataMap).forEach(name => this.registerMetadata(name, metadataMap[name]));
   }
 
   /**

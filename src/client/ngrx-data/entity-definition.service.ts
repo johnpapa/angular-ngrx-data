@@ -31,7 +31,7 @@ export class EntityDefinitionService {
 
   /**
    * Get (or create) a data service for entity type
-   * @param entityClass - the name of the class or the class itself
+   * @param entityClass - the name of the type or the class itself
    *
    * Examples:
    *   getDefinition('Hero'); // definition for Heroes, untyped

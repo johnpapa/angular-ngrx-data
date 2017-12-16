@@ -11,7 +11,7 @@ export class EntityDispatcherService {
 
   /**
    * Get (or create) a dispatcher for entity type
-   * @param entityClass - the class or the name of the class
+   * @param entityClass - the class or the name of the type
    *
    * Examples:
    *   getDispatcher('Hero'); // dispatcher for Heroes, untyped

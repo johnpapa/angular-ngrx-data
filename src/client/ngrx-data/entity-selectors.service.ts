@@ -20,13 +20,15 @@ export class EntitySelectorsService {
   }
 
   /**
-   * Get (or create) a dispatcher for entity type
-   * @param entityClass - the class or the name of the class
+   * Get the selector$ for a particular entity type.
+   * The selectors$ are the cached collection Observables that
+   * consumers (e.g., components) subscribe to.
+   * @param entityClass - the class or the name of the type
    *
    * Examples:
-   *   getDispatcher('Hero'); // dispatcher for Heroes, untyped
-   *   getDispatcher(Hero);  // dispatcher for Heroes, typed with Hero class
-   *   getDispatcher<Hero>('Hero'); // dispatcher for Heroes, typed with Hero interface
+   *   getSelectors$('Hero'); // selectors$ for Heroes, untyped
+   *   getSelectors$(Hero);  // selectors$ for Heroes, typed with Hero class
+   *   getSelectors$<Hero>('Hero'); // selectors$ for Heroes, typed with Hero interface
    */
   getSelectors$<T>(entityClass: EntityClass<T> | string): EntitySelectors$<T> {
     const entityName = getEntityName(entityClass);

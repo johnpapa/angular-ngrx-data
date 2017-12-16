@@ -40,7 +40,7 @@ export class EntityDataService {
 
   /**
    * Get (or create) a data service for entity type
-   * @param entityClass - the name of the class or the class itself
+   * @param entityClass - the name of the type or the class itself
    *
    * Examples:
    *   getService(Hero);   // data service for Heroes, typed as Hero
@@ -64,9 +64,9 @@ export class EntityDataService {
   }
 
   /**
-   * Register an EntityCollectionDataService for an entity class
-   * @param entityClass - the name of the entity class or the class itself
-   * @param service - data service for that entity class
+   * Register an EntityCollectionDataService for an entity type
+   * @param entityClass - the name of the entity type or the class itself
+   * @param service - data service for that entity type
    *
    * Examples:
    *   registerService(Hero, MyHeroDataService);

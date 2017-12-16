@@ -27,7 +27,7 @@ export interface EntityCache {
 
 /**
  * Get name of the entity type (e.g. "Hero")
- * @param entityClass - the name of the entity class or the class itself
+ * @param entityClass - the name of the entity type or the class itself
  */
 export function getEntityName<T>(entityClass: string | EntityClass<T>) {
   return (typeof entityClass === 'string' ? entityClass : entityClass.name).trim();

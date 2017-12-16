@@ -8,6 +8,11 @@ import { EntityCache, EntityClass, getEntityName } from './interfaces';
 import { EntityCollection } from './entity-definition';
 import { EntityFilterFn } from './entity-filters';
 
+ /**
+  * The selector functions for entity collection members.
+  * Most consumers will want the {EntitySelectors$} but
+  * some may need to build custom combination selectors from this set.
+  */
 export interface EntitySelectors<T> {
   selectKeys: Selector<EntityCollection<T>, string[] | number[]> ;
   selectEntities: Selector<EntityCollection<T>, Dictionary<T>> ;
@@ -20,6 +25,9 @@ export interface EntitySelectors<T> {
   [ selector: string ]: Selector<EntityCollection<T>, any>;
  }
 
+ /**
+  * The entity collection Observables that consumers (e.g., components) subscribe to.
+  */
  export interface EntitySelectors$<T> {
   selectKeys$: Observable<string[] | number[]> | Store<string[] | number[]>;
   selectEntities$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
@@ -32,6 +40,7 @@ export interface EntitySelectors<T> {
   [ selector: string ]: Observable<any> | Store<any>;
 }
 
+/** Creates the selector for the path from the EntityCache through the Collection */
 export function cachedCollectionSelector<T>(
   collectionName: string,
   cacheSelector: Selector<Object, EntityCache>) {

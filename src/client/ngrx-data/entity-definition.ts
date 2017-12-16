@@ -6,18 +6,6 @@ import { EntityClass, getEntityName } from './interfaces';
 import { EntityMetadata } from './entity-metadata'
 import { createEntitySelectors,  createEntitySelectors$Factory, EntitySelectors, EntitySelectors$Factory } from './entity.selectors'
 
-/////////////////
-// Copied from @ngrx/entity/models because that lib doesn't export them
-export type ComparerStr<T> = (a: T, b: T) => string;
-export type ComparerNum<T> = (a: T, b: T) => number;
-export type Comparer<T> = ComparerNum<T> | ComparerStr<T>;
-export type IdSelectorStr<T> = (model: T) => string;
-export type IdSelectorNum<T> = (model: T) => number;
-export type IdSelector<T> = IdSelectorStr<T> | IdSelectorNum<T>;
-export interface DictionaryNum<T> { [id: number]: T; }
-export abstract class Dictionary<T> implements DictionaryNum<T> { [id: string]: T; }
-//////////////////////
-
 export interface EntityCollection<T> extends EntityState<T> {
   filter: string;
   loading: boolean;
@@ -43,11 +31,11 @@ export function createEntityDefinition<T>(
   const entityName = getEntityName(entityClass) || metadata.entityName;
   if (!entityName) { throw new Error('Missing required entityName'); }
 
+  metadata.entityName =  metadata.entityName || entityName;
+  metadata.selectId = metadata.selectId || ((entity: any) => entity.id);
+
   // extract known essential properties driving entity definition.
-  const {
-    selectId = (entity: any) => entity.id,
-    sortComparer = false,
-  } = metadata;
+  const { selectId, sortComparer } = metadata;
   const entityAdapter = createEntityAdapter<T>({selectId, sortComparer});
 
   const initialState =  entityAdapter.getInitialState(

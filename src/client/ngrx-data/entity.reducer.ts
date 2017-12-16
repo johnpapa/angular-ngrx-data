@@ -1,5 +1,6 @@
 import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
+import { IdSelector, Update } from './ngrx-entity-models';
 
 import { EntityAction, EntityOp } from './entity.actions';
 import { EntityMetadata } from './entity-metadata';
@@ -63,13 +64,18 @@ export function createEntityCollectionReducer<T>(
   metadata: EntityMetadata<T>
 ) {
   /** Perform Actions against a particular entity collection in the EntityCache */
+
+  const selectId = metadata.selectId;
+  const toUpdate: (entity: T) => Update<T> =
+    (entity: T) => ({ id: selectId(entity) as string, changes: entity });
+
   return function entityCollectionReducer(
     collection: EntityCollection<T>,
     action: EntityAction<T, any>
   ): EntityCollection<T> {
     switch (action.op) {
 
-      // Only the QUERY_ALL and QUERY_MANY methods set loading: true
+      // Only the QUERY_ALL and QUERY_MANY methods set loading flag.
       case EntityOp.QUERY_ALL:
       case EntityOp.QUERY_MANY: {
         return collection.loading ?
@@ -114,12 +120,16 @@ export function createEntityCollectionReducer<T>(
 
       // optimistic delete
       case EntityOp.SAVE_DELETE: {
+        // payload assumed to be entity key
         return adapter.removeOne(action.payload, collection);
       }
 
       // pessimistic update; update entity only upon success
       case EntityOp.SAVE_UPDATE_SUCCESS: {
-        return adapter.updateOne(action.payload, collection);
+        // payload might be a partial of T but must at least have its key.
+        // pass the Update<T> structure to adapter.updateOne
+        const update: Update<T> = toUpdate(action.payload);
+        return adapter.updateOne(update, collection);
       }
 
       // Cache-only operations
@@ -141,19 +151,27 @@ export function createEntityCollectionReducer<T>(
       }
 
       case EntityOp.REMOVE_MANY: {
+        // payload must be entity keys
         return adapter.removeMany(action.payload, collection)
       }
 
       case EntityOp.REMOVE_ONE: {
+        // payload must be entity key
         return adapter.removeOne(action.payload, collection)
       }
 
       case EntityOp.UPDATE_MANY: {
-        return adapter.updateMany(action.payload, collection)
+        // payload could be partials of T but each must at least have its key.
+        // pass the Update<T> structure to adapter.updateMany
+        const update: Update<T>[] = (action.payload as T[]).map(entity => toUpdate(entity));
+        return adapter.updateMany(update, collection)
       }
 
       case EntityOp.UPDATE_ONE: {
-        return adapter.updateOne(action.payload, collection)
+        // payload could be a partial of T but must at least have its key.
+        // pass the Update<T> structure to adapter.updateOne
+        const update: Update<T> = toUpdate(action.payload);
+        return adapter.updateOne(update, collection)
       }
 
       case EntityOp.SET_FILTER: {

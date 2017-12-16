@@ -1,6 +1,6 @@
 import { EntityFilterFn } from './entity-filters';
 
-import { IdSelector, Comparer } from './entity-definition';
+import { IdSelector, Comparer } from './ngrx-entity-models';
 
 export interface EntityMetadataMap { [entity: string]: EntityMetadata<any> }
 

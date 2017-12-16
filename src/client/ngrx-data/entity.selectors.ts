@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
+import { Dictionary } from './ngrx-entity-models';
 
 import { Observable } from 'rxjs/Observable';
 
 import { EntityCache, EntityClass, getEntityName } from './interfaces';
-import { Dictionary, EntityCollection } from './entity-definition';
+import { EntityCollection } from './entity-definition';
 import { EntityFilterFn } from './entity-filters';
 
 export interface EntitySelectors<T> {

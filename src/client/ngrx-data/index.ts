@@ -12,6 +12,7 @@ export * from './entity.reducer';
 export * from './entity.selectors';
 export * from './entity-selectors.service';
 export * from './interfaces';
+// export * from './ngrx-entity-models'; // try not to export
 export * from './ngrx-data.module';
 
 export { Pluralizer, PLURALIZER_NAMES } from './pluralizer';

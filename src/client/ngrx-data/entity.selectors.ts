@@ -1,110 +1,123 @@
 import { Injectable } from '@angular/core';
 import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
+import { Dictionary } from './ngrx-entity-models';
 
 import { Observable } from 'rxjs/Observable';
-import { map } from 'rxjs/operators';
 
 import { EntityCache, EntityClass, getEntityName } from './interfaces';
-import { EntityFilter } from './entity-filter.service';
+import { EntityCollection } from './entity-definition';
+import { EntityFilterFn } from './entity-filters';
 
-type SelectorFn = <K>(prop: string) => Observable<K>;
+/**
+ * The selector functions for entity collection members.
+ * Most consumers will want the {EntitySelectors$} but
+ * some may need to build custom combination selectors from this set.
+ */
+export interface EntitySelectors<T> {
+  selectKeys: Selector<EntityCollection<T>, string[] | number[]>;
+  selectEntities: Selector<EntityCollection<T>, Dictionary<T>>;
+  selectAll: Selector<EntityCollection<T>, T[]>;
+  selectCount: Selector<EntityCollection<T>, number>;
+  selectFilter: Selector<EntityCollection<T>, string>;
+  selectFilteredEntities: Selector<EntityCollection<T>, T[]>;
+  selectLoading: Selector<EntityCollection<T>, boolean>;
 
-@Injectable()
-export class EntitySelectors {
-  entityCache = createFeatureSelector<EntityCache>('entityCache');
-  private selectors: { [name: string]: EntitySelector<any> } = {};
-
-  constructor(private store: Store<EntityCache>) {}
-
-  /**
-   * Get (or create) a selector class for entity type
-   * @param entityClass - the name of the class or the class itself
-   *
-   * Examples:
-   *   getSelector(Hero);  // selector for Heroes, typed as Hero
-   *   getSelector('Hero'); // selector for Heroes, untyped
-   */
-  getSelector<T>(entityClass: EntityClass<T> | string) {
-    const entityName = getEntityName(entityClass);
-    let selector = this.selectors[entityName];
-    if (!selector) {
-      const selectorFn = createSelectorFn(entityName, this.entityCache, this.store);
-      selector = new EntitySelector<T>(selectorFn);
-      this.selectors[entityName] = selector;
-    }
-    return selector;
-  }
-
-  /**
-   * Register a selector class for an entity class
-   * @param entityClass - the name of the entity class or the class itself
-   * @param selector - selector for that entity class
-   *
-   * Examples:
-   *   registerSelector(Hero, MyHeroSelector);
-   *   registerSelector('Villain', MyVillainSelector);
-   */
-  registerSelector<T>(entityClass: string | EntityClass<T>, selector: EntitySelector<T>) {
-    this.selectors[getEntityName(entityClass)] = selector;
-  }
-
-  /**
-   * Register a batch of selectors.
-   * @param selectors - selectors to merge into existing selectors
-   *
-   * Examples:
-   *   registerSelectors({
-   *     Hero: MyHeroSelector,
-   *     Villain: MyVillainSelector
-   *   });
-   */
-  registerSelectors(selectors: { [name: string]: EntitySelector<any> }) {
-    this.selectors = { ...this.selectors, ...selectors };
-  }
+  [selector: string]: Selector<EntityCollection<T>, any>;
 }
 
-export class EntitySelector<T> {
-  constructor(private readonly selectorFn: SelectorFn) {}
+/**
+ * The entity collection Observables that consumers (e.g., components) subscribe to.
+ */
+export interface EntitySelectors$<T> {
+  selectKeys$: Observable<string[] | number[]> | Store<string[] | number[]>;
+  selectEntities$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  selectAll$: Observable<T[]> | Store<T[]>;
+  selectCount$: Observable<number> | Store<number>;
+  selectFilter$: Observable<string> | Store<string>;
+  selectFilteredEntities$: Observable<T[]> | Store<T[]>;
+  selectLoading$: Observable<boolean> | Store<boolean>;
 
-  filteredEntities$(): Observable<T[]> {
-    return this.selectorFn<T[]>('filteredEntities');
-  }
-
-  entities$(): Observable<T[]> {
-    return this.selectorFn<T[]>('entities');
-  }
-
-  loading$(): Observable<boolean> {
-    return this.selectorFn<boolean>('loading');
-  }
-
-  filter$(): Observable<EntityFilter> {
-    return this.selectorFn<EntityFilter>('filter');
-  }
-
-  filterPattern$(): Observable<any> {
-    return this.selectorFn<EntityFilter>('filter').pipe(map(filter => filter.pattern));
-  }
+  [selector: string]: Observable<any> | Store<any>;
 }
 
-export function createSelectorFn(
-  typeName: string,
-  cacheSelector: Selector<Object, EntityCache>,
-  store: Store<EntityCache>
-): SelectorFn {
-  return selectorFn;
+/** Creates the selector for the path from the EntityCache through the Collection */
+export function cachedCollectionSelector<T>(
+  collectionName: string,
+  cacheSelector: Selector<Object, EntityCache>
+) {
+  // collection selector
+  const c = createFeatureSelector<EntityCollection<T>>(collectionName);
+  // cache -> collection selector
+  return createSelector(cacheSelector, c);
+}
 
-  function selectorFn<K>(prop: string) {
-    return store.select(
-      createSelector(cacheSelector, state => (<any>collection(state, typeName))[prop] as K)
-    );
-  }
+/**
+ * Create factory that creates Entity Collection Selector-Observables for a given EntityCache store
+ */
+export function createEntitySelectors$Factory<T>(
+  collectionName: string,
+  selectors: EntitySelectors<T>
+) {
+  /**
+   * Create Entity Collection Selector-Observables for a given EntityCache  store
+   * @param store - EntityCache store with the entity collections
+   * @param cacheSelector - ngrx/entity Selector that selects the EntityCache in the store.
+   **/
+  return function entitySelectors$Factory(
+    store: Store<EntityCache>,
+    cacheSelector: Selector<Object, EntityCache>
+  ) {
+    const cc = cachedCollectionSelector(collectionName, cacheSelector);
+    const collection$ = store.select(cc);
 
-  function collection(state: EntityCache, entityName: string) {
-    const c = state[entityName];
-    if (c) {
-      return c;
+    const selectors$: Partial<EntitySelectors$<T>> = {};
+    // tslint:disable-next-line:forin
+    for (const selector in selectors) {
+      selectors$[selector + '$'] = collection$.select(selectors[selector]);
     }
-    throw new Error(`No cached collection named "${entityName}")`);
-  }
+    return selectors$ as EntitySelectors$<T>;
+  };
+}
+
+export type EntitySelectors$Factory<T> = (
+  store: Store<EntityCache>,
+  cacheSelector: Selector<Object, EntityCache>
+) => EntitySelectors$<T>;
+
+export function createEntitySelectors<T>(
+  entityName: string,
+  filterFn?: EntityFilterFn<T>
+): EntitySelectors<T> {
+  // Mostly copied from `state_selectors.ts`
+  const selectKeys = (c: EntityCollection<T>) => c.ids;
+  const selectEntities = (c: EntityCollection<T>) => c.entities;
+
+  const selectAll = createSelector(
+    selectKeys,
+    selectEntities,
+    (keys: any[], entities: Dictionary<T>): any => keys.map(key => entities[key] as T)
+  );
+
+  const selectCount = createSelector(selectKeys, keys => keys.length);
+
+  // EntityCollection selectors (beyond EntityState selectors)
+  const selectFilter = (c: EntityCollection<T>) => c.filter;
+
+  const selectFilteredEntities = filterFn
+    ? createSelector(selectAll, selectFilter, (entities: T[], pattern: any): T[] =>
+        filterFn(entities, pattern)
+      )
+    : selectAll;
+
+  const selectLoading = (c: EntityCollection<T>) => c.loading;
+
+  return {
+    selectKeys,
+    selectEntities,
+    selectAll,
+    selectCount,
+    selectFilter,
+    selectFilteredEntities,
+    selectLoading
+  };
 }

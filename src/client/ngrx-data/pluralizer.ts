@@ -1,4 +1,4 @@
-import { Inject, Injectable, InjectionToken } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
 export abstract class Pluralizer {
   abstract pluralize(name: string): string;
@@ -13,7 +13,13 @@ export const PLURALIZER_NAMES = new InjectionToken<Indexable>('PLURALIZER_NAMES'
 @Injectable()
 // tslint:disable-next-line:class-name
 export class _Pluralizer {
-  constructor(@Inject(PLURALIZER_NAMES) private pluralNames: Indexable) {}
+  constructor(
+    @Optional()
+    @Inject(PLURALIZER_NAMES)
+    private pluralNames: Indexable
+  ) {
+    this.pluralNames = pluralNames || {};
+  }
 
   /**
    * Pluralize a singular name.

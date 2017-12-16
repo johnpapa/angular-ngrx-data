@@ -3,16 +3,15 @@ import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
 import {
-  EntityDispatchers,
+  EntityDispatcherService,
   EntityDispatcher,
-  EntitySelectors,
-  EntitySelector
+  EntitySelectorsService,
+  EntitySelectors$
 } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
-import { pipe } from 'rxjs/util/pipe';
 import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
 
 import { Hero, ToastService } from '../../core';
 
@@ -35,32 +34,29 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
 
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
-  private heroSelector: EntitySelector<Hero>;
+  private heroSelectors: EntitySelectors$<Hero>;
 
   constructor(
-    private entityDispatchers: EntityDispatchers,
-    private entitySelectors: EntitySelectors,
+    dispatcherService: EntityDispatcherService,
+    selectorsService: EntitySelectorsService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {
-    this.heroDispatcher = entityDispatchers.getDispatcher(Hero);
-    this.heroSelector = entitySelectors.getSelector(Hero);
+    this.heroDispatcher = dispatcherService.getDispatcher(Hero);
+    this.heroSelectors = selectorsService.getSelectors$(Hero);
   }
 
   ngOnInit() {
-    this.filteredHeroes$ = this.heroSelector.filteredEntities$();
-    this.heroes$ = this.heroSelector.entities$();
-    this.loading$ = this.heroSelector.loading$();
-    this.filter$ = this.heroSelector.filterPattern$();
+    this.filteredHeroes$ = this.heroSelectors.selectFilteredEntities$;
+    this.heroes$ = this.heroSelectors.selectAll$;
+    this.loading$ = this.heroSelectors.selectLoading$;
+    this.filter$ = this.heroSelectors.selectFilter$;
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe((value: string) => {
-      this.filterPattern = value;
-      this.filterHeroes();
-    });
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => (this.filterPattern = value));
 
     this.heroes$
       .pipe(takeUntil(this.onDestroy), skip(1))
@@ -68,11 +64,11 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy() {
-    this.onDestroy.next(true);
+    this.onDestroy.next();
   }
 
   setFilter(pattern: string) {
-    this.heroDispatcher.setFilterPattern(pattern);
+    this.heroDispatcher.setFilter(pattern);
     this.clear();
   }
 
@@ -83,16 +79,12 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroDispatcher.delete(hero);
+    this.heroDispatcher.delete(hero.id);
   }
 
   enableAddMode() {
     this.addingHero = true;
     this.selectedHero = null;
-  }
-
-  filterHeroes() {
-    this.heroDispatcher.getFiltered();
   }
 
   getHeroes() {

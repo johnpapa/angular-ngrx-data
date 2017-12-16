@@ -1,18 +1,8 @@
-import { NgModule, InjectionToken } from '@angular/core';
-import { StoreModule, ActionReducer } from '@ngrx/store';
-import { EffectsModule } from '@ngrx/effects';
+import { NgModule } from '@angular/core';
 
-import {
-  EntityCollection,
-  entityEffects,
-  EntityDataServiceConfig,
-  EntityFilterService,
-  ENTITY_REDUCER_TOKEN,
-  NgrxDataModule,
-  PLURALIZER_NAMES
-} from '../../ngrx-data';
+import { EntityDataServiceConfig, NgrxDataModule } from '../../ngrx-data';
 
-import { entityFiltersProvider, NAME_OR_SAYING_FILTER } from '../core/entity-filters';
+import { pluralNames, entityMetadata } from './entity-metadata';
 
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
@@ -20,30 +10,13 @@ const entityDataServiceConfig: EntityDataServiceConfig = {
   saveDelay: 100
 };
 
-export function initialState() {
-  const empty = new EntityCollection();
-  return {
-    Hero: empty,
-    // Initialize with a custom filter for Villains
-    Villain: { ...empty, filter: { name: NAME_OR_SAYING_FILTER } }
-  };
-}
-
-const pluralNames = {
-  // Case matters. Match the case of the class name.
-  Hero: 'Heroes'
-};
-
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN, { initialState }),
-    EffectsModule.forFeature(entityEffects),
-    NgrxDataModule
-  ],
-  providers: [
-    entityFiltersProvider,
-    { provide: PLURALIZER_NAMES, useValue: pluralNames },
-    { provide: EntityDataServiceConfig, useValue: entityDataServiceConfig }
+    NgrxDataModule.forRoot({
+      entityDataServiceConfig,
+      entityMetadata: entityMetadata,
+      pluralNames: pluralNames
+    })
   ]
 })
 export class EntityStoreModule {}

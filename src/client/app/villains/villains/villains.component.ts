@@ -3,11 +3,10 @@ import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
 import {
-  EntityFilter,
-  EntityDispatchers,
+  EntityDispatcherService,
   EntityDispatcher,
-  EntitySelectors,
-  EntitySelector
+  EntitySelectorsService,
+  EntitySelectors$
 } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
@@ -30,37 +29,36 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   filteredVillains$: Observable<Villain[]>;
   villains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
-  filter$: Observable<EntityFilter>;
+  filter$: Observable<string>;
   dataSource$ = this.appSelectors.dataSource$();
   filterPattern: string;
 
   private onDestroy = new Subject();
   private villainDispatcher: EntityDispatcher<Villain>;
-  private villainSelector: EntitySelector<Villain>;
+  private villainSelector: EntitySelectors$<Villain>;
 
   constructor(
-    private entityDispatchers: EntityDispatchers,
-    private entitySelectors: EntitySelectors,
+    dispatcherService: EntityDispatcherService,
+    selectorsService: EntitySelectorsService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {
-    this.villainDispatcher = entityDispatchers.getDispatcher(Villain);
-    this.villainSelector = entitySelectors.getSelector(Villain);
+    this.villainDispatcher = dispatcherService.getDispatcher(Villain);
+    this.villainSelector = selectorsService.getSelectors$(Villain);
   }
 
   ngOnInit() {
-    this.filteredVillains$ = this.villainSelector.filteredEntities$();
-    this.villains$ = this.villainSelector.entities$();
-    this.loading$ = this.villainSelector.loading$();
-    this.filter$ = this.villainSelector.filter$();
+    this.filteredVillains$ = this.villainSelector.selectFilteredEntities$;
+    this.villains$ = this.villainSelector.selectAll$;
+    this.loading$ = this.villainSelector.selectLoading$;
+    this.filter$ = this.villainSelector.selectFilter$;
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe((value: string) => this.getVillains());
 
-    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe((filter: any) => {
-      this.filterPattern = filter.pattern;
-      this.filterVillains();
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => {
+      this.filterPattern = value;
     });
 
     this.villains$
@@ -69,11 +67,11 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy() {
-    this.onDestroy.next(true);
+    this.onDestroy.next();
   }
 
   setFilter(pattern: string) {
-    this.villainDispatcher.setFilter({ pattern });
+    this.villainDispatcher.setFilter(pattern);
     this.clear();
   }
 
@@ -84,16 +82,12 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
   deleteVillain(villain: Villain) {
     this.unselect();
-    this.villainDispatcher.delete(villain);
+    this.villainDispatcher.delete(villain.id);
   }
 
   enableAddMode() {
     this.addingVillain = true;
     this.selectedVillain = null;
-  }
-
-  filterVillains() {
-    this.villainDispatcher.getFiltered();
   }
 
   getVillains() {

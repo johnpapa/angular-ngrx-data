@@ -67,7 +67,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   }
 
   ngOnDestroy() {
-    this.onDestroy.next(true);
+    this.onDestroy.next();
   }
 
   setFilter(pattern: string) {

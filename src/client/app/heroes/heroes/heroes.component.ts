@@ -35,7 +35,6 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
   private heroSelectors: EntitySelectors$<Hero>;
-  private untilDestroy = <T>() => takeUntil<T>(this.onDestroy);
 
   constructor(
     dispatcherService: EntityDispatcherService,
@@ -54,20 +53,18 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
     this.filter$ = this.heroSelectors.selectFilter$;
 
     this.dataSource$
-      .pipe(this.untilDestroy(), distinctUntilChanged())
+      .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.filter$.pipe(this.untilDestroy()).subscribe(value => {
-      this.filterPattern = value;
-    });
+    this.filter$.pipe(takeUntil(this.onDestroy)).subscribe(value => this.filterPattern = value);
 
     this.heroes$
-      .pipe(this.untilDestroy(), skip(1)).subscribe(
+      .pipe(takeUntil(this.onDestroy), skip(1)).subscribe(
         heroes => this.toast.openSnackBar('Fetched Heroes', 'GET'));
   }
 
   ngOnDestroy() {
-    this.onDestroy.next(true);
+    this.onDestroy.next();
   }
 
   setFilter(pattern: string) {

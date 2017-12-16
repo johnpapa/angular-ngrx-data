@@ -13,7 +13,6 @@ import { EntityDispatcherService, EntitySelectorsService } from '../../../ngrx-d
   styleUrls: ['./filter.component.scss']
 })
 export class FilterComponent implements OnDestroy, OnInit {
-
   @Input() entityType: string;
   @Input() filterPlaceholder: string;
 
@@ -29,19 +28,19 @@ export class FilterComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     // Set the filter to the current value from store or ''
-    const ss = this. selectorsService.getSelectors$(this.entityType);
-    ss.selectFilter$.pipe(take(1),
-      // always completes so no need to unsubscribe
-    ).subscribe(value => this.filter.setValue(value));
+    const ss = this.selectorsService.getSelectors$(this.entityType);
+    ss.selectFilter$
+      .pipe(
+        take(1)
+        // always completes so no need to unsubscribe
+      )
+      .subscribe(value => this.filter.setValue(value));
 
-    const ds = this. dispatcherService.getDispatcher(this.entityType);
+    const ds = this.dispatcherService.getDispatcher(this.entityType);
     this.updateFilter = ds.setFilter.bind(ds);
-    this.filter.valueChanges.pipe(
-      takeUntil(this.onDestroy),
-      debounceTime(300),
-      distinctUntilChanged()
-    )
-    .subscribe(pattern => this.updateFilter(pattern));
+    this.filter.valueChanges
+      .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
+      .subscribe(pattern => this.updateFilter(pattern));
   }
 
   ngOnDestroy() {

@@ -39,7 +39,6 @@ export class FilterComponent implements OnDestroy, OnChanges, OnInit {
   }
 
   ngOnChanges() {
-    console.log(this.filterPattern);
     this.filter.setValue(this.filterPattern);
   }
 

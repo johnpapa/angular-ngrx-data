@@ -3,8 +3,6 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev-proxy": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
-    "dev": "concurrently \"npm run start\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "ng": "ng",
     "start-ng": "ng serve",
     "build": "ng build",
@@ -18,7 +16,8 @@
     "docker-up": "docker-compose up -d --build",
     "docker-up-debug": "docker-compose -f docker-compose.debug.yml up -d --build",
     "docker-down": "docker-compose down",
-    "start": "PUBLICWEB=./dist/publicweb node -r dotenv/config src/server/index.js",
+    "dev": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
+    "start": "node index.js",
     "debug": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"

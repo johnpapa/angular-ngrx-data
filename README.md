@@ -79,7 +79,7 @@ Open VS Code, launch the `Docker: Attach to Node` debugging profile
 
 NODE_ENV=development
 
-SERVER_PORT=3001 PUBLICWEB=./publicweb
+PORT=3001 PUBLICWEB=./publicweb
 
 COSMOSDB_ACCOUNT=my-heroes-cosmos COSMOSDB_DB=heroes-db
 COSMOSDB_KEY=fa1fKW9zDtxLcWgNqhtCdxeTT56ohy9fBVIpxDupSYuOEKl8gD3uPxgNqsenhRrrysSQGMZoWq9F46oRPlOAxw==
@@ -97,7 +97,7 @@ in the cloud.
    ```javascript
    NODE_ENV=development
 
-   SERVER_PORT=3001
+   PORT=3001
    PUBLICWEB=./publicweb
 
    COSMOSDB_ACCOUNT=your_cosmos_account

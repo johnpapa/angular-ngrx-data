@@ -13,7 +13,7 @@ function NameOrSayingFilterFn<T>(entities: T[], pattern: string) {
 export const NAME_OR_SAYING_FILTER = 'NameOrSaying';
 
 /** Custom application entity filters */
-const entityFilters: EntityFilters = {
+export const entityFilters: EntityFilters = {
   [NAME_OR_SAYING_FILTER]: { filterFn: NameOrSayingFilterFn }
   // '': { filterFn: NameOrSayingFilterFn } // replace the default
 };

@@ -27,14 +27,16 @@ export class FilterComponent implements OnDestroy, OnChanges, OnInit {
   private onDestroy = new Subject();
   private filterLogic = pipe(
     takeUntil(this.onDestroy),
-    tap(value => this.filter.setValue(value)),
+    // tap(value => this.filter.setValue(value)),
     debounceTime(300),
     distinctUntilChanged()
   );
 
-  constructor() {}
-
-  ngOnInit() {}
+  ngOnInit() {
+    this.filter.valueChanges
+      .pipe(this.filterLogic)
+      .subscribe((pattern: string) => this.setFilter(pattern));
+  }
 
   ngOnChanges() {
     console.log(this.filterPattern);
@@ -45,7 +47,7 @@ export class FilterComponent implements OnDestroy, OnChanges, OnInit {
     this.onDestroy.next(true);
   }
 
-  setFilter(pattern: string) {
+  private setFilter(pattern: string) {
     this.onFilterChange.emit(pattern);
   }
 }

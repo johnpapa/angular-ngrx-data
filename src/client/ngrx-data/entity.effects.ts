@@ -5,13 +5,11 @@ import { EntityAdapter } from '@ngrx/entity';
 
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
-import { concat, concatMap, catchError, filter, map, startWith, tap } from 'rxjs/operators';
+import { concat, concatMap, catchError, map, startWith, tap } from 'rxjs/operators';
 
 import { DataServiceError } from './interfaces';
-import { EntityAction, EntityOp } from './entity.actions';
+import { EntityAction, EntityActions, EntityOp, OP_ERROR, OP_SUCCESS } from './entity.actions';
 import { EntityDataService } from './entity-data.service';
-
-type eaType = EntityAction<any, any>;
 
 const persistOps = [
   EntityOp.QUERY_ALL,
@@ -21,17 +19,15 @@ const persistOps = [
   EntityOp.SAVE_UPDATE
 ];
 
-// filter for EntityActions with a persistable EntityOp
-function isPersistOp(action: eaType) {
-  return action.op && persistOps.some(op => op === action.op);
-}
-
 @Injectable()
 export class EntityEffects {
-  @Effect()
-  persist$ = this.actions$.pipe(filter(isPersistOp), concatMap(action => this.persist(action)));
 
-  private persist(action: eaType) {
+  @Effect()
+  persist$ = this.actions$.ofOp(persistOps).pipe(
+    concatMap(action => this.persist(action))
+  );
+
+  private persist(action: EntityAction) {
     try {
       return this.callDataService(action).pipe(
         map(handleSuccess(action)),
@@ -42,7 +38,7 @@ export class EntityEffects {
     }
   }
 
-  private callDataService(action: eaType) {
+  private callDataService(action: EntityAction) {
     const service = this.dataService.getService(action.entityName);
     switch (action.op) {
       case EntityOp.QUERY_ALL: {
@@ -66,16 +62,17 @@ export class EntityEffects {
     }
   }
 
-  constructor(private actions$: Actions, private dataService: EntityDataService) {}
+  constructor(private actions$: EntityActions, private dataService: EntityDataService) { }
+
 }
 
-function handleSuccess(action: eaType) {
-  const successOp = <EntityOp>(action.op + '_SUCCESS');
+function handleSuccess(action: EntityAction) {
+  const successOp = <EntityOp>(action.op + OP_SUCCESS);
   return (data: any) => new EntityAction(action, successOp, data);
 }
 
-function handleError(action: eaType) {
-  const errorOp = <EntityOp>(action.op + '_ERROR');
+function handleError(action: EntityAction) {
+  const errorOp = <EntityOp>(action.op + OP_ERROR);
   return (error: DataServiceError<any>) =>
     of(new EntityAction(action, errorOp, { originalAction: action, error }));
 }

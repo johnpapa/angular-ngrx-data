@@ -1,18 +1,12 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
-import { Store, createFeatureSelector, Selector } from '@ngrx/store';
+import { Store, Selector } from '@ngrx/store';
 
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { createEntityDefinition, EntityDefinition, EntityDefinitions } from './entity-definition';
-import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME, EntityClass, ENTITY_METADATA_TOKEN, getEntityName } from './interfaces';
 import { createEntityReducer, EntityCollectionReducers } from './entity.reducer';
-import {
-  createEntitySelectors$Factory,
-  EntitySelectors,
-  EntitySelectors$
-} from './entity.selectors';
-
-export const ENTITY_METADATA = new InjectionToken<EntityMetadataMap>('ENTITY_METADATA');
+import { EntitySelectors } from './entity.selectors';
 
 @Injectable()
 export class EntityDefinitionService {
@@ -21,7 +15,7 @@ export class EntityDefinitionService {
 
   constructor(
     @Optional()
-    @Inject(ENTITY_METADATA)
+    @Inject(ENTITY_METADATA_TOKEN)
     entityMetadataMaps: EntityMetadataMap[]
   ) {
     if (entityMetadataMaps) {
@@ -50,39 +44,6 @@ export class EntityDefinitionService {
       throw new Error(`No EntityDefinition for entity type "${entityName}".`);
     }
     return definition;
-  }
-
-  getAllEntityReducers() {
-    const definitions = this.definitions;
-    const reducers: EntityCollectionReducers = {};
-    Object.keys(definitions).forEach(name => (reducers[name] = definitions[name].reducer));
-    return reducers;
-  }
-
-  getAllEntitySelectors() {
-    const definitions = this.definitions;
-    const selectors: { [name: string]: EntitySelectors<any> } = {};
-    Object.keys(definitions).forEach(name => (selectors[name] = definitions[name].selectors));
-    return selectors;
-  }
-
-  getAllEntitySelectors$(store: Store<EntityCache>, cacheName = 'entityCache') {
-    const definitions = this.definitions;
-    const selectors$: { [name: string]: EntitySelectors$<any> } = {};
-    const cacheSelector = createFeatureSelector<EntityCache>(cacheName);
-    Object.keys(definitions).forEach(
-      name => (selectors$[name] = definitions[name].selectors$Factory(store, cacheSelector))
-    );
-    return selectors$;
-  }
-
-  getAllInitialStates() {
-    const definitions = this.definitions;
-    const initialStates: { [entityName: string]: any } = {};
-    Object.keys(definitions).forEach(
-      name => (initialStates[name] = definitions[name].initialState)
-    );
-    return initialStates;
   }
 
   //////// Registration methods //////////

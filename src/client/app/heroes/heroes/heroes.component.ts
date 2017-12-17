@@ -2,11 +2,12 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityDispatcher, EntityService, EntitySelectors$ } from '../../../ngrx-data';
+import { EntityAction, EntityActions, EntityDispatcher, EntitySelectors$,
+  EntityService, OP_ERROR, OP_SUCCESS } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { distinctUntilChanged, skip, takeUntil, tap } from 'rxjs/operators';
+import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
 
 import { Hero, ToastService } from '../../core';
 
@@ -21,35 +22,38 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   selectedHero: Hero = null;
 
   filteredHeroes$: Observable<Hero[]>;
-  heroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
   dataSource$ = this.appSelectors.dataSource$();
 
   private onDestroy = new Subject();
   private heroDispatcher: EntityDispatcher<Hero>;
   private heroSelectors: EntitySelectors$<Hero>;
+  private heroAction$: EntityActions<EntityAction<Hero>>;
 
   constructor(
-    private entityService: EntityService,
+    entityService: EntityService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {
     this.heroDispatcher = entityService.getDispatcher(Hero);
     this.heroSelectors = entityService.getSelectors$(Hero);
+    this.heroAction$ = entityService.getEntityActions$(Hero);
   }
 
   ngOnInit() {
     this.filteredHeroes$ = this.heroSelectors.selectFilteredEntities$;
-    this.heroes$ = this.heroSelectors.selectAll$;
     this.loading$ = this.heroSelectors.selectLoading$;
 
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.heroes$
-      .pipe(takeUntil(this.onDestroy), skip(1))
-      .subscribe(heroes => this.toast.openSnackBar('Fetched Heroes', 'GET'));
+    this.heroAction$
+      .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
+      .until<Hero>(this.onDestroy)
+      .subscribe(
+        action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
+      );
   }
 
   ngOnDestroy() {

@@ -23,7 +23,7 @@ export function createEntityReducer(entityDefinitionService: EntityDefinitionSer
   /** Perform Actions against the entity collections in the EntityCache */
   return function entityReducer(
     state: EntityCache = {},
-    action: EntityAction<any, any>
+    action: EntityAction
   ): EntityCache {
     const entityName = action.entityName;
     if (!entityName) {

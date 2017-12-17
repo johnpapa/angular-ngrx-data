@@ -2,20 +2,19 @@ import { ModuleWithProviders, NgModule, InjectionToken } from '@angular/core';
 import { ActionReducer, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { EntityCache } from './interfaces';
+import { EntityActions } from './entity.actions';
+import { EntityCache, ENTITY_CACHE_NAME, ENTITY_CACHE_NAME_TOKEN,
+  ENTITY_METADATA_TOKEN, ENTITY_REDUCER_TOKEN,
+  PLURAL_NAMES_TOKEN } from './interfaces';
 import { EntityDataService, EntityDataServiceConfig } from './entity-data.service';
-import { EntityDefinitionService, ENTITY_METADATA } from './entity-definition.service';
+import { EntityDefinitionService } from './entity-definition.service';
 import { EntityEffects } from './entity.effects';
 import { EntityMetadataMap } from './entity-metadata';
 import { EntitySelectors } from './entity.selectors';
 import { EntityService } from './entity.service';
-import { Pluralizer, _Pluralizer, PLURALIZER_NAMES } from './pluralizer';
+import { Pluralizer, _Pluralizer } from './pluralizer';
 
 export const entityEffects: any[] = [EntityEffects];
-
-export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache>>(
-  'Entity Reducer'
-);
 
 export function getEntityReducer(service: EntityDefinitionService) {
   return service.getEntityReducer();
@@ -29,14 +28,11 @@ export interface NgrxDataModuleConfig {
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN, {initialState:
-      {
-        // Hero: { ids: [], entities: {}, filter: '', loading: false },
-        // // Villain: { ids: [], entities: {}, filter: '', loading: false }
-      }}),
+    StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN),
     EffectsModule.forFeature(entityEffects)
   ],
   providers: [
+    EntityActions,
     EntityDataService,
     EntityDataServiceConfig,
     EntityDefinitionService,
@@ -55,9 +51,10 @@ export class NgrxDataModule {
     return {
       ngModule: NgrxDataModule,
       providers: [
+        { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
         { provide: EntityDataServiceConfig, useValue: config.entityDataServiceConfig },
-        { provide: ENTITY_METADATA, multi: true, useValue: config.entityMetadata },
-        { provide: PLURALIZER_NAMES, useValue: config.pluralNames }
+        { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: config.entityMetadata },
+        { provide: PLURAL_NAMES_TOKEN, useValue: config.pluralNames }
       ]
     };
   }

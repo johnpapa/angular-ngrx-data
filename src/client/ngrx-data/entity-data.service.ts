@@ -27,9 +27,9 @@ export class EntityDataService {
   // TODO:  Optionally inject specialized entity data services
   // for those that aren't derived from BaseDataService.
   constructor(
+    config: EntityDataServiceConfig,
     private http: HttpClient,
-    private pluralizer: Pluralizer,
-    private config: EntityDataServiceConfig
+    private pluralizer: Pluralizer
   ) {
     config = config || {};
     this.api = config.api != null ? '/api' : config.api;

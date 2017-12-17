@@ -1,28 +1,52 @@
-import { Inject, Injectable, Optional } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
+import { createFeatureSelector, Selector, Store } from '@ngrx/store';
 
-import { EntityCache, ENTITY_CACHE_NAME, EntityClass, getEntityName } from './interfaces';
+import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
+import { filter, share, takeUntil, tap } from 'rxjs/operators';
+
+import { EntityAction, EntityActions } from './entity.actions';
+
+import {
+  EntityCache, ENTITY_CACHE_NAME_TOKEN, EntityClass, getEntityName } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityDispatcher } from './entity-dispatcher';
-import { EntitySelectors$ } from './entity.selectors';
+import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors';
 
 @Injectable()
-export class EntityService {
-  private readonly selectorSets: { [name: string]: EntitySelectors$<any> };
+export class EntityService implements OnDestroy {
+
+  private cacheSelector: Selector<Object, EntityCache>;
+  private selectors$Map: { [entityName: string]: EntitySelectors$<any> } = {};
+  private onDestroy = new Subject();
+
+  /** Listen to any action related to entities. */
+  allEntityActions$: EntityActions;
 
   constructor(
-    entityDefinitionService: EntityDefinitionService,
-    @Optional()
-    @Inject(ENTITY_CACHE_NAME)
-    public cacheName: string,
+    @Inject(ENTITY_CACHE_NAME_TOKEN) private cacheName: string,
+    private actions$: EntityActions,
+    private entityDefinitionService: EntityDefinitionService,
     private store: Store<EntityCache>
   ) {
-    this.cacheName = this.cacheName || 'entityCache';
-    this.selectorSets = entityDefinitionService.getAllEntitySelectors$(store, this.cacheName);
+    // This service applies to the cache in ngrx/store named `cacheName`
+    this.cacheSelector = createFeatureSelector(this.cacheName);
+
+    /** Observe dispatching of an Entity-related action */
+    this.allEntityActions$ = this.actions$.ofEntity()
+      .until(this.onDestroy);
+
+  }
+
+  /** Listen to any action related to a given entity type. */
+  getEntityActions$<T>(entityClass: EntityClass<T> | string):
+    EntityActions<EntityAction<T>> {
+    return this.actions$.ofEntityType<T>(entityClass)
+      .until<T>(this.onDestroy);
   }
 
   /**
-   * Get (or create) a dispatcher for entity type
+   * Get (or create) an ngrx/store dispatcher for the entity type.
    * @param entityClass - the class or the name of the type
    *
    * Examples:
@@ -36,7 +60,7 @@ export class EntityService {
   }
 
   /**
-   * Get the selector$ for a particular entity type.
+   * Get (or create) the selector$ for the entity type's cached collection.
    * The selectors$ are the cached collection Observables that
    * consumers (e.g., components) subscribe to.
    * @param entityClass - the class or the name of the type
@@ -48,10 +72,18 @@ export class EntityService {
    */
   getSelectors$<T>(entityClass: EntityClass<T> | string): EntitySelectors$<T> {
     const entityName = getEntityName(entityClass);
-    const selectors$: EntitySelectors$<T> = this.selectorSets[entityName];
+    let selectors$ = this.selectors$Map[entityName];
     if (!selectors$) {
-      throw new Error(`Cannot find entity selectors$ for "${entityName}".`);
+      // Not in this service; create selectors$ and remember them.
+      const def = this.entityDefinitionService.getDefinition(entityClass);
+      selectors$ = createEntitySelectors$(
+        entityName, this.cacheSelector, def.initialState, def.selectors, this.store);
+      this.selectors$Map[entityName] = selectors$;
     }
     return selectors$;
+  }
+
+  ngOnDestroy() {
+    this.onDestroy.next();
   }
 }

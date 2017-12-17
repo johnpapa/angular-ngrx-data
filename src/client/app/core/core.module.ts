@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, Optional, SkipSelf } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -6,6 +6,7 @@ import { ToggleDataSourceComponent } from './toggle-data-source.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { SharedModule } from '../shared/shared.module';
 import { ToastService } from './toast.service';
+import { throwIfAlreadyLoaded } from './module-import-check';
 
 @NgModule({
   imports: [
@@ -17,4 +18,12 @@ import { ToastService } from './toast.service';
   exports: [ToggleDataSourceComponent, ToolbarComponent],
   providers: [ToastService]
 })
-export class CoreModule {}
+export class CoreModule {
+  constructor(
+    @Optional()
+    @SkipSelf()
+    parentModule: CoreModule
+  ) {
+    throwIfAlreadyLoaded(parentModule, 'CoreModule');
+  }
+}

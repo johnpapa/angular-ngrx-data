@@ -5,11 +5,10 @@ import { EffectsModule } from '@ngrx/effects';
 import { EntityCache } from './interfaces';
 import { EntityDataService, EntityDataServiceConfig } from './entity-data.service';
 import { EntityDefinitionService, ENTITY_METADATA } from './entity-definition.service';
-import { EntityDispatcherService } from './entity-dispatcher.service';
 import { EntityEffects } from './entity.effects';
 import { EntityMetadataMap } from './entity-metadata';
 import { EntitySelectors } from './entity.selectors';
-import { EntitySelectorsService } from './entity-selectors.service';
+import { EntityService } from './entity.service';
 import { Pluralizer, _Pluralizer, PLURALIZER_NAMES } from './pluralizer';
 
 export const entityEffects: any[] = [EntityEffects];
@@ -37,8 +36,7 @@ export interface NgrxDataModuleConfig {
     EntityDataService,
     EntityDataServiceConfig,
     EntityDefinitionService,
-    EntityDispatcherService,
-    EntitySelectorsService,
+    EntityService,
     {
       provide: ENTITY_REDUCER_TOKEN,
       deps: [EntityDefinitionService],

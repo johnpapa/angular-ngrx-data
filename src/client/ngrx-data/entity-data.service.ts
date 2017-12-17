@@ -29,7 +29,7 @@ export class EntityDataService {
   constructor(
     private http: HttpClient,
     private pluralizer: Pluralizer,
-    config: EntityDataServiceConfig
+    private config: EntityDataServiceConfig
   ) {
     config = config || {};
     this.api = config.api != null ? '/api' : config.api;

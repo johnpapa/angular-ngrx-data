@@ -4,7 +4,6 @@ import { FormControl } from '@angular/forms';
 import { AppSelectors } from '../../store/app-config';
 import { EntityDispatcher, EntityService, EntitySelectors$ } from '../../../ngrx-data';
 
-
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, skip, takeUntil, take, tap } from 'rxjs/operators';
@@ -32,7 +31,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   private villainSelector: EntitySelectors$<Villain>;
 
   constructor(
-    entityService: EntityService,
+    private entityService: EntityService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {

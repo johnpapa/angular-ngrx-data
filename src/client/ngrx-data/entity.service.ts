@@ -35,7 +35,6 @@ export class EntityService {
     return new EntityDispatcher<T>(entityName, this.store);
   }
 
-
   /**
    * Get the selector$ for a particular entity type.
    * The selectors$ are the cached collection Observables that

@@ -30,7 +30,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   private heroSelectors: EntitySelectors$<Hero>;
 
   constructor(
-    entityService: EntityService,
+    private entityService: EntityService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {

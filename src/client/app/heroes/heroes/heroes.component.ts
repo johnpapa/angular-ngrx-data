@@ -2,12 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import {
-  EntityDispatcherService,
-  EntityDispatcher,
-  EntitySelectorsService,
-  EntitySelectors$
-} from '../../../ngrx-data';
+import { EntityDispatcher, EntityService, EntitySelectors$ } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -35,13 +30,12 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   private heroSelectors: EntitySelectors$<Hero>;
 
   constructor(
-    dispatcherService: EntityDispatcherService,
-    selectorsService: EntitySelectorsService,
+    entityService: EntityService,
     private appSelectors: AppSelectors,
     private toast: ToastService
   ) {
-    this.heroDispatcher = dispatcherService.getDispatcher(Hero);
-    this.heroSelectors = selectorsService.getSelectors$(Hero);
+    this.heroDispatcher = entityService.getDispatcher(Hero);
+    this.heroSelectors = entityService.getSelectors$(Hero);
   }
 
   ngOnInit() {

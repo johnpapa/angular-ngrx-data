@@ -4,7 +4,7 @@ import { FormControl } from '@angular/forms';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, takeUntil, take, tap } from 'rxjs/operators';
 
-import { EntityDispatcherService, EntitySelectorsService } from '../../../ngrx-data';
+import { EntityService } from '../../../ngrx-data';
 
 @Component({
   selector: 'app-filter',
@@ -20,14 +20,11 @@ export class FilterComponent implements OnDestroy, OnInit {
 
   private onDestroy = new Subject();
 
-  constructor(
-    private dispatcherService: EntityDispatcherService,
-    private selectorsService: EntitySelectorsService
-  ) {}
+  constructor(private entityService: EntityService) {}
 
   ngOnInit() {
     // Set the filter to the current value from store or ''
-    const ss = this.selectorsService.getSelectors$(this.entityType);
+    const ss = this.entityService.getSelectors$(this.entityType);
     ss.selectFilter$
       .pipe(
         take(1)
@@ -35,7 +32,7 @@ export class FilterComponent implements OnDestroy, OnInit {
       )
       .subscribe(value => this.filter.setValue(value));
 
-    const ds = this.dispatcherService.getDispatcher(this.entityType);
+    const ds = this.entityService.getDispatcher(this.entityType);
     this.updateFilter = ds.setFilter.bind(ds);
     this.filter.valueChanges
       .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())

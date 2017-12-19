@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Store, createSelector, createFeatureSelector, Selector } from '@ngrx/store';
+import { Store, createSelector, Selector } from '@ngrx/store';
 import { Dictionary } from './ngrx-entity-models';
 
 import { Observable } from 'rxjs/Observable';
@@ -43,12 +43,11 @@ export interface EntitySelectors$<T> {
 /** Creates the selector for the path from the EntityCache through the Collection */
 export function cachedCollectionSelector<T>(
   collectionName: string,
-  cacheSelector: Selector<Object, EntityCache>
+  cacheSelector: Selector<Object, EntityCache>,
+  initialState: {}
 ) {
-  // collection selector
-  const c = createFeatureSelector<EntityCollection<T>>(collectionName);
-  // cache -> collection selector
-  return createSelector(cacheSelector, c);
+  const getCollection = (cache: EntityCache) => cache[collectionName] || initialState;
+  return createSelector(cacheSelector, getCollection);
 }
 
 /**
@@ -56,7 +55,8 @@ export function cachedCollectionSelector<T>(
  */
 export function createEntitySelectors$Factory<T>(
   collectionName: string,
-  selectors: EntitySelectors<T>
+  initialState: any,
+  selectors: EntitySelectors<T>,
 ) {
   /**
    * Create Entity Collection Selector-Observables for a given EntityCache  store
@@ -67,7 +67,7 @@ export function createEntitySelectors$Factory<T>(
     store: Store<EntityCache>,
     cacheSelector: Selector<Object, EntityCache>
   ) {
-    const cc = cachedCollectionSelector(collectionName, cacheSelector);
+    const cc = cachedCollectionSelector(collectionName, cacheSelector, initialState);
     const collection$ = store.select(cc);
 
     const selectors$: Partial<EntitySelectors$<T>> = {};

@@ -56,7 +56,7 @@ export function createEntityDefinition<T>(
 
   const selectors = createEntitySelectors<T>(entityName, metadata.filterFn);
 
-  const selectors$Factory = createEntitySelectors$Factory<T>(entityName, selectors);
+  const selectors$Factory = createEntitySelectors$Factory<T>(entityName, initialState, selectors);
 
   return {
     entityName,

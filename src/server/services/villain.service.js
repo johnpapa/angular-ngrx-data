@@ -2,7 +2,7 @@ const models = require('../models');
 const Villain = models.Villain;
 const ReadPreference = require('mongodb').ReadPreference;
 
-require('./mongo').connect();
+// require('./mongo').connect();
 
 function getVillains(req, res) {
   const docquery = Villain.find({}).read(ReadPreference.NEAREST);

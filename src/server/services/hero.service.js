@@ -2,7 +2,7 @@ const models = require('../models');
 const Hero = models.Hero;
 const ReadPreference = require('mongodb').ReadPreference;
 
-require('./mongo').connect();
+// require('./mongo').connect();
 
 function getHeroes(req, res) {
   const docquery = Hero.find({}).read(ReadPreference.NEAREST);

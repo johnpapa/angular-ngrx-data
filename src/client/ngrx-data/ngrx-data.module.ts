@@ -29,7 +29,11 @@ export interface NgrxDataModuleConfig {
 
 @NgModule({
   imports: [
-    StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN),
+    StoreModule.forFeature('entityCache', ENTITY_REDUCER_TOKEN, {initialState:
+      {
+        // Hero: { ids: [], entities: {}, filter: '', loading: false },
+        // // Villain: { ids: [], entities: {}, filter: '', loading: false }
+      }}),
     EffectsModule.forFeature(entityEffects)
   ],
   providers: [

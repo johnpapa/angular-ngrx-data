@@ -19,7 +19,6 @@ export interface EntityCollectionReducers {
 
 /** Create the reducer for the EntityCache */
 export function createEntityReducer(entityDefinitionService: EntityDefinitionService) {
-  const entityReducers: EntityCollectionReducers = {};
 
   /** Perform Actions against the entity collections in the EntityCache */
   return function entityReducer(
@@ -31,18 +30,15 @@ export function createEntityReducer(entityDefinitionService: EntityDefinitionSer
       return state; // not an EntityAction
     }
 
+    const def = entityDefinitionService.definitions[entityName];
+    if (!def) {
+      throw new Error(`The entity "${entityName}" type is not defined.`);
+    }
+    const reducer = def.reducer;
     let collection = state[entityName];
-    let reducer: EntityCollectionReducer<any>;
-    if (collection) {
-      reducer = entityReducers[entityName];
-    } else {
+    if (!collection) {
       // Collection not in cache; create it from entity defs
-      const def = entityDefinitionService.definitions[entityName];
-      if (!def) {
-        throw new Error(`The entity "${entityName}" type is not defined.`);
-      }
       state = { ...state, [entityName]: (collection = def.initialState) };
-      entityReducers[entityName] = reducer = def.reducer;
     }
 
     const newCollection = reducer(collection, action);

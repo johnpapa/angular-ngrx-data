@@ -1,5 +1,11 @@
+import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
-import { EntityClass, getEntityName } from './interfaces';
+import { Actions } from '@ngrx/effects';
+import { EntityClass, flattenArgs, getEntityName } from './interfaces';
+
+import { Observable } from 'rxjs/Observable';
+import { Operator } from 'rxjs/Operator';
+import { filter, share, takeUntil } from 'rxjs/operators';
 
 // General purpose entity action types, good for any entity type
 export enum EntityOp {
@@ -41,7 +47,13 @@ export enum EntityOp {
   SET_FILTER = 'SET_FILTER'
 }
 
-export class EntityAction<T extends Object, P> implements Action {
+/** "Success" suffix appended to EntityOps that are successful.*/
+export const OP_SUCCESS = '_SUCCESS';
+
+/** "Error" suffix appended to EntityOps that have failed.*/
+export const OP_ERROR = '_ERROR';
+
+export class EntityAction<T extends Object = Object, P = any> implements Action {
   readonly type: string;
   readonly entityName: string;
 
@@ -60,5 +72,132 @@ export class EntityAction<T extends Object, P> implements Action {
         ? classOrAction.entityName
         : getEntityName(classOrAction);
     this.type = EntityAction.formatActionTypeName(op, this.entityName);
+  }
+}
+
+/**
+ * Observable of entity actions dispatched to the store.
+ * EntityAction-oriented filter operators for ease-of-use.
+ * Imitates `Actions.ofType()` in ngrx/entity.
+ */
+@Injectable()
+export class EntityActions<V extends EntityAction = EntityAction> extends Observable<V> {
+
+  // Inject the ngrx/entity Actions observable that watches dispatches to the store
+  constructor(source?: Actions) {
+    super();
+
+    if (source) {
+      this.source = source;
+    }
+  }
+
+  /**
+   * Filter actions based on a predicate.
+   * @param predicate -returns true if EntityAction passes the test.
+   * Example:
+   *  this.actions$.ofEntity() // actions for  Heroes, Villains, ...
+   */
+  filter<T>(predicate: (ea: EntityAction<T>) => boolean) {
+    return filter(predicate)(this) as EntityActions<EntityAction<T>>;
+  }
+
+  lift<R>(operator: Operator<V, R>): Observable<R> {
+    const observable = new EntityActions();
+    observable.source = this;
+    // "Force-casts" below because can't change signature of Lift.
+    observable.operator = <Operator<any, EntityAction>> <any> operator;
+    return <Observable<R>> <any> observable;
+  }
+
+  /**
+   * Actions concerning any entity (excludes non-entity actions)
+   * Example:
+   *  this.actions$.ofEntity() // actions for  Heroes, Villains, ...
+   */
+  ofEntity<T>(): EntityActions<EntityAction<T>> {
+    return this.filter<T>(ea => !!ea.entityName);
+  }
+
+  /**
+   * Entity actions of the given entity type
+   * @param entityClass - the entity type name or the entity class
+   * Example:
+   *  this.actions$.ofEntityType(Hero) // Hero entity, typed by Hero class
+   *  this.actions$.ofEntityType('Hero') // Hero entity, untyped
+   *  this.actions$.ofEntityType<Hero>('Hero') // typed by Hero interface.
+   */
+  ofEntityType<T>(entityClass: EntityClass<T> | string): EntityActions<EntityAction<T>> {
+    const entityName = getEntityName(entityClass);
+    return this.filter<T>(ea => entityName === ea.entityName);
+  }
+
+  /**
+   * Entity actions concerning any of the given entity types
+   * @param allowedEntityNames - names of entities whose actions should pass through.
+   * Example:
+   * ```
+   *  this.actions$.ofEntityTypes('Hero', 'Villain', 'Sidekick')
+   *  this.actions$.ofEntityTypes(...theChosen)
+   *  this.actions$.ofEntityTypes(theChosen)
+   * ```
+   */
+  ofEntityTypes<T>(allowedEntityNames: string[]): EntityActions<EntityAction<T>>
+  ofEntityTypes<T>(...allowedEntityNames: string[]): EntityActions<EntityAction<T>>
+  ofEntityTypes<T>(...allowedEntityNames: any[]): EntityActions<EntityAction<T>> {
+    const names: string[]  = flattenArgs(allowedEntityNames);
+    return this.filter<T>(ea =>
+      ea.entityName && names.some(name => name === ea.entityName)
+    );
+  }
+
+  /**
+   * Entity actions concerning any of the given `EntityOp`s
+   * @param allowedOps - `EntityOp`s whose actions should pass through.
+   * Example:
+   * ```
+   *  this.actions$.ofOp(EntityOp.QUERY_ALL, EntityOp.QUERY_MANY)
+   *  this.actions$.ofOp(...queryOps)
+   *  this.actions$.ofOp(queryOps)
+   * ```
+   */
+  ofOp(allowedOps: string[] | EntityOp[]): EntityActions<EntityAction>
+  ofOp(...allowedOps: (string | EntityOp)[]): EntityActions<EntityAction>
+  ofOp(...allowedOps: any[]) {
+    // string is the runtime type of an EntityOp enum
+    const ops: string[] = flattenArgs(allowedOps);
+    return this.filter(ea => ea.op && ops.some(op => op === ea.op));
+  }
+
+  /**
+   * Entity actions of the given type(s)
+   * @param allowedTypes - `Action.type`s whose actions should pass through.
+   * Example:
+   * ```
+   *  this.actions$.ofTypes('GET_ALL_HEROES', 'GET_ALL_SIDEKICKS')
+   *  this.actions$.ofTypes(...someTypes)
+   *  this.actions$.ofTypes(someTypes)
+   * ```
+   */
+  ofType<T>(allowedTypes: string[]): EntityActions<EntityAction<T>>
+  ofType<T>(...allowedTypes: string[]): EntityActions<EntityAction<T>>
+  ofType<T>(...allowedTypes: any[]): EntityActions<EntityAction<T>> {
+    const types: string[] = flattenArgs(allowedTypes);
+    return this.filter<T>(ea =>
+      !!ea.entityName && types.some(type => type === ea.type)
+    );
+  }
+
+  /**
+   * Continue emitting actions until the `notifier` says stop.
+   * When the `notifier` emits a next value, this observable completes
+   * and subscribers are unsubscribed.
+   * Uses RxJS `takeUntil().`
+   * @param notifier - observable that stops the source with a `next()`.
+   * Example:
+   *  this.actions$.ofEntityType(Hero).until<Hero>(this.onDestroy);
+   */
+  until<T>(notifier: Observable<any>): EntityActions<EntityAction<T>> {
+    return takeUntil<EntityAction<T>>(notifier)(this) as EntityActions<EntityAction<T>>;
   }
 }

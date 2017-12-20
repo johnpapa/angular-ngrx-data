@@ -4,12 +4,7 @@ import { EntityFilterFn } from './entity-filters';
 import { EntityCollectionReducer, createEntityCollectionReducer } from './entity.reducer';
 import { EntityClass, getEntityName } from './interfaces';
 import { EntityMetadata } from './entity-metadata';
-import {
-  createEntitySelectors,
-  createEntitySelectors$Factory,
-  EntitySelectors,
-  EntitySelectors$Factory
-} from './entity.selectors';
+import { createEntitySelectors, EntitySelectors } from './entity.selectors';
 
 export interface EntityCollection<T> extends EntityState<T> {
   filter: string;
@@ -23,7 +18,6 @@ export interface EntityDefinition<T> {
   metadata: EntityMetadata<T>;
   reducer: EntityCollectionReducer<T>;
   selectors: EntitySelectors<T>;
-  selectors$Factory: EntitySelectors$Factory<T>;
 }
 
 export interface EntityDefinitions {
@@ -56,15 +50,12 @@ export function createEntityDefinition<T>(
 
   const selectors = createEntitySelectors<T>(entityName, metadata.filterFn);
 
-  const selectors$Factory = createEntitySelectors$Factory<T>(entityName, initialState, selectors);
-
   return {
     entityName,
     entityAdapter,
     initialState,
     metadata,
     reducer,
-    selectors,
-    selectors$Factory
+    selectors
   };
 }

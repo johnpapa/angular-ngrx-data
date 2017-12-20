@@ -1,5 +1,5 @@
 /////////////////
-// Copied from @ngrx/entity/models because that lib doesn't export them
+// Copied from `@ngrx/entity/models` because that lib doesn't export them
 // and we need them here
 export type ComparerStr<T> = (a: T, b: T) => string;
 export type ComparerNum<T> = (a: T, b: T) => number;

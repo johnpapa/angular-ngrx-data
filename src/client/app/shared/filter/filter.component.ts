@@ -12,7 +12,7 @@ import { EntityService } from '../../../ngrx-data';
   styleUrls: ['./filter.component.scss']
 })
 export class FilterComponent implements OnDestroy, OnInit {
-  @Input() entityType: string;
+  @Input() entityService: EntityService<any>;
   @Input() filterPlaceholder: string;
 
   filter: FormControl = new FormControl();
@@ -20,20 +20,16 @@ export class FilterComponent implements OnDestroy, OnInit {
 
   private onDestroy = new Subject();
 
-  constructor(private entityService: EntityService) {}
-
   ngOnInit() {
     // Set the filter to the current value from store or ''
-    const ss = this.entityService.getSelectors$(this.entityType);
-    ss.selectFilter$
+    this.entityService.filter$
       .pipe(
         take(1)
         // always completes so no need to unsubscribe
       )
       .subscribe(value => this.filter.setValue(value));
 
-    const ds = this.entityService.getDispatcher(this.entityType);
-    this.updateFilter = ds.setFilter.bind(ds);
+    this.updateFilter = this.entityService.setFilter.bind(this.entityService);
     this.filter.valueChanges
       .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
       .subscribe(pattern => this.updateFilter(pattern));

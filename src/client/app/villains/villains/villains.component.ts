@@ -2,14 +2,16 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityDispatcher, EntityService, EntitySelectors$ } from '../../../ngrx-data';
+import {
+  EntityAction, EntityActions, EntityDispatcher, EntitySelectors$,
+  EntityService, EntityServiceFactory, OP_ERROR, OP_SUCCESS
+} from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, skip, takeUntil, take, tap } from 'rxjs/operators';
+import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
 
 import { Villain, ToastService } from '../../core';
-import { pipe } from 'rxjs/util/pipe';
 
 @Component({
   selector: 'app-villain-search',
@@ -21,36 +23,36 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   addingVillain = false;
   selectedVillain: Villain = null;
 
+  actions$: EntityActions<Villain>;
+  dataSource$: Observable<string>;
   filteredVillains$: Observable<Villain[]>;
-  villains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
-  dataSource$ = this.appSelectors.dataSource$();
 
+  villainService: EntityService<Villain>;
   private onDestroy = new Subject();
-  private villainDispatcher: EntityDispatcher<Villain>;
-  private villainSelector: EntitySelectors$<Villain>;
 
   constructor(
-    private entityService: EntityService,
-    private appSelectors: AppSelectors,
+    entityServiceFactory: EntityServiceFactory,
+    appSelectors: AppSelectors,
     private toast: ToastService
   ) {
-    this.villainDispatcher = entityService.getDispatcher(Villain);
-    this.villainSelector = entityService.getSelectors$(Villain);
+    this.dataSource$ = appSelectors.dataSource$();
+    this.villainService = entityServiceFactory.create<Villain>('Villain');
+    this.filteredVillains$ = this.villainService.filteredEntities$;
+    this.loading$ = this.villainService.loading$;
   }
 
   ngOnInit() {
-    this.filteredVillains$ = this.villainSelector.selectFilteredEntities$;
-    this.villains$ = this.villainSelector.selectAll$;
-    this.loading$ = this.villainSelector.selectLoading$;
-
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe((value: string) => this.getVillains());
 
-    this.villains$
-      .pipe(takeUntil(this.onDestroy), skip(1))
-      .subscribe(villains => this.toast.openSnackBar('Fetched Villains', 'GET'));
+    this.villainService.actions$
+      .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
+      .until(this.onDestroy)
+      .subscribe(
+        action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
+      );
   }
 
   ngOnDestroy() {
@@ -64,7 +66,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
   deleteVillain(villain: Villain) {
     this.unselect();
-    this.villainDispatcher.delete(villain.id);
+    this.villainService.delete(villain.id);
   }
 
   enableAddMode() {
@@ -73,7 +75,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   }
 
   getVillains() {
-    this.villainDispatcher.getAll();
+    this.villainService.getAll();
     this.unselect();
   }
 
@@ -83,11 +85,11 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   }
 
   update(villain: Villain) {
-    this.villainDispatcher.update(villain);
+    this.villainService.update(villain);
   }
 
   add(villain: Villain) {
-    this.villainDispatcher.add(villain);
+    this.villainService.add(villain);
   }
 
   unselect() {

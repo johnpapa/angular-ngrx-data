@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
-import { Store, createSelector, Selector } from '@ngrx/store';
+import { Store, createFeatureSelector, createSelector, Selector } from '@ngrx/store';
 import { Dictionary } from './ngrx-entity-models';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME, entityName } from './interfaces';
 import { EntityCollection } from './entity-definition';
 import { EntityFilterFn } from './entity-filters';
 
@@ -40,8 +40,15 @@ export interface EntitySelectors$<T> {
   [selector: string]: Observable<any> | Store<any>;
 }
 
-/** Creates the selector for the path from the EntityCache through the Collection */
-export function cachedCollectionSelector<T>(
+/**
+ * Creates the selector for the path from the EntityCache through the Collection
+ * @param collectionName - which is also the entity name
+ * @param cacheSelector - selects the EntityCache from the store.
+ * @param initialState - initial state of the collection,
+ * used if the collection is undefined when the selector is invoked
+ * (as happens with time-travel debugging).
+ */
+export function createCachedCollectionSelector<T>(
   collectionName: string,
   cacheSelector: Selector<Object, EntityCache>,
   initialState: {}
@@ -50,45 +57,48 @@ export function cachedCollectionSelector<T>(
   return createSelector(cacheSelector, getCollection);
 }
 
+export const defaultEntityCacheSelector = createFeatureSelector<EntityCache>(ENTITY_CACHE_NAME);
+
 /**
- * Create factory that creates Entity Collection Selector-Observables for a given EntityCache store
- */
-export function createEntitySelectors$Factory<T>(
-  collectionName: string,
+ * Creates an entity collection's selectors$ for a given EntityCache store.
+ * `selectors$` are observable selectors of the cached entity collection.
+ * @param entityName - is also the name of the collection.
+ * @param cacheSelector - an ngrx/entity Selector that selects
+ * @param initialState - initial state of the collection,
+ * used if the collection is undefined when the selector is invoked
+ * (as happens with time-travel debugging).
+ * @param selectors - selector functions for this collection.
+ * @param store - EntityCache store with the entity collections.
+ **/
+export function createEntitySelectors$<T>(
+  entityName: string,
+  cacheSelector: Selector<Object, EntityCache>,
   initialState: any,
   selectors: EntitySelectors<T>,
-) {
-  /**
-   * Create Entity Collection Selector-Observables for a given EntityCache  store
-   * @param store - EntityCache store with the entity collections
-   * @param cacheSelector - ngrx/entity Selector that selects the EntityCache in the store.
-   **/
-  return function entitySelectors$Factory(
-    store: Store<EntityCache>,
-    cacheSelector: Selector<Object, EntityCache>
-  ) {
-    const cc = cachedCollectionSelector(collectionName, cacheSelector, initialState);
-    const collection$ = store.select(cc);
-
-    const selectors$: Partial<EntitySelectors$<T>> = {};
-    // tslint:disable-next-line:forin
-    for (const selector in selectors) {
-      selectors$[selector + '$'] = collection$.select(selectors[selector]);
-    }
-    return selectors$ as EntitySelectors$<T>;
-  };
-}
-
-export type EntitySelectors$Factory<T> = (
   store: Store<EntityCache>,
-  cacheSelector: Selector<Object, EntityCache>
-) => EntitySelectors$<T>;
+) {
+  const cc = createCachedCollectionSelector(entityName, cacheSelector, initialState);
+  const collection$ = store.select(cc);
 
+  const selectors$: Partial<EntitySelectors$<T>> = {};
+
+  Object.keys(selectors).forEach(selector =>
+    selectors$[selector + '$'] = collection$.select(selectors[selector])
+  );
+  return selectors$ as EntitySelectors$<T>;
+};
+
+/**
+ * Creates the ngrx/entity selectors or selector functions for an entity collection
+ * that an {EntitySelectors$Factory} turns into selectors$.
+ * @param entityName - name of the entity for this collection
+ * @param filterFn - the collection's {EntityFilterFn}.
+ */
 export function createEntitySelectors<T>(
   entityName: string,
   filterFn?: EntityFilterFn<T>
 ): EntitySelectors<T> {
-  // Mostly copied from `state_selectors.ts`
+  // Mostly copied from `@ngrx/entity/state_selectors.ts`
   const selectKeys = (c: EntityCollection<T>) => c.ids;
   const selectEntities = (c: EntityCollection<T>) => c.entities;
 
@@ -100,7 +110,7 @@ export function createEntitySelectors<T>(
 
   const selectCount = createSelector(selectKeys, keys => keys.length);
 
-  // EntityCollection selectors (beyond EntityState selectors)
+  // EntityCollection selectors that go beyond the ngrx/entity/EntityState selectors
   const selectFilter = (c: EntityCollection<T>) => c.filter;
 
   const selectFilteredEntities = filterFn

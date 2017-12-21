@@ -19,6 +19,7 @@
     "dev": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "start": "node index.js",
     "debug": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
+    "serve-dist": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect dist/index.js",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
   },

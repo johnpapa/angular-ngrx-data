@@ -1,6 +1,6 @@
 import { Action } from '@ngrx/store';
 
-export const TOGGLE_DATASOURCE = '[Session] TOGGLE_DATASOURCE';
+export const TOGGLE_DATASOURCE = 'TOGGLE_DATASOURCE [SESSION] ';
 
 export class ToggleDataSource implements Action {
   readonly type = TOGGLE_DATASOURCE;

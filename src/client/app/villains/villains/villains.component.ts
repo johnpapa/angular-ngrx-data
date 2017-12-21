@@ -3,8 +3,14 @@ import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
 import {
-  EntityAction, EntityActions, EntityDispatcher, EntitySelectors$,
-  EntityService, EntityServiceFactory, OP_ERROR, OP_SUCCESS
+  EntityAction,
+  EntityActions,
+  EntityDispatcher,
+  EntitySelectors$,
+  EntityService,
+  EntityServiceFactory,
+  OP_ERROR,
+  OP_SUCCESS
 } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
@@ -50,9 +56,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
     this.villainService.actions$
       .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
       .until(this.onDestroy)
-      .subscribe(
-        action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
-      );
+      .subscribe(action => this.toast.openSnackBar(`${action.entityName} action`, action.op));
   }
 
   ngOnDestroy() {

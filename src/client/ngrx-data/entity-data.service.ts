@@ -71,10 +71,7 @@ export class EntityDataService {
    *   registerService('Hero', MyHeroDataService);
    *   registerService('Villain', MyVillainDataService);
    */
-  registerService<T>(
-    entityName: string,
-    service: EntityCollectionDataService<T>
-  ) {
+  registerService<T>(entityName: string, service: EntityCollectionDataService<T>) {
     this.services[entityName.trim()] = service;
   }
 

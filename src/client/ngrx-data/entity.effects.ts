@@ -21,11 +21,8 @@ const persistOps = [
 
 @Injectable()
 export class EntityEffects {
-
   @Effect()
-  persist$ = this.actions$.ofOp(persistOps).pipe(
-    concatMap(action => this.persist(action))
-  );
+  persist$ = this.actions$.ofOp(persistOps).pipe(concatMap(action => this.persist(action)));
 
   private persist(action: EntityAction) {
     try {
@@ -62,8 +59,7 @@ export class EntityEffects {
     }
   }
 
-  constructor(private actions$: EntityActions, private dataService: EntityDataService) { }
-
+  constructor(private actions$: EntityActions, private dataService: EntityDataService) {}
 }
 
 function handleSuccess(action: EntityAction) {

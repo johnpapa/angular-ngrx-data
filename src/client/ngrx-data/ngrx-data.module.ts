@@ -3,9 +3,14 @@ import { ActionReducer, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
 import { EntityActions } from './entity.actions';
-import { EntityCache, ENTITY_CACHE_NAME, ENTITY_CACHE_NAME_TOKEN,
-  ENTITY_METADATA_TOKEN, ENTITY_REDUCER_TOKEN,
-  PLURAL_NAMES_TOKEN } from './interfaces';
+import {
+  EntityCache,
+  ENTITY_CACHE_NAME,
+  ENTITY_CACHE_NAME_TOKEN,
+  ENTITY_METADATA_TOKEN,
+  ENTITY_REDUCER_TOKEN,
+  PLURAL_NAMES_TOKEN
+} from './interfaces';
 import { EntityDataService, EntityDataServiceConfig } from './entity-data.service';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityEffects } from './entity.effects';

@@ -67,10 +67,10 @@ export class EntityAction<T extends Object = Object, P = any> implements Action 
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
-    this.entityName =
-      (nameOrAction instanceof EntityAction
-        ? nameOrAction.entityName
-        : nameOrAction).trim();
+    this.entityName = (nameOrAction instanceof EntityAction
+      ? nameOrAction.entityName
+      : nameOrAction
+    ).trim();
     this.type = EntityAction.formatActionTypeName(op, this.entityName);
   }
 }
@@ -82,7 +82,6 @@ export class EntityAction<T extends Object = Object, P = any> implements Action 
  */
 @Injectable()
 export class EntityActions<V = any> extends Observable<EntityAction<V>> {
-
   // Inject the ngrx/entity Actions observable that watches dispatches to the store
   constructor(source?: Actions) {
     super();
@@ -106,8 +105,8 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
     const observable = new EntityActions();
     observable.source = this;
     // "Force-casts" below because can't change signature of Lift.
-    observable.operator = <Operator<any, EntityAction>> <any> operator;
-    return <Observable<R>> <any> observable;
+    observable.operator = <Operator<any, EntityAction>>(<any>operator);
+    return <Observable<R>>(<any>observable);
   }
 
   /**
@@ -141,13 +140,11 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
    *  this.actions$.ofEntityTypes(theChosen)
    * ```
    */
-  ofEntityTypes<T>(allowedEntityNames: string[]): EntityActions<T>
-  ofEntityTypes<T>(...allowedEntityNames: string[]): EntityActions<T>
+  ofEntityTypes<T>(allowedEntityNames: string[]): EntityActions<T>;
+  ofEntityTypes<T>(...allowedEntityNames: string[]): EntityActions<T>;
   ofEntityTypes<T>(...allowedEntityNames: any[]): EntityActions<T> {
-    const names: string[]  = flattenArgs(allowedEntityNames);
-    return this.filter<T>(ea =>
-      ea.entityName && names.some(name => name === ea.entityName)
-    );
+    const names: string[] = flattenArgs(allowedEntityNames);
+    return this.filter<T>(ea => ea.entityName && names.some(name => name === ea.entityName));
   }
 
   /**
@@ -160,8 +157,8 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
    *  this.actions$.ofOp(queryOps)
    * ```
    */
-  ofOp(allowedOps: string[] | EntityOp[]): EntityActions
-  ofOp(...allowedOps: (string | EntityOp)[]): EntityActions
+  ofOp(allowedOps: string[] | EntityOp[]): EntityActions;
+  ofOp(...allowedOps: (string | EntityOp)[]): EntityActions;
   ofOp(...allowedOps: any[]) {
     // string is the runtime type of an EntityOp enum
     const ops: string[] = flattenArgs(allowedOps);
@@ -178,13 +175,11 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
    *  this.actions$.ofTypes(someTypes)
    * ```
    */
-  ofType<T>(allowedTypes: string[]): EntityActions<T>
-  ofType<T>(...allowedTypes: string[]): EntityActions<T>
+  ofType<T>(allowedTypes: string[]): EntityActions<T>;
+  ofType<T>(...allowedTypes: string[]): EntityActions<T>;
   ofType<T>(...allowedTypes: any[]): EntityActions<T> {
     const types: string[] = flattenArgs(allowedTypes);
-    return this.filter<T>(ea =>
-      !!ea.entityName && types.some(type => type === ea.type)
-    );
+    return this.filter<T>(ea => !!ea.entityName && types.some(type => type === ea.type));
   }
 
   /**

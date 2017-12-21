@@ -80,7 +80,6 @@ export interface EntityService<T> {
 
 @Injectable()
 export class EntityServiceFactory {
-
   private cacheSelector: Selector<Object, EntityCache>;
   private selectors$Map: { [entityName: string]: EntitySelectors$<any> } = {};
 
@@ -99,7 +98,12 @@ export class EntityServiceFactory {
     const dispatcher = new EntityDispatcher<T>(entityName, this.store);
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
     const selectors$ = createEntitySelectors$<T>(
-      entityName, this.cacheSelector, def.initialState, def.selectors, this.store);
+      entityName,
+      this.cacheSelector,
+      def.initialState,
+      def.selectors,
+      this.store
+    );
 
     // map the ngrx/entity standard selector names to preferred EntityService selector names
     const {

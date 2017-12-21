@@ -15,8 +15,7 @@ export const ENTITY_METADATA_TOKEN = new InjectionToken<EntityMetadataMap>('ENTI
 export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache>>(
   'Entity Reducer'
 );
-export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string; }>('PLURAL_NAMES');
-
+export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('PLURAL_NAMES');
 
 export abstract class EntityCollectionDataService<T> {
   abstract getAll(options?: any): Observable<T[]>;

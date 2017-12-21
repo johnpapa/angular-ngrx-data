@@ -75,18 +75,18 @@ export function createEntitySelectors$<T>(
   cacheSelector: Selector<Object, EntityCache>,
   initialState: any,
   selectors: EntitySelectors<T>,
-  store: Store<EntityCache>,
+  store: Store<EntityCache>
 ) {
   const cc = createCachedCollectionSelector(entityName, cacheSelector, initialState);
   const collection$ = store.select(cc);
 
   const selectors$: Partial<EntitySelectors$<T>> = {};
 
-  Object.keys(selectors).forEach(selector =>
-    selectors$[selector + '$'] = collection$.select(selectors[selector])
+  Object.keys(selectors).forEach(
+    selector => (selectors$[selector + '$'] = collection$.select(selectors[selector]))
   );
   return selectors$ as EntitySelectors$<T>;
-};
+}
 
 /**
  * Creates the ngrx/entity selectors or selector functions for an entity collection

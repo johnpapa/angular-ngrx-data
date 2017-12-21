@@ -19,12 +19,8 @@ export interface EntityCollectionReducers {
 
 /** Create the reducer for the EntityCache */
 export function createEntityReducer(entityDefinitionService: EntityDefinitionService) {
-
   /** Perform Actions against the entity collections in the EntityCache */
-  return function entityReducer(
-    state: EntityCache = {},
-    action: EntityAction
-  ): EntityCache {
+  return function entityReducer(state: EntityCache = {}, action: EntityAction): EntityCache {
     const entityName = action.entityName;
     if (!entityName) {
       return state; // not an EntityAction

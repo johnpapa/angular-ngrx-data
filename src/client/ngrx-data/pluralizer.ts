@@ -11,7 +11,7 @@ export class _Pluralizer {
   constructor(
     @Optional()
     @Inject(PLURAL_NAMES_TOKEN)
-    private pluralNames: { [name: string]: string; }
+    private pluralNames: { [name: string]: string }
   ) {
     this.pluralNames = pluralNames || {};
   }

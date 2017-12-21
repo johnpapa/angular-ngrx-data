@@ -1,16 +1,16 @@
 import { Store } from '@ngrx/store';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCache, EntityClass, getEntityName } from './interfaces';
+import { EntityCache } from './interfaces';
 
 /**
  * Dispatches Entity-related commands to effects and reducers
  */
 export class EntityDispatcher<T> {
-  constructor(private entityType: EntityClass<T> | string, private store: Store<EntityCache>) {}
+  constructor(private entityName: string, private store: Store<EntityCache>) {}
 
   private dispatch(op: EntityOp, payload?: any) {
-    this.store.dispatch(new EntityAction(this.entityType, op, payload));
+    this.store.dispatch(new EntityAction(this.entityName, op, payload));
   }
 
   /**

@@ -23,16 +23,18 @@ export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
 
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
+    entityName: 'Hero', // required
     selectId, // not necessary but shows you can supply a function
     sortComparer: sortByName,
     filterFn: nameFilter
   },
   Villain: {
+    entityName: 'Villain', // required
     filterFn: nameAndSayingFilter
   }
 };
 
 export const pluralNames = {
-  // Case matters. Match the case of the class name.
+  // Case matters. Match the case of the entity name.
   Hero: 'Heroes'
 };

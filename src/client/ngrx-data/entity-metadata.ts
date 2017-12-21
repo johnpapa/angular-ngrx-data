@@ -7,7 +7,7 @@ export interface EntityMetadataMap {
 }
 
 export interface EntityMetadata<T> {
-  entityName?: string;
+  entityName: string;
   filterFn?: EntityFilterFn<T>;
   selectId?: IdSelector<T>;
   sortComparer?: false | Comparer<T>;

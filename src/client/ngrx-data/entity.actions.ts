@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
-import { EntityClass, flattenArgs, getEntityName } from './interfaces';
+import { flattenArgs } from './interfaces';
 
 import { Observable } from 'rxjs/Observable';
 import { Operator } from 'rxjs/Operator';
@@ -63,14 +63,14 @@ export class EntityAction<T extends Object = Object, P = any> implements Action 
   }
 
   constructor(
-    classOrAction: EntityClass<T> | string | EntityAction<T, any>,
+    nameOrAction: string | EntityAction<T, any>,
     public readonly op: EntityOp,
     public readonly payload?: P
   ) {
     this.entityName =
-      classOrAction instanceof EntityAction
-        ? classOrAction.entityName
-        : getEntityName(classOrAction);
+      (nameOrAction instanceof EntityAction
+        ? nameOrAction.entityName
+        : nameOrAction).trim();
     this.type = EntityAction.formatActionTypeName(op, this.entityName);
   }
 }
@@ -121,14 +121,13 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
 
   /**
    * Entity actions of the given entity type
-   * @param entityClass - the entity type name or the entity class
+   * @param entityName - the entity type name or the entity class
    * Example:
-   *  this.actions$.ofEntityType(Hero) // Hero entity, typed by Hero class
    *  this.actions$.ofEntityType('Hero') // Hero entity, untyped
    *  this.actions$.ofEntityType<Hero>('Hero') // typed by Hero interface.
    */
-  ofEntityType<T>(entityClass: EntityClass<T> | string): EntityActions<T> {
-    const entityName = getEntityName(entityClass);
+  ofEntityType<T>(entityName: string): EntityActions<T> {
+    entityName = entityName.trim();
     return this.filter<T>(ea => entityName === ea.entityName);
   }
 
@@ -195,7 +194,7 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
    * Uses RxJS `takeUntil().`
    * @param notifier - observable that stops the source with a `next()`.
    * Example:
-   *  this.actions$.ofEntityType(Hero).until<Hero>(this.onDestroy);
+   *  this.actions$.ofEntityType<Hero>('Hero').until<Hero>(this.onDestroy);
    */
   until<T>(notifier: Observable<any>): EntityActions<T> {
     return takeUntil<EntityAction<T>>(notifier)(this) as EntityActions<T>;

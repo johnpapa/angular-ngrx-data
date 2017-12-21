@@ -26,19 +26,11 @@ export abstract class EntityCollectionDataService<T> {
   abstract update(entity: T): Observable<T>;
 }
 
-export type EntityClass<T extends Object> = new (...x: any[]) => T;
+export type entityName<T extends Object> = new (...x: any[]) => T;
 
 export interface EntityCache {
   // Must be `any` since we don't know what type of collections we will have
   [name: string]: EntityCollection<any>;
-}
-
-/**
- * Get name of the entity type (e.g. "Hero")
- * @param entityClass - the name of the entity type or the class itself
- */
-export function getEntityName<T>(entityClass: string | EntityClass<T>) {
-  return (typeof entityClass === 'string' ? entityClass : entityClass.name).trim();
 }
 
 /**

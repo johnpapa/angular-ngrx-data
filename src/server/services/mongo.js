@@ -7,13 +7,13 @@ mongoose.Promise = global.Promise;
 
 // Cosmos DB Connection String
 // eslint-disable-next-line max-len
+// &replicaSet=globaldb`;
 const mongoUri = `mongodb://${process.env.COSMOSDB_ACCOUNT}:${process.env.COSMOSDB_KEY}@${
   process.env.COSMOSDB_ACCOUNT
 }.documents.azure.com:${process.env.COSMOSDB_PORT}/${process.env.COSMOSDB_DB}?ssl=true`;
-//&replicaSet=globaldb`;
 
 // Local MongoDB Connection String
-// const mongoUri = `mongodb://localhost:27017/my-heroes`;
+// const mongoUri = `mongodb://localhost:27017/heroes-db`;
 
 function connect() {
   mongoose.set('debug', true);

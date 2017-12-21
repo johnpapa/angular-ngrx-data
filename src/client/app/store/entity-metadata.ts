@@ -23,13 +23,13 @@ export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
 
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
-    entityName: 'Hero', // required
+    entityName: 'Hero', // required for minification
     selectId, // not necessary but shows you can supply a function
     sortComparer: sortByName,
     filterFn: nameFilter
   },
   Villain: {
-    entityName: 'Villain', // required
+    entityName: 'Villain', // required for minification
     filterFn: nameAndSayingFilter
   }
 };

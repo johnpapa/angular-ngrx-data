@@ -47,13 +47,13 @@ export enum EntityOp {
   SET_FILTER = 'SET_FILTER'
 }
 
-/** "Success" suffix appended to EntityOps that are successful.*/
-export const OP_SUCCESS = '_SUCCESS';
-
-/** "Error" suffix appended to EntityOps that have failed.*/
-export const OP_ERROR = '_ERROR';
-
 export class EntityAction<T extends Object = Object, P = any> implements Action {
+
+  /** "Success" suffix appended to EntityOps that are successful.*/
+  static OP_SUCCESS  = '_SUCCESS';
+  /** "Error" suffix appended to EntityOps that have failed.*/
+  static OP_ERROR = '_ERROR';
+
   readonly type: string;
   readonly entityName: string;
 
@@ -95,7 +95,7 @@ export class EntityActions<V = any> extends Observable<EntityAction<V>> {
    * Filter actions based on a predicate.
    * @param predicate -returns true if EntityAction passes the test.
    * Example:
-   *  this.actions$.filter<Hero>(ea => ea.op.includes(OP_SUCCESS)) // Successful hero action
+   *  this.actions$.filter<Hero>(ea => ea.op.includes(EntityAction.OP_SUCCESS)) // Successful hero action
    */
   filter<T>(predicate: (ea: EntityAction<T>) => boolean) {
     return filter(predicate)(this) as EntityActions<T>;

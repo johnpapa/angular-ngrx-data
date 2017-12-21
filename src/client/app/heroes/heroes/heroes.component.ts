@@ -2,16 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import {
-  EntityAction,
-  EntityActions,
-  EntityDispatcher,
-  EntitySelectors$,
-  EntityService,
-  EntityServiceFactory,
-  OP_ERROR,
-  OP_SUCCESS
-} from '../../../ngrx-data';
+import { EntityAction, EntityActions, EntityService, EntityServiceFactory } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -54,7 +45,10 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
       .subscribe(value => this.getHeroes());
 
     this.heroService.actions$
-      .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
+      .filter(ea =>
+        ea.op.includes(EntityAction.OP_SUCCESS) ||
+        ea.op.includes(EntityAction.OP_ERROR)
+      )
       .until(this.onDestroy)
       .subscribe(action => this.toast.openSnackBar(`${action.entityName} action`, action.op));
   }

@@ -11,7 +11,7 @@ import { EntityDefinitionService } from './entity-definition.service';
 import { EntityEffects } from './entity.effects';
 import { EntityMetadataMap } from './entity-metadata';
 import { EntitySelectors } from './entity.selectors';
-import { EntityService } from './entity.service';
+import { EntityServiceFactory } from './entity.service';
 import { Pluralizer, _Pluralizer } from './pluralizer';
 
 export const entityEffects: any[] = [EntityEffects];
@@ -36,7 +36,7 @@ export interface NgrxDataModuleConfig {
     EntityDataService,
     EntityDataServiceConfig,
     EntityDefinitionService,
-    EntityService,
+    EntityServiceFactory,
     {
       provide: ENTITY_REDUCER_TOKEN,
       deps: [EntityDefinitionService],

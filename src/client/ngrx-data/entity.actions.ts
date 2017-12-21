@@ -96,7 +96,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    * Filter actions based on a predicate.
    * @param predicate -returns true if EntityAction passes the test.
    * Example:
-   *  this.actions$.ofEntity() // actions for  Heroes, Villains, ...
+   *  this.actions$.filter<Hero>(ea => ea.op.includes(OP_SUCCESS)) // Successful hero action
    */
   filter<T>(predicate: (ea: EntityAction<T>) => boolean) {
     return filter(predicate)(this) as EntityActions<EntityAction<T>>;

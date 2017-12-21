@@ -1,27 +1,88 @@
-import { Inject, Injectable, OnDestroy } from '@angular/core';
+import { Inject, Injectable } from '@angular/core';
 import { createFeatureSelector, Selector, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
 import { filter, share, takeUntil, tap } from 'rxjs/operators';
 
 import { EntityAction, EntityActions } from './entity.actions';
+import { Dictionary } from './ngrx-entity-models';
 
-import {
-  EntityCache, ENTITY_CACHE_NAME_TOKEN, EntityClass, getEntityName } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME_TOKEN } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors';
 
+// tslint:disable:member-ordering
+export interface EntityService<T> {
+  /*** COMMANDS ***/
+
+  /**
+   * Add an entity to the cache.
+   * Does not save to remote storage.
+   * Ignored if the entity is already in cache.
+   */
+  add(entity: T): void;
+
+  /** Clear the cached entity collection */
+  clear(): void;
+
+  /** Remove an entity by key from the cache. Does not delete from remote storage. */
+  delete(key: string | number): void;
+
+  /**
+   * Query remote storage for all entities and
+   * completely replace the cached collection with the queried entities.
+   */
+  getAll(options?: any): void;
+
+  /**
+   * Query remote storage for the entity with this primary key
+   * and replace the cached entity with the result if found.
+   */
+  getByKey(key: any): void;
+
+  /**
+   * Update the an entity to the cache.
+   * Does not save to remote storage.
+   * Ignored if the entity's key is not found in cache.
+   * The update entity may be partial (but must have its key)
+   * in which case it patches the existing entity.
+   */
+  update(entity: Partial<T>): void;
+
+  /**
+   * Set the pattern that the collection's filter applies
+   * when using the `filteredEntities` selector.
+   */
+  setFilter(pattern: any): void;
+
+  /*** QUERIES ***/
+
+  /** Observable of actions related to this entity type. */
+  actions$: EntityActions<T>;
+  /** Observable of count of entities in the cached collection. */
+  count$: Observable<number> | Store<number>;
+  /** Observable of all entities in the cached collection. */
+  entities$: Observable<T[]> | Store<T[]>;
+  /** Observable of the map of entity keys to entities */
+  entityKeyMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  /** Observable of the filter pattern applied by the entity collection's filter function */
+  filter$: Observable<string> | Store<string>;
+  /** Observable of entities in the cached collection that pass the filter function */
+  filteredEntities$: Observable<T[]> | Store<T[]>;
+  /** Observable of the keys of the cached collection, in the collection's native sort order */
+  keys$: Observable<string[] | number[]> | Store<string[] | number[]>;
+  /** Boolean Observable, true when a query command that is loading the collection is in progress. */
+  loading$: Observable<boolean> | Store<boolean>;
+}
+// tslint:enable:member-ordering
+/////////////////
+
 @Injectable()
-export class EntityService implements OnDestroy {
+export class EntityServiceFactory {
 
   private cacheSelector: Selector<Object, EntityCache>;
   private selectors$Map: { [entityName: string]: EntitySelectors$<any> } = {};
-  private onDestroy = new Subject();
-
-  /** Listen to any action related to entities. */
-  allEntityActions$: EntityActions;
 
   constructor(
     @Inject(ENTITY_CACHE_NAME_TOKEN) private cacheName: string,
@@ -31,59 +92,39 @@ export class EntityService implements OnDestroy {
   ) {
     // This service applies to the cache in ngrx/store named `cacheName`
     this.cacheSelector = createFeatureSelector(this.cacheName);
-
-    /** Observe dispatching of an Entity-related action */
-    this.allEntityActions$ = this.actions$.ofEntity()
-      .until(this.onDestroy);
-
   }
 
-  /** Listen to any action related to a given entity type. */
-  getEntityActions$<T>(entityClass: EntityClass<T> | string):
-    EntityActions<EntityAction<T>> {
-    return this.actions$.ofEntityType<T>(entityClass)
-      .until<T>(this.onDestroy);
-  }
+  create<T>(entityName: string): EntityService<T> {
+    entityName = entityName.trim();
+    const dispatcher = new EntityDispatcher<T>(entityName, this.store);
+    const def = this.entityDefinitionService.getDefinition<T>(entityName);
+    const selectors$ = createEntitySelectors$<T>(
+      entityName, this.cacheSelector, def.initialState, def.selectors, this.store);
 
-  /**
-   * Get (or create) an ngrx/store dispatcher for the entity type.
-   * @param entityClass - the class or the name of the type
-   *
-   * Examples:
-   *   getDispatcher('Hero'); // dispatcher for Heroes, untyped
-   *   getDispatcher(Hero);  // dispatcher for Heroes, typed with Hero class
-   *   getDispatcher<Hero>('Hero'); // dispatcher for Heroes, typed with Hero interface
-   */
-  getDispatcher<T>(entityClass: EntityClass<T> | string): EntityDispatcher<T> {
-    const entityName = getEntityName(entityClass);
-    return new EntityDispatcher<T>(entityName, this.store);
-  }
+    // map the ngrx/entity standard selector names to preferred EntityService selector names
+    const {
+      selectAll$: entities$,
+      selectCount$: count$,
+      selectEntities$: entityKeyMap$,
+      selectFilter$: filter$,
+      selectFilteredEntities$: filteredEntities$,
+      selectKeys$: keys$,
+      selectLoading$: loading$,
+      ...rest
+    } = selectors$;
 
-  /**
-   * Get (or create) the selector$ for the entity type's cached collection.
-   * The selectors$ are the cached collection Observables that
-   * consumers (e.g., components) subscribe to.
-   * @param entityClass - the class or the name of the type
-   *
-   * Examples:
-   *   getSelectors$('Hero'); // selectors$ for Heroes, untyped
-   *   getSelectors$(Hero);  // selectors$ for Heroes, typed with Hero class
-   *   getSelectors$<Hero>('Hero'); // selectors$ for Heroes, typed with Hero interface
-   */
-  getSelectors$<T>(entityClass: EntityClass<T> | string): EntitySelectors$<T> {
-    const entityName = getEntityName(entityClass);
-    let selectors$ = this.selectors$Map[entityName];
-    if (!selectors$) {
-      // Not in this service; create selectors$ and remember them.
-      const def = this.entityDefinitionService.getDefinition(entityClass);
-      selectors$ = createEntitySelectors$(
-        entityName, this.cacheSelector, def.initialState, def.selectors, this.store);
-      this.selectors$Map[entityName] = selectors$;
-    }
-    return selectors$;
-  }
+    const selectors$Mapped = {
+      actions$: this.actions$.ofEntityType<T>(entityName),
+      count$,
+      entityKeyMap$,
+      entities$,
+      filter$,
+      filteredEntities$,
+      keys$,
+      loading$,
+      ...rest
+    };
 
-  ngOnDestroy() {
-    this.onDestroy.next();
+    return Object.assign(dispatcher, selectors$Mapped);
   }
 }

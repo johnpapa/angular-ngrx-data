@@ -2,8 +2,10 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityAction, EntityActions, EntityDispatcher, EntitySelectors$,
-  EntityService, OP_ERROR, OP_SUCCESS } from '../../../ngrx-data';
+import {
+  EntityAction, EntityActions, EntityDispatcher, EntitySelectors$,
+  EntityService, EntityServiceFactory, OP_ERROR, OP_SUCCESS
+} from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -19,38 +21,35 @@ import { Hero, ToastService } from '../../core';
 })
 export class HeroSearchComponent implements OnDestroy, OnInit {
   addingHero = false;
-  selectedHero: Hero = null;
+  selectedHero: Hero;
 
+  actions$: EntityActions<Hero>;
+  dataSource$: Observable<string>;
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
-  dataSource$ = this.appSelectors.dataSource$();
 
+  heroService: EntityService<Hero>;
   private onDestroy = new Subject();
-  private heroDispatcher: EntityDispatcher<Hero>;
-  private heroSelectors: EntitySelectors$<Hero>;
-  private heroAction$: EntityActions<EntityAction<Hero>>;
 
   constructor(
-    entityService: EntityService,
-    private appSelectors: AppSelectors,
+    entityServiceFactory: EntityServiceFactory,
+    appSelectors: AppSelectors,
     private toast: ToastService
   ) {
-    this.heroDispatcher = entityService.getDispatcher(Hero);
-    this.heroSelectors = entityService.getSelectors$(Hero);
-    this.heroAction$ = entityService.getEntityActions$(Hero);
+    this.dataSource$ = appSelectors.dataSource$();
+    this.heroService = entityServiceFactory.create<Hero>('Hero');
+    this.filteredHeroes$ = this.heroService.filteredEntities$;
+    this.loading$ = this.heroService.loading$;
   }
 
   ngOnInit() {
-    this.filteredHeroes$ = this.heroSelectors.selectFilteredEntities$;
-    this.loading$ = this.heroSelectors.selectLoading$;
-
     this.dataSource$
       .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
       .subscribe(value => this.getHeroes());
 
-    this.heroAction$
+    this.heroService.actions$
       .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
-      .until<Hero>(this.onDestroy)
+      .until(this.onDestroy)
       .subscribe(
         action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
       );
@@ -67,7 +66,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroDispatcher.delete(hero.id);
+    this.heroService.delete(hero.id);
   }
 
   enableAddMode() {
@@ -76,7 +75,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   }
 
   getHeroes() {
-    this.heroDispatcher.getAll();
+    this.heroService.getAll();
     this.unselect();
   }
 
@@ -86,11 +85,11 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   }
 
   update(hero: Hero) {
-    this.heroDispatcher.update(hero);
+    this.heroService.update(hero);
   }
 
   add(hero: Hero) {
-    this.heroDispatcher.add(hero);
+    this.heroService.add(hero);
   }
 
   unselect() {

@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { EntityAction } from './entity.actions';
 
-import { EntityClass, EntityCollectionDataService, getEntityName } from './interfaces';
+import { EntityCollectionDataService } from './interfaces';
 
 @Injectable()
 export class EntityDataServiceConfig {
@@ -39,14 +39,14 @@ export class EntityDataService {
 
   /**
    * Get (or create) a data service for entity type
-   * @param entityClass - the name of the type or the class itself
+   * @param entityName - the name of the type
    *
    * Examples:
-   *   getService(Hero);   // data service for Heroes, typed as Hero
    *   getService('Hero'); // data service for Heroes, untyped
+   *   getService<Hero>('Hero'); // data service for Heroes, typed as Hero
    */
-  getService<T>(entityClass: string | EntityClass<T>): EntityCollectionDataService<T> {
-    const entityName = getEntityName(entityClass);
+  getService<T>(entityName: string): EntityCollectionDataService<T> {
+    entityName = entityName.trim();
     let service = this.services[entityName];
     if (!service) {
       const entitiesName = this.pluralizer.pluralize(entityName);
@@ -64,18 +64,18 @@ export class EntityDataService {
 
   /**
    * Register an EntityCollectionDataService for an entity type
-   * @param entityClass - the name of the entity type or the class itself
+   * @param entityName - the name of the entity type
    * @param service - data service for that entity type
    *
    * Examples:
-   *   registerService(Hero, MyHeroDataService);
+   *   registerService('Hero', MyHeroDataService);
    *   registerService('Villain', MyVillainDataService);
    */
   registerService<T>(
-    entityClass: string | EntityClass<T>,
+    entityName: string,
     service: EntityCollectionDataService<T>
   ) {
-    this.services[getEntityName(entityClass)] = service;
+    this.services[entityName.trim()] = service;
   }
 
   /**

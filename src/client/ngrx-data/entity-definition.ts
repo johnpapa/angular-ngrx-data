@@ -2,7 +2,6 @@ import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
 import { EntityFilterFn } from './entity-filters';
 import { EntityCollectionReducer, createEntityCollectionReducer } from './entity.reducer';
-import { EntityClass, getEntityName } from './interfaces';
 import { EntityMetadata } from './entity-metadata';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
 
@@ -25,16 +24,15 @@ export interface EntityDefinitions {
 }
 
 export function createEntityDefinition<T>(
-  entityClass: EntityClass<T> | string,
   metadata: EntityMetadata<T>,
   additionalCollectionState: {} = {}
 ) {
-  const entityName = getEntityName(entityClass) || metadata.entityName;
+  let entityName = metadata.entityName;
   if (!entityName) {
     throw new Error('Missing required entityName');
   }
 
-  metadata.entityName = metadata.entityName || entityName;
+  metadata.entityName = entityName = entityName.trim();
   metadata.selectId = metadata.selectId || ((entity: any) => entity.id);
 
   // extract known essential properties driving entity definition.

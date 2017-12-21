@@ -4,7 +4,7 @@ import { Store, Selector } from '@ngrx/store';
 
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { createEntityDefinition, EntityDefinition, EntityDefinitions } from './entity-definition';
-import { EntityCache, ENTITY_CACHE_NAME, EntityClass, ENTITY_METADATA_TOKEN, getEntityName } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME, ENTITY_METADATA_TOKEN } from './interfaces';
 import { createEntityReducer, EntityCollectionReducers } from './entity.reducer';
 import { EntitySelectors } from './entity.selectors';
 
@@ -30,15 +30,14 @@ export class EntityDefinitionService {
 
   /**
    * Get (or create) a data service for entity type
-   * @param entityClass - the name of the type or the class itself
+   * @param entityName - the name of the type
    *
    * Examples:
    *   getDefinition('Hero'); // definition for Heroes, untyped
-   *   getDefinition(Hero);   // definition for Heroes, typed with Hero class
    *   getDefinition<Hero>(`Hero`); // definition for Heroes, typed with Hero interface
    */
-  getDefinition<T>(entityClass: string | EntityClass<T>, shouldThrow = true): EntityDefinition<T> {
-    const entityName = getEntityName(entityClass);
+  getDefinition<T>(entityName: string, shouldThrow = true): EntityDefinition<T> {
+    entityName = entityName.trim();
     const definition = this.definitions[entityName];
     if (!definition && shouldThrow) {
       throw new Error(`No EntityDefinition for entity type "${entityName}".`);
@@ -55,12 +54,11 @@ export class EntityDefinitionService {
    *
    * Examples:
    *   registerMetadata('Hero', myHeroEntityDefinition); // untyped
-   *   registerMetadata(Hero, myHeroEntityDefinition); // typed, Hero is a class
    *   registerMetadata<Hero>('Hero', myHeroEntityDefinition); // typed, Hero is an interface
    */
-  registerMetadata<T>(entityType: EntityClass<T> | string, metadata: EntityMetadata<T>) {
+  registerMetadata<T>(entityName: string, metadata: EntityMetadata<T>) {
     if (metadata) {
-      const definition = createEntityDefinition(entityType, metadata);
+      const definition = createEntityDefinition(metadata);
       this.registerDefinition(definition);
     }
   }

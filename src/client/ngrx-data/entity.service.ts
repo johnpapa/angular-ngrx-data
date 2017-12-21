@@ -59,7 +59,7 @@ export interface EntityService<T> {
   /*** QUERIES ***/
 
   /** Observable of actions related to this entity type. */
-  actions$: EntityActions<EntityAction<T>>;
+  actions$: EntityActions<T>;
   /** Observable of count of entities in the cached collection. */
   count$: Observable<number> | Store<number>;
   /** Observable of all entities in the cached collection. */

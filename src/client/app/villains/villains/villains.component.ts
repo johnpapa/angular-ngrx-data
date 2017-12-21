@@ -23,7 +23,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   addingVillain = false;
   selectedVillain: Villain = null;
 
-  actions$: EntityActions<EntityAction<Villain>>;
+  actions$: EntityActions<Villain>;
   dataSource$: Observable<string>;
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
@@ -49,7 +49,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
     this.villainService.actions$
       .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
-      .until<Villain>(this.onDestroy)
+      .until(this.onDestroy)
       .subscribe(
         action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
       );

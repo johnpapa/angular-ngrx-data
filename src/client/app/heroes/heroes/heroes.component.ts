@@ -23,7 +23,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   addingHero = false;
   selectedHero: Hero;
 
-  actions$: EntityActions<EntityAction<Hero>>;
+  actions$: EntityActions<Hero>;
   dataSource$: Observable<string>;
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
@@ -48,8 +48,8 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
       .subscribe(value => this.getHeroes());
 
     this.heroService.actions$
-      .filter<Hero>(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
-      .until<Hero>(this.onDestroy)
+      .filter(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
+      .until(this.onDestroy)
       .subscribe(
         action => this.toast.openSnackBar(`${action.entityName} action`, action.op)
       );

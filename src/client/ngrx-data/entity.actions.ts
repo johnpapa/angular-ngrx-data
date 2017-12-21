@@ -81,7 +81,7 @@ export class EntityAction<T extends Object = Object, P = any> implements Action 
  * Imitates `Actions.ofType()` in ngrx/entity.
  */
 @Injectable()
-export class EntityActions<V extends EntityAction = EntityAction> extends Observable<V> {
+export class EntityActions<V = any> extends Observable<EntityAction<V>> {
 
   // Inject the ngrx/entity Actions observable that watches dispatches to the store
   constructor(source?: Actions) {
@@ -99,7 +99,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    *  this.actions$.filter<Hero>(ea => ea.op.includes(OP_SUCCESS)) // Successful hero action
    */
   filter<T>(predicate: (ea: EntityAction<T>) => boolean) {
-    return filter(predicate)(this) as EntityActions<EntityAction<T>>;
+    return filter(predicate)(this) as EntityActions<T>;
   }
 
   lift<R>(operator: Operator<V, R>): Observable<R> {
@@ -115,7 +115,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    * Example:
    *  this.actions$.ofEntity() // actions for  Heroes, Villains, ...
    */
-  ofEntity<T>(): EntityActions<EntityAction<T>> {
+  ofEntity<T>(): EntityActions<T> {
     return this.filter<T>(ea => !!ea.entityName);
   }
 
@@ -127,7 +127,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    *  this.actions$.ofEntityType('Hero') // Hero entity, untyped
    *  this.actions$.ofEntityType<Hero>('Hero') // typed by Hero interface.
    */
-  ofEntityType<T>(entityClass: EntityClass<T> | string): EntityActions<EntityAction<T>> {
+  ofEntityType<T>(entityClass: EntityClass<T> | string): EntityActions<T> {
     const entityName = getEntityName(entityClass);
     return this.filter<T>(ea => entityName === ea.entityName);
   }
@@ -142,9 +142,9 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    *  this.actions$.ofEntityTypes(theChosen)
    * ```
    */
-  ofEntityTypes<T>(allowedEntityNames: string[]): EntityActions<EntityAction<T>>
-  ofEntityTypes<T>(...allowedEntityNames: string[]): EntityActions<EntityAction<T>>
-  ofEntityTypes<T>(...allowedEntityNames: any[]): EntityActions<EntityAction<T>> {
+  ofEntityTypes<T>(allowedEntityNames: string[]): EntityActions<T>
+  ofEntityTypes<T>(...allowedEntityNames: string[]): EntityActions<T>
+  ofEntityTypes<T>(...allowedEntityNames: any[]): EntityActions<T> {
     const names: string[]  = flattenArgs(allowedEntityNames);
     return this.filter<T>(ea =>
       ea.entityName && names.some(name => name === ea.entityName)
@@ -161,8 +161,8 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    *  this.actions$.ofOp(queryOps)
    * ```
    */
-  ofOp(allowedOps: string[] | EntityOp[]): EntityActions<EntityAction>
-  ofOp(...allowedOps: (string | EntityOp)[]): EntityActions<EntityAction>
+  ofOp(allowedOps: string[] | EntityOp[]): EntityActions
+  ofOp(...allowedOps: (string | EntityOp)[]): EntityActions
   ofOp(...allowedOps: any[]) {
     // string is the runtime type of an EntityOp enum
     const ops: string[] = flattenArgs(allowedOps);
@@ -179,9 +179,9 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    *  this.actions$.ofTypes(someTypes)
    * ```
    */
-  ofType<T>(allowedTypes: string[]): EntityActions<EntityAction<T>>
-  ofType<T>(...allowedTypes: string[]): EntityActions<EntityAction<T>>
-  ofType<T>(...allowedTypes: any[]): EntityActions<EntityAction<T>> {
+  ofType<T>(allowedTypes: string[]): EntityActions<T>
+  ofType<T>(...allowedTypes: string[]): EntityActions<T>
+  ofType<T>(...allowedTypes: any[]): EntityActions<T> {
     const types: string[] = flattenArgs(allowedTypes);
     return this.filter<T>(ea =>
       !!ea.entityName && types.some(type => type === ea.type)
@@ -197,7 +197,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
    * Example:
    *  this.actions$.ofEntityType(Hero).until<Hero>(this.onDestroy);
    */
-  until<T>(notifier: Observable<any>): EntityActions<EntityAction<T>> {
-    return takeUntil<EntityAction<T>>(notifier)(this) as EntityActions<EntityAction<T>>;
+  until<T>(notifier: Observable<any>): EntityActions<T> {
+    return takeUntil<EntityAction<T>>(notifier)(this) as EntityActions<T>;
   }
 }

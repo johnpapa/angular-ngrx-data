@@ -6,7 +6,7 @@ import { EntityCollectionDataService } from './interfaces';
 
 @Injectable()
 export class EntityDataServiceConfig {
-  api? = '/api';
+  api? = 'api';
   getDelay? = 0;
   saveDelay? = 0;
   timeout? = 0;
@@ -17,23 +17,24 @@ import { Pluralizer } from './pluralizer';
 
 @Injectable()
 export class EntityDataService {
-  api: string; // base of data service URL, like '/api'
+  api: string; // base of data service URL, like 'api'
   // Fake delays to simulate network latency
   getDelay: number;
   saveDelay: number;
   timeout: number;
 
-  private services: { [name: string]: EntityCollectionDataService<any> } = {};
+  protected services: { [name: string]: EntityCollectionDataService<any> } = {};
+
 
   // TODO:  Optionally inject specialized entity data services
   // for those that aren't derived from BaseDataService.
   constructor(
     config: EntityDataServiceConfig,
-    private http: HttpClient,
-    private pluralizer: Pluralizer
+    protected http: HttpClient,
+    protected pluralizer: Pluralizer
   ) {
     config = config || {};
-    this.api = config.api != null ? '/api' : config.api;
+    this.api = config.api != null ? 'api' : config.api;
     this.getDelay = config.getDelay || 0;
     this.saveDelay = config.saveDelay || 0;
     this.timeout = config.timeout || 0;

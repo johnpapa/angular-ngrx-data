@@ -4,14 +4,12 @@ import { Dictionary } from './ngrx-entity-models';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityCache, ENTITY_CACHE_NAME, entityName } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME } from './interfaces';
 import { EntityCollection } from './entity-definition';
 import { EntityFilterFn } from './entity-filters';
 
 /**
  * The selector functions for entity collection members.
- * Most consumers will want the {EntitySelectors$} but
- * some may need to build custom combination selectors from this set.
  */
 export interface EntitySelectors<T> {
   selectKeys: Selector<EntityCollection<T>, string[] | number[]>;
@@ -21,8 +19,6 @@ export interface EntitySelectors<T> {
   selectFilter: Selector<EntityCollection<T>, string>;
   selectFilteredEntities: Selector<EntityCollection<T>, T[]>;
   selectLoading: Selector<EntityCollection<T>, boolean>;
-
-  [selector: string]: Selector<EntityCollection<T>, any>;
 }
 
 /**
@@ -36,8 +32,6 @@ export interface EntitySelectors$<T> {
   selectFilter$: Observable<string> | Store<string>;
   selectFilteredEntities$: Observable<T[]> | Store<T[]>;
   selectLoading$: Observable<boolean> | Store<boolean>;
-
-  [selector: string]: Observable<any> | Store<any>;
 }
 
 /**
@@ -70,7 +64,7 @@ export const defaultEntityCacheSelector = createFeatureSelector<EntityCache>(ENT
  * @param selectors - selector functions for this collection.
  * @param store - EntityCache store with the entity collections.
  **/
-export function createEntitySelectors$<T>(
+export function createEntitySelectors$<T, S extends EntitySelectors$<T> = EntitySelectors$<T>>(
   entityName: string,
   cacheSelector: Selector<Object, EntityCache>,
   initialState: any,
@@ -83,7 +77,7 @@ export function createEntitySelectors$<T>(
   const selectors$: Partial<EntitySelectors$<T>> = {};
 
   Object.keys(selectors).forEach(
-    selector => (selectors$[selector + '$'] = collection$.select(selectors[selector]))
+    name => (<any>selectors$)[name + '$'] = collection$.select((<any>selectors)[name])
   );
   return selectors$ as EntitySelectors$<T>;
 }
@@ -94,7 +88,7 @@ export function createEntitySelectors$<T>(
  * @param entityName - name of the entity for this collection
  * @param filterFn - the collection's {EntityFilterFn}.
  */
-export function createEntitySelectors<T>(
+export function createEntitySelectors<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
   entityName: string,
   filterFn?: EntityFilterFn<T>
 ): EntitySelectors<T> {

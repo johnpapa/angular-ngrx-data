@@ -21,13 +21,9 @@ export interface EntityDefinition<T> {
   selectors: EntitySelectors<T>;
 }
 
-export interface EntityDefinitions {
-  [entityName: string]: EntityDefinition<any>;
-}
-
-export function createEntityDefinition<T>(
+export function createEntityDefinition<T, S extends object>(
   metadata: EntityMetadata<T>,
-  additionalCollectionState: {} = {}
+  additionalCollectionState?: S
 ) {
   // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
@@ -40,9 +36,8 @@ export function createEntityDefinition<T>(
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
-  const initialState = entityAdapter.getInitialState({
-    ...{ filter: '', loading: false },
-    ...additionalCollectionState
+  const initialState: any  = entityAdapter.getInitialState({
+    filter: '', loading: false, ...( additionalCollectionState || {} )
   });
 
   const reducer = createEntityCollectionReducer<T>(entityName, entityAdapter, selectId);

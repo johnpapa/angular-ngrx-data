@@ -6,7 +6,7 @@ export interface EntityMetadataMap {
   [entity: string]: EntityMetadata<any>;
 }
 
-export interface EntityMetadata<T> {
+export interface EntityMetadata<T = any> {
   entityName: string;
   filterFn?: EntityFilterFn<T>;
   selectId?: IdSelector<T>;

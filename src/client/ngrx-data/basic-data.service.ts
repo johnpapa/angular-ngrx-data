@@ -6,7 +6,7 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { pipe } from 'rxjs/util/pipe';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
-import { DataServiceError, EntityCollectionDataService, RequestData } from './interfaces';
+import { DataServiceError, EntityCollectionDataService, HttpMethods, RequestData } from './interfaces';
 import { Update } from './ngrx-entity-models';
 
 export interface BasicDataServiceOptions {
@@ -28,23 +28,23 @@ const noDelay = <K>(source: Observable<K>) => source;
  * Conforms to API required by ngrx-data library's persist$ API
  */
 export class BasicDataService<T> implements EntityCollectionDataService<T> {
+  protected _name: string;
+  protected entityName: string;
   protected entityUrl: string;
   protected entitiesUrl: string;
   protected getDelay: typeof noDelay;
   protected saveDelay: typeof noDelay;
   protected timeout: typeof noDelay;
 
+  get name() { return this._name; }
+
   constructor(
     protected http: HttpClient,
-    {
-      api,
-      entitiesName,
-      entityName,
-      getDelay = 0,
-      saveDelay = 0,
-      timeout: to = 0
-    }: BasicDataServiceOptions
+    { api, entitiesName, entityName, getDelay = 0, saveDelay = 0, timeout: to = 0 }: Partial<BasicDataServiceOptions>
   ) {
+    this._name = `${entityName} BasicDataService`;
+    this.entityName = entityName;
+    api = EntityCollectionDataService.normalizeApi(api);
     // All URLs presumed to be lowercase
     this.entityUrl = `${api}/${entityName}/`.toLowerCase();
     this.entitiesUrl = `${api}/${entitiesName}/`.toLowerCase();
@@ -74,11 +74,11 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   }
 
   protected execute(
-    method: 'DELETE' | 'GET' | 'POST' | 'PUT',
+    method: HttpMethods,
     url: string,
-    data?: any
-  ): Observable<any> {
-    const req: RequestData = { method, url, data };
+    data?: any): Observable<any> {
+
+    const req: RequestData = { method, url };
 
     const tail = pipe(
       method === 'GET' ? this.getDelay : this.saveDelay,
@@ -101,11 +101,12 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
       }
       case 'PUT': {
         const { id, changes } = data; // data must be Update<T>
-        return this.http.put(url, changes).pipe(
-          // return the original Update<T> with merged updated data (if any).
-          map(updated => ({ id, changes: { ...changes, updated } })),
-          tail
-        );
+        return this.http.put(url, changes)
+          .pipe(
+            // return the original Update<T> with merged updated data (if any).
+            map(updated => ({id, changes: {...changes, ...updated}})),
+            tail
+          );
       }
       default: {
         const error = new Error('Unimplemented HTTP method, ' + method);
@@ -115,9 +116,7 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   }
 
   private handleError(reqData: RequestData) {
-    return (res: any) => {
-      console.error(res, reqData);
-      const err = res.error || res.message || (res.body && res.body.error) || res;
+    return (err: any) => {
       const error = new DataServiceError(err, reqData);
       return new ErrorObservable(error);
     };

@@ -6,6 +6,7 @@ import { ToggleDataSourceComponent } from './toggle-data-source.component';
 import { ToolbarComponent } from './toolbar/toolbar.component';
 import { SharedModule } from '../shared/shared.module';
 import { ToastService } from './toast.service';
+import { NgrxDataToastService } from './ngrx-data-toast.service';
 import { throwIfAlreadyLoaded } from './module-import-check';
 
 @NgModule({
@@ -16,13 +17,14 @@ import { throwIfAlreadyLoaded } from './module-import-check';
   ],
   declarations: [ToggleDataSourceComponent, ToolbarComponent],
   exports: [ToggleDataSourceComponent, ToolbarComponent],
-  providers: [ToastService]
+  providers: [ NgrxDataToastService, ToastService]
 })
 export class CoreModule {
   constructor(
     @Optional()
     @SkipSelf()
-    parentModule: CoreModule
+    parentModule: CoreModule,
+    toastService: NgrxDataToastService
   ) {
     throwIfAlreadyLoaded(parentModule, 'CoreModule');
   }

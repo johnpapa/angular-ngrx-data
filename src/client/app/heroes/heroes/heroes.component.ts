@@ -2,13 +2,13 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityAction, EntityActions, EntityService, EntityServiceFactory } from '../../../ngrx-data';
+import { EntityService, EntityServiceFactory } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 
-import { Hero, ToastService } from '../../core';
+import { Hero } from '../../core';
 
 @Component({
   selector: 'app-heroes',
@@ -17,21 +17,18 @@ import { Hero, ToastService } from '../../core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroSearchComponent implements OnDestroy, OnInit {
+  private onDestroy = new Subject();
   addingHero = false;
   selectedHero: Hero;
+  heroService: EntityService<Hero>;
 
-  actions$: EntityActions<Hero>;
   dataSource$: Observable<string>;
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
 
-  heroService: EntityService<Hero>;
-  private onDestroy = new Subject();
-
   constructor(
-    entityServiceFactory: EntityServiceFactory,
     appSelectors: AppSelectors,
-    private toast: ToastService
+    entityServiceFactory: EntityServiceFactory
   ) {
     this.dataSource$ = appSelectors.dataSource$();
     this.heroService = entityServiceFactory.create<Hero>('Hero');
@@ -41,16 +38,8 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.dataSource$
-      .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
-      .subscribe(value => this.getHeroes());
-
-    this.heroService.actions$
-      .filter(ea =>
-        ea.op.includes(EntityAction.OP_SUCCESS) ||
-        ea.op.includes(EntityAction.OP_ERROR)
-      )
-      .until(this.onDestroy)
-      .subscribe(action => this.toast.openSnackBar(`${action.entityName} action`, action.op));
+    .pipe(takeUntil(this.onDestroy))
+    .subscribe(value => this.getHeroes());
   }
 
   ngOnDestroy() {

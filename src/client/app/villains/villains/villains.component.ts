@@ -2,13 +2,13 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityAction, EntityActions, EntityService, EntityServiceFactory } from '../../../ngrx-data';
+import { EntityService, EntityServiceFactory } from '../../../ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { distinctUntilChanged, takeUntil, tap } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 
-import { Villain, ToastService } from '../../core';
+import { Villain } from '../../core';
 
 @Component({
   selector: 'app-villain-search',
@@ -17,21 +17,18 @@ import { Villain, ToastService } from '../../core';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class VillainSearchComponent implements OnDestroy, OnInit {
+  private onDestroy = new Subject();
   addingVillain = false;
   selectedVillain: Villain = null;
+  villainService: EntityService<Villain>;
 
-  actions$: EntityActions<Villain>;
   dataSource$: Observable<string>;
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
 
-  villainService: EntityService<Villain>;
-  private onDestroy = new Subject();
-
   constructor(
-    entityServiceFactory: EntityServiceFactory,
     appSelectors: AppSelectors,
-    private toast: ToastService
+    entityServiceFactory: EntityServiceFactory
   ) {
     this.dataSource$ = appSelectors.dataSource$();
     this.villainService = entityServiceFactory.create<Villain>('Villain');
@@ -41,16 +38,8 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.dataSource$
-      .pipe(takeUntil(this.onDestroy), distinctUntilChanged())
-      .subscribe((value: string) => this.getVillains());
-
-    this.villainService.actions$
-      .filter(ea =>
-        ea.op.includes(EntityAction.OP_SUCCESS) ||
-        ea.op.includes(EntityAction.OP_ERROR)
-      )
-      .until(this.onDestroy)
-      .subscribe(action => this.toast.openSnackBar(`${action.entityName} action`, action.op));
+    .pipe(takeUntil(this.onDestroy))
+    .subscribe((value: string) => this.getVillains());
   }
 
   ngOnDestroy() {

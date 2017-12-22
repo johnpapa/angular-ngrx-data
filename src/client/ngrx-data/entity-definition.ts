@@ -4,6 +4,7 @@ import { EntityFilterFn } from './entity-filters';
 import { EntityCollectionReducer, createEntityCollectionReducer } from './entity.reducer';
 import { EntityMetadata } from './entity-metadata';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
+import { IdSelector, Update } from './ngrx-entity-models';
 
 export interface EntityCollection<T> extends EntityState<T> {
   filter: string;
@@ -16,6 +17,7 @@ export interface EntityDefinition<T> {
   initialState: any;
   metadata: EntityMetadata<T>;
   reducer: EntityCollectionReducer<T>;
+  selectId: IdSelector<T>;
   selectors: EntitySelectors<T>;
 }
 
@@ -27,16 +29,16 @@ export function createEntityDefinition<T>(
   metadata: EntityMetadata<T>,
   additionalCollectionState: {} = {}
 ) {
+
+  // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
   if (!entityName) {
     throw new Error('Missing required entityName');
   }
-
   metadata.entityName = entityName = entityName.trim();
-  metadata.selectId = metadata.selectId || ((entity: any) => entity.id);
+  const selectId = metadata.selectId =  metadata.selectId || ((entity: any) => entity.id);
+  const sortComparer = metadata.sortComparer = metadata.sortComparer || false;
 
-  // extract known essential properties driving entity definition.
-  const { selectId, sortComparer } = metadata;
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
   const initialState = entityAdapter.getInitialState({
@@ -44,7 +46,7 @@ export function createEntityDefinition<T>(
     ...additionalCollectionState
   });
 
-  const reducer = createEntityCollectionReducer<T>(entityName, entityAdapter, metadata);
+  const reducer = createEntityCollectionReducer<T>(entityName, entityAdapter, selectId);
 
   const selectors = createEntitySelectors<T>(entityName, metadata.filterFn);
 
@@ -54,6 +56,7 @@ export function createEntityDefinition<T>(
     initialState,
     metadata,
     reducer,
-    selectors
+    selectId,
+    selectors,
   };
 }

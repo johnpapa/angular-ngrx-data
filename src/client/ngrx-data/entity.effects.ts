@@ -39,7 +39,7 @@ export class EntityEffects {
     const service = this.dataService.getService(action.entityName);
     switch (action.op) {
       case EntityOp.QUERY_ALL: {
-        return service.getAll(action.payload);
+        return service.getAll();
       }
       case EntityOp.QUERY_BY_KEY: {
         return service.getById(action.payload);
@@ -69,6 +69,6 @@ function handleSuccess(action: EntityAction) {
 
 function handleError(action: EntityAction) {
   const errorOp = <EntityOp>(action.op + EntityAction.OP_ERROR);
-  return (error: DataServiceError<any>) =>
+  return (error: DataServiceError) =>
     of(new EntityAction(action, errorOp, { originalAction: action, error }));
 }

@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
 import { EntityAction } from './entity.actions';
-
 import { EntityCollectionDataService } from './interfaces';
 
 @Injectable()
@@ -10,6 +9,7 @@ export class EntityDataServiceConfig {
   api? = '/api';
   getDelay? = 0;
   saveDelay? = 0;
+  timeout? = 0;
 }
 
 import { BasicDataService } from './basic-data.service';
@@ -21,6 +21,7 @@ export class EntityDataService {
   // Fake delays to simulate network latency
   getDelay: number;
   saveDelay: number;
+  timeout: number;
 
   private services: { [name: string]: EntityCollectionDataService<any> } = {};
 
@@ -35,6 +36,7 @@ export class EntityDataService {
     this.api = config.api != null ? '/api' : config.api;
     this.getDelay = config.getDelay || 0;
     this.saveDelay = config.saveDelay || 0;
+    this.timeout = config.timeout || 0;
   }
 
   /**
@@ -55,7 +57,8 @@ export class EntityDataService {
         entityName,
         entitiesName,
         getDelay: this.getDelay,
-        saveDelay: this.saveDelay
+        saveDelay: this.saveDelay,
+        timeout: this.timeout,
       });
       this.services[entityName] = service;
     }

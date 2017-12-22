@@ -55,7 +55,7 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   }
 
   getAll(): Observable<T[]> {
-    return this.execute('GET', this.entityUrl);
+    return this.execute('GET', this.entitiesUrl);
   }
 
   getById(id: any): Observable<T> {

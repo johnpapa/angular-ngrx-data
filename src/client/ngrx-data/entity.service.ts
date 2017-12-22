@@ -33,7 +33,7 @@ export interface EntityService<T> {
    * Query remote storage for all entities and
    * completely replace the cached collection with the queried entities.
    */
-  getAll(options?: any): void;
+  getAll(): void;
 
   /**
    * Query remote storage for the entity with this primary key
@@ -95,8 +95,8 @@ export class EntityServiceFactory {
 
   create<T>(entityName: string): EntityService<T> {
     entityName = entityName.trim();
-    const dispatcher = new EntityDispatcher<T>(entityName, this.store);
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
+    const dispatcher = new EntityDispatcher<T>(entityName, this.store, def.selectId);
     const selectors$ = createEntitySelectors$<T>(
       entityName,
       this.cacheSelector,

@@ -7,7 +7,8 @@ import { pluralNames, entityMetadata } from './entity-metadata';
 const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
   getDelay: 500,
-  saveDelay: 300
+  saveDelay: 300,
+  timeout: 3000,
 };
 
 @NgModule({

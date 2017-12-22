@@ -4,9 +4,10 @@ import { Action, Store, ActionReducer } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { EntityCollection } from './entity-definition';
 import { EntityMetadataMap } from './entity-metadata';
+import { IdSelector, Update } from './ngrx-entity-models';
 
-export class DataServiceError<T> {
-  constructor(public error: any, public requestData: T) {}
+export class DataServiceError<T = any> {
+  constructor(public error: any, public requestData: RequestData) {}
 }
 
 export const ENTITY_CACHE_NAME = 'entityCache';
@@ -18,11 +19,11 @@ export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache
 export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('PLURAL_NAMES');
 
 export abstract class EntityCollectionDataService<T> {
-  abstract getAll(options?: any): Observable<T[]>;
-  abstract getById(id: any): Observable<T>;
   abstract add(entity: T): Observable<T>;
-  abstract delete(id: any): Observable<T>;
-  abstract update(entity: T): Observable<T>;
+  abstract delete(id: any): Observable<null>;
+  abstract getAll(): Observable<T[]>;
+  abstract getById(id: any): Observable<T>;
+  abstract update(update: Update<T>): Observable<Update<T>>;
 }
 
 export type entityName<T extends Object> = new (...x: any[]) => T;
@@ -49,4 +50,10 @@ export function flattenArgs<T>(args: any[]): T[] {
     args = [...head, ...tail];
   }
   return args;
+}
+
+export interface RequestData {
+  method: 'DELETE' | 'GET' | 'POST' | 'PUT';
+  url: string;
+  data: any
 }

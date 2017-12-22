@@ -47,15 +47,9 @@ export function createEntityReducer(entityDefinitionService: EntityDefinitionSer
 export function createEntityCollectionReducer<T>(
   entityName: string,
   adapter: EntityAdapter<T>,
-  metadata: EntityMetadata<T>
+  selectId: IdSelector<T> = ((entity: any) => entity.id)
 ) {
   /** Perform Actions against a particular entity collection in the EntityCache */
-
-  const selectId = metadata.selectId;
-  const toUpdate: (entity: T) => Update<T> = (entity: T) => ({
-    id: selectId(entity) as string,
-    changes: entity
-  });
 
   return function entityCollectionReducer(
     collection: EntityCollection<T>,
@@ -91,7 +85,7 @@ export function createEntityCollectionReducer<T>(
       // The app should listen for those and do something.
 
       case EntityOp.QUERY_BY_KEY_SUCCESS: {
-        const exists = !!collection.entities[metadata.selectId(action.payload)];
+        const exists = !!collection.entities[selectId(action.payload)];
         const result = exists
           ? adapter.updateOne(action.payload, collection)
           : adapter.addOne(action.payload, collection);
@@ -110,11 +104,11 @@ export function createEntityCollectionReducer<T>(
       }
 
       // pessimistic update; update entity only upon success
+      // payload must be an` Update<T>` which is
+      // `id`: the primary key and
+      // `changes`: the complete entity or a partial entity of changes.
       case EntityOp.SAVE_UPDATE_SUCCESS: {
-        // payload might be a partial of T but must at least have its key.
-        // pass the Update<T> structure to adapter.updateOne
-        const update: Update<T> = toUpdate(action.payload);
-        return adapter.updateOne(update, collection);
+        return adapter.updateOne(action.payload, collection);
       }
 
       // Cache-only operations
@@ -149,17 +143,13 @@ export function createEntityCollectionReducer<T>(
       }
 
       case EntityOp.UPDATE_MANY: {
-        // payload could be partials of T but each must at least have its key.
-        // pass the Update<T> structure to adapter.updateMany
-        const update: Update<T>[] = (action.payload as T[]).map(entity => toUpdate(entity));
-        return adapter.updateMany(update, collection);
+        // payload must be an array of `Updates<T>`, not entities
+        return adapter.updateMany(action.payload, collection);
       }
 
       case EntityOp.UPDATE_ONE: {
-        // payload could be a partial of T but must at least have its key.
-        // pass the Update<T> structure to adapter.updateOne
-        const update: Update<T> = toUpdate(action.payload);
-        return adapter.updateOne(update, collection);
+        // payload must be an `Update<T>`, not an entity
+        return adapter.updateOne(action.payload, collection);
       }
 
       case EntityOp.SET_FILTER: {

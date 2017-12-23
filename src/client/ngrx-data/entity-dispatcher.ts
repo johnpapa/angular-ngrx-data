@@ -11,7 +11,7 @@ export class EntityDispatcher<T> {
   constructor(
     private entityName: string,
     private store: Store<EntityCache>,
-    private selectId: IdSelector<T> = ((entity: any) => entity.id)
+    private selectId: IdSelector<T> = (entity: any) => entity.id
   ) {}
 
   private dispatch(op: EntityOp, payload?: any) {

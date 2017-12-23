@@ -55,5 +55,5 @@ export function flattenArgs<T>(args: any[]): T[] {
 export interface RequestData {
   method: 'DELETE' | 'GET' | 'POST' | 'PUT';
   url: string;
-  data: any
+  data: any;
 }

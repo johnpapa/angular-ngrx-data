@@ -36,7 +36,14 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
 
   constructor(
     protected http: HttpClient,
-    { api, entitiesName, entityName, getDelay = 0, saveDelay = 0, timeout: to = 0 }: BasicDataServiceOptions
+    {
+      api,
+      entitiesName,
+      entityName,
+      getDelay = 0,
+      saveDelay = 0,
+      timeout: to = 0
+    }: BasicDataServiceOptions
   ) {
     // All URLs presumed to be lowercase
     this.entityUrl = `${api}/${entityName}/`.toLowerCase();
@@ -69,18 +76,18 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   protected execute(
     method: 'DELETE' | 'GET' | 'POST' | 'PUT',
     url: string,
-    data?: any): Observable<any> {
-
-    const req: RequestData = {method, url, data};
+    data?: any
+  ): Observable<any> {
+    const req: RequestData = { method, url, data };
 
     const tail = pipe(
       method === 'GET' ? this.getDelay : this.saveDelay,
       this.timeout,
-      catchError(this.handleError(req)),
+      catchError(this.handleError(req))
       // tap(value => {
       //   console.log(value)
       // })
-    )
+    );
 
     switch (method) {
       case 'DELETE': {
@@ -94,12 +101,11 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
       }
       case 'PUT': {
         const { id, changes } = data; // data must be Update<T>
-        return this.http.put(url, changes)
-          .pipe(
-            // return the original Update<T> with merged updated data (if any).
-            map(updated => ({id, changes: {...changes, updated}})),
-            tail
-          );
+        return this.http.put(url, changes).pipe(
+          // return the original Update<T> with merged updated data (if any).
+          map(updated => ({ id, changes: { ...changes, updated } })),
+          tail
+        );
       }
       default: {
         const error = new Error('Unimplemented HTTP method, ' + method);

@@ -17,7 +17,7 @@ import { throwIfAlreadyLoaded } from './module-import-check';
   ],
   declarations: [ToggleDataSourceComponent, ToolbarComponent],
   exports: [ToggleDataSourceComponent, ToolbarComponent],
-  providers: [ NgrxDataToastService, ToastService]
+  providers: [NgrxDataToastService, ToastService]
 })
 export class CoreModule {
   constructor(

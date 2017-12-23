@@ -58,7 +58,7 @@ export class EntityDataService {
         entitiesName,
         getDelay: this.getDelay,
         saveDelay: this.saveDelay,
-        timeout: this.timeout,
+        timeout: this.timeout
       });
       this.services[entityName] = service;
     }

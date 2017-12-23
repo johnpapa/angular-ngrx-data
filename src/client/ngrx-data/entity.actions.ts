@@ -48,9 +48,8 @@ export enum EntityOp {
 }
 
 export class EntityAction<T extends Object = Object, P = any> implements Action {
-
   /** "Success" suffix appended to EntityOps that are successful.*/
-  static OP_SUCCESS  = '_SUCCESS';
+  static OP_SUCCESS = '_SUCCESS';
   /** "Error" suffix appended to EntityOps that have failed.*/
   static OP_ERROR = '_ERROR';
 

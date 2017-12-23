@@ -26,10 +26,7 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
 
-  constructor(
-    appSelectors: AppSelectors,
-    entityServiceFactory: EntityServiceFactory
-  ) {
+  constructor(appSelectors: AppSelectors, entityServiceFactory: EntityServiceFactory) {
     this.dataSource$ = appSelectors.dataSource$();
     this.villainService = entityServiceFactory.create<Villain>('Villain');
     this.filteredVillains$ = this.villainService.filteredEntities$;
@@ -38,8 +35,8 @@ export class VillainSearchComponent implements OnDestroy, OnInit {
 
   ngOnInit() {
     this.dataSource$
-    .pipe(takeUntil(this.onDestroy))
-    .subscribe((value: string) => this.getVillains());
+      .pipe(takeUntil(this.onDestroy))
+      .subscribe((value: string) => this.getVillains());
   }
 
   ngOnDestroy() {

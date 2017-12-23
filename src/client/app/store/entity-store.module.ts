@@ -8,7 +8,7 @@ const entityDataServiceConfig: EntityDataServiceConfig = {
   api: '/api',
   getDelay: 500,
   saveDelay: 300,
-  timeout: 3000,
+  timeout: 3000
 };
 
 @NgModule({

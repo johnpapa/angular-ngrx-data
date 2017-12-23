@@ -26,10 +26,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
 
-  constructor(
-    appSelectors: AppSelectors,
-    entityServiceFactory: EntityServiceFactory
-  ) {
+  constructor(appSelectors: AppSelectors, entityServiceFactory: EntityServiceFactory) {
     this.dataSource$ = appSelectors.dataSource$();
     this.heroService = entityServiceFactory.create<Hero>('Hero');
     this.filteredHeroes$ = this.heroService.filteredEntities$;
@@ -37,9 +34,7 @@ export class HeroSearchComponent implements OnDestroy, OnInit {
   }
 
   ngOnInit() {
-    this.dataSource$
-    .pipe(takeUntil(this.onDestroy))
-    .subscribe(value => this.getHeroes());
+    this.dataSource$.pipe(takeUntil(this.onDestroy)).subscribe(value => this.getHeroes());
   }
 
   ngOnDestroy() {

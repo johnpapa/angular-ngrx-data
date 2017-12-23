@@ -47,7 +47,7 @@ export function createEntityReducer(entityDefinitionService: EntityDefinitionSer
 export function createEntityCollectionReducer<T>(
   entityName: string,
   adapter: EntityAdapter<T>,
-  selectId: IdSelector<T> = ((entity: any) => entity.id)
+  selectId: IdSelector<T> = (entity: any) => entity.id
 ) {
   /** Perform Actions against a particular entity collection in the EntityCache */
 

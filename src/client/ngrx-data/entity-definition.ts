@@ -29,15 +29,14 @@ export function createEntityDefinition<T>(
   metadata: EntityMetadata<T>,
   additionalCollectionState: {} = {}
 ) {
-
   // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
   if (!entityName) {
     throw new Error('Missing required entityName');
   }
   metadata.entityName = entityName = entityName.trim();
-  const selectId = metadata.selectId =  metadata.selectId || ((entity: any) => entity.id);
-  const sortComparer = metadata.sortComparer = metadata.sortComparer || false;
+  const selectId = (metadata.selectId = metadata.selectId || ((entity: any) => entity.id));
+  const sortComparer = (metadata.sortComparer = metadata.sortComparer || false);
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
@@ -57,6 +56,6 @@ export function createEntityDefinition<T>(
     metadata,
     reducer,
     selectId,
-    selectors,
+    selectors
   };
 }

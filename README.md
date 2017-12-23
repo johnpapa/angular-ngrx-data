@@ -77,6 +77,7 @@ Open VS Code, launch the `Docker: Attach to Node` debugging profile
 
 ### Optional Database
 
+```bash
 NODE_ENV=development
 
 PORT=3001 PUBLICWEB=./publicweb
@@ -84,6 +85,7 @@ PORT=3001 PUBLICWEB=./publicweb
 COSMOSDB_ACCOUNT=my-heroes-cosmos COSMOSDB_DB=heroes-db
 COSMOSDB_KEY=fa1fKW9zDtxLcWgNqhtCdxeTT56ohy9fBVIpxDupSYuOEKl8gD3uPxgNqsenhRrrysSQGMZoWq9F46oRPlOAxw==
 COSMOSDB_PORT=10255
+```
 
 Out of the box you can run the demo with an in memory data service instead of a live database. If
 you wish to use a database, you can set up a local mongo server or a remote CosmosDB/MongoDB server

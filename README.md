@@ -80,7 +80,8 @@ Open VS Code, launch the `Docker: Attach to Node` debugging profile
 ```bash
 NODE_ENV=development
 
-PORT=3001 PUBLICWEB=./publicweb
+PORT=3001
+PUBLICWEB=./publicweb
 
 COSMOSDB_ACCOUNT=my-heroes-cosmos COSMOSDB_DB=heroes-db
 COSMOSDB_KEY=fa1fKW9zDtxLcWgNqhtCdxeTT56ohy9fBVIpxDupSYuOEKl8gD3uPxgNqsenhRrrysSQGMZoWq9F46oRPlOAxw==

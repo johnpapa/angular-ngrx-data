@@ -83,8 +83,9 @@ NODE_ENV=development
 PORT=3001
 PUBLICWEB=./publicweb
 
-COSMOSDB_ACCOUNT=my-heroes-cosmos COSMOSDB_DB=heroes-db
-COSMOSDB_KEY=fa1fKW9zDtxLcWgNqhtCdxeTT56ohy9fBVIpxDupSYuOEKl8gD3uPxgNqsenhRrrysSQGMZoWq9F46oRPlOAxw==
+COSMOSDB_ACCOUNT=your_cosmos_account
+COSMOSDB_DB=your_cosmos_db
+COSMOSDB_KEY=your_cosmos_key
 COSMOSDB_PORT=10255
 ```
 

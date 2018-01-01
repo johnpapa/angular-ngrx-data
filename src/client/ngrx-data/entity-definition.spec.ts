@@ -30,7 +30,7 @@ const HERO_METADATA: EntityMetadata<Hero> = {
 
 describe('Entity Definition', () => {
 
-  let heroMetadata: EntityMetadata;
+  let heroMetadata: EntityMetadata<Hero>;
 
   describe('#createEntityDefinition', () => {
 
@@ -50,7 +50,9 @@ describe('Entity Definition', () => {
     });
 
     it('generates expected `initialState` when `additionalCollectionState`', () => {
-      const def = createEntityDefinition(heroMetadata, { foo: 'foo' });
+      // extend Hero collection metadata with more collection state
+      const metadata = { ...heroMetadata, additionalCollectionState: { foo: 'foo'} };
+      const def = createEntityDefinition(metadata);
       const initialState = def.initialState;
       expect(initialState).toEqual({
         ids: [],
@@ -86,7 +88,7 @@ describe('Entity Definition', () => {
 
     it('creates expected selectors', () => {
       const def = createEntityDefinition(heroMetadata);
-      const expectedSelectors = createEntitySelectors('Hero');
+      const expectedSelectors = createEntitySelectors(def.metadata);
       expect(Object.keys(def.selectors)).toEqual(
         Object.keys(expectedSelectors));
     });

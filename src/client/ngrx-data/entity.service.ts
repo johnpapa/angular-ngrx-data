@@ -94,16 +94,20 @@ export class EntityServiceFactory {
     this.cacheSelector = createFeatureSelector(this.cacheName);
   }
 
-  create<T>(entityName: string): EntityService<T> {
+  /**
+   * Create an EntityService for an entity type
+   * @param entityName - name of the entity type
+   */
+  create<T, S extends EntityService<T> = EntityService<T>>(entityName: string): S {
     entityName = entityName.trim();
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
     const dispatcher = this.createEntityDispatcher<T>(entityName, this.store, def.selectId);
-    const selectors$ = createEntitySelectors$<T>(
+    const selectors$ = createEntitySelectors$(
       entityName,
+      this.store,
       this.cacheSelector,
-      def.initialState,
       def.selectors,
-      this.store
+      def.initialState,
     );
 
     // map the ngrx/entity standard selector names to preferred EntityService selector names
@@ -131,6 +135,6 @@ export class EntityServiceFactory {
       ...rest
     };
 
-    return Object.assign(dispatcher, selectors$Mapped);
+    return <S> <any> Object.assign(dispatcher, selectors$Mapped);
   }
 }

@@ -89,3 +89,23 @@ export class EntityDispatcher<T> {
     this.dispatch(EntityOp.SET_FILTER, pattern);
   }
 }
+
+/**
+ * Create an `EntityDispatcher` for an entity type `T` and store
+ * Can replace this function with a richer dispatcher by
+ * providing alternative with the `CREATE_ENTITY_DISPATCHER_TOKEN`.
+ */
+export function createEntityDispatcher<T, D extends EntityDispatcher<T> = EntityDispatcher<T>>(
+  /** Name of the entity type */
+  entityName: string,
+  /** The runtime `EntityCache` store */
+  store: Store<EntityCache>,
+  /**
+   * Function that returns the primary key for an entity `T`.
+   * Usually acquired from `EntityDefinition` metadata.
+   */
+  selectId: IdSelector<T> = ((entity: any) => entity.id)
+): D { return <D> new EntityDispatcher<T>(entityName, store, selectId)}
+
+/** Type of the `createEntityDispatcher` function */
+export type CreateEntityDispatcher = typeof createEntityDispatcher;

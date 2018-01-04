@@ -17,6 +17,8 @@ export function PropsFilter<T>(props: (keyof T)[] = []): EntityFilterFn<T> {
   }
 
   return (entities: T[], pattern: string | RegExp) => {
+    if (!entities) { return []; }
+
     const regExp = typeof pattern === 'string' ? new RegExp(pattern, 'i') : pattern;
     if (regExp) {
       const predicate = (e: any) => props.some(prop => regExp.test(e[prop]));

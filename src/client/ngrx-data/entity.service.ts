@@ -7,9 +7,9 @@ import { filter, share, takeUntil, tap } from 'rxjs/operators';
 import { EntityAction, EntityActions } from './entity.actions';
 import { Dictionary } from './ngrx-entity-models';
 
-import { EntityCache, ENTITY_CACHE_NAME_TOKEN } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME_TOKEN, CREATE_ENTITY_DISPATCHER_TOKEN } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
-import { EntityDispatcher } from './entity-dispatcher';
+import { EntityDispatcher, CreateEntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors';
 
 // tslint:disable:member-ordering
@@ -59,7 +59,7 @@ export interface EntityService<T> {
   /*** QUERIES ***/
 
   /** Observable of actions related to this entity type. */
-  actions$: EntityActions<T>;
+  actions$: EntityActions;
   /** Observable of count of entities in the cached collection. */
   count$: Observable<number> | Store<number>;
   /** Observable of all entities in the cached collection. */
@@ -85,6 +85,7 @@ export class EntityServiceFactory {
 
   constructor(
     @Inject(ENTITY_CACHE_NAME_TOKEN) private cacheName: string,
+    @Inject(CREATE_ENTITY_DISPATCHER_TOKEN) private createEntityDispatcher: CreateEntityDispatcher,
     private actions$: EntityActions,
     private entityDefinitionService: EntityDefinitionService,
     private store: Store<EntityCache>
@@ -93,19 +94,24 @@ export class EntityServiceFactory {
     this.cacheSelector = createFeatureSelector(this.cacheName);
   }
 
-  create<T>(entityName: string): EntityService<T> {
+  /**
+   * Create an EntityService for an entity type
+   * @param entityName - name of the entity type
+   */
+  create<T, S extends EntityService<T> = EntityService<T>>(entityName: string): S {
     entityName = entityName.trim();
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
-    const dispatcher = new EntityDispatcher<T>(entityName, this.store, def.selectId);
-    const selectors$ = createEntitySelectors$<T>(
+    const dispatcher = this.createEntityDispatcher<T>(entityName, this.store, def.selectId);
+    const selectors$ = createEntitySelectors$(
       entityName,
+      this.store,
       this.cacheSelector,
-      def.initialState,
       def.selectors,
-      this.store
+      def.initialState,
     );
 
     // map the ngrx/entity standard selector names to preferred EntityService selector names
+    // that do not have the `select` prefix.
     const {
       selectAll$: entities$,
       selectCount$: count$,
@@ -118,7 +124,7 @@ export class EntityServiceFactory {
     } = selectors$;
 
     const selectors$Mapped = {
-      actions$: this.actions$.ofEntityType<T>(entityName),
+      actions$: this.actions$.ofEntityType(entityName),
       count$,
       entityKeyMap$,
       entities$,
@@ -129,6 +135,6 @@ export class EntityServiceFactory {
       ...rest
     };
 
-    return Object.assign(dispatcher, selectors$Mapped);
+    return <S> <any> Object.assign(dispatcher, selectors$Mapped);
   }
 }

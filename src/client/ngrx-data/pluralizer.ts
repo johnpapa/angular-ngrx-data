@@ -8,12 +8,17 @@ export abstract class Pluralizer {
 @Injectable()
 // tslint:disable-next-line:class-name
 export class _Pluralizer {
+  private pluralNames: { [name: string]: string } = {};
+
   constructor(
     @Optional()
     @Inject(PLURAL_NAMES_TOKEN)
-    private pluralNames: { [name: string]: string }
+    pluralNames: { [name: string]: string }[]
   ) {
-    this.pluralNames = pluralNames || {};
+    // merge each plural names object
+    if (pluralNames) {
+      pluralNames.forEach(pn => Object.assign(this.pluralNames, pn));
+    }
   }
 
   /**

@@ -4,13 +4,13 @@ import { IdSelector, Update } from './ngrx-entity-models';
 
 import { EntityAction, EntityOp } from './entity.actions';
 import { EntityMetadata } from './entity-metadata';
-import { EntityCollection, EntityDefinitions } from './entity-definition';
+import { EntityCollection } from './entity-definition';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityCache } from './interfaces';
 
 export type EntityCollectionReducer<T> = (
   collection: EntityCollection<T>,
-  action: EntityAction<T, any>
+  action: EntityAction
 ) => EntityCollection<T>;
 
 export interface EntityCollectionReducers {
@@ -26,18 +26,17 @@ export function createEntityReducer(entityDefinitionService: EntityDefinitionSer
       return state; // not an EntityAction
     }
 
-    const def = entityDefinitionService.definitions[entityName];
+    const def = entityDefinitionService.getDefinition(entityName);
     if (!def) {
       throw new Error(`The entity "${entityName}" type is not defined.`);
     }
-    const reducer = def.reducer;
     let collection = state[entityName];
     if (!collection) {
       // Collection not in cache; create it from entity defs
       state = { ...state, [entityName]: (collection = def.initialState) };
     }
 
-    const newCollection = reducer(collection, action);
+    const newCollection = def.reducer(collection, action);
 
     return collection === newCollection ? state : { ...state, ...{ [entityName]: newCollection } };
   };
@@ -53,7 +52,7 @@ export function createEntityCollectionReducer<T>(
 
   return function entityCollectionReducer(
     collection: EntityCollection<T>,
-    action: EntityAction<T, any>
+    action: EntityAction
   ): EntityCollection<T> {
     switch (action.op) {
       // Only the QUERY_ALL and QUERY_MANY methods set loading flag.
@@ -70,8 +69,21 @@ export function createEntityCollectionReducer<T>(
       }
 
       case EntityOp.QUERY_MANY_SUCCESS: {
+        // Todo: use "upsert" instead  when it becomes available.
+        const updates: Update<T>[] = [];
+        const adds: T[] = [];
+        action.payload.forEach((item: T) => {
+          const id = selectId(item);
+          if (collection.entities[id]) {
+            updates.push({id, changes: item} as Update<T>);
+          } else {
+            adds.push(item);
+          }
+        });
+        const addCollection = adapter.addMany(adds, collection);
+        const updateCollection = adapter.updateMany(updates, addCollection);
         return {
-          ...adapter.addMany(action.payload, collection),
+          ...updateCollection,
           loading: false
         };
       }
@@ -85,11 +97,14 @@ export function createEntityCollectionReducer<T>(
       // The app should listen for those and do something.
 
       case EntityOp.QUERY_BY_KEY_SUCCESS: {
-        const exists = !!collection.entities[selectId(action.payload)];
-        const result = exists
-          ? adapter.updateOne(action.payload, collection)
-          : adapter.addOne(action.payload, collection);
-        return result;
+        // Todo: use "upsert" instead when it becomes available.
+        const id = selectId(action.payload);
+        if (collection.entities[id]) {
+          const update = {id, changes: action.payload} as Update<T>;
+          return adapter.updateOne(update, collection)
+        } else {
+          return adapter.addOne(action.payload, collection)
+        }
       }
 
       // pessimistic add; add entity only upon success

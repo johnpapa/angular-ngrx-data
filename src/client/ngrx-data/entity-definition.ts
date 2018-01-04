@@ -6,7 +6,7 @@ import { EntityMetadata } from './entity-metadata';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
 import { IdSelector, Update } from './ngrx-entity-models';
 
-export interface EntityCollection<T> extends EntityState<T> {
+export interface EntityCollection<T = any> extends EntityState<T> {
   filter: string;
   loading: boolean;
 }
@@ -14,20 +14,15 @@ export interface EntityCollection<T> extends EntityState<T> {
 export interface EntityDefinition<T> {
   entityName: string;
   entityAdapter: EntityAdapter<T>;
-  initialState: any;
+  initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
   reducer: EntityCollectionReducer<T>;
   selectId: IdSelector<T>;
   selectors: EntitySelectors<T>;
 }
 
-export interface EntityDefinitions {
-  [entityName: string]: EntityDefinition<any>;
-}
-
-export function createEntityDefinition<T>(
-  metadata: EntityMetadata<T>,
-  additionalCollectionState: {} = {}
+export function createEntityDefinition<T, S extends object>(
+  metadata: EntityMetadata<T, S>
 ) {
   // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
@@ -40,14 +35,13 @@ export function createEntityDefinition<T>(
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
-  const initialState = entityAdapter.getInitialState({
-    ...{ filter: '', loading: false },
-    ...additionalCollectionState
+  const initialState: EntityCollection<T>  = entityAdapter.getInitialState({
+    filter: '', loading: false, ...( metadata.additionalCollectionState || {} )
   });
 
   const reducer = createEntityCollectionReducer<T>(entityName, entityAdapter, selectId);
 
-  const selectors = createEntitySelectors<T>(entityName, metadata.filterFn);
+  const selectors = createEntitySelectors(metadata);
 
   return {
     entityName,

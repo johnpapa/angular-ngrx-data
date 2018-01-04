@@ -8,7 +8,7 @@ import { of } from 'rxjs/observable/of';
 import { concat, concatMap, catchError, map, startWith, tap } from 'rxjs/operators';
 
 import { DataServiceError } from './interfaces';
-import { EntityAction, EntityActions, EntityOp } from './entity.actions';
+import { EntityAction, EntityActions, EntityOp, EntityActionDataServiceError } from './entity.actions';
 import { EntityDataService } from './entity-data.service';
 
 const persistOps = [
@@ -70,5 +70,5 @@ function handleSuccess(action: EntityAction) {
 function handleError(action: EntityAction) {
   const errorOp = <EntityOp>(action.op + EntityAction.OP_ERROR);
   return (error: DataServiceError) =>
-    of(new EntityAction(action, errorOp, { originalAction: action, error }));
+    of(new EntityAction<EntityActionDataServiceError>(action, errorOp, { originalAction: action, error }));
 }

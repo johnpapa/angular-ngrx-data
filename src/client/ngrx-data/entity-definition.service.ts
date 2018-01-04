@@ -1,17 +1,15 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
-import { Store, Selector } from '@ngrx/store';
-
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
-import { createEntityDefinition, EntityDefinition, EntityDefinitions } from './entity-definition';
-import { EntityCache, ENTITY_CACHE_NAME, ENTITY_METADATA_TOKEN } from './interfaces';
-import { createEntityReducer, EntityCollectionReducers } from './entity.reducer';
-import { EntitySelectors } from './entity.selectors';
+import { createEntityDefinition, EntityDefinition } from './entity-definition';
+import { ENTITY_CACHE_NAME, ENTITY_METADATA_TOKEN } from './interfaces';
+
+interface EntityDefinitions { [entityName: string]: EntityDefinition<any> }
 
 @Injectable()
 export class EntityDefinitionService {
-  /** {EntityDefinitions} for all cached entity types */
-  readonly definitions: EntityDefinitions = {};
+  /** {EntityDefinition} for all cached entity types */
+  private readonly definitions: EntityDefinitions  = {};
 
   constructor(
     @Optional()
@@ -21,11 +19,6 @@ export class EntityDefinitionService {
     if (entityMetadataMaps) {
       entityMetadataMaps.forEach(map => this.registerMetadataMap(map));
     }
-  }
-
-  /** Get the reducer for these EntityCache collection definitions */
-  getEntityReducer() {
-    return createEntityReducer(this);
   }
 
   /**
@@ -53,10 +46,9 @@ export class EntityDefinitionService {
    * @param definition - {EntityMetadata} for a collection for that entity type
    *
    * Examples:
-   *   registerMetadata('Hero', myHeroEntityDefinition); // untyped
-   *   registerMetadata<Hero>('Hero', myHeroEntityDefinition); // typed, Hero is an interface
+   *   registerMetadata(myHeroEntityDefinition);
    */
-  registerMetadata<T>(entityName: string, metadata: EntityMetadata<T>) {
+  registerMetadata(metadata: EntityMetadata) {
     if (metadata) {
       const definition = createEntityDefinition(metadata);
       this.registerDefinition(definition);
@@ -74,7 +66,7 @@ export class EntityDefinitionService {
    *   });
    */
   registerMetadataMap(metadataMap: EntityMetadataMap = {}) {
-    Object.keys(metadataMap).forEach(name => this.registerMetadata(name, metadataMap[name]));
+    Object.keys(metadataMap).forEach(name => this.registerMetadata(metadataMap[name]));
   }
 
   /**

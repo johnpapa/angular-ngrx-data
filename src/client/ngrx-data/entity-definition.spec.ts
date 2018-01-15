@@ -54,7 +54,7 @@ describe('Entity Definition', () => {
       const metadata = { ...heroMetadata, additionalCollectionState: { foo: 'foo'} };
       const def = createEntityDefinition(metadata);
       const initialState = def.initialState;
-      expect(initialState).toEqual({
+      expect(initialState).toEqual(<any> {
         ids: [],
         entities: {},
         filter: '',

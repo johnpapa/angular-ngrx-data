@@ -23,7 +23,7 @@ export interface EntityDefinition<T> {
 
 export function createEntityDefinition<T, S extends object>(
   metadata: EntityMetadata<T, S>
-) {
+): EntityDefinition<T> {
   // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
   if (!entityName) {

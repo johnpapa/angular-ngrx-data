@@ -1,11 +1,11 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../out-tsc/app",
+    "outDir": "../../dist/app",
     "module": "es2015",
     "baseUrl": ".",
     "paths": {
-      "@ngrx-data": ["../../ngrx-data/src"]
+      "ngrx-data": ["../../lib/src"]
     },
     "types": []
   },

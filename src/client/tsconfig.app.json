@@ -5,7 +5,7 @@
     "module": "es2015",
     "baseUrl": ".",
     "paths": {
-      "ngrx-data": ["../../lib/src"]
+      "ngrx-data": ["../../dist/ngrx-data"]
     },
     "types": []
   },

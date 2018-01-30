@@ -6,7 +6,7 @@
     "target": "es5",
     "baseUrl": "",
     "paths": {
-      "@ngrx-data": ["../../dist/ngrx-data"]
+      "ngrx-data": ["../../dist/ngrx-data"]
     },
     "types": [
       "jasmine",

@@ -1,5 +1,5 @@
 {
-  "name": "@ngrx-data",
+  "name": "ngrx-data",
   "version": "1.0.0-alpha.0",
   "repository": "https://github.com/johnpapa/angular-ngrx.git",
   "license": "MIT",
@@ -18,7 +18,13 @@
     "workingDirectory": "../.ng_build",
     "lib": {
       "entryFile": "src/public_api.ts",
-      "externals": { }
+      "umdModuleIds": {
+        "@ngrx/store": "ngrx.store",
+        "@ngrx/effects": "ngrx.effects",
+        "@ngrx/entity": "ngrx.entity",
+        "rxjs/util/pipe": "Rx.util.pipe",
+        "tslib": "tslib"
+      }
     }
   }
 }

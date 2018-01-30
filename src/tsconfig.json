@@ -4,7 +4,7 @@
     "outDir": "./dist/out-tsc",
     "baseUrl": ".",
     "paths": {
-      "@ngrx-data": ["../ngrx-data/src"]
+      "ngrx-data": ["../lib/src"]
     },
     "sourceMap": true,
     "declaration": false,

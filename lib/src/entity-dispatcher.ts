@@ -106,6 +106,3 @@ export function createEntityDispatcher<T, D extends EntityDispatcher<T> = Entity
    */
   selectId: IdSelector<T> = ((entity: any) => entity.id)
 ): D { return <D> new EntityDispatcher<T>(entityName, store, selectId)}
-
-/** Type of the `createEntityDispatcher` function */
-export type CreateEntityDispatcher = typeof createEntityDispatcher;

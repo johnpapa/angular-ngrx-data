@@ -1,7 +1,7 @@
 {
   "name": "ngrx-data",
   "version": "1.0.0-alpha.0",
-  "repository": "https://github.com/johnpapa/angular-ngrx.git",
+  "repository": "https://github.com/johnpapa/ngrx-data.git",
   "license": "MIT",
   "peerDependencies": {
     "@angular/core": "^4.1.2",

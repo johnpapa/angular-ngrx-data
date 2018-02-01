@@ -1,4 +1,4 @@
-## ngrx-data demo Changelog
+## angular-ngrx demo Changelog
 
 <a name="x.y.z"></a>
 

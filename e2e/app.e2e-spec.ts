@@ -1,10 +1,10 @@
-import { ngrxDataPage } from './app.po';
+import { AngularNgrxPage } from './app.po';
 
-describe('ngrx-data App', () => {
-  let page: ngrxDataPage;
+describe('angular-ngrx App', () => {
+  let page: AngularNgrxPage;
 
   beforeEach(() => {
-    page = new ngrxDataPage();
+    page = new AngularNgrxPage();
   });
 
   it('should display welcome message', () => {

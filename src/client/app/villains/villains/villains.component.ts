@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/
 import { FormControl } from '@angular/forms';
 
 import { AppSelectors } from '../../store/app-config';
-import { EntityService, EntityServiceFactory } from '../../../ngrx-data';
+import { EntityService, EntityServiceFactory } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';

@@ -6,7 +6,7 @@
   "apps": [
     {
       "root": "src/client",
-      "outDir": "dist/publicweb",
+      "outDir": "dist/app",
       "assets": [
         "assets",
         "favicon.ico",
@@ -14,13 +14,7 @@
           "allowOutsideOutDir": true,
           "glob": "**/*.*",
           "input": "../server/",
-          "output": "../"
-        },
-        {
-          "allowOutsideOutDir": true,
-          "glob": "package.json",
-          "input": "../../",
-          "output": "../"
+          "output": "../server/"
         }
       ],
       "index": "index.html",

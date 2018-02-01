@@ -28,14 +28,13 @@ export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache
 );
 export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('PLURAL_NAMES');
 
+/** Remove leading & trailing spaces or slashes */
+export function normalizeApi(api: string) {
+  return api.replace(/^[\/\s]+|[\/\s]+$/g, '');
+}
+
 export abstract class EntityCollectionDataService<T> {
   abstract readonly name: string;
-
-  /** Remove leading & trailing spaces or slashes */
-  static normalizeApi(api: string) {
-    return api.replace(/^[\/\s]+|[\/\s]+$/g, '');
-  }
-
   abstract add(entity: T): Observable<T>;
   abstract delete(id: any): Observable<null>;
   abstract getAll(): Observable<T[]>;

@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 
-import { EntityDataServiceConfig, NgrxDataModule } from '../../ngrx-data';
+import { EntityDataServiceConfig, NgrxDataModule } from 'ngrx-data';
 
 import { pluralNames, entityMetadata } from './entity-metadata';
 

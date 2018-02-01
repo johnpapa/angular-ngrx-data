@@ -1,4 +1,4 @@
-import { EntityMetadataMap, PropsFilter } from '../../ngrx-data';
+import { EntityMetadataMap, PropsFilter } from 'ngrx-data';
 
 import { Hero, Villain } from '../core/model';
 

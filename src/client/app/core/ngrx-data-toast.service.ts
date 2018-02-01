@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { filter, takeUntil, tap } from 'rxjs/operators';
 
-import { EntityAction } from '../../ngrx-data';
+import { EntityAction } from 'ngrx-data';
 
 import { ToastService } from './toast.service';
 

@@ -6,7 +6,7 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { pipe } from 'rxjs/util/pipe';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
-import { DataServiceError, EntityCollectionDataService, HttpMethods, RequestData } from './interfaces';
+import { DataServiceError, EntityCollectionDataService, HttpMethods, normalizeApi, RequestData } from './interfaces';
 import { Update } from './ngrx-entity-models';
 
 export interface BasicDataServiceOptions {
@@ -19,7 +19,7 @@ export interface BasicDataServiceOptions {
 }
 
 // Pass the observable straight through
-const noDelay = <K>(source: Observable<K>) => source;
+export const noDelay = <K>(source: Observable<K>) => source;
 
 /**
  * A basic, generic entity data service
@@ -44,7 +44,7 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   ) {
     this._name = `${entityName} BasicDataService`;
     this.entityName = entityName;
-    api = EntityCollectionDataService.normalizeApi(api);
+    api = normalizeApi(api);
     // All URLs presumed to be lowercase
     this.entityUrl = `${api}/${entityName}/`.toLowerCase();
     this.entitiesUrl = `${api}/${entitiesName}/`.toLowerCase();

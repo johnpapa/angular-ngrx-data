@@ -4,7 +4,7 @@ import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
 import { ENTITY_CACHE_NAME, ENTITY_METADATA_TOKEN } from './interfaces';
 
-interface EntityDefinitions { [entityName: string]: EntityDefinition<any> }
+export interface EntityDefinitions { [entityName: string]: EntityDefinition<any> }
 
 @Injectable()
 export class EntityDefinitionService {

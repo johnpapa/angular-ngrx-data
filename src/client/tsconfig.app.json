@@ -1,9 +1,12 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../out-tsc/app",
+    "outDir": "../../dist/app",
     "module": "es2015",
-    "baseUrl": "",
+    "baseUrl": ".",
+    "paths": {
+      "ngrx-data": ["../../dist/ngrx-data"]
+    },
     "types": []
   },
   "exclude": [

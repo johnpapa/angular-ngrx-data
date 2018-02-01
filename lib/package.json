@@ -1,0 +1,30 @@
+{
+  "name": "ngrx-data",
+  "version": "1.0.0-alpha.0",
+  "repository": "https://github.com/johnpapa/angular-ngrx.git",
+  "license": "MIT",
+  "peerDependencies": {
+    "@angular/core": "^4.1.2",
+    "@angular/common": "^4.1.2",
+    "@ngrx/effects": "^4.1.1",
+    "@ngrx/entity": "^4.1.1",
+    "@ngrx/store": "^4.1.1",
+    "rxjs": "^5.5.2",
+    "tslib": "^1.8.1"
+  },
+  "ngPackage": {
+    "$schema": "../node_modules/ng-packagr/ng-package.schema.json",
+    "dest": "../dist/ngrx-data",
+    "workingDirectory": "../.ng_build",
+    "lib": {
+      "entryFile": "src/public_api.ts",
+      "umdModuleIds": {
+        "@ngrx/store": "ngrx.store",
+        "@ngrx/effects": "ngrx.effects",
+        "@ngrx/entity": "ngrx.entity",
+        "rxjs/util/pipe": "Rx.util.pipe",
+        "tslib": "tslib"
+      }
+    }
+  }
+}

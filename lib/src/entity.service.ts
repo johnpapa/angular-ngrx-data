@@ -9,7 +9,7 @@ import { Dictionary } from './ngrx-entity-models';
 
 import { EntityCache, ENTITY_CACHE_NAME_TOKEN, CREATE_ENTITY_DISPATCHER_TOKEN } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
-import { EntityDispatcher, CreateEntityDispatcher } from './entity-dispatcher';
+import { EntityDispatcher, createEntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors';
 
 // tslint:disable:member-ordering
@@ -80,16 +80,19 @@ export interface EntityService<T> {
 
 @Injectable()
 export class EntityServiceFactory {
+  private createDispatcher: typeof createEntityDispatcher;
   private cacheSelector: Selector<Object, EntityCache>;
   private selectors$Map: { [entityName: string]: EntitySelectors$<any> } = {};
 
   constructor(
     @Inject(ENTITY_CACHE_NAME_TOKEN) private cacheName: string,
-    @Inject(CREATE_ENTITY_DISPATCHER_TOKEN) private createEntityDispatcher: CreateEntityDispatcher,
+    @Inject(CREATE_ENTITY_DISPATCHER_TOKEN) dispatcher: any,
     private actions$: EntityActions,
     private entityDefinitionService: EntityDefinitionService,
     private store: Store<EntityCache>
   ) {
+    // AOT type limitations oblige this indirection.
+    this.createDispatcher = dispatcher;
     // This service applies to the cache in ngrx/store named `cacheName`
     this.cacheSelector = createFeatureSelector(this.cacheName);
   }
@@ -101,7 +104,7 @@ export class EntityServiceFactory {
   create<T, S extends EntityService<T> = EntityService<T>>(entityName: string): S {
     entityName = entityName.trim();
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
-    const dispatcher = this.createEntityDispatcher<T>(entityName, this.store, def.selectId);
+    const dispatcher = this.createDispatcher<T>(entityName, this.store, def.selectId);
     const selectors$ = createEntitySelectors$(
       entityName,
       this.store,

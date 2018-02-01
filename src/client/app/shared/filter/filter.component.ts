@@ -4,7 +4,7 @@ import { FormControl } from '@angular/forms';
 import { Subject } from 'rxjs/Subject';
 import { debounceTime, distinctUntilChanged, takeUntil, take, tap } from 'rxjs/operators';
 
-import { EntityService } from '../../../ngrx-data';
+import { EntityService } from 'ngrx-data';
 
 @Component({
   selector: 'app-filter',

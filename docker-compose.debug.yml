@@ -1,8 +1,8 @@
 version: '2.1'
 
 services:
-  angular-ngrx:
-    image: johnpapa/angular-ngrx
+  angular-ngrx-data:
+    image: johnpapa/angular-ngrx-data
     build: .
     env_file:
       - .env

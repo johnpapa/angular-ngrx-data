@@ -1,6 +1,6 @@
 import { AngularNgrxPage } from './app.po';
 
-describe('angular-ngrx App', () => {
+describe('angular-ngrx-data App', () => {
   let page: AngularNgrxPage;
 
   beforeEach(() => {

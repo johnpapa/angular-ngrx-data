@@ -1,4 +1,4 @@
-# Angular-ngrx Demo
+# angular-ngrx-data Demo
 
 ## What is this
 
@@ -32,8 +32,8 @@ TODO: Explain how to implement this in a new Angular CLI app
 1. Clone this repository
 
    ```bash
-   git clone https://github.com/johnpapa/angular-ngrx.git
-   cd angular-ngrx
+   git clone https://github.com/johnpapa/angular-ngrx-data.git
+   cd angular-ngrx-data
    ```
 
 1. Install the npm packages
@@ -112,4 +112,4 @@ in the cloud.
 
 ## Problems or Suggestions
 
-[Open an issue here](https://github.com/johnpapa/angular-ngrx/issues)
+[Open an issue here](https://github.com/johnpapa/angular-ngrx-data/issues)

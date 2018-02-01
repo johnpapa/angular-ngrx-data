@@ -8,7 +8,7 @@
     "build": "ng build",
     "build-prod": "ng build --prod --build-optimizer",
     "build-lib": "ng-packagr -p lib",
-    "build-all": "rm -rf dist && ng-packagr -p lib && npm run build-prod",
+    "build-all": "rm -rf dist && npm run build-setup && npm run build-prod",
     "build-setup": "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock",
     "sme": "./node_modules/.bin/source-map-explorer",
     "gen-stats": "ng build --prod --stats-json",

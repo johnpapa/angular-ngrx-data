@@ -16,7 +16,7 @@ import { Hero } from '../../core';
   styleUrls: ['./heroes.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroSearchComponent implements OnDestroy, OnInit {
+export class HeroesComponent implements OnDestroy, OnInit {
   private onDestroy = new Subject();
   addingHero = false;
   selectedHero: Hero;

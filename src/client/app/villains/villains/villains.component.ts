@@ -16,7 +16,7 @@ import { Villain } from '../../core';
   styleUrls: ['./villains.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainSearchComponent implements OnDestroy, OnInit {
+export class VillainsComponent implements OnDestroy, OnInit {
   private onDestroy = new Subject();
   addingVillain = false;
   selectedVillain: Villain = null;

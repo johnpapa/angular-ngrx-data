@@ -29,13 +29,13 @@ Then inject an _ngrx-data_ `EntityService` into your components.
 
 The `EntityService` offers a standard set of command methods for issuing HTTP requests and `Observable` _selectors_ that push entity data into your component for processing and display.
 
-The `ngrx-data` library uses conventions to drive a standard set of behaviors that become dispatched _ngrx events_, intercepted by _ngrx effects_, routed to a RESTy data service that makes the HTTP calls.
+The `ngrx-data` library uses conventions to drive a standard set of behaviors that become dispatched _ngrx actions_, intercepted by _ngrx effects_, routed to a RESTy data service that makes the HTTP calls.
 
-Server responses become new _ngrx events_ that pass through _ngrx reducers_, where they update the _ngrx store_, triggering the store `Observables` that send values through _ngrx selectors_ to your application components. 
+Server responses become new _ngrx actions_ that pass through _ngrx reducers_, where they update the _ngrx store_, triggering the store `Observables` that send values through _ngrx selectors_ to your application components. 
 
 The mechanics are handled for you _inside the library_. You don't have to write any _ngrx_ code. Just follow the _ngrx-data usage_ pattern and get on with your life.
 
-You can see the _ngrx machinery_ at work with the _redux developer tools_. You can listen to the flow of events directly. You can intercept and override _anything_ ... but you only have to intervene where you need to custom logic. 
+You can see the _ngrx machinery_ at work with the _redux developer tools_. You can listen to the flow of actions directly. You can intercept and override _anything_ ... but you only have to intervene where you need to custom logic. 
 
 ### Show me
 
@@ -168,7 +168,7 @@ Clone this repository
    npm run build-setup
    ```
 
-(3) Serve the demo app
+(3) Serve the CLI-based demo app
 
    ```bash
    ng serve
@@ -183,6 +183,20 @@ Clone this repository
 >TBD: Describe how to install the redux tools in the (Chrome-only?) browser, open the dev tools,
 navigate to the redux tool, and goof around there.
 
+## Explore and run the library tests
+
+The _ngrx-data_ library ships with unit tests.
+These tests demonstrate features of the library just as the demo app does.
+
+Run this CLI command to execute the tests.
+
+```bash
+ng test
+```
+
+We welcome PRs that add to the tests as well as those that fix code bugs and documentation.
+
+Be sure to run these tests before submitting a PR for review.
 
 ## How to build a new _ngrx-data_ app
 

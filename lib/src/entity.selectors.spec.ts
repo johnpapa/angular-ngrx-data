@@ -6,7 +6,7 @@ import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { EntityCache, ENTITY_CACHE_NAME } from './interfaces';
 import { EntityCollection } from './entity-definition';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
-import { PropsFilter } from './entity-filters';
+import { PropsFilterFnFactory } from './entity-filters';
 
 import {
   createCachedCollectionSelector,
@@ -21,7 +21,7 @@ import {
 const entityCacheSelector = createFeatureSelector<EntityCache>(ENTITY_CACHE_NAME);
 
 export function nameFilter<T>(entities: T[], pattern: string) {
-  return PropsFilter<any>(['name'])(entities, pattern);
+  return PropsFilterFnFactory<any>(['name'])(entities, pattern);
 }
 
 /// Hero

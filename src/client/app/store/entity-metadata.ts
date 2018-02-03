@@ -1,4 +1,4 @@
-import { EntityMetadataMap, PropsFilter } from 'ngrx-data';
+import { EntityMetadataMap, PropsFilterFnFactory } from 'ngrx-data';
 
 import { Hero, Villain } from '../core/model';
 
@@ -13,11 +13,11 @@ export function selectId<T extends { id: any }>(entity: T) {
 }
 
 export function nameFilter<T>(entities: T[], pattern: string) {
-  return PropsFilter<any>(['name'])(entities, pattern);
+  return PropsFilterFnFactory<any>(['name'])(entities, pattern);
 }
 
 export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
-  return PropsFilter<any>(['name', 'saying'])(entities, pattern);
+  return PropsFilterFnFactory<any>(['name', 'saying'])(entities, pattern);
 }
 ////////////
 

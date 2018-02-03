@@ -3,8 +3,21 @@
 <a name="entity"></a>
 ## What is an _entity_?
 
-An _entity_ is a data object that you read from and write to a database. An _entity_ refers to some persistent "thing" in the application domain, such as a customer. 
-Such things are unique even as their values change. Accordingly each entity has a unique identifier.
+An **_entity_** is an object with _long-lived data values_ that you read from and write to a database.
+
+>Operations that access the database are called **_persistence_** operations.
+
+An _entity_ refers to some "thing" in the application domain, such as a customer. 
+Such things are unique even as their values change. Accordingly each entity has a unique **_primary key_**, also called its **_identifier_**.
+
+Each _entity_ object is an instance of an **_entity type_**. That type could be represented explicitly as a class or an interface. Or it could just be a bag of data.
+
+To manage entities with _ngrx-data_, you describe each entity type with [**_entity metadata_**](docs/entity-metadata).
+
+The application's **_entity model_** is the set of all entity types in your application that are described with _entity metadata_.
+
+
+In some definitions, the _entity type_ and _entity model_ describe both the data and the _logic_ that govern that data such as data integrity rules (e.g., validations) and behaviors (e.g., calculations). The _current version_ of _ngrx-data_ library is unaware of entity logic beyond what is strictly necessary to persist entity data values.
 
 <a name="ngrx"></a>
 ## What is _ngrx_?

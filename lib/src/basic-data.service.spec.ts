@@ -201,6 +201,81 @@ describe('BasicDataService', () => {
     });
   });
 
+  describe('#getWithQuery', () => {
+    let expectedHeroes: Hero[];
+
+    beforeEach(() => {
+      expectedHeroes = [
+        { id: 1, name: 'BA' },
+        { id: 2, name: 'BB' },
+       ] as Hero[];
+
+      service = new BasicDataService(httpClient, testServiceConfig);
+    });
+
+    it('should return expected selected heroes w/ object params', () => {
+      service.getWithQuery({name: 'B'}).subscribe(
+        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
+        fail
+      );
+
+      // HeroService should have made one request to GET heroes
+      // from expected URL with query params
+      const req = httpTestingController.expectOne(heroesUrl + '?name=B');
+      expect(req.request.method).toEqual('GET');
+
+      // Respond with the mock heroes
+      req.flush(expectedHeroes);
+    });
+
+    it('should return expected selected heroes w/ string params', () => {
+      service.getWithQuery('name=B').subscribe(
+        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
+        fail
+      );
+
+      // HeroService should have made one request to GET heroes
+      // from expected URL with query params
+      const req = httpTestingController.expectOne(heroesUrl + '?name=B');
+      expect(req.request.method).toEqual('GET');
+
+      // Respond with the mock heroes
+      req.flush(expectedHeroes);
+    });
+
+    it('should be OK returning no heroes', () => {
+
+      service.getWithQuery({name: 'B'}).subscribe(
+        heroes => expect(heroes.length).toEqual(0, 'should have empty heroes array'),
+        fail
+      );
+
+      const req = httpTestingController.expectOne(heroesUrl + '?name=B');
+      req.flush([]); // Respond with no heroes
+    });
+
+    it('should turn 404 into Observable<DataServiceError>', () => {
+
+      const msg = 'deliberate 404 error';
+
+      service.getWithQuery({name: 'B'}).subscribe(
+        heroes => fail('getWithQuery succeeded when expected it to fail with a 404'),
+        err => {
+          expect(err).toBeDefined('request should have failed');
+          expect(err instanceof DataServiceError).toBe(true, 'is DataServiceError');
+          expect(err.error.status).toEqual(404, 'has 404 status');
+          expect(err.message).toEqual(msg, 'has expected error message');
+        }
+      );
+
+      const req = httpTestingController.expectOne(heroesUrl + '?name=B');
+
+      const errorEvent = new ErrorEvent('so sad', { message: msg });
+
+      req.error(errorEvent, { status: 404, statusText: 'Not Found' });
+    });
+  });
+
   describe('#add', () => {
     let expectedHero: Hero;
 

@@ -1,12 +1,16 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { pipe } from 'rxjs/util/pipe';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
-import { DataServiceError, EntityCollectionDataService, HttpMethods, normalizeApi, RequestData } from './interfaces';
+import {
+  DataServiceError, EntityCollectionDataService,
+  HttpMethods, normalizeApi, QueryParams, RequestData
+ } from './interfaces';
+
 import { Update } from './ngrx-entity-models';
 
 export interface BasicDataServiceOptions {
@@ -69,6 +73,12 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
     return this.execute('GET', this.entityUrl + id);
   }
 
+  getWithQuery(queryParams: QueryParams | string ): Observable<T[]> {
+    const qParams = typeof queryParams === 'string' ? { fromString: queryParams } : { fromObject: queryParams };
+    const params = new HttpParams(qParams);
+    return this.execute('GET', this.entitiesUrl, undefined, { params });
+  }
+
   update(update: Update<T>): Observable<Update<T>> {
     return this.execute('PUT', this.entityUrl + update.id, update);
   }
@@ -76,9 +86,10 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
   protected execute(
     method: HttpMethods,
     url: string,
-    data?: any): Observable<any> {
+    data?: any,
+    options?: any): Observable<any> {
 
-    const req: RequestData = { method, url };
+    const req: RequestData = { method, url, options };
 
     const tail = pipe(
       method === 'GET' ? this.getDelay : this.saveDelay,
@@ -91,17 +102,17 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
 
     switch (method) {
       case 'DELETE': {
-        return this.http.delete(url).pipe(tail);
+        return this.http.delete(url, options).pipe(tail);
       }
       case 'GET': {
-        return this.http.get(url).pipe(tail);
+        return this.http.get(url, options).pipe(tail);
       }
       case 'POST': {
-        return this.http.post(url, data).pipe(tail);
+        return this.http.post(url, data, options).pipe(tail);
       }
       case 'PUT': {
         const { id, changes } = data; // data must be Update<T>
-        return this.http.put(url, changes)
+        return this.http.put(url, changes, options)
           .pipe(
             // return the original Update<T> with merged updated data (if any).
             map(updated => ({id, changes: {...changes, ...updated}})),

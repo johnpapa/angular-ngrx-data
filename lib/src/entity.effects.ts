@@ -14,6 +14,7 @@ import { EntityDataService } from './entity-data.service';
 const persistOps = [
   EntityOp.QUERY_ALL,
   EntityOp.QUERY_BY_KEY,
+  EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD,
   EntityOp.SAVE_DELETE,
   EntityOp.SAVE_UPDATE
@@ -43,6 +44,9 @@ export class EntityEffects {
       }
       case EntityOp.QUERY_BY_KEY: {
         return service.getById(action.payload);
+      }
+      case EntityOp.QUERY_MANY: {
+        return service.getWithQuery(action.payload);
       }
       case EntityOp.SAVE_ADD: {
         return service.add(action.payload);

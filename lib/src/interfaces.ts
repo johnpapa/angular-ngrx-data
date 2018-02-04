@@ -33,13 +33,15 @@ export function normalizeApi(api: string) {
   return api.replace(/^[\/\s]+|[\/\s]+$/g, '');
 }
 
-export abstract class EntityCollectionDataService<T> {
-  abstract readonly name: string;
-  abstract add(entity: T): Observable<T>;
-  abstract delete(id: any): Observable<null>;
-  abstract getAll(): Observable<T[]>;
-  abstract getById(id: any): Observable<T>;
-  abstract update(update: Update<T>): Observable<Update<T>>;
+/** A service that */
+export interface EntityCollectionDataService<T> {
+  readonly name: string;
+  add(entity: T): Observable<T>;
+  delete(id: any): Observable<null>;
+  getAll(): Observable<T[]>;
+  getById(id: any): Observable<T>;
+  getWithQuery(params: QueryParams | string): Observable<T[]>;
+  update(update: Update<T>): Observable<Update<T>>;
 }
 
 export interface EntityCache {
@@ -69,7 +71,15 @@ export function flattenArgs<T>(args?: any[]): T[] {
 
 export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';
 
+/**
+ * A key/value map of parameters to be turned into an HTTP query string
+ * Same as HttpClient's HttpParamsOptions which is NOT exported at package level
+ * https://github.com/angular/angular/issues/22013
+ */
+export interface QueryParams { [name: string]: string | string[]; }
+
 export interface RequestData {
   method: HttpMethods;
   url: string;
+  options: any;
 }

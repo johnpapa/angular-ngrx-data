@@ -1,17 +1,11 @@
 ## Angular ngrx-data Changelog
 
-<a name="x.y.z"></a>
+<a name="0.1.0"></a>
 
-# x.y.z (yyyy-mm-dd)
+# 0.1.0 (2018-02-04)
 
 _Features_
 
-* ...
-
-_Bug Fixes_
-
-* ...
-
-_Breaking Changes_
-
-* ...
+* Initial release
+* Documentation is in progress
+* See readme for setup

@@ -1,7 +1,7 @@
 import { Store } from '@ngrx/store';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCache } from './interfaces';
+import { EntityCache, QueryParams } from './interfaces';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 /**
@@ -37,16 +37,11 @@ export class EntityDispatcher<T> {
     this.dispatch(EntityOp.SAVE_ADD, entity);
   }
 
-  /** Clear the cached entity collection */
-  clear() {
-    this.dispatch(EntityOp.REMOVE_ALL);
-  }
-
   /**
-   * Removes entity from the cache by key
+   * Removes entity from the cache by key (if it is in the cache)
    * and deletes entity from remote storage by key.
    * Does not restore to cache if the delete fails.
-   * */
+   */
   delete(key: string | number) {
     this.dispatch(EntityOp.SAVE_DELETE, key);
   }
@@ -60,11 +55,21 @@ export class EntityDispatcher<T> {
   }
 
   /**
-   * Query remote storage for the entity with this primary key
-   * and replace the cached entity with the result if found.
+   * Query remote storage for the entity with this primary key.
+   * If the server returns an entity,
+   * merge it into the cached collection.
    */
   getByKey(key: any) {
     this.dispatch(EntityOp.QUERY_BY_KEY, key);
+  }
+
+  /**
+   * Query remote storage for the entities that satisfy a query expressed
+   * with either a query parameter map or an HTTP URL query string.
+   * and merge the results into the cached collection.
+   */
+  getWithQuery(queryParams: QueryParams | string) {
+    this.dispatch(EntityOp.QUERY_MANY, queryParams);
   }
 
   /**
@@ -79,6 +84,82 @@ export class EntityDispatcher<T> {
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
     this.dispatch(EntityOp.SAVE_UPDATE, update);
+  }
+
+  /*** Cache-only operations that do not update remote storage ***/
+
+  /**
+   * Replace all entities in the cached collection.
+   * Does not save to remote storage.
+   */
+  addAllToCache(entities: T[]) {
+    this.dispatch(EntityOp.ADD_ALL, entities);
+  }
+
+  /**
+   * Add a new entity directly to the cache.
+   * Does not save to remote storage.
+   * Ignored if an entity with the same primary key is already in cache.
+   */
+  addOneToCache(entity: T) {
+    this.dispatch(EntityOp.ADD_ONE, entity);
+  }
+
+  /**
+   * Add multiple new entities directly to the cache.
+   * Does not save to remote storage.
+   * Entities with primary keys already in cache are ignored.
+   */
+  addManyToCache(entities: T[]) {
+    this.dispatch(EntityOp.ADD_MANY, entities);
+  }
+
+  /** Clear the cached entity collection */
+  clear() {
+    this.dispatch(EntityOp.REMOVE_ALL);
+  }
+
+  /**
+   * Remove an entity directly from the cache.
+   * Does not delete that entity from remote storage.
+   */
+  removeOneFromCache(key: string | number) {
+    this.dispatch(EntityOp.REMOVE_ONE, key);
+  }
+
+  /**
+   * Remove multiple entities directly from the cache.
+   * Does not delete these entities from remote storage.
+   */
+  removeManyFromCache(keys: string[] | number[]) {
+    this.dispatch(EntityOp.REMOVE_MANY, keys);
+  }
+
+  /**
+   * Update a cached entity directly.
+   * Does not update that entity in remote storage.
+   * Ignored if an entity with matching primary key is not in cache.
+   * The update entity may be partial (but must have its key)
+   * in which case it patches the existing entity.
+   */
+  updateOneInCache(entity: Partial<T>) {
+    // update entity might be a partial of T but must at least have its key.
+    // pass the Update<T> structure as the payload
+    const update: Update<T> = this.toUpdate(entity);
+    this.dispatch(EntityOp.UPDATE_ONE, update);
+  }
+
+  /**
+   * Update multiple cached entities directly.
+   * Does not update these entities in remote storage.
+   * Entities whose primary keys are not in cache are ignored.
+   * Update entities may be partial (but each must have its key);
+   * such partial entities patch their cached counterparts.
+   */
+  updateManyInCache(entities: Partial<T>[]) {
+    if (entities.length === 0) { return; }
+    const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
+    this.dispatch(EntityOp.UPDATE_MANY, updates);
   }
 
   /**

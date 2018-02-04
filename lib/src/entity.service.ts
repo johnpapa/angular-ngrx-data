@@ -7,7 +7,7 @@ import { filter, share, takeUntil, tap } from 'rxjs/operators';
 import { EntityAction, EntityActions } from './entity.actions';
 import { Dictionary } from './ngrx-entity-models';
 
-import { EntityCache, ENTITY_CACHE_NAME_TOKEN, CREATE_ENTITY_DISPATCHER_TOKEN } from './interfaces';
+import { EntityCache, ENTITY_CACHE_NAME_TOKEN, CREATE_ENTITY_DISPATCHER_TOKEN, QueryParams } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityDispatcher, createEntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors';
@@ -17,17 +17,17 @@ export interface EntityService<T> {
   /*** COMMANDS ***/
 
   /**
-   * Add an entity to the cache.
-   * Does not save to remote storage.
-   * Ignored if the entity is already in cache.
+   * Save a new entity to remote storage.
+   * Does not add to cache until save succeeds.
+   * Ignored by cache-add if the entity is already in cache.
    */
   add(entity: T): void;
 
-  /** Clear the cached entity collection */
-  clear(): void;
-
-  /** Remove an entity by key from the cache. Does not delete from remote storage. */
-  delete(key: string | number): void;
+  /**
+   * Removes entity from the cache by key (if it is in the cache).
+   * and deletes entity from remote storage by key.
+   * Does not restore to cache if the delete fails.
+   */  delete(key: string | number): void;
 
   /**
    * Query remote storage for all entities and
@@ -36,19 +36,81 @@ export interface EntityService<T> {
   getAll(): void;
 
   /**
-   * Query remote storage for the entity with this primary key
-   * and replace the cached entity with the result if found.
+   * Query remote storage for the entity with this primary key.
+   * If the server returns an entity,
+   * merge it into the cached collection.
    */
   getByKey(key: any): void;
 
   /**
-   * Update the an entity to the cache.
-   * Does not save to remote storage.
-   * Ignored if the entity's key is not found in cache.
+   * Query remote storage for the entities that satisfy a query expressed
+   * with either a query parameter map or an HTTP URL query string.
+   * and merge the results into the cached collection.
+   */
+  getWithQuery(queryParams: QueryParams | string): void
+
+  /**
+   * Save the updated entity (or partial entity) to remote storage.
+   * Updates the cached entity after the save succeeds.
+   * Update in cache is ignored if the entity's key is not found in cache.
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
   update(entity: Partial<T>): void;
+
+  /*** Cache-only operations that do not update remote storage ***/
+  /**
+   * Replace all entities in the cached collection.
+   * Does not save to remote storage.
+   */
+  addAllToCache(entities: T[]): void;
+
+  /**
+   * Add a new entity directly to the cache.
+   * Does not save to remote storage.
+   * Ignored if an entity with the same primary key is already in cache.
+   */
+  addOneToCache(entity: T): void;
+
+  /**
+   * Add multiple new entities directly to the cache.
+   * Does not save to remote storage.
+   * Entities with primary keys already in cache are ignored.
+   */
+  addManyToCache(entities: T[]): void;
+
+  /** Clear the cached entity collection */
+  clear(): void;
+
+  /**
+   * Remove an entity directly from the cache.
+   * Does not delete that entity from remote storage.
+   */
+  removeOneFromCache(key: string | number): void;
+
+  /**
+   * Remove multiple entities directly from the cache.
+   * Does not delete these entities from remote storage.
+   */
+  removeManyFromCache(keys: string[] | number[]): void;
+
+  /**
+   * Update a cached entity directly.
+   * Does not update that entity in remote storage.
+   * Ignored if an entity with matching primary key is not in cache.
+   * The update entity may be partial (but must have its key)
+   * in which case it patches the existing entity.
+   */
+  updateOneInCache(entity: Partial<T>): void;
+
+  /**
+   * Update multiple cached entities directly.
+   * Does not update these entities in remote storage.
+   * Entities whose primary keys are not in cache are ignored.
+   * Update entities may be partial (but each must have its key);
+   * such partial entities patch their cached counterparts.
+   */
+  updateManyInCache(entities: Partial<T>[]): void;
 
   /**
    * Set the pattern that the collection's filter applies

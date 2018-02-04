@@ -152,6 +152,12 @@ describe('EntityReducer', () => {
 
   });
 
+  /***
+   * Todo: test all other reducer actions
+   * Not a high priority because these other EntityReducer methods delegate to the
+   * @ngrx/entity EntityAdapter reducer methods which are presumed to be well tested.
+   ***/
+
   describe('reducer override', () => {
 
     beforeEach(() => {

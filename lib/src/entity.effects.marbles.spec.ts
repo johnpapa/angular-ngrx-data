@@ -28,7 +28,7 @@ export class TestEntityDataService {
 
   constructor() {
     this.dataServiceSpy = jasmine.createSpyObj('EntityCollectionDataService<Hero>',
-    ['add', 'delete', 'getAll', 'getById', 'update']);
+    ['add', 'delete', 'getAll', 'getById', 'getWithQuery', 'update']);
   }
 
   getService() {
@@ -123,6 +123,38 @@ describe('EntityEffects (marble testing)', () => {
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
 
     expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a QUERY_MANY_SUCCESS with selected heroes on success', () => {
+    const hero1 = { id: 1, name: 'BA' } as Hero;
+    const hero2 = { id: 2, name: 'BB' } as Hero;
+    const heroes = [hero1, hero2];
+
+    const action = new EntityAction('Hero', EntityOp.QUERY_MANY, {name: 'B'});
+    const completion = new EntityAction('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
+
+    actions$.stream = hot('-a---', { a: action });
+    // delay the response 3 ticks
+    const response = cold('---a|', { a: heroes });
+    const expected = cold('----b', { b: completion });
+    testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a QUERY_MANY_ERROR when service fails', () => {
+    const action = new EntityAction('Hero', EntityOp.QUERY_MANY, {name: 'B'});
+    const httpError = { error: new Error('Resource not found'), status: 404 };
+    const completion = makeEntityErrorCompletion(action, 'GET', httpError, {name: 'B'})
+    const error = completion.payload.error;
+
+    actions$.stream = hot('-a---', { a: action });
+    const response = cold('----#|', {}, error);
+    const expected = cold('-----b', { b: completion });
+    testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+    expect(completion.op).toEqual('QUERY_MANY_ERROR');
   });
 
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
@@ -230,7 +262,9 @@ function makeEntityErrorCompletion(
   /** Http method for that action */
   method: HttpMethods,
   /** Http error from the web api */
-  httpError?: any) {
+  httpError?: any,
+  /** Options sent with the request */
+  options?: any) {
 
   let url = 'api/heroes';
 
@@ -242,7 +276,7 @@ function makeEntityErrorCompletion(
   }
 
   // Error produced by the EntityDataService
-  const error = new DataServiceError(httpError, { method, url });
+  const error = new DataServiceError(httpError, { method, url, options });
 
   const errOp = <EntityOp> (originalAction.op + EntityAction.OP_ERROR);
 

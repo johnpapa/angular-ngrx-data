@@ -1,5 +1,8 @@
+import { NgModule } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
+
+import { Observable } from 'rxjs/Observable';
 
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
@@ -8,13 +11,8 @@ import { Pluralizer, _Pluralizer } from './pluralizer';
 import { BasicDataService } from './basic-data.service';
 
 import { EntityDataService, EntityDataServiceConfig } from './entity-data.service';
-
-class CustomDataService extends BasicDataService<any> {
-  constructor(entityName: string) {
-    super(null, {api: 'test/api', entityName: 'Test' + entityName});
-    this._name = `${this.entityName} CustomDataService`;
-  }
-}
+import { EntityCollectionDataService, QueryParams } from './interfaces';
+import { Update } from 'ngrx-entity-models';
 
 describe('EntityDataService', () => {
   const config = {api: 'api'};
@@ -23,6 +21,7 @@ describe('EntityDataService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [ CustomDataServiceModule ],
       providers: [
         EntityDataService,
         { provide: EntityDataServiceConfig, useValue: config},
@@ -81,5 +80,65 @@ describe('EntityDataService', () => {
       expect (service.name).toBe('Foo BasicDataService');
     });
 
+    it('can register a custom service using a module import', () => {
+      const service = entityDataService.getService('Bazinga');
+      expect(service instanceof BazingaDataService).toBe(true);
+    })
+
   });
 });
+
+///// Test Helpers /////
+
+import { Optional } from '@angular/core';
+
+export class CustomDataService extends BasicDataService<any> {
+  constructor(entityName: string) {
+    super(null, {api: 'test/api', entityName: 'Test' + entityName});
+    this._name = `${this.entityName} CustomDataService`;
+  }
+}
+
+export class Bazinga {
+  id: number;
+  wow: string
+}
+
+export class BazingaDataService implements EntityCollectionDataService<Bazinga> {
+  name: string;
+
+  // TestBed bug requires `@Optional` even though http is always provided.
+  constructor(@Optional() private http: HttpClient) {
+    if (!http) { throw new Error('Where is HttpClient?'); }
+    this.name = 'Bazinga custom data service';
+  }
+
+  add(entity: Bazinga): Observable<Bazinga> { return this.bazinga(); }
+  delete(id: any): Observable<null> { return this.bazinga(); }
+  getAll(): Observable<Bazinga[]> { return this.bazinga(); }
+  getById(id: any): Observable<Bazinga> { return this.bazinga(); }
+  getWithQuery(params: string | QueryParams): Observable<Bazinga[]>  { return this.bazinga(); }
+  update(update: Update<Bazinga>): Observable<Update<Bazinga>> { return this.bazinga(); }
+
+  private bazinga(): any {
+    bazingaFail();
+    return undefined;
+  }
+}
+
+@NgModule({
+  providers: [
+    BazingaDataService
+  ]
+})
+export class CustomDataServiceModule {
+  constructor(
+    entityDataService: EntityDataService,
+    bazingaService: BazingaDataService) {
+    entityDataService.registerService('Bazinga', bazingaService);
+  }
+}
+
+function bazingaFail() {
+  throw new Error('Bazinga! This method is not implemented.');
+}

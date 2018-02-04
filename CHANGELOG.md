@@ -1,8 +1,8 @@
 ## Angular ngrx-data Changelog
 
-<a name="0.1.0"></a>
+<a name="1.0.0-alpha.0"></a>
 
-# 0.1.0 (2018-02-04)
+# 1.0.0-alpha.0 (2018-02-04)
 
 _Features_
 

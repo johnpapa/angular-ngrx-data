@@ -1,11 +1,13 @@
 import { QueryParams } from './interfaces';
 
 /**
- * Interface for entity commands: entity actions dispatched to the ngrx store.
+ * Interface for ngrx-data entity commands that
+ * dispatch entity actions to the ngrx store.
  */
-export interface EntityCommands<T> {
+export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> { }
 
-  /*** Commands that update the remote server ***/
+/*** Commands that update the remote server ***/
+export interface EntityServerCommands<T> {
 
   /**
    * Save a new entity to remote storage.
@@ -58,9 +60,10 @@ export interface EntityCommands<T> {
    * in which case it patches the existing entity.
    */
   update(entity: Partial<T>): void;
+}
 
-  /*** Cache-only commands that do not update remote storage ***/
-
+/*** Cache-only commands that do not update remote storage ***/
+export interface EntityCacheCommands<T> {
   /**
    * Replace all entities in the cached collection.
    * Does not save to remote storage.

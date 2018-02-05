@@ -1,6 +1,6 @@
 export { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
 export * from './entity.actions';
-export { EntityCommands } from './entity-commands';
+export { EntityCommands, EntityCacheCommands, EntityServerCommands } from './entity-commands';
 export * from './entity-data.service';
 export * from './entity-dispatcher';
 export * from './entity-definition';

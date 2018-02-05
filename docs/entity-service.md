@@ -1,4 +1,4 @@
-# Entity Services
+# Entity Service
 
 An **[`EntityService<T>`](../lib/src/entity.service.ts)**
 is a facade over the _ngrx-data_ **dispatcher** and **selectors$** that manages an entity `T` collection cached in the _ngrx store_.

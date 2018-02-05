@@ -1,9 +1,9 @@
-# The ngrx-data library
+# Angular _ngrx-data_ Overview
 
 The _ngrx-data_ library makes it easier to write an Angular application that manages [entity](faq.md#entity) data with 
 [ngrx](faq.md#ngrx) in a "reactive" style, following the [redux](faq.md#redux) pattern.
 
-See the [README.md] for instructions on installing the library and running the demo app.
+See the [README.md](../readme.md) for instructions on installing the library and running the demo app.
 
 Learn about _ngrx-data_.
 

@@ -38,10 +38,8 @@ The [`EntityEffects`](../lib/src/entity.effects.ts) decide which `Actions` to in
 The [`EntityReducer`](../lib/src/entity.reducer.ts) redirects the action to an `EntityCollectionReducer` based on the `entityName` and that reducer 
 process the action based on the `op`.
 
-
 >The `EntityAction` constructor asks the static `formatActionType()` method to
 >produce the `Action.type` string.
->
 >Because _ngrx-data_ ignores the `type`, you can replace `formatActionType` with your own method if you prefer a different format.
 
 ### Where are the _EntityActions_?
@@ -65,12 +63,12 @@ The [@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/READ
 >The _ngrx-data_ library internally delegates much of the heavy lifting to _@ngrx/entity_. 
 
 But you must still write a lot of code for each entity type.
-You're expected to create _eight_ `Action`s per entity type and 
+You're expected to create _eight actions_ per entity type and 
 write a _reducer_ that responds to these eight actions by calling eight methods of an [@ngrx/entity _EntityAdapter_](https://github.com/ngrx/platform/blob/master/docs/entity/adapter.md#adapter-collection-methods).
 
 These artifacts only address the _cached_ entity collection. 
 
-You may write as many as _ eighteen additional actions_ to support a typical complement of asynchronous CRUD (Create, Retrieve, Update, Delete) operations. You'll have to dispatch them to the store where you'll process them with more _reducer_ methods and _effects_ that you must also hand code.
+You may write as many as _eighteen additional actions_ to support a typical complement of asynchronous CRUD (Create, Retrieve, Update, Delete) operations. You'll have to dispatch them to the store where you'll process them with more _reducer_ methods and _effects_ that you must also hand code.
 
 With vanilla _ngrx_, you'll go through this exercise for _every entity type_.
 That's a lot of code to write, test, and maintain.

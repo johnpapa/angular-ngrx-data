@@ -1,12 +1,24 @@
 # Entity Services
 
-An **`EntityService<T>`** is a facade over the _ngrx-data_ **commands** and **queries** that manage an entity collection cached in the _ngrx store.
+An **[`EntityService<T>`](../lib/src/entity.service.ts)**
+is a facade over the _ngrx-data_ **commands** and **selectors$** that manage an entity collection cached in the _ngrx store.
 
-_Commands_ dispatch [_entity actions_](entity-actions.md) to the _ngrx store_ that either update the entity collection directly or trigger HTTP requests to a server. When the server responds, the _ngrx-data_ library dispatches new actions with the response data and these actions update the entity collection.
+**_Commands_** dispatch [_entity actions_](entity-actions.md) to the _ngrx store_ that either update the entity collection directly or trigger HTTP requests to a server. When the server responds, the _ngrx-data_ library dispatches new actions with the response data and these actions update the entity collection.
 
-_Queries_ are properties returning _selector observables_. Each _observable_ watches for a specific change in the entity collection and emits the changed value.
+The [`EntityCommands`](../lib/src/entity-commands.ts) interface lists all the commands and what they do.
 
-Your application calls `EntityService<T>` _command methods_ to update the collection and subscribes _selector observables_ in order to process and display entities in the collection.
+Your application calls `EntityService<T>` _command methods_ to update 
+the _cached entity collection_ in the _ngrx store_.
+
+**_Selectors$_** are properties returning _selector observables_. 
+Each _observable_ watches for a specific change in the cached entity collection and emits the changed value.
+
+The [`EntitySelectors$`](../lib/src/entity.selectors$.ts) interface 
+lists all of the pre-defined _selector observable properties_ and 
+explains which collection properties they observe.
+
+Your application subscribes to _selector observables_ 
+in order to process and display entities in the collection.
 
 ## Examples from the demo app
 
@@ -35,7 +47,7 @@ creates an `EntityService` for `Hero` entities.
 Alternatively, we could have created a single `HeroEntityService` elsewhere, perhaps in the `AppModule`, and injected it into the component's constructor.
 That's the app designer's choice.
 
-### Set _selector$_ properties
+### Set component _selector$_ properties
 
 The component sets two of its properties to two of the `EntityService` _selector observables_: `filteredEntities$` and `loading$`.
 
@@ -43,9 +55,9 @@ The `filteredEntities$` _observable_ produces an array of the currently cached `
 This _observable_ produces a new array of heroes if the user
 changes the filter or if some action changes the heroes in the cached collection.
 
-The `loading$` _observable_ produces `true` when the 
-[data service](entity-dataservice.md) is querying for heroes.
-It produces `false` when the service responds.
+The `loading$` _observable_ produces `true` while the 
+[data service](entity-dataservice.md) is waiting for heroes from the server.
+It produces `false` when the server responds.
 The demo app subscribes to `loading$` so that it can turn a visual loading indicator on and off.
 
 Note that these component and `EntityService` selector property names end in `'$'`, a common convention for a property that returns an `Observable`.
@@ -76,10 +88,20 @@ Most of the `HeroesComponent` methods delegate to `EntityService` command method
 
 There are two kinds of commands:
 
-1. Commands that trigger HTTP requests.
-1. Commands that update the cached entity collection.
+1. Commands that trigger requests to the server.
+1. Cache-only commands that update the cached entity collection.
 
-The
+The server commands are simple verbs like "add" and "getAll".  
+They dispatch actions that trigger asynchronous requests to a remote server.
+
+The cache-only command methods are longer verbs like "addManyToCache" and "removeOneFromCache" 
+and their names all contain the word "cache".
+They update the cached collection immediately (synchronously).
+
+>Most applications call the server commands because they want to query and save entity data.
+>
+>Apps rarely call the cache-only commands because direct updates to the entity collection 
+>are lost when the application shuts down.
 
 Many `EntityService` command methods take a value.
 The value is _typed_ (often as `Hero`) so you won't make a mistake by passing in the wrong kind of value.

@@ -1,41 +1,35 @@
-import { Store } from '@ngrx/store';
-
-import { EntityDispatcher } from './entity-dispatcher';
-
 import { EntityAction, EntityOp } from './entity.actions';
+import { EntityDispatcher } from './entity-dispatcher';
+import { EntityCommands } from './entity-commands';
 import { Update } from './ngrx-entity-models';
 
-class Hero {
-  id: number;
-  name: string;
-  saying?: string;
-}
-
-class TestStore  {
-  dispatch = jasmine.createSpy('dispatch');
-
-  get dispatchedAction() {
-    return <EntityAction> this.dispatch.calls.argsFor(0)[0];
-  }
-}
-
-const selectId = (entity: any) => entity.id;
 describe('EntityDispatcher', () => {
-  let dispatcher: EntityDispatcher<Hero>;
+
+  commandDispatchTest(entityDispatcherTestSetup);
+
+  function entityDispatcherTestSetup() {
+    const selectId = (entity: any) => entity.id;
+    const testStore = new TestStore();
+    const dispatcher = new EntityDispatcher('Hero', <any> testStore, selectId)
+    return { dispatcher, testStore };
+  }
+});
+
+///// Tests /////
+
+/** Test that implementer of EntityCommands dispatches properly */
+export function commandDispatchTest(
+  setup: () => { dispatcher: EntityCommands<Hero>, testStore: TestStore}
+ ) {
+
+  let dispatcher: EntityCommands<Hero>;
   let testStore: TestStore;
 
   beforeEach(() => {
-    testStore = new TestStore();
-    dispatcher = new EntityDispatcher('Hero', <any> testStore, selectId)
+    const s = setup();
+    dispatcher = s.dispatcher;
+    testStore = s.testStore;
   });
-
-  // function commandTest<T>(
-  //   dispatcher: EntityDispatcher<T>,
-
-  // ) {
-
-  // }
-
 
   it('#add(hero) dispatches SAVE_ADD', () => {
     const hero: Hero = {id: 42, name: 'test'};
@@ -201,4 +195,20 @@ describe('EntityDispatcher', () => {
     expect(testStore.dispatchedAction.op).toBe(EntityOp.UPDATE_MANY);
     expect(testStore.dispatchedAction.payload).toEqual(updates);
   });
-});
+}
+
+///// test helpers /////
+
+class Hero {
+  id: number;
+  name: string;
+  saying?: string;
+}
+
+class TestStore  {
+  dispatch = jasmine.createSpy('dispatch');
+
+  get dispatchedAction() {
+    return <EntityAction> this.dispatch.calls.argsFor(0)[0];
+  }
+}

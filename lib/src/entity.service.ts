@@ -9,8 +9,16 @@ import { EntityDefinitionService } from './entity-definition.service';
 import { createEntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors$';
 
+/**
+ * A command and selector$ facade for managing
+ * a cached collection of T entities in the ngrx store.
+ */
 export interface EntityService<T> extends EntityCommands<T>, EntitySelectors$<T> { }
 
+/**
+ * Creates EntityService instances for
+ * a cached collection of T entities in the ngrx store.
+ */
 @Injectable()
 export class EntityServiceFactory {
   private createDispatcher: typeof createEntityDispatcher;

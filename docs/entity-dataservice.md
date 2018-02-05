@@ -1,4 +1,4 @@
-# Entity Dataservice
+# Entity DataService
 
 The _ngrx-data_ library expects to persist entity data with calls to a REST-like web api with endpoints for each entity type.
 
@@ -15,7 +15,7 @@ This interface supports a basic set of CRUD operations that return `Observables`
 | `delete(id: any)` | Delete an entity by primary key value |
 | `getAll()` | Get all instances of this entity type |
 | `getById(id: any)` | Get an entity by its primary key|
-| `getWithQuery(queryParams: QueryParams | string)` | Get entities that satisfy the query |
+| `getWithQuery(queryParams: QueryParams` &#x7c; `string)` | Get entities that satisfy the query |
 | `update(update: Update<T>)` | Update an existing entity |
 
 >`QueryParams` is a _parameter-name/value_ map

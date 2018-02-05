@@ -19,16 +19,20 @@ describe('EntityDispatcher', () => {
 
 /** Test that implementer of EntityCommands dispatches properly */
 export function commandDispatchTest(
-  setup: () => { dispatcher: EntityCommands<Hero>, testStore: TestStore}
+  setup: () => { dispatcher: EntityDispatcher<Hero>, testStore: TestStore}
  ) {
 
-  let dispatcher: EntityCommands<Hero>;
+  let dispatcher: EntityDispatcher<Hero>;
   let testStore: TestStore;
 
   beforeEach(() => {
     const s = setup();
     dispatcher = s.dispatcher;
     testStore = s.testStore;
+  });
+
+  it('#entityName is the expected name of the entity type', () => {
+    expect(dispatcher.entityName).toBe('Hero')
   });
 
   it('#add(hero) dispatches SAVE_ADD', () => {

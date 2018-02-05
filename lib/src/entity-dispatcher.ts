@@ -10,7 +10,8 @@ import { IdSelector, Update } from './ngrx-entity-models';
  */
 export class EntityDispatcher<T> implements EntityCommands<T> {
   constructor(
-    private entityName: string,
+    /** Name of the entity type for which entities are dispatched */
+    public entityName: string,
     private store: Store<EntityCache>,
     private selectId: IdSelector<T> = (entity: any) => entity.id
   ) {}

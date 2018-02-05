@@ -1,13 +1,14 @@
 # Entity Services
 
 An **[`EntityService<T>`](../lib/src/entity.service.ts)**
-is a facade over the _ngrx-data_ **commands** and **selectors$** that manage an entity collection cached in the _ngrx store.
+is a facade over the _ngrx-data_ **dispatcher** and **selectors$** that manages an entity `T` collection cached in the _ngrx store_.
 
-**_Commands_** dispatch [_entity actions_](entity-actions.md) to the _ngrx store_ that either update the entity collection directly or trigger HTTP requests to a server. When the server responds, the _ngrx-data_ library dispatches new actions with the response data and these actions update the entity collection.
+The **_Dispatcher_** features **command** methods that dispatch [_entity actions_](entity-actions.md) to the _ngrx store_.
+These commands either update the entity collection directly or trigger HTTP requests to a server. When the server responds, the _ngrx-data_ library dispatches new actions with the response data and these actions update the entity collection.
 
 The [`EntityCommands`](../lib/src/entity-commands.ts) interface lists all the commands and what they do.
 
-Your application calls `EntityService<T>` _command methods_ to update 
+Your application calls these _command methods_ to update 
 the _cached entity collection_ in the _ngrx store_.
 
 **_Selectors$_** are properties returning _selector observables_. 

@@ -2,18 +2,17 @@ import { Inject, Injectable } from '@angular/core';
 import { createFeatureSelector, Selector, Store } from '@ngrx/store';
 
 import { EntityActions } from './entity.actions';
-import { EntityCommands } from './entity-commands';
 
 import { EntityCache, ENTITY_CACHE_NAME_TOKEN, CREATE_ENTITY_DISPATCHER_TOKEN } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
-import { createEntityDispatcher } from './entity-dispatcher';
+import { createEntityDispatcher, EntityDispatcher } from './entity-dispatcher';
 import { createEntitySelectors$, EntitySelectors$ } from './entity.selectors$';
 
 /**
- * A command and selector$ facade for managing
+ * A dispatcher and selector$ facade for managing
  * a cached collection of T entities in the ngrx store.
  */
-export interface EntityService<T> extends EntityCommands<T>, EntitySelectors$<T> { }
+export interface EntityService<T> extends EntityDispatcher<T>, EntitySelectors$<T> { }
 
 /**
  * Creates EntityService instances for
@@ -53,6 +52,7 @@ export class EntityServiceFactory {
       def.initialState,
     );
 
+    // Merge selectors$ properties into the dispatcher and return it
     return <S> <any> Object.assign(dispatcher, selectors$);
   }
 }

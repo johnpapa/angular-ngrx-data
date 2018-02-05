@@ -12,7 +12,7 @@ import { DefaultDataService, DefaultDataServiceFactory } from './default-data.se
 
 import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService, EntityDataServiceConfig, QueryParams } from './interfaces';
-import { Update } from 'ngrx-entity-models';
+import { Update } from './ngrx-entity-models';
 
 describe('EntityDataService', () => {
   const config = {api: 'api'};

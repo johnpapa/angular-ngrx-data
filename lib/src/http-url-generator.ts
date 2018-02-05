@@ -19,6 +19,7 @@ export abstract class HttpUrlGenerator {
   abstract collectionResource(entityName: string, root: string): string;
 }
 
+@Injectable()
 export class DefaultHttpUrlGenerator implements HttpUrlGenerator {
   constructor(private pluralizer: Pluralizer) { }
 

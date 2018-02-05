@@ -28,7 +28,7 @@ The
 guide offers a quick overview. 
 
 The
-["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/index.md) page links to more in-depth documentation.
+["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
 
 ## Explore this repository
 

@@ -5,7 +5,7 @@ The _ngrx-data_ library makes it easier to write an Angular application that man
 
 >See the [FAQ](faq.md) for definitions and discussion of terms in this overview.
 >
->Return to the [overview](index.md) page for a list of documentation topics.
+>Return to the [overview](README.md) page for a list of documentation topics.
 
 ## Why use it?
 

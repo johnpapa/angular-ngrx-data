@@ -45,7 +45,7 @@ describe('EntityAction', () => {
   });
   it('should format type as expected with #formatActionTypeName()', () => {
     const action = new EntityAction('Hero', EntityOp.QUERY_ALL);
-    const expectedFormat = EntityAction.formatActionTypeName(EntityOp.QUERY_ALL, 'Hero');
+    const expectedFormat = EntityAction.formatActionType(EntityOp.QUERY_ALL, 'Hero');
     expect(action.type).toBe(expectedFormat);
   });
 

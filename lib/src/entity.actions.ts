@@ -57,7 +57,7 @@ export class EntityAction<P = any> implements Action {
   readonly type: string;
   readonly entityName: string;
 
-  static formatActionTypeName(op: string, entityName: string) {
+  static formatActionType(op: string, entityName: string) {
     return `${op} [${entityName}]`.toUpperCase();
     // return `[${entityName}] ${op.toUpperCase()} `; // an alternative
   }
@@ -82,7 +82,7 @@ export class EntityAction<P = any> implements Action {
         throw new Error('Missing EntityOp for new action');
       }
     }
-    this.type = EntityAction.formatActionTypeName(this.op, this.entityName);
+    this.type = EntityAction.formatActionType(this.op, this.entityName);
   }
 }
 

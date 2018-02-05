@@ -29,6 +29,14 @@ describe('EntityDispatcher', () => {
     dispatcher = new EntityDispatcher('Hero', <any> testStore, selectId)
   });
 
+  // function commandTest<T>(
+  //   dispatcher: EntityDispatcher<T>,
+
+  // ) {
+
+  // }
+
+
   it('#add(hero) dispatches SAVE_ADD', () => {
     const hero: Hero = {id: 42, name: 'test'};
     dispatcher.add(hero);
@@ -42,6 +50,16 @@ describe('EntityDispatcher', () => {
 
     expect(testStore.dispatchedAction.op).toBe(EntityOp.SAVE_DELETE);
     expect(testStore.dispatchedAction.payload).toBe(42);
+  });
+
+  it('#delete(hero) dispatches SAVE_DELETE for the hero.id', () => {
+    const id = 42;
+    const hero: Hero = {id, name: 'test'};
+
+    dispatcher.delete(hero);
+
+    expect(testStore.dispatchedAction.op).toBe(EntityOp.SAVE_DELETE);
+    expect(testStore.dispatchedAction.payload).toBe(id);
   });
 
   it('#getAll() dispatches QUERY_ALL for the Hero collection', () => {
@@ -116,14 +134,14 @@ describe('EntityDispatcher', () => {
     expect(testStore.dispatchedAction.payload).toBe(heroes);
   });
 
-  it('#clear() dispatches REMOVE_ALL for the Hero collection', () => {
-    dispatcher.clear();
+  it('#clearCache() dispatches REMOVE_ALL for the Hero collection', () => {
+    dispatcher.clearCache();
 
     expect(testStore.dispatchedAction.op).toBe(EntityOp.REMOVE_ALL);
     expect(testStore.dispatchedAction.entityName).toBe('Hero');
   });
 
-  it('#removeOneFromCache dispatches REMOVE_ONE', () => {
+  it('#removeOneFromCache(key) dispatches REMOVE_ONE', () => {
     const id = 42;
     dispatcher.removeOneFromCache(id);
 
@@ -131,12 +149,33 @@ describe('EntityDispatcher', () => {
     expect(testStore.dispatchedAction.payload).toBe(id);
   });
 
-  it('#removeManyFromCache dispatches REMOVE_MANY', () => {
+  it('#removeOneFromCache(entity) dispatches REMOVE_ONE', () => {
+    const id = 42;
+    const hero: Hero = {id, name: 'test'};
+    dispatcher.removeOneFromCache(hero);
+
+    expect(testStore.dispatchedAction.op).toBe(EntityOp.REMOVE_ONE);
+    expect(testStore.dispatchedAction.payload).toBe(id);
+  });
+
+  it('#removeManyFromCache(keys) dispatches REMOVE_MANY', () => {
     const keys = [42, 84];
     dispatcher.removeManyFromCache(keys);
 
     expect(testStore.dispatchedAction.op).toBe(EntityOp.REMOVE_MANY);
     expect(testStore.dispatchedAction.payload).toBe(keys);
+  });
+
+  it('#removeManyFromCache(entities) dispatches REMOVE_MANY', () => {
+    const heroes: Hero[] = [
+      { id: 42, name: 'test 42' },
+      { id: 84, name: 'test 84', saying: 'howdy' }
+    ];
+    const keys = heroes.map(h => h.id);
+    dispatcher.removeManyFromCache(heroes);
+
+    expect(testStore.dispatchedAction.op).toBe(EntityOp.REMOVE_MANY);
+    expect(testStore.dispatchedAction.payload).toEqual(keys);
   });
 
   it('#updateOneToCache dispatches update_ONE', () => {

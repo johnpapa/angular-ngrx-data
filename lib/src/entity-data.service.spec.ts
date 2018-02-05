@@ -7,11 +7,11 @@ import { Observable } from 'rxjs/Observable';
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { ENTITY_METADATA_TOKEN } from './interfaces';
-import { Pluralizer, _Pluralizer } from './pluralizer';
-import { BasicDataService } from './basic-data.service';
+import { HttpUrlGenerator } from './http-url-generator'
+import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
 
-import { EntityDataService, EntityDataServiceConfig } from './entity-data.service';
-import { EntityCollectionDataService, QueryParams } from './interfaces';
+import { EntityDataService } from './entity-data.service';
+import { EntityCollectionDataService, EntityDataServiceConfig, QueryParams } from './interfaces';
 import { Update } from 'ngrx-entity-models';
 
 describe('EntityDataService', () => {
@@ -23,10 +23,11 @@ describe('EntityDataService', () => {
     TestBed.configureTestingModule({
       imports: [ CustomDataServiceModule ],
       providers: [
+        DefaultDataServiceFactory,
         EntityDataService,
         { provide: EntityDataServiceConfig, useValue: config},
         { provide: HttpClient, useValue: nullHttp },
-        { provide: Pluralizer, useClass: _Pluralizer }
+        { provide: HttpUrlGenerator, useClass: TestHttpUrlGenerator }
       ]
     });
     entityDataService = TestBed.get(EntityDataService);
@@ -39,9 +40,9 @@ describe('EntityDataService', () => {
       expect (service).toBeDefined();
     });
 
-    it('can data service is a BasicDataService by default', () => {
+    it('can data service is a DefaultDataService by default', () => {
       const service = entityDataService.getService('Hero');
-      expect (service instanceof BasicDataService).toBe(true);
+      expect (service instanceof DefaultDataService).toBe(true);
     });
 
     it('gets the same service every time you ask for it', () => {
@@ -53,7 +54,7 @@ describe('EntityDataService', () => {
 
   describe('#register...', () => {
     it('can register a custom service for "Hero"', () => {
-      const customService = new CustomDataService('Hero');
+      const customService: any = new CustomDataService('Hero');
       entityDataService.registerService('Hero', customService);
 
       const service = entityDataService.getService('Hero')
@@ -61,8 +62,8 @@ describe('EntityDataService', () => {
     });
 
     it('can register multiple custom services at the same time', () => {
-      const customHeroService = new CustomDataService('Hero');
-      const customVillainService = new CustomDataService('Villain');
+      const customHeroService: any = new CustomDataService('Hero');
+      const customVillainService: any = new CustomDataService('Villain');
       entityDataService.registerServices({
         Hero: customHeroService,
         Villain: customVillainService
@@ -70,14 +71,14 @@ describe('EntityDataService', () => {
 
       let service = entityDataService.getService('Hero')
       expect(service).toBe(customHeroService, 'custom Hero data service');
-      expect (service.name).toBe('TestHero CustomDataService');
+      expect (service.name).toBe('Hero CustomDataService');
 
       service = entityDataService.getService('Villain')
       expect(service).toBe(customVillainService, 'custom Villain data service');
 
-      // Other services are still BasicDataServices
+      // Other services are still DefaultDataServices
       service = entityDataService.getService('Foo');
-      expect (service.name).toBe('Foo BasicDataService');
+      expect (service.name).toBe('Foo DefaultDataService');
     });
 
     it('can register a custom service using a module import', () => {
@@ -92,10 +93,10 @@ describe('EntityDataService', () => {
 
 import { Optional } from '@angular/core';
 
-export class CustomDataService extends BasicDataService<any> {
-  constructor(entityName: string) {
-    super(null, {api: 'test/api', entityName: 'Test' + entityName});
-    this._name = `${this.entityName} CustomDataService`;
+export class CustomDataService {
+  name: string
+  constructor(name: string) {
+    this.name = name + ' CustomDataService';
   }
 }
 
@@ -141,4 +142,14 @@ export class CustomDataServiceModule {
 
 function bazingaFail() {
   throw new Error('Bazinga! This method is not implemented.');
+}
+
+/** Test version always returns canned Hero resource base URLs  */
+class TestHttpUrlGenerator implements HttpUrlGenerator {
+  entityResource(entityName: string, root: string): string {
+    return 'api/hero/';
+  }
+  collectionResource(entityName: string, root: string): string {
+    return 'api/heroes/';
+  }
 }

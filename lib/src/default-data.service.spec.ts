@@ -3,8 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
-import { BasicDataService } from './basic-data.service';
+import { DefaultDataService } from './default-data.service';
 import { DataServiceError } from './interfaces';
+import { HttpUrlGenerator } from './http-url-generator';
 import { Update } from './ngrx-entity-models';
 
 class Hero {
@@ -13,28 +14,40 @@ class Hero {
   version?: number;
 }
 
+/** Test version always returns canned Hero resource base URLs  */
+class TestHttpUrlGenerator implements HttpUrlGenerator {
+  entityResource(entityName: string, root: string): string {
+    return 'api/hero/';
+  }
+  collectionResource(entityName: string, root: string): string {
+    return 'api/heroes/';
+  }
+}
+
 const testServiceConfig = {
   api: 'api',
   entityName: 'Hero',
-  entitiesName: 'Heroes'
 };
 
 ////////  Tests  /////////////
-describe('BasicDataService', () => {
+describe('DefaultDataService', () => {
 
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
   const heroUrl = 'api/hero/';
   const heroesUrl = 'api/heroes/';
-  let service: BasicDataService<Hero>;
+  const httpUrlGenerator = new TestHttpUrlGenerator();
+  let service: DefaultDataService<Hero>;
 
   //// HttpClient testing boilerplate
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpClientTestingModule ]
+      imports: [ HttpClientTestingModule ],
     });
     httpClient = TestBed.get(HttpClient);
     httpTestingController = TestBed.get(HttpTestingController);
+
+    service = new DefaultDataService(httpClient, httpUrlGenerator, testServiceConfig, 'Hero');
   });
 
   afterEach(() => {
@@ -46,7 +59,7 @@ describe('BasicDataService', () => {
   describe('property inspection', () => {
 
     // Test wrapper exposes protected properties
-    class TestService<T> extends BasicDataService<T> {
+    class TestService<T> extends DefaultDataService<T> {
       properties = {
         entityUrl: this.entityUrl,
         entitiesUrl: this.entitiesUrl,
@@ -61,11 +74,11 @@ describe('BasicDataService', () => {
 
     beforeEach(() => {
       // use test wrapper class to get to protected properties
-      service = new TestService(httpClient, testServiceConfig);
+      service = new TestService(httpClient, httpUrlGenerator, testServiceConfig, 'Hero');
     });
 
     it('has expected name', () => {
-      expect(service.name).toBe('Hero BasicDataService');
+      expect(service.name).toBe('Hero DefaultDataService');
     });
 
     it('has expected single-entity url', () => {
@@ -81,7 +94,6 @@ describe('BasicDataService', () => {
     let expectedHeroes: Hero[];
 
     beforeEach(() => {
-      service = new BasicDataService(httpClient, testServiceConfig);
       expectedHeroes = [
         { id: 1, name: 'A' },
         { id: 2, name: 'B' },
@@ -153,7 +165,7 @@ describe('BasicDataService', () => {
         message: msg,
 
         // The rest of this is optional and not used. Just showing that you could.
-        filename: 'BasicDataService.ts',
+        filename: 'DefaultDataService.ts',
         lineno: 42,
         colno: 21
       });
@@ -166,10 +178,6 @@ describe('BasicDataService', () => {
 
     let expectedHero: Hero;
     const heroUrlId1 = heroUrl + '1';
-
-    beforeEach(() => {
-      service = new BasicDataService(httpClient, testServiceConfig);
-    });
 
     it('should return expected hero when id is found', () => {
       expectedHero = { id: 1, name: 'A' };
@@ -210,7 +218,6 @@ describe('BasicDataService', () => {
         { id: 2, name: 'BB' },
        ] as Hero[];
 
-      service = new BasicDataService(httpClient, testServiceConfig);
     });
 
     it('should return expected selected heroes w/ object params', () => {
@@ -279,10 +286,6 @@ describe('BasicDataService', () => {
   describe('#add', () => {
     let expectedHero: Hero;
 
-    beforeEach(() => {
-      service = new BasicDataService(httpClient, testServiceConfig);
-    });
-
     it('should return expected hero with id', () => {
       expectedHero = {id: 42, name: 'A' };
 
@@ -302,10 +305,6 @@ describe('BasicDataService', () => {
 
   describe('#delete', () => {
     const heroUrlId1 = heroUrl + '1';
-
-    beforeEach(() => {
-      service = new BasicDataService(httpClient, testServiceConfig);
-    });
 
     it('should delete by hero id', () => {
       service.delete(1).subscribe(
@@ -338,10 +337,6 @@ describe('BasicDataService', () => {
 
   describe('#update', () => {
     const heroUrlId1 = heroUrl + '1';
-
-    beforeEach(() => {
-      service = new BasicDataService(httpClient, testServiceConfig);
-    });
 
     it('should return expected hero with id', () => {
       // Assume that server updates the version

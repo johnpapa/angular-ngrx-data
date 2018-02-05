@@ -48,7 +48,7 @@ export class HeroesComponent implements OnDestroy, OnInit {
 
   deleteHero(hero: Hero) {
     this.unselect();
-    this.heroService.delete(hero.id);
+    this.heroService.delete(hero);
   }
 
   enableAddMode() {

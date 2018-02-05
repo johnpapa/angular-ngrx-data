@@ -164,17 +164,15 @@ The _ngrx-data_ library generates selectors for these properties but has no way 
 <a name="plurals"></a>
 ## Pluralizing the entity name
 
-The _ngrx-data_ default
-[_entity dataservice_](docs/entity-dataservice.md) creates conventional HTTP resource names (URLs) for each entity type.
+The _ngrx-data_ [`DefaultDataService`](docs/entity-dataservice.md) relies on the `HttpUrlGenerator` to create conventional HTTP resource names (URLs) for each entity type.
 
 By convention, an HTTP request targeting a single entity item contains the lowercase, singular version of the entity type name. For example, if the entity type `entityName` is "Hero", the default data service will POST to a URL such as `'some/api/base/hero'`.
 
 By convention, an HTTP request targeting multiple entities contains the lowercase, _plural_ version of the entity type name. The URL of a GET request that retrieved all heroes would be something like `'some/api/base/heroes'`.
 
-_Ngrx-data_ doesn't know how to pluralize the entity type name. You have to tell _ngrx-data_ how to pluralize entity names.
+The `HttpUrlGenerator` can't pluralize the entity type name on its own. It delegates to an injected _pluralizing class_, called `Pluralizer`.
 
-The _ngrx-data_ library injects a _pluralizing class_, called `Pluralizer`, into the default data service.
-That class has a single _pluralize()_ method that takes the singular string and returns the plural string.
+The `Pluralizer` class has a _pluralize()_ method that takes the singular string and returns the plural string.
 
 The _ngrx-data_ library's default `Pluralizer` implementation simply appends an `'s'`. That's fine for the `Villain` type (which becomes "villains"). But that's the wrong technique for pluralizing the `Hero` type (which becomes "heros").
 

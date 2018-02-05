@@ -6,32 +6,42 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { pipe } from 'rxjs/util/pipe';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
+import { HttpUrlGenerator } from './http-url-generator';
 import {
   DataServiceError, EntityCollectionDataService,
-  HttpMethods, normalizeApi, QueryParams, RequestData
+  EntityDataServiceConfig,
+  HttpMethods, QueryParams, RequestData
  } from './interfaces';
 
 import { Update } from './ngrx-entity-models';
-
-export interface BasicDataServiceOptions {
-  api?: string;
-  entityName: string;
-  entitiesName?: string;
-  getDelay?: number;
-  saveDelay?: number;
-  timeout?: number;
-}
 
 // Pass the observable straight through
 export const noDelay = <K>(source: Observable<K>) => source;
 
 /**
+ * Create a basic, generic entity data service
+ * suitable for persistence of most entities.
+ * Assumes a common REST-y web API
+ */
+@Injectable()
+export class DefaultDataServiceFactory {
+  constructor(
+    protected config: EntityDataServiceConfig,
+    protected http: HttpClient,
+    protected httpUrlGenerator: HttpUrlGenerator
+  ) { }
+
+  create<T>(entityName: string) {
+    return new DefaultDataService<T>(this.http, this.httpUrlGenerator, this.config, entityName);
+  }
+}
+
+/**
  * A basic, generic entity data service
  * suitable for persistence of most entities.
  * Assumes a common REST-y web API
- * Conforms to API required by ngrx-data library's persist$ API
  */
-export class BasicDataService<T> implements EntityCollectionDataService<T> {
+export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   protected _name: string;
   protected entityName: string;
   protected entityUrl: string;
@@ -44,14 +54,17 @@ export class BasicDataService<T> implements EntityCollectionDataService<T> {
 
   constructor(
     protected http: HttpClient,
-    { api, entitiesName, entityName, getDelay = 0, saveDelay = 0, timeout: to = 0 }: Partial<BasicDataServiceOptions>
+    protected httpUrlGenerator: HttpUrlGenerator,
+    config: EntityDataServiceConfig,
+    entityName: string
   ) {
-    this._name = `${entityName} BasicDataService`;
+    this._name = `${entityName} DefaultDataService`;
     this.entityName = entityName;
-    api = normalizeApi(api);
-    // All URLs presumed to be lowercase
-    this.entityUrl = `${api}/${entityName}/`.toLowerCase();
-    this.entitiesUrl = `${api}/${entitiesName}/`.toLowerCase();
+    config = config || {};
+    const { api = '', getDelay = 0, saveDelay = 0, timeout: to = 0 } = config;
+    const root = api || 'api';
+    this.entityUrl = httpUrlGenerator.entityResource(entityName, root)
+    this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root)
     this.getDelay = getDelay ? delay(getDelay) : noDelay;
     this.saveDelay = saveDelay ? delay(saveDelay) : noDelay;
     this.timeout = to ? timeout(to) : noDelay;

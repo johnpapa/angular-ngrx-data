@@ -1,4 +1,4 @@
-import { InjectionToken } from '@angular/core';
+import { Injectable, InjectionToken } from '@angular/core';
 import { Action, Store, ActionReducer } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
@@ -28,11 +28,6 @@ export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache
 );
 export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('PLURAL_NAMES');
 
-/** Remove leading & trailing spaces or slashes */
-export function normalizeApi(api: string) {
-  return api.replace(/^[\/\s]+|[\/\s]+$/g, '');
-}
-
 /** A service that */
 export interface EntityCollectionDataService<T> {
   readonly name: string;
@@ -47,6 +42,14 @@ export interface EntityCollectionDataService<T> {
 export interface EntityCache {
   // Must be `any` since we don't know what type of collections we will have
   [name: string]: EntityCollection<any>;
+}
+
+@Injectable()
+export class EntityDataServiceConfig {
+  api? = 'api';
+  getDelay? = 0;
+  saveDelay? = 0;
+  timeout? = 0;
 }
 
 /**

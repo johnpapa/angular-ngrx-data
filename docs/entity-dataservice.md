@@ -45,15 +45,15 @@ You can add custom data services to it by creating instances of those classes an
 
 If you decide to register an entity data service, be sure to do so _before_ you ask _ngrx-data_ to perform a persistence operation for that entity.
 
-Otherwise, the _ngrx-data_ library will create and register an instance of the default data service `BasicDataService<T>` for that entity type.
+Otherwise, the _ngrx-data_ library will create and register an instance of the default data service `DefaultDataService<T>` for that entity type.
 
-## The _BasicDataService_
+## The _DefaultDataService_
 
-The demo app doesn't register any entity data services. It relies entirely on the default [`BasicDataService<T>`](../lib/src/basic-data.service.ts).
+The demo app doesn't register any entity data services. It relies entirely on a [`DefaultDataService<T>`](../lib/src/default-data.service.ts), created for the entity type by the injected `DefaultDataServiceFactory`.
 
-The `BasicDataService<T>` make REST-like calls to the server's web api with Angular's `HttpClient`.
+A `DefaultDataService<T>` makes REST-like calls to the server's web api with Angular's `HttpClient`.
 
-It composes HTTP URLs from a _root_ path (see [below](#configuration)) and the entity name. 
+It composes HTTP URLs from a _root_ path (see ["Configuration"](#configuration) below) and the entity name. 
 
 For example, 
 * if the persistence action is to delete a hero with id=42 _and_
@@ -61,12 +61,19 @@ For example,
 * the entity name is `'Hero'`, _then_
 * the DELETE request URL will be `'api/hero/42'`.
 
-When the persistence operation concerns multiple entities, the `BasicDataService` substitutes the plural of the entity type name for the resource name.
+When the persistence operation concerns multiple entities, the `DefaultDataService` substitutes the plural of the entity type name for the resource name.
 
 The `QUERY_ALL` action to get all heroes would result in an HTTP GET request to the URL `'api/heroes'`.
 
-The `BasicDataService` doesn't know how to pluralize the entity type name.
-It relies on an injected `Pluralizer` service that you configure as discussed in the [_Entity Metadata_](entity-metadata.md#plurals) guide.
+The `DefaultDataService` doesn't know how to pluralize the entity type name.
+It doesn't even know how to create the base resource names.
+It relies on an injected 
+[`HttpUrlGenerator` service](../lib/src/http-url-generator.ts) those.
+And the default implementation of that generator relies on the 
+[`Pluralizer`](../lib/src/pluralizer.ts) service to
+get the collection resource name.
+The [_Entity Metadata_](entity-metadata.md#plurals) guide
+explains how to configure the default `Pluralizer` .
 
 <a name="configuration"></a>
 ## Configure the service
@@ -87,7 +94,7 @@ When running a demo app locally, the server may respond more quickly than it wil
 
 ### Extend _EntityDataServiceConfig_
 
-The `EntityDataServiceConfig` class is designed to match the needs of the `BasicDataServiceConfig`. 
+The `EntityDataServiceConfig` class is designed to match the needs of the `DefaultDataService`. 
 
 You could extend it with additional properties in a derived class and override the `EntityDataServiceConfig` provider like this.
 

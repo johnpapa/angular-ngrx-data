@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 
-import { Pluralizer, _Pluralizer } from './pluralizer'
+import { Pluralizer, DefaultPluralizer } from './pluralizer'
 import { PLURAL_NAMES_TOKEN } from './interfaces';
 
 describe('Pluralizer (_Pluralizer)', () => {
@@ -10,7 +10,7 @@ describe('Pluralizer (_Pluralizer)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: Pluralizer, useClass: _Pluralizer }
+        { provide: Pluralizer, useClass: DefaultPluralizer }
       ]
     });
   })

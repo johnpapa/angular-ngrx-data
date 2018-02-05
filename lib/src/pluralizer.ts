@@ -6,8 +6,7 @@ export abstract class Pluralizer {
 }
 
 @Injectable()
-// tslint:disable-next-line:class-name
-export class _Pluralizer {
+export class DefaultPluralizer {
   private pluralNames: { [name: string]: string } = {};
 
   constructor(

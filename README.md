@@ -142,9 +142,20 @@ export class HeroesComponent implements OnDestroy, OnInit {
   }
 }
 ```
-The component template displays heroes like this.
+The component template displays the `heroes$` _observable_
+by subscribing to them with the Angular `AsyncPipe`.
+
 ```html
-<app-hero-list [heroes]="heroes" [selectedHero]="selectedHero" (deleted)="deleteHero($event)" (selected)="onSelect($event)"></app-hero-list>
+<div *ngIf="filteredHeroes$ | async as heroes">
+  ...
+  <app-hero-list 
+    [heroes]="heroes" 
+    [selectedHero]="selectedHero" 
+    (deleted)="deleteHero($event)" 
+    (selected)="onSelect($event)">
+  </app-hero-list>
+  ...
+</div>
 ```
 
 ## Explore this repository

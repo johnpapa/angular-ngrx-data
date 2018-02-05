@@ -39,30 +39,58 @@ That's the app designer's choice.
 
 The component sets two of its properties to two of the `EntityService` _selector observables_: `filteredEntities$` and `loading$`.
 
-Note that these property names end in `'$'`, a common convention to indicate that a property that returns an `Observable`.
+The `filteredEntities$` _observable_ produces an array of the currently cached `Hero` entities that satisfy the user's filter criteria.
+This _observable_ produces a new array of heroes if the user
+changes the filter or if some action changes the heroes in the cached collection.
+
+The `loading$` _observable_ produces `true` when the 
+[data service](entity-dataservice.md) is querying for heroes.
+It produces `false` when the service responds.
+The demo app subscribes to `loading$` so that it can turn a visual loading indicator on and off.
+
+Note that these component and `EntityService` selector property names end in `'$'`, a common convention for a property that returns an `Observable`.
 
 All _selector observable_ properties of an `EntityService` follow this convention.
-For brevity going forward, we'll refer to them as _`selector$` properties_ or _`selectors$`_.
+For brevity, we'll refer to them going forward as _`selector$` properties_ or _`selectors$`_.
 
->Note that these `selector$` properties differ from the closely-related `selector` properties (no `'$'` suffix),
+>Note that these _`selector$`_ properties (with an `'s'`) differ from the closely-related `selector` properties (no `'$'` suffix),
 >discussed elsewhere.
+>
 >A `selector` property returns a _function_ that selects from the entity collection.
 >That function is an ingredient in the production of values for its corresponding `selector$` property.
 
+The component _class_ does not subscribe these `selector$` properties but the component _template_ does.
+
+The template binds to them and forwards their _observables_ to the Angular `AsyncPipe`, which subscribes to them.
+Here's an excerpt of the `filteredHeroes$` binding.
+
+```html
+<div *ngIf="filteredHeroes$ | async as heroes">
+...
+</div>
+```
+
 ### Call _command methods_
 
-Component methods delegate to the `EntityService` command methods such as `getAll()` and `add()`.
+Most of the `HeroesComponent` methods delegate to `EntityService` command methods such as `getAll()` and `add()`.
 
-Many of these methods take a value.
-The value is _typed_ so you won't make a mistake by passing in the wrong kind of value.
+There are two kinds of commands:
 
-Internally, the entity service method creates the
-[_entity action_](entity-actions.md) that corresponds to the service method's intent. The action's _payload_ is either the value passed to the service method or an appropriate derivative of that value.
+1. Commands that trigger HTTP requests.
+1. Commands that update the cached entity collection.
+
+The
+
+Many `EntityService` command methods take a value.
+The value is _typed_ (often as `Hero`) so you won't make a mistake by passing in the wrong kind of value.
+
+Internally, an entity service method creates an
+[_entity action_](entity-actions.md) that corresponds to the method's intent. The action's _payload_ is either the value passed to the method or an appropriate derivative of that value.
 
 _Immutability_ is a core principle of the _redux pattern_.
 Several of the command methods take an entity argument such as a `Hero`.
 An entity argument **must never be a cached entity object**.
-It can be a _copy_ of a cached entity object and often is. 
+It can be a _copy_ of a cached entity object and it often is. 
 The demo application always calls these command methods with copies of the entity data.
 
 >The current _ngrx_ libraries do not guard against mutation of the objects (or arrays of objects) in the store.
@@ -70,7 +98,7 @@ The demo application always calls these command methods with copies of the entit
 
 
 All _command methods_ return `void`. 
-A core principle of the _redux pattern_ is that _commands_ never return a value. They just _do things_.
+A core principle of the _redux pattern_ is that _commands_ never return a value. They just _do things_ that have side-effects.
 
 Rather than expect a result from the command,
 you subscribe to a _selector$_ property that reflects

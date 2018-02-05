@@ -1,20 +1,21 @@
 import { Store } from '@ngrx/store';
 
 import { EntityAction, EntityOp } from './entity.actions';
+import { EntityCommands } from './entity-commands';
 import { EntityCache, QueryParams } from './interfaces';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 /**
  * Dispatches Entity-related commands to effects and reducers
  */
-export class EntityDispatcher<T> {
+export class EntityDispatcher<T> implements EntityCommands<T> {
   constructor(
     private entityName: string,
     private store: Store<EntityCache>,
     private selectId: IdSelector<T> = (entity: any) => entity.id
   ) {}
 
-  private dispatch(op: EntityOp, payload?: any) {
+  private dispatch(op: EntityOp, payload?: any): void {
     this.store.dispatch(new EntityAction(this.entityName, op, payload));
   }
 
@@ -33,24 +34,34 @@ export class EntityDispatcher<T> {
    * Does not add to cache until save succeeds.
    * Ignored by cache-add if the entity is already in cache.
    */
-  add(entity: T) {
+  add(entity: T): void {
     this.dispatch(EntityOp.SAVE_ADD, entity);
   }
+
+  /**
+   * Removes entity from the cache (if it is in the cache)
+   * and deletes entity from remote storage by key.
+   * Does not restore to cache if the delete fails.
+   * @param entity The entity to remove
+   */
+  delete(entity: T): void
 
   /**
    * Removes entity from the cache by key (if it is in the cache)
    * and deletes entity from remote storage by key.
    * Does not restore to cache if the delete fails.
+   * @param key The primary key of the entity to remove
    */
-  delete(key: string | number) {
-    this.dispatch(EntityOp.SAVE_DELETE, key);
+  delete(key: number | string ): void
+  delete(arg: (number | string) | T): void {
+    this.dispatch(EntityOp.SAVE_DELETE, this.getKey(arg));
   }
 
   /**
    * Query remote storage for all entities and
    * completely replace the cached collection with the queried entities.
    */
-  getAll() {
+  getAll(): void {
     this.dispatch(EntityOp.QUERY_ALL);
   }
 
@@ -59,7 +70,7 @@ export class EntityDispatcher<T> {
    * If the server returns an entity,
    * merge it into the cached collection.
    */
-  getByKey(key: any) {
+  getByKey(key: any): void {
     this.dispatch(EntityOp.QUERY_BY_KEY, key);
   }
 
@@ -68,7 +79,7 @@ export class EntityDispatcher<T> {
    * with either a query parameter map or an HTTP URL query string.
    * and merge the results into the cached collection.
    */
-  getWithQuery(queryParams: QueryParams | string) {
+  getWithQuery(queryParams: QueryParams | string): void {
     this.dispatch(EntityOp.QUERY_MANY, queryParams);
   }
 
@@ -79,7 +90,7 @@ export class EntityDispatcher<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
-  update(entity: Partial<T>) {
+  update(entity: Partial<T>): void {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
@@ -92,7 +103,7 @@ export class EntityDispatcher<T> {
    * Replace all entities in the cached collection.
    * Does not save to remote storage.
    */
-  addAllToCache(entities: T[]) {
+  addAllToCache(entities: T[]): void {
     this.dispatch(EntityOp.ADD_ALL, entities);
   }
 
@@ -101,7 +112,7 @@ export class EntityDispatcher<T> {
    * Does not save to remote storage.
    * Ignored if an entity with the same primary key is already in cache.
    */
-  addOneToCache(entity: T) {
+  addOneToCache(entity: T): void {
     this.dispatch(EntityOp.ADD_ONE, entity);
   }
 
@@ -110,28 +121,50 @@ export class EntityDispatcher<T> {
    * Does not save to remote storage.
    * Entities with primary keys already in cache are ignored.
    */
-  addManyToCache(entities: T[]) {
+  addManyToCache(entities: T[]): void {
     this.dispatch(EntityOp.ADD_MANY, entities);
   }
 
   /** Clear the cached entity collection */
-  clear() {
+  clearCache(): void {
     this.dispatch(EntityOp.REMOVE_ALL);
   }
 
   /**
    * Remove an entity directly from the cache.
    * Does not delete that entity from remote storage.
+   * @param entity The entity to remove
    */
-  removeOneFromCache(key: string | number) {
-    this.dispatch(EntityOp.REMOVE_ONE, key);
+  removeOneFromCache(entity: T): void
+
+  /**
+   * Remove an entity directly from the cache.
+   * Does not delete that entity from remote storage.
+   * @param key The primary key of the entity to remove
+   */
+  removeOneFromCache(key: number | string ): void
+  removeOneFromCache(arg: (number | string) | T ): void {
+    this.dispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
   }
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
+   * @param entity The entities to remove
    */
-  removeManyFromCache(keys: string[] | number[]) {
+  removeManyFromCache(entities: T[]): void
+
+  /**
+   * Remove multiple entities directly from the cache.
+   * Does not delete these entities from remote storage.
+   * @param keys The primary keys of the entities to remove
+   */
+  removeManyFromCache(keys: (number | string)[]): void
+  removeManyFromCache(args: ((number | string)[] | T[])): void {
+    if (!args || args.length === 0) { return; }
+    const keys = (typeof args[0] === 'object') ?
+      // if array[0] is a key, assume they're all keys
+      (<T[]> args).map(arg => this.getKey(arg)) : args;
     this.dispatch(EntityOp.REMOVE_MANY, keys);
   }
 
@@ -142,7 +175,7 @@ export class EntityDispatcher<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
-  updateOneInCache(entity: Partial<T>) {
+  updateOneInCache(entity: Partial<T>): void {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
@@ -156,8 +189,8 @@ export class EntityDispatcher<T> {
    * Update entities may be partial (but each must have its key);
    * such partial entities patch their cached counterparts.
    */
-  updateManyInCache(entities: Partial<T>[]) {
-    if (entities.length === 0) { return; }
+  updateManyInCache(entities: Partial<T>[]): void {
+    if (!entities || entities.length === 0) { return; }
     const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
     this.dispatch(EntityOp.UPDATE_MANY, updates);
   }
@@ -166,8 +199,13 @@ export class EntityDispatcher<T> {
    * Set the pattern that the collection's filter applies
    * when using the `filteredEntities` selector.
    */
-  setFilter(pattern: any) {
+  setFilter(pattern: any): void {
     this.dispatch(EntityOp.SET_FILTER, pattern);
+  }
+
+  /** Get key from entity (unless arg is already a key) */
+  private getKey(arg: number | string | T ) {
+    return typeof arg === 'object' ? this.selectId(arg) : arg;
   }
 }
 

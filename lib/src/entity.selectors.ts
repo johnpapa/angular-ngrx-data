@@ -1,65 +1,36 @@
-import { Injectable } from '@angular/core';
-import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
-import { Dictionary } from './ngrx-entity-models';
+import { createSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityCache, ENTITY_CACHE_NAME } from './interfaces';
 import { EntityCollection } from './entity-definition';
 import { EntityFilterFn } from './entity-filters';
 import { EntityMetadata } from './entity-metadata';
+import { Dictionary } from './ngrx-entity-models';
 
 /**
  * The selector functions for entity collection members.
  */
 export interface EntitySelectors<T> {
-  selectKeys: Selector<EntityCollection<T>, string[] | number[]>;
-  selectEntities: Selector<EntityCollection<T>, Dictionary<T>>;
-  selectAll: Selector<EntityCollection<T>, T[]>;
+    /** Count of entities in the cached collection. */
   selectCount: Selector<EntityCollection<T>, number>;
+
+   /** All entities in the cached collection. */
+  selectEntities: Selector<EntityCollection<T>, T[]>;
+
+  /** Map of entity keys to entities */
+  selectEntityKeyMap: Selector<EntityCollection<T>, Dictionary<T>>;
+
+  /** Filter pattern applied by the entity collection's filter function */
   selectFilter: Selector<EntityCollection<T>, string>;
+
+  /** Entities in the cached collection that pass the filter function */
   selectFilteredEntities: Selector<EntityCollection<T>, T[]>;
+
+  /** Keys of the cached collection, in the collection's native sort order */
+  selectKeys: Selector<EntityCollection<T>, string[] | number[]>;
+
+  /** True when a multi-entity query command is in progress. */
   selectLoading: Selector<EntityCollection<T>, boolean>;
-}
-
-/**
- * The entity collection Observables that consumers (e.g., components) subscribe to.
- */
-export interface EntitySelectors$<T> {
-  selectKeys$: Observable<string[] | number[]> | Store<string[] | number[]>;
-  selectEntities$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
-  selectAll$: Observable<T[]> | Store<T[]>;
-  selectCount$: Observable<number> | Store<number>;
-  selectFilter$: Observable<string> | Store<string>;
-  selectFilteredEntities$: Observable<T[]> | Store<T[]>;
-  selectLoading$: Observable<boolean> | Store<boolean>;
-}
-
-/**
- * Creates the selector for the path from the EntityCache through the Collection
- * @param collectionName - which is also the entity name
- * @param cacheSelector - selects the EntityCache from the store.
- * @param initialState - initial state of the collection,
- * used if the collection is undefined when the selector is invoked
- * (as happens with time-travel debugging).
- */
-export function createCachedCollectionSelector<T, C extends EntityCollection<T> = EntityCollection<T>> (
-  collectionName: string,
-  cacheSelector: Selector<Object, EntityCache>,
-  initialState?: C
-): Selector<Object, C> {
-  initialState = initialState || createEmptyEntityCollection<T, C>();
-  const getCollection = (cache: EntityCache) => <C> cache[collectionName] || initialState;
-  return createSelector(cacheSelector, getCollection);
-}
-
-function createEmptyEntityCollection<T, C extends EntityCollection<T> = EntityCollection<T>>(): C {
-  return <C> {
-    ids: [],
-    entities: {},
-    filter: undefined,
-    loading: false
-  };
 }
 
 /**
@@ -74,11 +45,11 @@ export function createEntitySelectors<
 ): S {
   // Mostly copied from `@ngrx/entity/state_selectors.ts`
   const selectKeys = (c: EntityCollection<T>) => c.ids;
-  const selectEntities = (c: EntityCollection<T>) => c.entities;
+  const selectEntityKeyMap = (c: EntityCollection<T>) => c.entities;
 
-  const selectAll = createSelector(
+  const selectEntities = createSelector(
     selectKeys,
-    selectEntities,
+    selectEntityKeyMap,
     (keys: any[], entities: Dictionary<T>): any => keys.map(key => entities[key] as T)
   );
 
@@ -89,10 +60,10 @@ export function createEntitySelectors<
 
   const filterFn = metadata.filterFn;
   const selectFilteredEntities = filterFn
-    ? createSelector(selectAll, selectFilter, (entities: T[], pattern: any): T[] =>
+    ? createSelector(selectEntities, selectFilter, (entities: T[], pattern: any): T[] =>
         filterFn(entities, pattern)
       )
-    : selectAll;
+    : selectEntities;
 
   const selectLoading = (c: EntityCollection<T>) => c.loading;
 
@@ -105,8 +76,8 @@ export function createEntitySelectors<
 
   return <S> <any> {
     selectKeys,
+    selectEntityKeyMap,
     selectEntities,
-    selectAll,
     selectCount,
     selectFilter,
     selectFilteredEntities,
@@ -114,38 +85,3 @@ export function createEntitySelectors<
     ...extraSelectors
   };
 }
-
-/**
- * Creates an entity collection's selectors$ observables for a given EntityCache store.
- * `selectors$` are observable selectors of the cached entity collection.
- * @param entityName - is also the name of the collection.
- * @param store - Ngrx store at runtime. Often the application's root store which holds the entity cache.
- * @param cacheSelector - an ngrx/entity Selector that selects the entity cache from that store
- * @param selectors - selector functions for this collection.
- * @param defaultCollectionState - default state of the collection,
- * if the collection is undefined when the selector is invoked
- * (as happens with time-travel debugging).
- **/
-export function createEntitySelectors$<
-  T,
-  S$ extends EntitySelectors$<T> = EntitySelectors$<T>,
-  C extends EntityCollection<T> = EntityCollection<T>
-  >(
-  entityName: string,
-  store: Store<any>,
-  cacheSelector: Selector<Object, EntityCache>,
-  selectors: EntitySelectors<T>,
-  defaultCollectionState?: C
-): S$ {
-  defaultCollectionState = defaultCollectionState || createEmptyEntityCollection<T, C>();
-  const cc = createCachedCollectionSelector(entityName, cacheSelector, defaultCollectionState);
-  const collection$ = store.select(cc);
-
-  const selectors$: Partial<EntitySelectors$<T>> = {};
-
-  Object.keys(selectors).forEach(
-    name => (<any>selectors$)[name + '$'] = collection$.select((<any>selectors)[name])
-  );
-  return selectors$ as S$;
-}
-

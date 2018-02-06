@@ -111,7 +111,7 @@ export function nameFilter(entities: {name: string}[], search: string) {
 The _ngrx-data_ library includes a helper function, `PropsFilterFnFactory<T>`, that creates an entity filter function which will treat the user's input 
 as a case-insensitive, regular expression and apply it to one or more properties of the entity.
 
-The demo uses this helper to create hero and villain filters. Here's how the app creates the a `nameAndSayingFilter` function for villains.
+The demo uses this helper to create hero and villain filters. Here's how the app creates the `nameAndSayingFilter` function for villains.
 
 ```javascript
 /** 
@@ -171,12 +171,13 @@ Your app can call the `selectKey` selector to see the collection's `ids` propert
 ### _additionalCollectionState_
 
 Each _ngrx-data_ entity collection in the the store has these predefined properties.
-| Property        | Meaning |
-| ------------- |-------------|
-| `ids`| Primary key values in default sort order |
-| `entities` | Map of primary key to entity data values|
-| `filter` | The user's filtering criteria |
-| `loading` | Whether ngr-data is waiting for entity data to arrive from the server |
+
+| Property   | Meaning                                  |
+| ---------- |------------------------------------------|
+| `ids`      | Primary key values in default sort order |
+| `entities` | Map of primary key to entity data values |
+| `filter`   | The user's filtering criteria            |
+| `loading`  | Whether ngr-data is waiting for entity data to arrive from the server |
 
 You can add your own collection properties by setting the `additionalCollectionState` property to an object with those custom collection properties.
 

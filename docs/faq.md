@@ -37,20 +37,32 @@ The `ngrx-data` library builds upon three _ngrx_ libraries:
 
 It is notable for:
 
-* Holding all _shared state_ as objects in a central _store_.
+* Holding all _shared state_ as objects in a single, central _store_.
 
 * All objects in the store are [_immutable_](https://en.wikipedia.org/wiki/Immutable_object).
 You never directly set any property of any object held in a redux store.
 
-* You update the store by _dispatching events_ to the store.
+* You update the store by _dispatching actions_ to the store.
 
-* An _event_ is like a message. It always has a _type_. It often has a _payload_ which is the data for that message.
+* An _action_ is like a message. It always has a _type_. It often has a _payload_ which is the data for that message.
 
-* _Events_ sent to the store are processed by _reducers_. A reducer may update the store by replacing old objects in the store with new objects that have the updated state.
+* Action instances are immutable
 
-* The store raises an event when updated by a reducer.
+* Action instances are serializable (because the redux dev tools demand it and we should be able to persist them to local browser storage between user sessions);
 
-* You application listens for store events. When you hear a message that matter, you pull the corresponding object(s) from the store.
+* All store values are immutable and serializable.
+
+* _actions_ sent to the store are processed by _reducers_. A reducer may update the store by replacing old objects in the store with new objects that have the updated state.
+
+* All _reducers_ are “pure” functions.
+They have no side-effects.
+
+* The store publishes an _event_ when updated by a reducer.
+
+* You application listens for store _events_; when it hears an event of interest, the app pulls the corresponding object(s) from the store.
+
+_Ngrx_ is similar in almost all important respects.
+It differs most significantly in replacing _events_ with _observables_.
 
 _Ngrx_ relies on 
 [RxJS Observables](#rxjs) to listen for store events, select those that matter, and push the selected object(s) to your application.
@@ -67,13 +79,18 @@ Applications have several kinds of state including:
 
 * _shared_ state is data that are shared among application components and services.
 
+In _ngrx_, as in the redux pattern, all stored state is (or should be) _immutable_.
+You never change the properties of objects in the store.
+You replace them with new objects, created through a merge of the previous property values and new property values.
+
+Arrays are completely replaced with you add, remove, or replace any of their items.
+
 <a name="rxjs"></a>
 ## What are _RxJS Observables_"
 
 [RxJS Observables](http://reactivex.io/rxjs/) is a library for programming in a "reactive style".
 
 Many Angular APIs produce _RxJS Observables_ so programming "reactively" with _Observables_ is familiar to many Angular developers. Search the web for many helpful resources on _RxJS_.
-
 
 <a name="code-generation"></a>
 ## What's wrong with code generation?

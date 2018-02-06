@@ -11,18 +11,19 @@ data with
 in a "reactive" style, following the
 [redux](https://redux.js.org/) pattern.
 
-## Why use it?
+## Why use _ngrx-data_?
 
-Many applications have substantial "domain models" with 10s or 100s of entity types.
-Instances of these entity types are created, retrieved, updated, and deleted (CRUD).
+> If you're following the _redux_ pattern and managing entity data with _ngrx_,
+the **_ngrx-data_ library** can significantly reduce the amount of code you have to write.
 
-> _ngrx-data_ can significantly reduce the amount of code you have to write for every entity when using _ngrx_ for the _redux_ pattern in Angular.
+Many applications have substantial _domain models_ with 10s or 100s of entity types.
 
-If you've tried to manage your entity data with _ngrx_, you've discovered that you have to write a lot of code for each entity type.
-For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods.
-This is a ton of repetitive code to write, maintain, and test.
+To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task.
+You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
 
-This library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
+For even a small entity model this is a ton of repetitive code to create, maintain, and test.
+
+The _ngrx-data_ library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
 
 ## How it works
 

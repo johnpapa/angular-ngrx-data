@@ -72,18 +72,19 @@ Type `T` is your application's TypeScript representation of that entity; it can 
 ### _entityName_
 
 The `entityName` of the type is the only **required metadata property**. 
+It's the unique _key_ of the entity type's metadata in the `EntityMetadataMap` and in cache. 
 
-The `entityName` is the _key_ of the entity type's metadata in the `EntityMetadataMap`. 
+The spelling and case (typically PascalCase) of the `entityName` is important for _ngrx-data_ conventions. It appears in the generated [_entity actions_](docs/entity-actions), in error messages, and in the persistence operations.
 
-The `entityName` must be unique within the `EntityMetadataMap`. The name is typically a PascalCased, singular noun like "Hero". 
+Importantly, the default [_entity dataservice_](docs/entity-dataservice.md) creates HTTP resource URLs from the lowercase version of this name. For example, if the `entityName` is "Hero", the default data service will POST to a URL such as `'api/hero'`.
 
-The spelling of the `entityName` is important for _ngrx-data_ conventions. It appears in the generated [_entity actions_](docs/entity-actions), in error messages, and in the persistence operations.
-
-Importantly, the default [_entity dataservice_](docs/entity-dataservice.md) creates HTTP resource names (URLs) from the lowercase version of this name. For example, if the entity type `entityName` is "Hero", the default data service will POST to a URL such as ``some/api/base/hero``.
-
->It will also fetch all hero items by sending a GET to the URL `'some/api/base/heros'` because it adds an `'s'` to the end of the lowercase entity name. 
+>By default it generates the _plural_ of the entity name when preparing a _collection_ resource URL. 
 >
->The proper plural of "hero" is "hero*es*", not "heros". You'll see how to fix that [below](#plurals).
+>It isn't good at pluralization.
+>It would produce `'api/heros'` for the URL to fetch _all heroes_ because it blindly adds an `'s'` to the end of the lowercase entity name. 
+>
+>Of course the proper plural of "hero" is "hero**es**", not "hero**s**". 
+>You'll see how to correct this problem [below](#plurals).
 
 <a name=filterfn></a>
 ### _filterFn_

@@ -1,3 +1,4 @@
+import { NgModule } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
@@ -17,6 +18,8 @@ describe('EntityDefinitionService', () => {
     };
 
     TestBed.configureTestingModule({
+      // Not actually lazy but demonstrates a module that registers metadata
+      imports: [ LazyModule ],
       providers: [
         EntityDefinitionService,
         { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: metadataMap}
@@ -42,6 +45,7 @@ describe('EntityDefinitionService', () => {
   });
 
   describe('#registerMetadata(Map)', () => {
+
     it('can register a new definition by metadata', () => {
       service.registerMetadata({ entityName: 'Foo' });
 
@@ -51,6 +55,7 @@ describe('EntityDefinitionService', () => {
       def = service.getDefinition('Hero');
       expect(def).toBeDefined('Hero still defined');
     });
+
     it('can register new definitions by metadata map', () => {
       service.registerMetadataMap({
         Foo: {entityName: 'Foo' },
@@ -63,6 +68,14 @@ describe('EntityDefinitionService', () => {
       expect(def).toBeDefined('Bar');
       def = service.getDefinition('Hero');
       expect(def).toBeDefined('Hero still defined');
+    });
+
+    it('a (lazy-loaded) module can register metadata with its constructor', () => {
+      // The `Sidekick` metadata are registered by LazyModule's ctor
+      // Although LazyModule is actually eagerly-loaded in this test,
+      // the registration technique is the important thing.
+      const def = service.getDefinition('Sidekick');
+      expect(def).toBeDefined('Sidekick');
     });
   });
 
@@ -107,3 +120,17 @@ describe('EntityDefinitionService', () => {
     });
   });
 });
+
+//// test helpers ////
+
+@NgModule({ })
+class LazyModule {
+
+  lazyMetadataMap = {
+    Sidekick: { entityName: 'Sidekick' }
+  };
+
+  constructor(entityDefinitionService: EntityDefinitionService) {
+    entityDefinitionService.registerMetadataMap(this.lazyMetadataMap);
+  }
+}

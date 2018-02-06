@@ -37,10 +37,25 @@ The easy way to register metadata is to define one `EntityMetadataMap` for the e
     })
 ```
 
-If you define your _entity model_ in several separate Angular modules (perhaps lazy loaded), you can incrementally add metadata with the multi-provider.
+If you define your _entity model_ in several separate Angular _eagerly-loaded_ modules, you can add metadata in each module with the multi-provider.
 
 ```javascript
 { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: someEntityMetadata }
+```
+
+A _lazy-loaded_ module loads too late for this technique. 
+The `ENTITY_METADATA_TOKEN` provider was already set and consumed by the time the _lazy-loaded_ module arrives.
+The module should inject the `EntityDefinitionService`
+instead and register metadata directly with one of the registration methods.
+
+```javascript
+@NgModule({...})
+class LazyModule {
+  constructor(eds: EntityDefinitionService) {
+    eds.registerMetadataMap(this.lazyMetadataMap);
+  }
+  ...
+}
 ```
 
 <a name="entity-metadata-interface"></a>

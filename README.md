@@ -36,42 +36,68 @@ The
 ## Explore this repository
 
 This repository contains the _ngrx-data_ source code and a
-demonstration application that exercises many of the library features.
+demonstration application (the "demo app") that exercises many of the library features.
 
-What you'll find in this repo's folders:
+The key folders in this repo are:
 
-* docs --> contains the docs for the library and the demo
-* lib ---> contains the ngrx-data library that we publish to npm
-* src ---> contains the demo
+* docs --> the docs for the library and the demo
+* lib ---> the ngrx-data library source code that we publish to npm
+* src/client ---> the demo app source
+* src/server ---> a node server for remote data access
 
-The library tests in the `lib` folder reveal additional features and edge cases.
+The demo app is based on the Angular CLI.
+You may want to install the CLI globally if you have not already done so.
 
-Clone this repository
+```bash
+npm install -g @angular/cli
+```
+
+Then follow these steps:
+
+(1) Clone this repository
 
 ```bash
 git clone https://github.com/johnpapa/angular-ngrx-data.git
 cd angular-ngrx-data
 ```
 
-(1) Install the npm packages
+(2) Install the npm packages
 
 ```bash
 npm install
 ```
 
-(2) Build the `ngrx-data` library
+(3) Build the `ngrx-data` library
 
 ```bash
 npm run build-setup
 ```
 
-(3) Serve the CLI-based demo app
+(4) Serve the CLI-based demo app
 
 ```bash
 ng serve -o
 ```
 
-> TODO: Disable the remote server feature. Explain how to re-enable it. Maybe figure out how to do that automatically
+>`npm start` if you have not installed the Angular CLI globally.
+
+## Explore and run the library tests
+
+The _ngrx-data_ library ships with unit tests.
+
+These tests demonstrate features of the library that are not covered in the demo app.
+
+Run this CLI command to execute the tests for the library.
+
+```bash
+ng test
+```
+
+> `npm test` if you have not installed the Angular CLI globally.
+
+We welcome PRs that add to the tests as well as those that fix code bugs and documentation.
+
+Be sure to run these tests before submitting a PR for review.
 
 ## Monitor the app with Redux DevTools
 
@@ -84,47 +110,32 @@ Follow these instructions to
 [install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension)
 and learn how to use them.
 
-## Explore and run the library tests
-
-The _ngrx-data_ library ships with unit tests.
-These tests demonstrate features of the library just as the demo app does.
-
-Run this CLI command to execute the tests for the library.
-
-```bash
-ng test
-```
-
-We welcome PRs that add to the tests as well as those that fix code bugs and documentation.
-
-Be sure to run these tests before submitting a PR for review.
-
 ## Build the app against the npm package
 
 The demo app is setup to build and run against the version of the library in
 `dist/ngrx-data`.
-That's a convenient arrangement when you're evolving the library and
+
+That's convenient when you're evolving the library code and
 re-building as you go with `npm run build-lib` or `npm run build-setup`.
-The version in `dist/ngrx-data` will reflect your latest changes;
-obviously the package deployed in `node_modules` does not.
 
-But you may want to see how the demo app runs against the published package.
+The version in `dist/ngrx-data` will reflect your latest changes.
+Obviously the package deployed in `node_modules` would not.
 
-To do that, you'll have to make **a few temporary changes** to the TypeScript configuration.
+If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
 1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
    looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
-```bash
-  "paths": {
-    "ngrx-data": ["../lib/src"]
-  },
-```
+  ```bash
+    "paths": {
+      "ngrx-data": ["../lib/src"]
+    },
+  ```
 
 2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
-   The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
+   Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
 
-Now you can install the `ngrx-data` package _without touching the `package.json`_ by running:
+Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
 
 ```bash
 npm install ngrx-data --no-save --no-lock
@@ -132,28 +143,43 @@ npm install ngrx-data --no-save --no-lock
 
 > **Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
 
-## How to build a new app that uses `ngrx-data`
+## Use a real database
 
-> TODO: how to implement this in a new Angular CLI app
+The demo app queries and saves mock entity data to an in-memory database with the help of the
+[Angular In-memory Web API](https://github.com/angular/in-memory-web-api).
 
-### Requirements
+The "Remote Data" toggle switch in the header switches
+to the remote database.
 
-1. Install the Angular CLI globally
+The app fails when you switch to the remote database.
 
-   ```bash
-   npm install -g @angular/cli
-   ```
+> Notice how the app detects errors and pops up a toast message with the failed _ngrx_ `Action.type`.
+>
+> The error details are in the browser's console log.
+
+You must first set up a database and launch a web api server that talks to it.
+
+The `src/server` folder has code for a local node web api server, configured for the demo app.
+
+>TODO: 
+> * Explain how to build and run the server.
+> * Explain how to build and serve the mongo db
+
+<!-- 
+
+>TODO: Fix the broken server-oriented commands in package.json
+
+### Create a MongoDb
 
 1. Create a [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
 
-### Running the app
+### Build and launch the node server
 
 1. Build the Angular app and launch the node server
 
-   ```bash
-   npm run build
-   npm run dev
-   ```
+```bash
+???
+```
 
 1. Open the browser to <http://localhost:3001>
 
@@ -210,6 +236,7 @@ Out of the box you can run the demo with an in memory data service instead of a 
    COSMOSDB_KEY=your_cosmos_key
    COSMOSDB_PORT=10255
    ```
+-->
 
 ## Problems or Suggestions
 

@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "ng": "ng",
-    "start-ng": "ng serve",
+    "start": "ng serve -o",
     "build": "ng build",
     "build-prod": "ng build --prod --build-optimizer",
     "build-lib": "ng-packagr -p lib",
@@ -21,7 +21,7 @@
     "docker-up-debug": "docker-compose -f docker-compose.debug.yml up -d --build",
     "docker-down": "docker-compose down",
     "dev": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
-    "start": "node index.js",
+    "start-server": "node ./src/server/index.js",
     "debug": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
     "serve-dist": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect dist/index.js",
     "snyk-protect": "snyk protect",

@@ -200,21 +200,22 @@ The _ngrx-data_ library generates selectors for these properties but has no way 
 
 The _ngrx-data_ [`DefaultDataService`](docs/entity-dataservice.md) relies on the `HttpUrlGenerator` to create conventional HTTP resource names (URLs) for each entity type.
 
-By convention, an HTTP request targeting a single entity item contains the lowercase, singular version of the entity type name. For example, if the entity type `entityName` is "Hero", the default data service will POST to a URL such as `'some/api/base/hero'`.
+By convention, an HTTP request targeting a single entity item contains the lowercase, singular version of the entity type name. For example, if the entity type `entityName` is "Hero", the default data service will POST to a URL such as `'api/hero'`.
 
-By convention, an HTTP request targeting multiple entities contains the lowercase, _plural_ version of the entity type name. The URL of a GET request that retrieved all heroes would be something like `'some/api/base/heroes'`.
+By convention, an HTTP request targeting multiple entities contains the lowercase, _plural_ version of the entity type name. The URL of a GET request that retrieved all heroes should be something like `'api/heroes'`.
 
 The `HttpUrlGenerator` can't pluralize the entity type name on its own. It delegates to an injected _pluralizing class_, called `Pluralizer`.
 
 The `Pluralizer` class has a _pluralize()_ method that takes the singular string and returns the plural string.
 
-The _ngrx-data_ library's default `Pluralizer` implementation simply appends an `'s'`. That's fine for the `Villain` type (which becomes "villains"). But that's the wrong technique for pluralizing the `Hero` type (which becomes "heros").
+The default `Pluralizer` simply appends an `'s'`. That's fine for the `Villain` type (which becomes "villains").
+That's the wrong technique for pluralizing the `Hero` type (which becomes "heros").
 
-This default `Pluralizer` also injects an object (with the `PLURAL_NAMES_TOKEN`) which is a map of singular to plural strings.
+Fortunately, the default `Pluralizer` also injects a map of singular to plural strings (with the `PLURAL_NAMES_TOKEN`).
 
-The `pluralize()` method looks for the singular entity name in that map and uses the corresponding plural value if found. Otherwise, it returns the entity name plus `'s'`.
+Its `pluralize()` method looks for the singular entity name in that map and uses the corresponding plural value if found. Otherwise, it returns the entity name plus `'s'`.
 
-If this scheme works for you, you create a map of _singular-to-plural_ entity names for the exceptional cases, as the demo app does:
+If this scheme works for you, create a map of _singular-to-plural_ entity names for the exceptional cases, as the demo app does:
 
 ```javascript
 export const pluralNames = {
@@ -232,8 +233,14 @@ Then specify this map while configuring the _ngrx-data_ library.
     })
 ```
 
-If you define your _entity model_ in separate Angular modules (perhaps lazy loaded), you can incrementally add a plural names map with the multi-provider.
+If you define your _entity model_ in separate Angular modules, you can incrementally add a plural names map with the multi-provider.
 
 ```javascript
 { provide: PLURAL_NAMES_TOKEN, multi: true, useValue: morePluralNames }
 ```
+
+If this scheme isn't working for you, replace the `Pluralizer` class with your own invention.
+
+
+```javascript
+{ provide: Pluralizer, useClass: MyPluralizer }

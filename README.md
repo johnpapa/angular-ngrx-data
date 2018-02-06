@@ -66,10 +66,16 @@ Clone this repository
 
 >TODO: Disable the remote server feature. Explain how to re-enable it. Maybe figure out how to do that automatically
 
-## Watch it work with redux tools
+## Monitor the app with Redux DevTools
 
->TBD: Describe how to install the redux tools in the (Chrome-only?) browser, open the dev tools,
-navigate to the redux tool, and goof around there.
+The demo app is 
+[configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools)
+with the 
+[Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).
+
+Follow these instructions to 
+[install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension)
+and learn how to use them.
 
 ## Explore and run the library tests
 
@@ -86,6 +92,38 @@ We welcome PRs that add to the tests as well as those that fix code bugs and doc
 
 Be sure to run these tests before submitting a PR for review.
 
+## Run the demo app against the npm package
+
+The demo app is setup to build and run against the version of the library in
+`dist/ngrx-data`.
+That's a convenient arrangement when you're evolving the library and 
+re-building as you go with `npm run build-lib` or `npm run build-setup`.
+The version in `dist/ngrx-data` will reflect your latest changes;
+obviously the package deployed in `node_modules` does not.
+
+But you can see how the demo app runs against the published package by making a
+few **temporary changes**
+
+1. Remove the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
+looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+
+```bash
+  "paths": {
+    "ngrx-data": ["../lib/src"]
+  },
+```
+
+2. Remove _that same setting_ from the `src/client/tsconfig.app.json`.
+The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
+
+>**Remember to _restore these settings_ when you're done. Do not commit these changes.**
+
+Now you can install the `ngrx-data` package _without touching the `package.json` by running:
+
+```bash
+npm install ngrx-data --no-save --no-lock
+```
+
 ## How to build a new _ngrx-data_ app
 
 >TODO: how to implement this in a new Angular CLI app
@@ -100,6 +138,7 @@ Be sure to run these tests before submitting a PR for review.
 
 1. Create a
    [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
+
 ### Running the app
 
 1. Build the Angular app and launch the node server

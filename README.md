@@ -98,7 +98,7 @@ We welcome PRs that add to the tests as well as those that fix code bugs and doc
 
 Be sure to run these tests before submitting a PR for review.
 
-## Run the demo app against the npm package
+## Build the app against the npm package
 
 The demo app is setup to build and run against the version of the library in
 `dist/ngrx-data`.
@@ -107,10 +107,11 @@ re-building as you go with `npm run build-lib` or `npm run build-setup`.
 The version in `dist/ngrx-data` will reflect your latest changes;
 obviously the package deployed in `node_modules` does not.
 
-But you can see how the demo app runs against the published package by making a
-few **temporary changes**
+But you may want to see how the demo app runs against the published package. 
 
-1. Remove the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
+To do that, you'll have to make **a few temporary changes** to the TypeScript configuration.
+
+1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
 looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
 ```bash
@@ -119,16 +120,37 @@ looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
   },
 ```
 
-2. Remove _that same setting_ from the `src/client/tsconfig.app.json`.
+2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
 The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
 
->**Remember to _restore these settings_ when you're done. Do not commit these changes.**
 
-Now you can install the `ngrx-data` package _without touching the `package.json` by running:
+Now you can install the `ngrx-data` package _without touching the `package.json`_ by running:
 
 ```bash
 npm install ngrx-data --no-save --no-lock
 ```
+
+>**Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
+## Publish to npm
+
+Only a few of us are authorized to publish the npm package.
+Here is our checklist.
+
+1. Confirm that the library builds cleanly and that
+the demo app can use it in production with `npm run build-all`
+
+1. Run `ng tests`; all tests should pass.
+
+1. Bump the npm package version number in `lib/package.json`. 
+
+1. Run `npm run build-publish`. 
+That command builds the library one more time before publishing to npm.
+
+1. Commit the `lib/package.json` version change.
+
+The publish step will fail if you aren't authorized to publish.
+
+The publish step will fail if you forgot to bump the version in which case, bump the version, and try the publish step again. Remember to commit the version change.
 
 ## How to build a new _ngrx-data_ app
 

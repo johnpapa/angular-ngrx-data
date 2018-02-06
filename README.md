@@ -16,8 +16,10 @@ in a "reactive" style, following the
 Many applications have substantial "domain models" with 10s or 100s of entity types.
 Instances of these entity types are created, retrieved, updated, and deleted (CRUD).
 
-If you've tried to manage your entity data with _ngrx_, you've discovered that you have to write a lot of code for each entity type. 
-For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods. 
+> _ngrx-data_ can significantly reduce the amount of code you have to write for every entity when using _ngrx_ for the _redux_ pattern in Angular.
+
+If you've tried to manage your entity data with _ngrx_, you've discovered that you have to write a lot of code for each entity type.
+For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods.
 This is a ton of repetitive code to write, maintain, and test.
 
 This library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
@@ -66,10 +68,8 @@ Clone this repository
 (3) Serve the CLI-based demo app
 
    ```bash
-   ng serve
+   ng serve -o
    ```
-
-(4) Open a browser to `localhost:4200`
 
 >TODO: Disable the remote server feature. Explain how to re-enable it. Maybe figure out how to do that automatically
 
@@ -89,7 +89,7 @@ and learn how to use them.
 The _ngrx-data_ library ships with unit tests.
 These tests demonstrate features of the library just as the demo app does.
 
-Run this CLI command to execute the tests.
+Run this CLI command to execute the tests for the library.
 
 ```bash
 ng test
@@ -108,7 +108,7 @@ re-building as you go with `npm run build-lib` or `npm run build-setup`.
 The version in `dist/ngrx-data` will reflect your latest changes;
 obviously the package deployed in `node_modules` does not.
 
-But you may want to see how the demo app runs against the published package. 
+But you may want to see how the demo app runs against the published package.
 
 To do that, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
@@ -124,7 +124,6 @@ looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
 The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
 
-
 Now you can install the `ngrx-data` package _without touching the `package.json`_ by running:
 
 ```bash
@@ -132,43 +131,22 @@ npm install ngrx-data --no-save --no-lock
 ```
 
 >**Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
-## Publish to npm
-
-Only a few of us are authorized to publish the npm package.
-Here is our checklist.
-
-1. Confirm that the library builds cleanly and that
-the demo app can use it in production with `npm run build-all`
-
-1. Run `ng tests`; all tests should pass.
-
-1. Bump the npm package version number in `lib/package.json`. 
-
-1. Run `npm run build-publish`. 
-That command builds the library one more time before publishing to npm.
-
-1. Commit the `lib/package.json` version change.
-
-The publish step will fail if you aren't authorized to publish.
-
-The publish step will fail if you forgot to bump the version in which case, bump the version, and try the publish step again. Remember to commit the version change.
 
 ## How to build a new _ngrx-data_ app
 
 >TODO: how to implement this in a new Angular CLI app
 
-### Requirements
+### Requirements for the `angular-ngrx-demo` demo app
 
-1. Install the Angular CLI
+1. Install the Angular CLI globally
 
    ```bash
    npm install -g @angular/cli
    ```
 
-1. Create a
-   [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
+1. Create a [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
 
-### Running the app
+### Running the `angular-ngrx-data` demo app
 
 1. Build the Angular app and launch the node server
 
@@ -215,14 +193,11 @@ COSMOSDB_KEY=your_cosmos_key
 COSMOSDB_PORT=10255
 ```
 
-Out of the box you can run the demo with an in memory data service instead of a live database. If
-you wish to use a database, you can set up a local mongo server or a remote CosmosDB/MongoDB server
-in the cloud.
+Out of the box you can run the demo with an in memory data service instead of a live database. If you wish to use a database, you can set up a local mongo server or a remote CosmosDB/MongoDB server in the cloud.
 
 1. Configure Cosmos DB server settings
 
-   Copy the contents from `.env.example` into `.env`. Replace the values with your specific
-   configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
+   Copy the contents from `.env.example` into `.env`. Replace the values with your specific configuration. Don't worry, this file is in the `.gitignore` so it won't get pushed to github.
 
    ```javascript
    NODE_ENV=development

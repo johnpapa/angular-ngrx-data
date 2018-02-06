@@ -40,38 +40,38 @@ demonstration application that exercises many of the library features.
 
 What you'll find in this repo's folders:
 
-- docs --> contains the docs for the library and the demo
-- lib ---> contains the ngrx-data library that we publish to npm
-- src ---> contains the demo
+* docs --> contains the docs for the library and the demo
+* lib ---> contains the ngrx-data library that we publish to npm
+* src ---> contains the demo
 
 The library tests in the `lib` folder reveal additional features and edge cases.
 
 Clone this repository
 
-   ```bash
-   git clone https://github.com/johnpapa/angular-ngrx-data.git
-   cd angular-ngrx-data
-   ```
+```bash
+git clone https://github.com/johnpapa/angular-ngrx-data.git
+cd angular-ngrx-data
+```
 
 (1) Install the npm packages
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 (2) Build the `ngrx-data` library
 
-   ```bash
-   npm run build-setup
-   ```
+```bash
+npm run build-setup
+```
 
 (3) Serve the CLI-based demo app
 
-   ```bash
-   ng serve -o
-   ```
+```bash
+ng serve -o
+```
 
->TODO: Disable the remote server feature. Explain how to re-enable it. Maybe figure out how to do that automatically
+> TODO: Disable the remote server feature. Explain how to re-enable it. Maybe figure out how to do that automatically
 
 ## Monitor the app with Redux DevTools
 
@@ -113,7 +113,7 @@ But you may want to see how the demo app runs against the published package.
 To do that, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
 1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
-looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+   looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
 ```bash
   "paths": {
@@ -122,7 +122,7 @@ looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 ```
 
 2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
-The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
+   The app now `ng build` references `node_modules/ngrx-data` instead of `src/lib`.
 
 Now you can install the `ngrx-data` package _without touching the `package.json`_ by running:
 
@@ -130,13 +130,13 @@ Now you can install the `ngrx-data` package _without touching the `package.json`
 npm install ngrx-data --no-save --no-lock
 ```
 
->**Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
+> **Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
 
-## How to build a new _ngrx-data_ app
+## How to build a new app that uses `ngrx-data`
 
->TODO: how to implement this in a new Angular CLI app
+> TODO: how to implement this in a new Angular CLI app
 
-### Requirements for the `angular-ngrx-demo` demo app
+### Requirements
 
 1. Install the Angular CLI globally
 
@@ -146,7 +146,7 @@ npm install ngrx-data --no-save --no-lock
 
 1. Create a [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
 
-### Running the `angular-ngrx-data` demo app
+### Running the app
 
 1. Build the Angular app and launch the node server
 

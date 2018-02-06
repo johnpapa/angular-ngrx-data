@@ -16,8 +16,34 @@ To manage entities with _ngrx-data_, you describe each entity type with [**_enti
 
 The application's **_entity model_** is the set of all entity types in your application that are described with _entity metadata_.
 
-
 In some definitions, the _entity type_ and _entity model_ describe both the data and the _logic_ that govern that data such as data integrity rules (e.g., validations) and behaviors (e.g., calculations). The _current version_ of _ngrx-data_ library is unaware of entity logic beyond what is strictly necessary to persist entity data values.
+
+<a name="no-panacea"></a>
+## Is _ngrx-data_ the answer for everything?
+
+**_No!_**
+The _ngrx-data_ library is narrowly focused on a single objective:
+to simplify management of [_entity data_](#entity).
+
+Entity data are a particularly opportune target for simplification
+because they appear in high volume in many applications and
+the sheer number of _similar-but-different_ ngrx code artifacts necessary to manage that data is daunting.
+
+Anything we can do to shrink entity management code and to leverage the commonalities across entity types will repay the effort handsomely.
+
+But _entity data_ is only _one_ kind of application data.
+
+Configuration data, user roles, the user's prior selections, the current state of screen layouts ...
+these are all important and highly idiosyncratic data that can benefit from
+custom coding with standard _ngrx_ techniques.
+
+Data streamed from remote sources such as trading systems,
+mobile asset tracking systems, and IoT devices are not entity data
+and aren't a good fit for the _ngrx-data_ library.
+They are still worth managing with _ngrx_.
+
+It bears repeating: the _ngrx-data_ library is good for
+querying, caching, and saving _entity data_ ... and that's it.
 
 <a name="ngrx"></a>
 ## What is _ngrx_?

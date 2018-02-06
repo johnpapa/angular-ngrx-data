@@ -44,6 +44,8 @@ The key folders in this repo are:
 * src/client ---> the demo app source
 * src/server ---> a node server for remote data access
 
+<a name="install-and-run"></a>
+
 The demo app is based on the Angular CLI.
 You may want to install the CLI globally if you have not already done so.
 

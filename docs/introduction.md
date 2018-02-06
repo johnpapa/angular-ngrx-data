@@ -36,39 +36,49 @@ Server responses become new _ngrx actions_ that pass through _ngrx reducers_, wh
 
 The mechanics are handled for you _inside the library_. You don't have to write any _ngrx_ code. Just follow the _ngrx-data usage_ pattern and get on with your life.
 
-You can see the _ngrx machinery_ at work with the _redux developer tools_. You can listen to the flow of actions directly. You can intercept and override _anything_ ... but you only have to intervene where you need to custom logic. 
+You can see the _ngrx machinery_ at work with the _redux developer tools_. You can listen to the flow of actions directly. You can intercept and override _anything_ ... but you only have to intervene where you need to add custom logic. 
 
 ### Show me
 
 This repository comes with a demo app for editing _Heroes_ and _Villains_ in the `src/client/app/` folder.
 
->Instructions to run it [below](#run-the-app).
+>Instructions to install and run it are in the repository [README](../README.md#install-and-run).
 
-Here's a _slightly reduced_ extract from that demo to illustrate what we mean beginning with a description of the entity model in a few lines of metadata.
+Here's a _slightly reduced_ extract from that demo to illustrate the essential mechanics of configuring and using _ngrx-data_.
+
+You begin with a description of the entity model in a few lines of metadata.
 
 ```javascript
+/* app/store/entity-metadata.ts */
+
+// Metadata for the entity model
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
     entityName: 'Hero',
     sortComparer: sortByName, // optional
     filterFn: nameFilter      // optional
   },
+  
   Villain: {
     entityName: 'Villain',
     filterFn: nameAndSayingFilter // optional
   }
 };
 
+// Tell ngrx-data how to pluralize entity type names
 export const pluralNames = {
   Hero: 'Heroes' // the plural of Hero
 };
 ```
 
-Now register the metadata and plurals with the `ngrx-data` module.
+Now register the Web API configuration, metadata, and plurals with the `ngrx-data` module in the root `AppModule`.
 
 ```javascript
+/* app/app.module.ts */
+
 import { pluralNames, entityMetadata } from './entity-metadata';
 
+// Set 'api', the root URL of the remote Web API.
 const entityDataServiceConfig: EntityDataServiceConfig = { api: 'api'};
 
 @NgModule({
@@ -87,19 +97,19 @@ The `HeroesComponent` creates an `EntityService` for _heroes_
 and calls that service to read and save _Hero_ entity data in a reactive, immutable style, _without reference to any of the ngrx artifacts_.
 
 ```javascript
+/* app/heroes/heroes/heroes.component.ts */
+
 import { EntityService, EntityServiceFactory } from 'ngrx-data';
+import { Hero } from '../../core';
 
 @Component({
   selector: 'app-heroes',
   templateUrl: './heroes.component.html',
-  styleUrls: ['./heroes.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroesComponent implements OnDestroy, OnInit {
-  addingHero = false;
   heroes$: Observable<Hero[]>;
   heroService: EntityService<Hero>;
-  selectedHero: Hero;
 
   constructor(entityServiceFactory: EntityServiceFactory) {
     this.heroService = entityServiceFactory.create<Hero>('Hero');
@@ -112,7 +122,6 @@ export class HeroesComponent implements OnDestroy, OnInit {
 
   getHeroes() {
     this.heroService.getAll();
-    this.unselect();
   }
 
   update(hero: Hero) {
@@ -124,36 +133,21 @@ export class HeroesComponent implements OnDestroy, OnInit {
   }
 
   deleteHero(hero: Hero) {
-    this.unselect();
     this.heroService.delete(hero.id);
-  }
-
-  onSelect(hero: Hero) {
-    this.addingHero = false;
-    this.selectedHero = hero;
-  }
-
-  unselect() {
-    this.addingHero = false;
-    this.selectedHero = null;
-  }
-
-  ngOnDestroy() {
-    this.onDestroy.next();
   }
 }
 ```
 The component template displays the `heroes$` _observable_
-by subscribing to them with the Angular `AsyncPipe`.
+by subscribing to it with the Angular `AsyncPipe`.
 
 ```html
-<div *ngIf="filteredHeroes$ | async as heroes">
+<!-- app/heroes/heroes/heroes.component.html -->
+
+<div *ngIf="heroes$ | async as heroes">
   ...
   <app-hero-list 
-    [heroes]="heroes" 
-    [selectedHero]="selectedHero" 
-    (deleted)="deleteHero($event)" 
-    (selected)="onSelect($event)">
+    [heroes]="heroes"
+    (deleted)="deleteHero($event)">
   </app-hero-list>
   ...
 </div>

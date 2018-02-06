@@ -1,7 +1,5 @@
 # Angular ngrx-data
 
-## What is _ngrx-data_?
-
 The
 [`ngrx-data` library](https://github.com/johnpapa/angular-ngrx-data)
 makes it easier to write an Angular application that manages
@@ -21,7 +19,7 @@ Many applications have substantial _domain models_ with 10s or 100s of entity ty
 To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task.
 You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
 
-For even a small entity model this is a ton of repetitive code to create, maintain, and test.
+In even a small model, this is a ton of repetitive code to create, maintain, and test.
 
 The _ngrx-data_ library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
 
@@ -80,13 +78,14 @@ npm run build-setup
 ng serve -o
 ```
 
->`npm start` if you have not installed the Angular CLI globally.
+> Run `npm start` if you have not installed the Angular CLI globally.
 
-## Explore and run the library tests
+## Run the library tests
 
-The _ngrx-data_ library ships with unit tests.
+The _ngrx-data_ library ships with unit tests to validate functionality and guard against regressions.
 
-These tests demonstrate features of the library that are not covered in the demo app.
+These tests also demonstrate features of the library that are not covered in the demo app.
+They're worth reading to discover more advanced techniques.
 
 Run this CLI command to execute the tests for the library.
 
@@ -94,9 +93,10 @@ Run this CLI command to execute the tests for the library.
 ng test
 ```
 
-> `npm test` if you have not installed the Angular CLI globally.
+> Run `npm test` if you have not installed the Angular CLI globally.
 
-We welcome PRs that add to the tests as well as those that fix code bugs and documentation.
+We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls)
+that add to the tests as well as those that fix bugs and documentation.
 
 Be sure to run these tests before submitting a PR for review.
 

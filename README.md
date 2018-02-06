@@ -2,18 +2,18 @@
 
 ## What is _ngrx-data_?
 
-The 
-[`ngrx-data` library](https://github.com/johnpapa/angular-ngrx-data) 
-makes it easier to write an Angular application that manages 
-[entity](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/faq.md#entity) 
-data with 
-[ngrx](https://github.com/ngrx/platform/blob/master/README.md) 
-in a "reactive" style, following the 
+The
+[`ngrx-data` library](https://github.com/johnpapa/angular-ngrx-data)
+makes it easier to write an Angular application that manages
+[entity](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/faq.md#entity)
+data with
+[ngrx](https://github.com/ngrx/platform/blob/master/README.md)
+in a "reactive" style, following the
 [redux](https://redux.js.org/) pattern.
 
 ## Why use it?
 
-Many applications have substantial "domain models" with 10s or 100s of entity types. 
+Many applications have substantial "domain models" with 10s or 100s of entity types.
 Instances of these entity types are created, retrieved, updated, and deleted (CRUD).
 
 If you've tried to manage your entity data with _ngrx_, you've discovered that you have to write a lot of code for each entity type. For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods. This is a ton of code to write, maintain, and test.
@@ -25,7 +25,7 @@ This library is _an answer_ ... or at least the beginning of an answer.
 
 The
 ["_Introduction to ngrx-data_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md)
-guide offers a quick overview. 
+guide offers a quick overview.
 
 The
 ["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
@@ -34,6 +34,12 @@ The
 
 This repository contains the _ngrx-data_ source code and a
 demonstration application that exercises many of the library features.
+
+What you'll find in this repo's folders:
+
+- docs --> contains the docs for the library and the demo
+- lib ---> contains the ngrx-data library that we publish to npm
+- src ---> contains the demo
 
 The library tests in the `lib` folder reveal additional features and edge cases.
 
@@ -68,12 +74,12 @@ Clone this repository
 
 ## Monitor the app with Redux DevTools
 
-The demo app is 
+The demo app is
 [configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools)
-with the 
+with the
 [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).
 
-Follow these instructions to 
+Follow these instructions to
 [install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension)
 and learn how to use them.
 
@@ -96,7 +102,7 @@ Be sure to run these tests before submitting a PR for review.
 
 The demo app is setup to build and run against the version of the library in
 `dist/ngrx-data`.
-That's a convenient arrangement when you're evolving the library and 
+That's a convenient arrangement when you're evolving the library and
 re-building as you go with `npm run build-lib` or `npm run build-setup`.
 The version in `dist/ngrx-data` will reflect your latest changes;
 obviously the package deployed in `node_modules` does not.

@@ -1,13 +1,15 @@
 # Entity Metadata
 
-The _ngrx-data_ library maintains a **_cache_ **of entity data in the _ngrx store_. The properties of that cache are collections of entities.
+The _ngrx-data_ library maintains a **_cache_** of entity collection data in the _ngrx store_.
 
-You tell the _ngrx-data_ library how to structure and maintain that cache with **_entity metadata_**.
+You tell the _ngrx-data_ library about those collections and the entities they contain with **_entity metadata_**.
 
 The entities within a collection belong to the same **_entity type_**.
-Each _entity type_ appears as named instance of the _ngrx-data_ [**`EntityMetadata<T>`**](#entity-metadata-interface) interface in an `EntityMetadataMap`.
+Each _entity type_ appears as named instance of the _ngrx-data_ [**`EntityMetadata<T>`**](#entity-metadata-interface) interface.
 
-Here is an example from the demo app that defines metadata for two entities, `Hero` and `Villain`.
+You can specify metadata for several entities at the same time in an **`EntityMetadataMap`**.
+
+Here is an example `EntityMetadataMap` from the demo app that defines metadata for two entities, `Hero` and `Villain`.
 
 ```javascript
 export const entityMetadata: EntityMetadataMap = {
@@ -24,10 +26,11 @@ export const entityMetadata: EntityMetadataMap = {
 };
 ```
 
->TODO: explain how to tell ngrx-data about this
 ## Register metadata
 
-The easy way to register metadata is to define one `EntityMetadataMap` for the entire application and specify it in the one place where you initialize the _ngrx-data_ library:
+You must register the metadata with the _ngrx-data_ `EntityDefinitionService`.
+
+The easiest way to register metadata is to define a single `EntityMetadataMap` for the entire application and specify it in the one place where you initialize the _ngrx-data_ library:
 
 ```javascript
     NgrxDataModule.forRoot({
@@ -37,14 +40,15 @@ The easy way to register metadata is to define one `EntityMetadataMap` for the e
     })
 ```
 
-If you define your _entity model_ in several separate Angular _eagerly-loaded_ modules, you can add metadata in each module with the multi-provider.
+If you define entities in several, different  _eagerly-loaded_ Angular modules, you can add the metadata for each module with the multi-provider.
 
 ```javascript
 { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: someEntityMetadata }
 ```
 
-A _lazy-loaded_ module loads too late for this technique. 
+This technique won't work for a _lazy-loaded_ module. 
 The `ENTITY_METADATA_TOKEN` provider was already set and consumed by the time the _lazy-loaded_ module arrives.
+
 The module should inject the `EntityDefinitionService`
 instead and register metadata directly with one of the registration methods.
 

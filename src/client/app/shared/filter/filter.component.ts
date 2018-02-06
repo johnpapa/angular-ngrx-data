@@ -14,11 +14,12 @@ import { EntityService } from 'ngrx-data';
 export class FilterComponent implements OnDestroy, OnInit {
   @Input() entityService: EntityService<any>;
   @Input() filterPlaceholder: string;
-
   filter: FormControl = new FormControl();
-  updateFilter: (pattern: any) => void;
-
   private onDestroy = new Subject();
+
+  clear() {
+    this.filter.setValue('');
+  }
 
   ngOnInit() {
     // Set the filter to the current value from store or ''
@@ -29,10 +30,9 @@ export class FilterComponent implements OnDestroy, OnInit {
       )
       .subscribe(value => this.filter.setValue(value));
 
-    this.updateFilter = this.entityService.setFilter.bind(this.entityService);
     this.filter.valueChanges
       .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
-      .subscribe(pattern => this.updateFilter(pattern));
+      .subscribe(pattern => this.entityService.setFilter(pattern));
   }
 
   ngOnDestroy() {

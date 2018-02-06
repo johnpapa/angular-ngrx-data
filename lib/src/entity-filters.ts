@@ -10,7 +10,7 @@ export type EntityFilterFn<T> = (entities: T[], pattern?: any) => T[];
  * anywhere in any of the given props of an entity.
  * If pattern is a string, spaces are significant and ignores case.
  */
-export function PropsFilterFnFactory<T>(props: (keyof T)[] = []): EntityFilterFn<T> {
+export function PropsFilterFnFactory<T = any>(props: (keyof T)[] = []): EntityFilterFn<T> {
   if (props.length === 0) {
     // No properties -> nothing could match -> return unfiltered
     return (entities: T[], pattern: string) => entities;

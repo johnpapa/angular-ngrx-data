@@ -12,7 +12,7 @@ You can specify metadata for several entities at the same time in an **`EntityMe
 Here is an example `EntityMetadataMap` from the demo app that defines metadata for two entities, `Hero` and `Villain`.
 
 ```javascript
-export const entityMetadata: EntityMetadataMap = {
+export const appEntityMetadata: EntityMetadataMap = {
   Hero: {
     entityName: 'Hero',
     selectId,
@@ -35,7 +35,7 @@ The easiest way to register metadata is to define a single `EntityMetadataMap` f
 ```javascript
     NgrxDataModule.forRoot({
       ...
-      entityMetadata: entityMetadata,
+      entityMetadata: appEntityMetadata,
       ...
     })
 ```
@@ -100,13 +100,26 @@ If there is no filter function, the `filteredEntities` selector is the same as t
 
 A filter function (see [`EntityFilterFn<T>`](../lib/src/entity-filters.ts)) takes an entity collection and the user's filtering criteria (the filter _pattern_) and returns an array of the selected entities.
 
-The _ngrx-data_ library includes a helper function, `PropsFilterFnFactory<T>`, that creates an entity filter function which will treat the user's input as a regular expression  and apply it to one or more properties of the entity.
+Here's an example that filters for entities with a `name` property whose value contains the search string.
+
+```javascript
+export function nameFilter(entities: {name: string}[], search: string) {
+  return entities.filter(e => -1 < e.name.indexOf(search));
+}
+```
+
+The _ngrx-data_ library includes a helper function, `PropsFilterFnFactory<T>`, that creates an entity filter function which will treat the user's input 
+as a case-insensitive, regular expression and apply it to one or more properties of the entity.
 
 The demo uses this helper to create hero and villain filters. Here's how the app creates the a `nameAndSayingFilter` function for villains.
 
 ```javascript
-export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
-  return PropsFilter<any>(['name', 'saying'])(entities, pattern);
+/** 
+ * Filter for entities whose name or saying
+ * matches the case-insensitive pattern.
+ */
+export function nameAndSayingFilter(entities: Villain[], pattern: string) {
+  return PropsFilterFnFactory<Villain>(['name', 'saying'])(entities, pattern);
 }
 ```
 

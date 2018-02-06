@@ -39,7 +39,7 @@ custom coding with standard _ngrx_ techniques.
 
 Data streamed from remote sources such as trading systems,
 mobile asset tracking systems, and IoT devices are not entity data
-and aren't a good fit for the _ngrx-data_ library.
+and may not be a good fit for the _ngrx-data_ library.
 They are still worth managing with _ngrx_.
 
 It bears repeating: the _ngrx-data_ library is good for

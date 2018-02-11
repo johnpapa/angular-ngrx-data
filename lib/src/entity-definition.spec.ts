@@ -1,7 +1,6 @@
 import { EntityMetadata } from './entity-metadata';
 import { EntityFilterFn } from './entity-filters';
 import { IdSelector, Comparer } from './ngrx-entity-models';
-import { EntityCollectionReducer } from './entity.reducer';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
 
 import { createEntityDefinition } from './entity-definition';
@@ -45,6 +44,7 @@ describe('Entity Definition', () => {
         ids: [],
         entities: {},
         filter: '',
+        loaded: false,
         loading: false
       })
     });
@@ -58,6 +58,7 @@ describe('Entity Definition', () => {
         ids: [],
         entities: {},
         filter: '',
+        loaded: false,
         loading: false,
         foo: 'foo'
       })
@@ -79,11 +80,6 @@ describe('Entity Definition', () => {
       delete heroMetadata.sortComparer;
       const def = createEntityDefinition(heroMetadata);
       expect(def.metadata.sortComparer).toBe(false);
-    });
-
-    it('creates expected reducer', () => {
-      const def = createEntityDefinition(heroMetadata);
-      expect(def.reducer.toString()).toContain('function entityCollectionReducer');
     });
 
     it('creates expected selectors', () => {

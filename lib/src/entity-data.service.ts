@@ -8,6 +8,7 @@ import { HttpUrlGenerator } from './http-url-generator';
 
 @Injectable()
 export class EntityDataService {
+
   protected services: { [name: string]: EntityCollectionDataService<any> } = {};
 
   // TODO:  Optionally inject specialized entity data services
@@ -40,8 +41,8 @@ export class EntityDataService {
    * @param service - data service for that entity type
    *
    * Examples:
-   *   registerService('Hero', MyHeroDataService);
-   *   registerService('Villain', MyVillainDataService);
+   *   registerService('Hero', myHeroDataService);
+   *   registerService('Villain', myVillainDataService);
    */
   registerService<T>(entityName: string, service: EntityCollectionDataService<T>) {
     this.services[entityName.trim()] = service;
@@ -53,8 +54,8 @@ export class EntityDataService {
    *
    * Examples:
    *   registerServices({
-   *     Hero: MyHeroDataService,
-   *     Villain: MyVillainDataService
+   *     Hero: myHeroDataService,
+   *     Villain: myVillainDataService
    *   });
    */
   registerServices(services: { [name: string]: EntityCollectionDataService<any> }) {

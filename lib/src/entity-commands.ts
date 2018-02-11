@@ -1,11 +1,5 @@
 import { QueryParams } from './interfaces';
 
-/**
- * Interface for ngrx-data entity commands that
- * dispatch entity actions to the ngrx store.
- */
-export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> { }
-
 /*** Commands that update the remote server ***/
 export interface EntityServerCommands<T> {
 
@@ -139,6 +133,12 @@ export interface EntityCacheCommands<T> {
    */
   setFilter(pattern: any): void;
 }
+
+/**
+ * Interface for ngrx-data entity commands that
+ * dispatch entity actions to the ngrx store.
+ */
+export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> { }
 
 // TypeScript bug: have to export something real in JavaScript
 export const __dummy__: any = undefined;

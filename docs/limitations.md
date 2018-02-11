@@ -122,6 +122,7 @@ It would be great if the library knew about the rules (in `EntityMetadata`?), ra
 
 These might be features in a future version of this library.
 
+<a name="serialization"></a>
 ## Server/client entity mapping
 
 The representation of an entity on the server may be different than on the client.

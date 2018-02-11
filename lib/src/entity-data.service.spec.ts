@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, Optional } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { HttpClient } from '@angular/common/http';
 
@@ -14,6 +14,73 @@ import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService, EntityDataServiceConfig, QueryParams } from './interfaces';
 import { Update } from './ngrx-entity-models';
 
+// region Test Helpers
+///// Test Helpers /////
+
+export class CustomDataService {
+  name: string
+  constructor(name: string) {
+    this.name = name + ' CustomDataService';
+  }
+}
+
+export class Bazinga {
+  id: number;
+  wow: string
+}
+
+export class BazingaDataService implements EntityCollectionDataService<Bazinga> {
+  name: string;
+
+  // TestBed bug requires `@Optional` even though http is always provided.
+  constructor(@Optional() private http: HttpClient) {
+    if (!http) { throw new Error('Where is HttpClient?'); }
+    this.name = 'Bazinga custom data service';
+  }
+
+  add(entity: Bazinga): Observable<Bazinga> { return this.bazinga(); }
+  delete(id: any): Observable<null> { return this.bazinga(); }
+  getAll(): Observable<Bazinga[]> { return this.bazinga(); }
+  getById(id: any): Observable<Bazinga> { return this.bazinga(); }
+  getWithQuery(params: string | QueryParams): Observable<Bazinga[]>  { return this.bazinga(); }
+  update(update: Update<Bazinga>): Observable<Update<Bazinga>> { return this.bazinga(); }
+
+  private bazinga(): any {
+    bazingaFail();
+    return undefined;
+  }
+}
+
+@NgModule({
+  providers: [
+    BazingaDataService
+  ]
+})
+export class CustomDataServiceModule {
+  constructor(
+    entityDataService: EntityDataService,
+    bazingaService: BazingaDataService) {
+    entityDataService.registerService('Bazinga', bazingaService);
+  }
+}
+
+function bazingaFail() {
+  throw new Error('Bazinga! This method is not implemented.');
+}
+
+/** Test version always returns canned Hero resource base URLs  */
+class TestHttpUrlGenerator implements HttpUrlGenerator {
+  entityResource(entityName: string, root: string): string {
+    return 'api/hero/';
+  }
+  collectionResource(entityName: string, root: string): string {
+    return 'api/heroes/';
+  }
+}
+
+// endregion
+
+///// Tests begin ////
 describe('EntityDataService', () => {
   const config = {api: 'api'};
   const nullHttp = {};
@@ -89,67 +156,3 @@ describe('EntityDataService', () => {
   });
 });
 
-///// Test Helpers /////
-
-import { Optional } from '@angular/core';
-
-export class CustomDataService {
-  name: string
-  constructor(name: string) {
-    this.name = name + ' CustomDataService';
-  }
-}
-
-export class Bazinga {
-  id: number;
-  wow: string
-}
-
-export class BazingaDataService implements EntityCollectionDataService<Bazinga> {
-  name: string;
-
-  // TestBed bug requires `@Optional` even though http is always provided.
-  constructor(@Optional() private http: HttpClient) {
-    if (!http) { throw new Error('Where is HttpClient?'); }
-    this.name = 'Bazinga custom data service';
-  }
-
-  add(entity: Bazinga): Observable<Bazinga> { return this.bazinga(); }
-  delete(id: any): Observable<null> { return this.bazinga(); }
-  getAll(): Observable<Bazinga[]> { return this.bazinga(); }
-  getById(id: any): Observable<Bazinga> { return this.bazinga(); }
-  getWithQuery(params: string | QueryParams): Observable<Bazinga[]>  { return this.bazinga(); }
-  update(update: Update<Bazinga>): Observable<Update<Bazinga>> { return this.bazinga(); }
-
-  private bazinga(): any {
-    bazingaFail();
-    return undefined;
-  }
-}
-
-@NgModule({
-  providers: [
-    BazingaDataService
-  ]
-})
-export class CustomDataServiceModule {
-  constructor(
-    entityDataService: EntityDataService,
-    bazingaService: BazingaDataService) {
-    entityDataService.registerService('Bazinga', bazingaService);
-  }
-}
-
-function bazingaFail() {
-  throw new Error('Bazinga! This method is not implemented.');
-}
-
-/** Test version always returns canned Hero resource base URLs  */
-class TestHttpUrlGenerator implements HttpUrlGenerator {
-  entityResource(entityName: string, root: string): string {
-    return 'api/hero/';
-  }
-  collectionResource(entityName: string, root: string): string {
-    return 'api/heroes/';
-  }
-}

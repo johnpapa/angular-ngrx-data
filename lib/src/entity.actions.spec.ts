@@ -8,18 +8,24 @@ import { Subject } from 'rxjs/Subject';
 import { Operator } from 'rxjs/Operator';
 import { filter, share, takeUntil } from 'rxjs/operators';
 
-import { EntityAction, EntityActions, EntityOp } from './entity.actions';
+import { EntityAction, EntityActionFactory, EntityActions, EntityOp } from './entity.actions';
 
 class Hero {
   id: number;
   name: string;
 }
 
-describe('EntityAction', () => {
+describe('EntityActionFactory', () => {
+
+  let factory: EntityActionFactory
+
+  beforeEach(() => {
+    factory = new EntityActionFactory();
+  });
 
   it('should create expected EntityAction for named entity', () => {
     const hero: Hero = {id: 42, name: 'Francis' };
-    const action = new EntityAction('Hero', EntityOp.ADD_ONE, hero);
+    const action = factory.create('Hero', EntityOp.ADD_ONE, hero);
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.ADD_ONE);
     expect(action.payload).toBe(hero);
@@ -27,8 +33,8 @@ describe('EntityAction', () => {
 
   it('should create EntityAction from another EntityAction', () => {
     const hero: Hero = {id: 42, name: 'Francis' };
-    const action1 = new EntityAction('Hero', EntityOp.ADD_ONE, hero);
-    const action = new EntityAction(action1, EntityOp.SAVE_ADD)
+    const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
+    const action = factory.create(action1, EntityOp.SAVE_ADD)
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.SAVE_ADD);
     // Forward's the payload to the new action.
@@ -37,29 +43,40 @@ describe('EntityAction', () => {
 
   it('can suppress the payload when create EntityAction from another EntityAction', () => {
     const hero: Hero = {id: 42, name: 'Francis' };
-    const action1 = new EntityAction('Hero', EntityOp.ADD_ONE, hero);
-    const action = new EntityAction(action1, EntityOp.SAVE_ADD, undefined)
+    const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
+    const action = factory.create(action1, EntityOp.SAVE_ADD, undefined)
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.SAVE_ADD);
     expect(action.payload).toBeUndefined();
   });
+
   it('should format type as expected with #formatActionTypeName()', () => {
-    const action = new EntityAction('Hero', EntityOp.QUERY_ALL);
-    const expectedFormat = EntityAction.formatActionType(EntityOp.QUERY_ALL, 'Hero');
+    const action = factory.create('Hero', EntityOp.QUERY_ALL);
+    const expectedFormat = factory.formatActionType(EntityOp.QUERY_ALL, 'Hero');
     expect(action.type).toBe(expectedFormat);
   });
 
+  it('can re-format generated action.type with custom #formatActionType()', () => {
+    factory.formatActionType = (op, entityName) => `${entityName}_${op}`.toUpperCase();
+
+    const action = factory.create('Hero', EntityOp.QUERY_ALL);
+    expect(action.type).toBe('HERO_QUERY_ALL');
+  });
+
   it('should throw if do not specify entity name', () => {
-    expect(() => new EntityAction(null)).toThrow();
+    expect(() => factory.create(null)).toThrow();
   });
 
   it('should throw if do not specify EntityOp', () => {
-    expect(() => new EntityAction('Hero')).toThrow();
+    expect(() => factory.create('Hero')).toThrow();
   });
 });
 
 // Todo: consider marble testing
 describe('EntityActions', () => {
+
+  // factory never changes in these tests
+  const entityActionFactory = new EntityActionFactory();
 
   let eas: EntityActions;
   let results: any[];
@@ -67,9 +84,9 @@ describe('EntityActions', () => {
 
   const testActions = {
     foo: <Action> {type: 'Foo'},
-    hero_query_all: new EntityAction('Hero', EntityOp.QUERY_ALL),
-    villain_query_many: new EntityAction('Villain', EntityOp.QUERY_MANY),
-    hero_delete: new EntityAction('Hero', EntityOp.SAVE_DELETE, 42),
+    hero_query_all: entityActionFactory.create('Hero', EntityOp.QUERY_ALL),
+    villain_query_many: entityActionFactory.create('Villain', EntityOp.QUERY_MANY),
+    hero_delete: entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42),
     bar: <Action> <any> {type: 'Bar', payload: 'bar'},
   };
 
@@ -235,7 +252,7 @@ describe('EntityActions', () => {
     actions.subscribe(null, null, () => completed++);
     actions.subscribe(ea => results.push(ea), null, () => completed++);
 
-    const action = new EntityAction('Hero', EntityOp.SAVE_DELETE, 42)
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42)
 
     source.next(action);
     source.next(action);

@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { filter, takeUntil, tap } from 'rxjs/operators';
 
-import { EntityAction } from 'ngrx-data';
+import { EntityAction, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
 
 import { ToastService } from './toast.service';
 
@@ -20,7 +20,7 @@ export class NgrxDataToastService implements OnDestroy {
         filter(
           (ea: EntityAction) =>
             ea.op &&
-            (ea.op.includes(EntityAction.OP_SUCCESS) || ea.op.includes(EntityAction.OP_ERROR))
+            (ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
         ),
         takeUntil(this.onDestroy)
       )

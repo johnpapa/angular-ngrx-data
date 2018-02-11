@@ -6,6 +6,18 @@ import { ENTITY_METADATA_TOKEN } from './interfaces';
 
 import { EntityDefinitionService } from './entity-definition.service';
 
+@NgModule({ })
+class LazyModule {
+
+  lazyMetadataMap = {
+    Sidekick: { entityName: 'Sidekick' }
+  };
+
+  constructor(entityDefinitionService: EntityDefinitionService) {
+    entityDefinitionService.registerMetadataMap(this.lazyMetadataMap);
+  }
+}
+
 describe('EntityDefinitionService', () => {
 
   let service: EntityDefinitionService;
@@ -121,16 +133,3 @@ describe('EntityDefinitionService', () => {
   });
 });
 
-//// test helpers ////
-
-@NgModule({ })
-class LazyModule {
-
-  lazyMetadataMap = {
-    Sidekick: { entityName: 'Sidekick' }
-  };
-
-  constructor(entityDefinitionService: EntityDefinitionService) {
-    entityDefinitionService.registerMetadataMap(this.lazyMetadataMap);
-  }
-}

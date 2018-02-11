@@ -1,7 +1,25 @@
-import { EntityAction, EntityOp } from './entity.actions';
-import { EntityDispatcher } from './entity-dispatcher';
+import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
+import { EntityDispatcher, EntityDispatcherFactory } from './entity-dispatcher';
 import { EntityCommands } from './entity-commands';
 import { Update } from './ngrx-entity-models';
+
+// region test helpers
+///// test helpers /////
+
+class Hero {
+  id: number;
+  name: string;
+  saying?: string;
+}
+
+class TestStore  {
+  dispatch = jasmine.createSpy('dispatch');
+
+  get dispatchedAction() {
+    return <EntityAction> this.dispatch.calls.argsFor(0)[0];
+  }
+}
+// endregion test helpers
 
 describe('EntityDispatcher', () => {
 
@@ -10,7 +28,8 @@ describe('EntityDispatcher', () => {
   function entityDispatcherTestSetup() {
     const selectId = (entity: any) => entity.id;
     const testStore = new TestStore();
-    const dispatcher = new EntityDispatcher('Hero', <any> testStore, selectId)
+    const entityActionFactory = new EntityActionFactory();
+    const dispatcher = new EntityDispatcher('Hero', entityActionFactory, <any> testStore, selectId)
     return { dispatcher, testStore };
   }
 });
@@ -199,20 +218,4 @@ export function commandDispatchTest(
     expect(testStore.dispatchedAction.op).toBe(EntityOp.UPDATE_MANY);
     expect(testStore.dispatchedAction.payload).toEqual(updates);
   });
-}
-
-///// test helpers /////
-
-class Hero {
-  id: number;
-  name: string;
-  saying?: string;
-}
-
-class TestStore  {
-  dispatch = jasmine.createSpy('dispatch');
-
-  get dispatchedAction() {
-    return <EntityAction> this.dispatch.calls.argsFor(0)[0];
-  }
 }

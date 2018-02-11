@@ -19,24 +19,6 @@ import { Update } from './ngrx-entity-models';
 export const noDelay = <K>(source: Observable<K>) => source;
 
 /**
- * Create a basic, generic entity data service
- * suitable for persistence of most entities.
- * Assumes a common REST-y web API
- */
-@Injectable()
-export class DefaultDataServiceFactory {
-  constructor(
-    protected config: EntityDataServiceConfig,
-    protected http: HttpClient,
-    protected httpUrlGenerator: HttpUrlGenerator
-  ) { }
-
-  create<T>(entityName: string) {
-    return new DefaultDataService<T>(this.http, this.httpUrlGenerator, this.config, entityName);
-  }
-}
-
-/**
  * A basic, generic entity data service
  * suitable for persistence of most entities.
  * Assumes a common REST-y web API
@@ -144,5 +126,23 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
       const error = new DataServiceError(err, reqData);
       return new ErrorObservable(error);
     };
+  }
+}
+
+/**
+ * Create a basic, generic entity data service
+ * suitable for persistence of most entities.
+ * Assumes a common REST-y web API
+ */
+@Injectable()
+export class DefaultDataServiceFactory {
+  constructor(
+    protected config: EntityDataServiceConfig,
+    protected http: HttpClient,
+    protected httpUrlGenerator: HttpUrlGenerator
+  ) { }
+
+  create<T>(entityName: string) {
+    return new DefaultDataService<T>(this.http, this.httpUrlGenerator, this.config, entityName);
   }
 }

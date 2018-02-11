@@ -1,6 +1,7 @@
+import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
-import { EntityAction, EntityOp } from './entity.actions';
+import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
 import { EntityCommands } from './entity-commands';
 import { EntityCache, QueryParams } from './interfaces';
 import { IdSelector, Update } from './ngrx-entity-models';
@@ -12,12 +13,13 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
   constructor(
     /** Name of the entity type for which entities are dispatched */
     public entityName: string,
+    private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>,
     private selectId: IdSelector<T> = (entity: any) => entity.id
   ) {}
 
   private dispatch(op: EntityOp, payload?: any): void {
-    this.store.dispatch(new EntityAction(this.entityName, op, payload));
+    this.store.dispatch(this.entityActionFactory.create(this.entityName, op, payload));
   }
 
   /**
@@ -210,19 +212,23 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
   }
 }
 
-/**
- * Create an `EntityDispatcher` for an entity type `T` and store
- * Can replace this function with a richer dispatcher by
- * providing alternative with the `CREATE_ENTITY_DISPATCHER_TOKEN`.
- */
-export function createEntityDispatcher<T, D extends EntityDispatcher<T> = EntityDispatcher<T>>(
-  /** Name of the entity type */
-  entityName: string,
-  /** The runtime `EntityCache` store */
-  store: Store<EntityCache>,
+@Injectable()
+export class EntityDispatcherFactory {
+  constructor(
+    private entityActionFactory: EntityActionFactory,
+    private store: Store<EntityCache>
+  ) {}
+
   /**
-   * Function that returns the primary key for an entity `T`.
-   * Usually acquired from `EntityDefinition` metadata.
+   * Create an `EntityDispatcher` for an entity type `T` and store.
    */
-  selectId: IdSelector<T> = ((entity: any) => entity.id)
-): D { return <D> new EntityDispatcher<T>(entityName, store, selectId)}
+  create<T, D extends EntityDispatcher<T> = EntityDispatcher<T>>(
+    /** Name of the entity type */
+    entityName: string,
+    /**
+     * Function that returns the primary key for an entity `T`.
+     * Usually acquired from `EntityDefinition` metadata.
+     */
+    selectId: IdSelector<T> = ((entity: any) => entity.id)
+  ): D { return <D> new EntityDispatcher<T>(entityName, this.entityActionFactory, this.store, selectId)}
+}

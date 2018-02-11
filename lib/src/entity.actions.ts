@@ -44,45 +44,52 @@ export enum EntityOp {
   UPDATE_MANY = 'UPDATE_MANY',
   UPDATE_ONE = 'UPDATE_ONE',
 
-  SET_FILTER = 'SET_FILTER'
+  SET_FILTER = 'SET_FILTER',
 }
 
-export class EntityAction<P = any> implements Action {
-
-  /** "Success" suffix appended to EntityOps that are successful.*/
-  static OP_SUCCESS = '_SUCCESS';
-  /** "Error" suffix appended to EntityOps that have failed.*/
-  static OP_ERROR = '_ERROR';
-
+export interface EntityAction<P = any> extends Action {
   readonly type: string;
   readonly entityName: string;
+  readonly op: EntityOp;
+  readonly payload?: any;
+}
 
-  static formatActionType(op: string, entityName: string) {
-    return `${op} [${entityName}]`.toUpperCase();
-    // return `[${entityName}] ${op.toUpperCase()} `; // an alternative
-  }
-  /** Create a new EntityAction from properties or another EntityAction */
-  constructor(
+/** "Success" suffix appended to EntityOps that are successful.*/
+export const OP_SUCCESS = '_SUCCESS';
+/** "Error" suffix appended to EntityOps that have failed.*/
+export const OP_ERROR = '_ERROR'
+
+@Injectable()
+export class EntityActionFactory {
+  create<P = any>(
     nameOrAction: string | EntityAction,
-    public readonly op?: EntityOp,
-    public readonly payload?: P
+    op?: EntityOp,
+    payload?: P
   ) {
-    if (nameOrAction instanceof EntityAction) {
-      this.entityName = nameOrAction.entityName;
-      this.op = this.op || nameOrAction.op;
-      if (arguments.length < 3) {
-        this.payload = nameOrAction.payload;
-      }
-    } else {
+    let entityName: string;
+
+    if (typeof nameOrAction === 'string') {
       if (nameOrAction == null) {
         throw new Error('Missing entity name for new action')
       };
-      this.entityName = nameOrAction.trim();
       if (op == null) {
         throw new Error('Missing EntityOp for new action');
       }
+      entityName = nameOrAction.trim();
+    } else { // is an EntityAction
+      entityName = nameOrAction.entityName;
+      op = op || nameOrAction.op;
+      if (arguments.length < 3) {
+        payload = nameOrAction.payload;
+      }
     }
-    this.type = EntityAction.formatActionType(this.op, this.entityName);
+    const type = this.formatActionType(op, entityName);
+    return { type, entityName, op, payload }
+  }
+
+  formatActionType(op: string, entityName: string) {
+    return `${op} [${entityName}]`.toUpperCase();
+    // return `[${entityName}] ${op.toUpperCase()} `; // an alternative
   }
 }
 

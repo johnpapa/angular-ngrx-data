@@ -178,7 +178,8 @@ Each _ngrx-data_ entity collection in the the store has these predefined propert
 | `ids`      | Primary key values in default sort order |
 | `entities` | Map of primary key to entity data values |
 | `filter`   | The user's filtering criteria            |
-| `loading`  | Whether ngr-data is waiting for entity data to arrive from the server |
+| `loaded`   | Whether collection was filled by QueryAll; forced false after clear |
+| `loading`  | Whether currently waiting for multi-entity data to arrive from the server |
 
 You can add your own collection properties by setting the `additionalCollectionState` property to an object with those custom collection properties.
 

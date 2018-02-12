@@ -22,11 +22,13 @@ The `op` name is member of the `EntityOp` enumeration.
 Each `EntityOp` corresponds to one of (roughly) _twenty-six_ operations
 that the _ngrx-data_ library can perform.
 
-The `EntityAction` class constructor creates an `Action` instance 
+The `EntityActionFactory.create()` method creates an `Action` instance 
 whose `type` is a string composed from the `entityName`
 and the `op`.
 
 For example, the `Action.type` for the operation that queries the server for all heroes is `QUERY_ALL [HERO]`
+
+>Note that **_each entity type has its own _unique_ `Action` for each operation_**, as if you had created them individually by hand.
 
 You _could_ write your own _reducers_ and _effects_ that select and respond to these constructed `Action.type`s.
 
@@ -38,9 +40,10 @@ The [`EntityEffects`](../lib/src/entity.effects.ts) decide which `Actions` to in
 The [`EntityReducer`](../lib/src/entity.reducer.ts) redirects the action to an `EntityCollectionReducer` based on the `entityName` and that reducer 
 process the action based on the `op`.
 
->The `EntityAction` constructor asks the static `formatActionType()` method to
->produce the `Action.type` string.
->Because _ngrx-data_ ignores the `type`, you can replace `formatActionType` with your own method if you prefer a different format.
+>The `EntityActionFactory.create()` method calls the factory's `formatActionType()` method
+to produce the `Action.type` string.
+>Because _ngrx-data_ ignores the `type`, you can replace `formatActionType()` with your own method if you prefer a different format
+or provide and inject your own `EntityActionFactory`.
 
 ### Where are the _EntityActions_?
 

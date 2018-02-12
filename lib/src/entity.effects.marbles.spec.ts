@@ -6,9 +6,13 @@ import { Observable } from 'rxjs/Observable';
 
 import { DataServiceError, EntityCollectionDataService, HttpMethods } from './interfaces';
 
-import { EntityAction, EntityActions, EntityOp, EntityActionDataServiceError } from './entity.actions';
+import {
+  EntityAction, EntityActionFactory, EntityActions,
+  EntityOp, EntityActionDataServiceError, OP_ERROR
+} from './entity.actions';
 import { EntityDataService } from './entity-data.service';
 import { EntityEffects } from './entity.effects';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from './persistence-result-handler.service';
 
 import { Update } from './ngrx-entity-models';
 
@@ -49,6 +53,7 @@ export class Hero {
 //////// Tests begin ////////
 describe('EntityEffects (marble testing)', () => {
   let effects: EntityEffects;
+  let entityActionFactory: EntityActionFactory;
   let testEntityDataService: TestEntityDataService;
   let actions$: TestEntityActions;
 
@@ -56,11 +61,13 @@ describe('EntityEffects (marble testing)', () => {
     TestBed.configureTestingModule({
       providers: [
         EntityEffects,
+        EntityActionFactory,
+        { provide: EntityActions, useFactory: getActions },
         { provide: EntityDataService, useFactory: getDataService },
-        { provide: EntityActions, useFactory: getActions }
+        { provide: PersistenceResultHandler, useClass: DefaultPersistenceResultHandler }
       ],
     });
-
+    entityActionFactory = TestBed.get(EntityActionFactory);
     effects = TestBed.get(EntityEffects);
     testEntityDataService = TestBed.get(EntityDataService);
     actions$ = TestBed.get(EntityActions);
@@ -71,8 +78,8 @@ describe('EntityEffects (marble testing)', () => {
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
 
-    const action = new EntityAction('Hero', EntityOp.QUERY_ALL);
-    const completion = new EntityAction('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -84,7 +91,7 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_ALL_ERROR when service fails', () => {
-    const action = new EntityAction('Hero', EntityOp.QUERY_ALL);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'GET', httpError)
     const error = completion.payload.error;
@@ -99,8 +106,8 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', () => {
-    const action = new EntityAction('Hero', EntityOp.QUERY_BY_KEY, 42);
-    const completion = new EntityAction('Hero', EntityOp.QUERY_BY_KEY_SUCCESS);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY_SUCCESS);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -112,7 +119,7 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_BY_KEY_ERROR when service fails', () => {
-    const action = new EntityAction('Hero', EntityOp.QUERY_BY_KEY, 42);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
     const httpError = { error: new Error('Entity not found'), status: 404 };
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
     const error = completion.payload.error;
@@ -130,8 +137,8 @@ describe('EntityEffects (marble testing)', () => {
     const hero2 = { id: 2, name: 'BB' } as Hero;
     const heroes = [hero1, hero2];
 
-    const action = new EntityAction('Hero', EntityOp.QUERY_MANY, {name: 'B'});
-    const completion = new EntityAction('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {name: 'B'});
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -143,7 +150,7 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_MANY_ERROR when service fails', () => {
-    const action = new EntityAction('Hero', EntityOp.QUERY_MANY, {name: 'B'});
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {name: 'B'});
     const httpError = { error: new Error('Resource not found'), status: 404 };
     const completion = makeEntityErrorCompletion(action, 'GET', httpError, {name: 'B'})
     const error = completion.payload.error;
@@ -160,8 +167,8 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = new EntityAction('Hero', EntityOp.SAVE_ADD, hero);
-    const completion = new EntityAction('Hero', EntityOp.SAVE_ADD_SUCCESS, hero);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_SUCCESS, hero);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -174,7 +181,7 @@ describe('EntityEffects (marble testing)', () => {
 
   it('should return a SAVE_ADD_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = new EntityAction('Hero', EntityOp.SAVE_ADD, hero);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD, hero);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
     const error = completion.payload.error;
@@ -188,8 +195,8 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_SUCCESS on success', () => {
-    const action = new EntityAction('Hero', EntityOp.SAVE_DELETE, 42);
-    const completion = new EntityAction('Hero', EntityOp.SAVE_DELETE_SUCCESS);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_SUCCESS);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -201,7 +208,7 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ERROR when service fails', () => {
-    const action = new EntityAction('Hero', EntityOp.SAVE_DELETE, 42);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
     const error = completion.payload.error;
@@ -217,8 +224,8 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_UPDATE_SUCCESS with the hero on success', () => {
     const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
 
-    const action = new EntityAction('Hero', EntityOp.SAVE_UPDATE, update);
-    const completion = new EntityAction('Hero', EntityOp.SAVE_UPDATE_SUCCESS, update);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_SUCCESS, update);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -231,7 +238,7 @@ describe('EntityEffects (marble testing)', () => {
 
   it('should return a SAVE_UPDATE_ERROR when service fails', () => {
     const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
-    const action = new EntityAction('Hero', EntityOp.SAVE_UPDATE, update);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE, update);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
     const error = completion.payload.error;
@@ -246,7 +253,7 @@ describe('EntityEffects (marble testing)', () => {
 
   it(`should not do anything with an irrelevant action`, () => {
     // Would clear the cached collection
-    const action = new EntityAction('Hero', EntityOp.REMOVE_ALL);
+    const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);
 
     actions$.stream = hot('-a---', { a: action });
     const expected = cold('---');
@@ -278,8 +285,9 @@ function makeEntityErrorCompletion(
   // Error produced by the EntityDataService
   const error = new DataServiceError(httpError, { method, url, options });
 
-  const errOp = <EntityOp> (originalAction.op + EntityAction.OP_ERROR);
+  const errOp = <EntityOp> (originalAction.op + OP_ERROR);
 
   // Entity Error Action
-  return new EntityAction<EntityActionDataServiceError>('Hero', errOp, {originalAction, error});
+  const eaFactory = new EntityActionFactory();
+  return eaFactory.create<EntityActionDataServiceError>('Hero', errOp, {originalAction, error});
 }

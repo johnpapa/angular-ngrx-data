@@ -21,5 +21,6 @@ This page and other guide pages are markdown pages in the repository `docs` fold
 * [Entity Service](entity-service.md)
 * [Entity DataService](entity-dataservice.md)
 * [Entity Actions](entity-actions.md)
+* [Extension Points](extension-points.md)
 * [Limitations](limitations.md)
 * [FAQ: Frequently Asked Questions](faq.md)

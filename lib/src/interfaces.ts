@@ -21,7 +21,6 @@ export class DataServiceError {
 
 export const ENTITY_CACHE_NAME = 'entityCache';
 export const ENTITY_CACHE_NAME_TOKEN = new InjectionToken<string>('ENTITY_CACHE_NAME');
-export const CREATE_ENTITY_DISPATCHER_TOKEN = new InjectionToken<string>('CREATE_ENTITY_DISPATCHER');
 export const ENTITY_METADATA_TOKEN = new InjectionToken<EntityMetadataMap>('ENTITY_METADATA');
 export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache>>(
   'ENTITY_REDUCER'

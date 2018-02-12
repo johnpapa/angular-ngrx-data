@@ -65,6 +65,7 @@ export function createEntitySelectors<
       )
     : selectEntities;
 
+  const selectLoaded = (c: EntityCollection<T>) => c.loaded;
   const selectLoading = (c: EntityCollection<T>) => c.loading;
 
   // Create selectors for each `additionalCollectionState` property.
@@ -81,6 +82,7 @@ export function createEntitySelectors<
     selectCount,
     selectFilter,
     selectFilteredEntities,
+    selectLoaded,
     selectLoading,
     ...extraSelectors
   };

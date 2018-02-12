@@ -1,22 +1,24 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
 import { EntityFilterFn } from './entity-filters';
-import { EntityCollectionReducer, createEntityCollectionReducer } from './entity.reducer';
 import { EntityMetadata } from './entity-metadata';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 export interface EntityCollection<T = any> extends EntityState<T> {
+  /** user's filter pattern */
   filter: string;
+  /** true if collection was ever filled by QueryAll; forced false if cleared */
+  loaded: boolean;
+  /** true when multi-entity HTTP query operation is in flight */
   loading: boolean;
 }
 
-export interface EntityDefinition<T> {
+export interface EntityDefinition<T = any> {
   entityName: string;
   entityAdapter: EntityAdapter<T>;
   initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
-  reducer: EntityCollectionReducer<T>;
   selectId: IdSelector<T>;
   selectors: EntitySelectors<T>;
 }
@@ -36,10 +38,8 @@ export function createEntityDefinition<T, S extends object>(
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
   const initialState: EntityCollection<T>  = entityAdapter.getInitialState({
-    filter: '', loading: false, ...( metadata.additionalCollectionState || {} )
+    filter: '', loaded: false, loading: false, ...( metadata.additionalCollectionState || {} )
   });
-
-  const reducer = createEntityCollectionReducer<T>(entityName, entityAdapter, selectId);
 
   const selectors = createEntitySelectors(metadata);
 
@@ -48,7 +48,6 @@ export function createEntityDefinition<T, S extends object>(
     entityAdapter,
     initialState,
     metadata,
-    reducer,
     selectId,
     selectors
   };

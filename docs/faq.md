@@ -12,7 +12,7 @@ Such things are unique even as their values change. Accordingly each entity has 
 
 Each _entity_ object is an instance of an **_entity type_**. That type could be represented explicitly as a class or an interface. Or it could just be a bag of data.
 
-To manage entities with _ngrx-data_, you describe each entity type with [**_entity metadata_**](docs/entity-metadata).
+To manage entities with _ngrx-data_, you describe each entity type with [**_entity metadata_**](entity-metadata.md).
 
 The application's **_entity model_** is the set of all entity types in your application that are described with _entity metadata_.
 

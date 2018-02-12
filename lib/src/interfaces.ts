@@ -20,12 +20,13 @@ export class DataServiceError {
 }
 
 export const ENTITY_CACHE_NAME = 'entityCache';
-export const ENTITY_CACHE_NAME_TOKEN = new InjectionToken<string>('ENTITY_CACHE_NAME');
-export const ENTITY_METADATA_TOKEN = new InjectionToken<EntityMetadataMap>('ENTITY_METADATA');
+export const ENTITY_CACHE_NAME_TOKEN = new InjectionToken<string>('ngrx-data/Entity Cache Name');
+export const ENTITY_METADATA_TOKEN = new InjectionToken<EntityMetadataMap>('ngrx-data/Entity Metadata');
+export const ENTITY_COLLECTION_META_REDUCERS = new InjectionToken('ngrx-data/Entity Collection MetaReducers');
 export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache>>(
-  'ENTITY_REDUCER'
+  'ngrx-data/Entity Reducer'
 );
-export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('PLURAL_NAMES');
+export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('ngrx-data/Plural Names');
 
 /** A service that */
 export interface EntityCollectionDataService<T> {

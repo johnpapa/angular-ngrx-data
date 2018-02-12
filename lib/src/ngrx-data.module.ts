@@ -1,5 +1,5 @@
 import { ModuleWithProviders, NgModule, InjectionToken } from '@angular/core';
-import { ActionReducer, StoreModule } from '@ngrx/store';
+import { ActionReducer, MetaReducer, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
 import { DefaultDataServiceFactory } from './default-data.service';
@@ -11,10 +11,12 @@ import {
   ENTITY_CACHE_NAME_TOKEN,
   EntityDataServiceConfig,
   ENTITY_METADATA_TOKEN,
+  ENTITY_COLLECTION_META_REDUCERS,
   ENTITY_REDUCER_TOKEN,
   PLURAL_NAMES_TOKEN
 } from './interfaces';
 
+import { EntityCollection } from './entity-definition';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducerFactory } from './entity-collection.reducer';
 import { EntityDataService } from './entity-data.service';
@@ -35,6 +37,7 @@ export const entityEffects: any[] = [EntityEffects];
 export interface NgrxDataModuleConfig {
   entityDataServiceConfig?: EntityDataServiceConfig;
   entityMetadata?: EntityMetadataMap;
+  entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[],
   pluralNames?: { [name: string]: string };
 }
 
@@ -73,6 +76,8 @@ export class NgrxDataModule {
       providers: [
         { provide: EntityDataServiceConfig, useValue: config.entityDataServiceConfig },
         { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: config.entityMetadata },
+        { provide: ENTITY_COLLECTION_META_REDUCERS,
+          useValue: config.entityCollectionMetaReducers ? config.entityCollectionMetaReducers : [] },
         { provide: PLURAL_NAMES_TOKEN, multi: true, useValue: config.pluralNames }
       ]
     };

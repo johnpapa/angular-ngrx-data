@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 
-import { Action } from '@ngrx/store';
+import { Action, ActionReducer, compose, MetaReducer } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCache } from './interfaces';
+import { EntityCache, ENTITY_COLLECTION_META_REDUCERS } from './interfaces';
 import { EntityCollection, EntityDefinition } from './entity-definition';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection.reducer';
@@ -21,17 +21,24 @@ export class EntityReducerFactory {
   /** Registry of entity types and their previously-constructed reducers */
   protected entityCollectionReducers: EntityCollectionReducers = {};
 
+  private entityCollectionMetaReducer: MetaReducer<EntityCollection, EntityAction>;
+
   constructor(
     private entityDefinitionService: EntityDefinitionService,
     private entityCollectionCreator: EntityCollectionCreator,
-    private entityCollectionReducerFactory: EntityCollectionReducerFactory
-  ) { }
+    private entityCollectionReducerFactory: EntityCollectionReducerFactory,
+    @Optional() @Inject(ENTITY_COLLECTION_META_REDUCERS)
+      entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[]
+  ) {
+    this.entityCollectionMetaReducer =
+      compose.apply(null, entityCollectionMetaReducers || []);
+  }
 
   /**
    * Create the ngrx-data entity reducer which delegates to
    * an EntityCollectionReducer based on the action.entityName
    */
-  create() {
+  create(): ActionReducer<EntityCache, EntityAction> {
     return (state: EntityCache = {}, action: EntityAction): EntityCache => {
       const entityName = action.entityName;
       if (!entityName) {
@@ -46,6 +53,7 @@ export class EntityReducerFactory {
         def = this.entityDefinitionService.getDefinition(entityName);
         reducer = this.entityCollectionReducerFactory.create(
           entityName, def.entityAdapter, def.selectId);
+        reducer = this.registerReducer(entityName, reducer);
         this.entityCollectionReducers[entityName] = reducer;
       }
 
@@ -68,8 +76,9 @@ export class EntityReducerFactory {
    *   registerReducer('Hero', myHeroReducer);
    *   registerReducer('Villain', myVillainReducer);
    */
-  registerReducer<T>(entityName: string, reducer: EntityCollectionReducer<T>) {
-    this.entityCollectionReducers[entityName.trim()] = reducer;
+  registerReducer<T>(entityName: string, reducer: EntityCollectionReducer<T>): ActionReducer<EntityCollection<T>, EntityAction<T>> {
+    reducer = this.entityCollectionMetaReducer(reducer);
+    return this.entityCollectionReducers[entityName.trim()] = reducer;
   }
 
   /**
@@ -83,6 +92,7 @@ export class EntityReducerFactory {
    *   });
    */
   registerReducers(reducers: EntityCollectionReducers) {
-    this.entityCollectionReducers = { ...this.entityCollectionReducers, ...reducers };
+    const keys = reducers ? Object.keys(reducers) : [];
+    keys.forEach(key => this.registerReducer(key, reducers[key]));
   }
 }

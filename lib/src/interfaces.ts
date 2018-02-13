@@ -52,26 +52,6 @@ export class EntityDataServiceConfig {
   timeout? = 0;
 }
 
-/**
- * Flatten first arg if it is an array
- * Allows fn with ...rest signature to be called with an array instead of spread
- * Example:
- * ```
- * // EntityActions.ofOp
- * const persistOps = [EntityOp.QUERY_ALL, EntityOp.ADD, ...];
- * ofOp(...persistOps) // works
- * ofOp(persistOps) // also works
- * ```
- * */
-export function flattenArgs<T>(args?: any[]): T[] {
-  if (args == null) { return []; }
-  if (Array.isArray(args[0])) {
-    const [head, ...tail] = args;
-    args = [...head, ...tail];
-  }
-  return args;
-}
-
 export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';
 
 /**
@@ -86,3 +66,5 @@ export interface RequestData {
   url: string;
   options: any;
 }
+
+

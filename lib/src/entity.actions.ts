@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
-import { DataServiceError, flattenArgs } from './interfaces';
+import { DataServiceError } from './interfaces';
+import { flattenArgs } from './utils';
 
 import { Observable } from 'rxjs/Observable';
 import { Operator } from 'rxjs/Operator';
@@ -43,6 +44,8 @@ export enum EntityOp {
   REMOVE_ALL = 'REMOVE_ALL',
   UPDATE_MANY = 'UPDATE_MANY',
   UPDATE_ONE = 'UPDATE_ONE',
+  UPSERT_MANY = 'UPSERT_MANY',
+  UPSERT_ONE = 'UPSERT_ONE',
 
   SET_FILTER = 'SET_FILTER',
 }

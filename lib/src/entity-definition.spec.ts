@@ -27,7 +27,7 @@ const HERO_METADATA: EntityMetadata<Hero> = {
   filterFn: filter
 };
 
-describe('Entity Definition', () => {
+describe('EntityDefinition', () => {
 
   let heroMetadata: EntityMetadata<Hero>;
 

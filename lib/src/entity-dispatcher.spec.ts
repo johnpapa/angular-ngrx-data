@@ -195,7 +195,14 @@ export function commandDispatchTest(
     expect(testStore.dispatchedAction.payload).toEqual(keys);
   });
 
-  it('#updateOneToCache dispatches update_ONE', () => {
+  it('#toUpdate() helper method creates Update<T>', () => {
+    const hero: Partial<Hero> = { id: 42, name: 'test' };
+    const expected = { id: 42, changes: hero };
+    const update = dispatcher.toUpdate(hero);
+    expect(update).toEqual(expected);
+  });
+
+  it('#updateOneInCache dispatches UPDATE_ONE', () => {
     const hero: Partial<Hero> = { id: 42, name: 'test' };
     const update = { id: 42, changes: hero };
     dispatcher.updateOneInCache(hero);
@@ -204,7 +211,7 @@ export function commandDispatchTest(
     expect(testStore.dispatchedAction.payload).toEqual(update);
   });
 
-  it('#updateManyToCache dispatches update_MANY', () => {
+  it('#updateManyInCache dispatches UPDATE_MANY', () => {
     const heroes: Partial<Hero>[] = [
       { id: 42, name: 'test 42' },
       { id: 84, saying: 'ho ho ho' }
@@ -217,5 +224,29 @@ export function commandDispatchTest(
 
     expect(testStore.dispatchedAction.op).toBe(EntityOp.UPDATE_MANY);
     expect(testStore.dispatchedAction.payload).toEqual(updates);
+  });
+
+  it('#upsertOneInCache dispatches UPSERT_ONE', () => {
+    const hero: Partial<Hero> = { id: 42, name: 'test' };
+    const upsert = { id: 42, changes: hero };
+    dispatcher.upsertOneInCache(hero);
+
+    expect(testStore.dispatchedAction.op).toBe(EntityOp.UPSERT_ONE);
+    expect(testStore.dispatchedAction.payload).toEqual(upsert);
+  });
+
+  it('#upsertManyInCache dispatches UPSERT_MANY', () => {
+    const heroes: Partial<Hero>[] = [
+      { id: 42, name: 'test 42' },
+      { id: 84, saying: 'ho ho ho' }
+    ];
+    const upserts = [
+      { id: 42, changes: heroes[0] },
+      { id: 84, changes: heroes[1] }
+    ];
+    dispatcher.upsertManyInCache(heroes);
+
+    expect(testStore.dispatchedAction.op).toBe(EntityOp.UPSERT_MANY);
+    expect(testStore.dispatchedAction.payload).toEqual(upserts);
   });
 }

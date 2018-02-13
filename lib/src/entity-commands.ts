@@ -122,10 +122,26 @@ export interface EntityCacheCommands<T> {
    * Update multiple cached entities directly.
    * Does not update these entities in remote storage.
    * Entities whose primary keys are not in cache are ignored.
-   * Update entities may be partial (but each must have its key);
+   * Update entities may be partial but must at least have their keys.
    * such partial entities patch their cached counterparts.
    */
   updateManyInCache(entities: Partial<T>[]): void;
+
+  /**
+   * Insert or update a cached entity directly.
+   * Does not save to remote storage.
+   * Upsert entity might be a partial of T but must at least have its key.
+   * Pass the Update<T> structure as the payload
+   */
+  upsertOneInCache(entity: Partial<T>): void;
+
+  /**
+   * Insert or update multiple cached entities directly.
+   * Does not save to remote storage.
+   * Upsert entities might be partial but must at least have their keys.
+   * Pass an array of the Update<T> structure as the payload
+   */
+  upsertManyInCache(entities: Partial<T>[]): void;
 
   /**
    * Set the pattern that the collection's filter applies

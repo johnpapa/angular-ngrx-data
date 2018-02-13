@@ -1,22 +1,24 @@
-## Angular ngrx-data Changelog
+## Angular ngrx-data repository Changelog
 
-<a name="1.0.0-alpha.3"></a>
-# 1.0.0-alpha.3 (2018-02-12)
-* Added `EntityCollectionMetaReducer`s for easier customization of `EntityCollectionReducer` behavior.
-* Documented entity reducers.
+The ngrx-data library has its own [CHANGELOG.md](lib/CHANGELOG.md) and versioning scheme in `/lib`.
+Please look there.
 
-<a name="1.0.0-alpha.2"></a>
-# 1.0.0-alpha.2 (2018-02-11)
-Updated with more extension points
+**_This_** Changelog covers changes to the repository and the demo applications.
 
-<a name="1.0.0-alpha.1"></a>
-# 1.0.0-alpha.1 (2018-02-06)
-Working release deployed to npm
+<a name="0.2.0"></a>
+# 0.2.0 (2018-02-13)
+- Moved library CHANGELOG.md to the `../lib` folder
+- Upgrade to ngrx v.5.1
 
-<a name="1.0.0-alpha.0"></a>
-# 1.0.0-alpha.0 (2018-02-04)
+### Breaking Change
 
-_Features_
+If you dispatch `QUERY_ONE` or `QUERY_MANY`, 
+you must upgrade _ngrx_ to v5.1 or later,
+because the reducer uses the "upsert" feature, new in `@ngrx/entity` v5.1,
+for `QUERY_ONE_SUCCESS` and `QUERY_MANY_SUCCESS`.
+
+<a name="0.1.0"></a>
+# 0.1.0 (2018-02-04)
 
 * Initial release
 * Documentation is in progress

@@ -74,14 +74,14 @@ It's also easy to see which reducers are exceptional
 because they're registered in the `EntityReducerFactory.entityCollectionReducers`.
 
 >This is new since you looked.
-I had intended to make it easy to create custom reducers and I have in `1.0.0-alpha.2`.
+I had intended to make it easy to create custom reducers and I have in `1.0.0-alpha.3`.
 
 Of course I'm assuming that if I really do need different treatment for `Foo` than the other entity types, that I _can write a `fooReducer`_, I _can register `fooReducer`_ with ngrx-data, and ngrx-data will route `ADD_ALL [Foo]` to the `fooReducer` rather than the generic entity reducer.
 
 This ability _is a feature of ngrx-data_. I just have to document it properly.
 
 >It was clumsy to do before.
-Quite easy as if `1.0.0-alpha.2` with custom reducer registration,
+Quite easy as if `1.0.0-alpha.3` with custom reducer registration,
 the ability to replace the default `EntityCollectionReducer`,
 or even replace the entire reducer-creating-and-calling mechanism.
 
@@ -129,6 +129,7 @@ I took to heart you urgent suggestion that we make it easy to replace and/or rec
 
 That was going to be an early next step.
 I accelerated it and I think I have a flexible approach in
-`1.0.0-alpha.2`
+`1.0.0-alpha.3` which includes an analog of the _store MetaReducers_ that
+targets `EntityCollectionReducers` specifically.
 
 ## Thanks again for your thoughtful response!

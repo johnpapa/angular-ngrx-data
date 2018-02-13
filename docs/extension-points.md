@@ -64,16 +64,8 @@ or replace the default service entirely.
 
 ## Custom _Reducers_
 
-### Register a custom _EntityCollectionReducer_
-
-### Replace the generic-type reducer
-
-You can replace the `EntityCollectionReducerFactory` with your provided alternative.
-
-That alternative could be based on the `EntityCollectionReducerFactory` and compose in
-additional reducer behavior. 
-
-### Replace the reducer for a specific type
+The [_Entity Reducer_ guide](guide/entity-reducer.md#customizing) explains how to
+customize entity reducers.
 
 ## Custom data service
 

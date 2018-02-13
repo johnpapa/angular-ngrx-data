@@ -1,7 +1,12 @@
 ## Angular ngrx-data Changelog
 
+<a name="1.0.0-alpha.3"></a>
+# 1.0.0-alpha.3 (2018-02-12)
+* Added `EntityCollectionMetaReducer`s for easier customization of `EntityCollectionReducer` behavior.
+* Documented entity reducers.
+
 <a name="1.0.0-alpha.2"></a>
-# 1.0.0-alpha.2 (2018-02-12)
+# 1.0.0-alpha.2 (2018-02-11)
 Updated with more extension points
 
 <a name="1.0.0-alpha.1"></a>

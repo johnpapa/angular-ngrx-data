@@ -7,7 +7,7 @@ import { IdSelector, Update } from './ngrx-entity-models';
 import { EntityAction, EntityOp } from './entity.actions';
 import { EntityCollection } from './entity-definition';
 
-export type EntityCollectionReducer<T> = (
+export type EntityCollectionReducer<T = any> = (
   collection: EntityCollection<T>,
   action: EntityAction
 ) => EntityCollection<T>;

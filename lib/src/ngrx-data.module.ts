@@ -24,7 +24,7 @@ import { EntityDefinitionService } from './entity-definition.service';
 import { EntityDispatcherFactory } from './entity-dispatcher';
 import { EntityEffects } from './entity.effects';
 import { EntityMetadataMap } from './entity-metadata';
-import { EntityReducerFactory } from './entity.reducer';
+import { EntityReducerFactory, createEntityReducer } from './entity.reducer';
 import { EntitySelectors } from './entity.selectors';
 import { EntitySelectors$Factory } from './entity.selectors$';
 import { EntityServiceFactory } from './entity.service';
@@ -41,19 +41,18 @@ export interface NgrxDataModuleConfig {
   pluralNames?: { [name: string]: string };
 }
 
+/**
+ * Module without effects which means no HTTP calls
+ * It is helpful for internal testing but not for users
+ */
 @NgModule({
   imports: [
     StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN),
-    EffectsModule.forFeature(entityEffects)
   ],
   providers: [
-    DefaultDataServiceFactory,
     EntityActionFactory,
-    EntityActions,
     EntityCollectionCreator,
     EntityCollectionReducerFactory,
-    EntityDataService,
-    EntityDataServiceConfig,
     EntityDefinitionService,
     EntityDispatcherFactory,
     EntityReducerFactory,
@@ -62,8 +61,23 @@ export interface NgrxDataModuleConfig {
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
     { provide: ENTITY_REDUCER_TOKEN,
       deps: [EntityReducerFactory],
-      useFactory: _createEntityReducer
+      useFactory: createEntityReducer
     },
+  ]
+})
+// tslint:disable-next-line:class-name
+export class _NgrxDataModuleWithoutEffects {}
+
+@NgModule({
+  imports: [
+    StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN),
+    _NgrxDataModuleWithoutEffects,
+    EffectsModule.forFeature(entityEffects)
+  ],
+  providers: [
+    DefaultDataServiceFactory,
+    EntityActions,
+    EntityDataService,
     { provide: HttpUrlGenerator, useClass: DefaultHttpUrlGenerator },
     { provide: Pluralizer, useClass: DefaultPluralizer },
     { provide: PersistenceResultHandler, useClass: DefaultPersistenceResultHandler }
@@ -75,15 +89,12 @@ export class NgrxDataModule {
       ngModule: NgrxDataModule,
       providers: [
         { provide: EntityDataServiceConfig, useValue: config.entityDataServiceConfig },
-        { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: config.entityMetadata },
+        { provide: ENTITY_METADATA_TOKEN, multi: true,
+          useValue: config.entityMetadata ? config.entityMetadata : []},
         { provide: ENTITY_COLLECTION_META_REDUCERS,
           useValue: config.entityCollectionMetaReducers ? config.entityCollectionMetaReducers : [] },
         { provide: PLURAL_NAMES_TOKEN, multi: true, useValue: config.pluralNames }
       ]
     };
   }
-}
-
-export function _createEntityReducer(entityReducerFactory: EntityReducerFactory) {
-  return entityReducerFactory.create();
 }

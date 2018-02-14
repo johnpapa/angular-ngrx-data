@@ -25,7 +25,9 @@ const metadata: EntityMetadataMap = {
 describe('EntityCollectionReducer', () => {
   // action factory never changes in these tests
   const entityActionFactory = new EntityActionFactory();
-  const createAction = entityActionFactory.create.bind(entityActionFactory);
+  const createAction:
+    (entityName: string, op: EntityOp, payload: any) => EntityAction = entityActionFactory.create.bind(entityActionFactory);
+
   const toHeroUpdate = toUpdateFactory<Hero>();
 
   let entityReducerFactory: EntityReducerFactory;

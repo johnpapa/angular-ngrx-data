@@ -17,7 +17,7 @@ export * from './entity.service';
 export * from './interfaces';
 export * from './persistence-result-handler.service';
 // export * from './ngrx-entity-models'; // try not to export
-export * from './ngrx-data.module';
+export { NgrxDataModule, NgrxDataModuleConfig } from './ngrx-data.module';
 export * from './utils';
 
 export { Pluralizer } from './pluralizer';

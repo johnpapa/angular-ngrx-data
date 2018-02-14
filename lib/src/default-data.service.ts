@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Optional } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
@@ -137,10 +137,12 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
 @Injectable()
 export class DefaultDataServiceFactory {
   constructor(
-    protected config: EntityDataServiceConfig,
     protected http: HttpClient,
-    protected httpUrlGenerator: HttpUrlGenerator
-  ) { }
+    protected httpUrlGenerator: HttpUrlGenerator,
+    @Optional() protected config: EntityDataServiceConfig,
+  ) {
+    config = config || new EntityDataServiceConfig();
+  }
 
   create<T>(entityName: string) {
     return new DefaultDataService<T>(this.http, this.httpUrlGenerator, this.config, entityName);

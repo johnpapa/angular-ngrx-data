@@ -21,7 +21,7 @@ You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers
 
 In even a small model, this is a ton of repetitive code to create, maintain, and test.
 
-The _ngrx-data_ library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
+The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _ngrx_.
 
 ## How it works
 

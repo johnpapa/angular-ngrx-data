@@ -16,7 +16,7 @@ If you've tried to manage your entity data with _ngrx_, you've discovered that y
 For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods. 
 This is a ton of repetitive code to write, maintain, and test.
 
-This library is _one_ way to radically reduce the amount of "boilerplate" necessary to manage entities with _ngrx_.
+This library is _one_ way to stay on the _ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _ngrx_.
 
 ## How it works
 
@@ -24,9 +24,8 @@ With `ngrx-data` you say _as little as possible_ about your entity model
 and let the library do the work.  Let the library perform all the _ngrx_ operations. Let the library make the HTTP calls.
 You focus on the application logic.
 
-
 With the `ngrx-data` library you write a minimum of configuration to describe your entity model.
-Then inject an _ngrx-data_ `EntityService` into your components. 
+Then inject an _ngrx-data_ **`EntityService`** into your components. 
 
 The `EntityService` offers a standard set of command methods for issuing HTTP requests and `Observable` _selectors_ that push entity data into your component for processing and display.
 
@@ -34,9 +33,9 @@ The `ngrx-data` library uses conventions to drive a standard set of behaviors th
 
 Server responses become new _ngrx actions_ that pass through _ngrx reducers_, where they update the _ngrx store_, triggering the store `Observables` that send values through _ngrx selectors_ to your application components. 
 
-The mechanics are handled for you _inside the library_. You don't have to write any _ngrx_ code. Just follow the _ngrx-data usage_ pattern and get on with your life.
+The mechanics are handled for you _inside the library_. **You don't have to write any _ngrx_ code**. Just follow the _ngrx-data usage_ pattern and get on with your life.
 
-You can see the _ngrx machinery_ at work with the _redux developer tools_. You can listen to the flow of actions directly. You can intercept and override _anything_ ... but you only have to intervene where you need to add custom logic. 
+You can **see the _ngrx machinery_ at work** with the _redux developer tools_. You can listen to the flow of actions directly. You can **_intercept and override anything_** ... but you only have to intervene where you want to add custom logic. 
 
 ### Show me
 

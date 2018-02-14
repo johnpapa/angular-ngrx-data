@@ -96,3 +96,7 @@ export class EntityReducerFactory {
     keys.forEach(key => this.registerReducer(key, reducers[key]));
   }
 }
+
+export function createEntityReducer(entityReducerFactory: EntityReducerFactory) {
+  return entityReducerFactory.create();
+}

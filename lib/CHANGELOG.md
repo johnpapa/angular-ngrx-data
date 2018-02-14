@@ -1,5 +1,9 @@
 ## Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.5"></a>
+# release 1.0.0-alpha.5 (2018-02-14)
+* Workaround redux tools replay bug
+
 <a name="1.0.0-alpha.4"></a>
 # release 1.0.0-alpha.4 (2018-02-13)
 * Upgrade to ngrx v5.1

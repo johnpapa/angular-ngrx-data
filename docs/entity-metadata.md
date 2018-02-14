@@ -179,7 +179,7 @@ Each _ngrx-data_ entity collection in the the store has these predefined propert
 | `entities` | Map of primary key to entity data values |
 | `filter`   | The user's filtering criteria            |
 | `loaded`   | Whether collection was filled by QueryAll; forced false after clear |
-| `loading`  | Whether currently waiting for multi-entity data to arrive from the server |
+| `loading`  | Whether currently waiting for query results to arrive from the server |
 
 You can add your own collection properties by setting the `additionalCollectionState` property to an object with those custom collection properties.
 

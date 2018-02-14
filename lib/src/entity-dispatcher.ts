@@ -5,32 +5,36 @@ import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
 import { EntityCommands } from './entity-commands';
 import { EntityCache, QueryParams } from './interfaces';
 import { IdSelector, Update } from './ngrx-entity-models';
+import { toUpdateFactory } from './utils';
 
 /**
  * Dispatches Entity-related commands to effects and reducers
  */
 export class EntityDispatcher<T> implements EntityCommands<T> {
-  constructor(
-    /** Name of the entity type for which entities are dispatched */
-    public entityName: string,
-    private entityActionFactory: EntityActionFactory,
-    private store: Store<EntityCache>,
-    private selectId: IdSelector<T> = (entity: any) => entity.id
-  ) {}
-
-  private dispatch(op: EntityOp, payload?: any): void {
-    this.store.dispatch(this.entityActionFactory.create(this.entityName, op, payload));
-  }
 
   /**
    * Convert an entity (or partial entity) into the `Update<T>` object
    * `id`: the primary key and
    * `changes`: the entity (or partial entity of changes).
+   *
+   * `update...` and `upsert...` methods take `Update<T>` args
    */
-  private toUpdate: (entity: Partial<T>) => Update<T> = (entity: T) => ({
-    id: this.selectId(entity) as string,
-    changes: entity
-  });
+  toUpdate: (entity: Partial<T>) => Update<T>
+
+  constructor(
+    /** Name of the entity type for which entities are dispatched */
+    public entityName: string,
+    private entityActionFactory: EntityActionFactory,
+    private store: Store<EntityCache>,
+    /** Returns the primary key (id) of this entity */
+    public selectId: IdSelector<T> = (entity: any) => entity.id
+  ) {
+    this.toUpdate = toUpdateFactory<T>(selectId);
+  }
+
+  private dispatch(op: EntityOp, payload?: any): void {
+    this.store.dispatch(this.entityActionFactory.create(this.entityName, op, payload));
+  }
 
   /**
    * Save a new entity to remote storage.
@@ -189,13 +193,34 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
    * Update multiple cached entities directly.
    * Does not update these entities in remote storage.
    * Entities whose primary keys are not in cache are ignored.
-   * Update entities may be partial (but each must have its key);
+   * Update entities may be partial but must at least have their keys.
    * such partial entities patch their cached counterparts.
    */
   updateManyInCache(entities: Partial<T>[]): void {
     if (!entities || entities.length === 0) { return; }
     const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
     this.dispatch(EntityOp.UPDATE_MANY, updates);
+  }
+
+  /**
+   * Add or update a new entity directly to the cache.
+   * Does not save to remote storage.
+   * Upsert entity might be a partial of T but must at least have its key.
+   * Pass the Update<T> structure as the payload
+   */
+  upsertOneInCache(entity: Partial<T>): void {
+    const upsert: Update<T> = this.toUpdate(entity);
+    this.dispatch(EntityOp.UPSERT_ONE, upsert);
+  }
+
+  /**
+   * Add or update multiple cached entities directly.
+   * Does not save to remote storage.
+   */
+  upsertManyInCache(entities: Partial<T>[]): void {
+    if (!entities || entities.length === 0) { return; }
+    const upserts: Update<T>[] = entities.map(entity => this.toUpdate(entity));
+    this.dispatch(EntityOp.UPSERT_MANY, upserts);
   }
 
   /**

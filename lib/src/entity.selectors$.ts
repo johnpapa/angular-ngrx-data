@@ -72,7 +72,7 @@ export class EntitySelectors$Factory {
     entityName: string,
     selectors: EntitySelectors<T>
   ): S$ {
-    const cc = createCachedCollectionSelector(entityName, this.cacheSelector, this.entityCollectionCreator);
+    const cc = createCachedCollectionSelector<T>(entityName, this.cacheSelector, this.entityCollectionCreator);
     const collection$ = this.store.select(cc);
 
     const selectors$: Partial<EntitySelectors$<T>> = {};
@@ -104,7 +104,7 @@ export function createCachedCollectionSelector<T, C extends EntityCollection<T> 
   cacheSelector: Selector<Object, EntityCache>,
   entityCollectionCreator: EntityCollectionCreator
 ): Selector<Object, C> {
-  const getCollection = (cache: EntityCache) =>
+  const getCollection = (cache: EntityCache = {}) =>
     <C> (cache[collectionName] || entityCollectionCreator.create<T>(collectionName));
   return createSelector(cacheSelector, getCollection);
 }

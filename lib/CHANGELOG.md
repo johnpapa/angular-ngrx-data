@@ -1,5 +1,9 @@
 ## Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.6"></a>
+# release 1.0.0-alpha.6 (2018-02-14)
+* Add DefaultDataService error handling and their tests
+
 <a name="1.0.0-alpha.5"></a>
 # release 1.0.0-alpha.5 (2018-02-14)
 * Workaround redux tools replay bug

@@ -207,6 +207,15 @@ describe('DefaultDataService', () => {
       const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
     });
+
+    it('should throw when no id given', () => {
+      service.getById(undefined).subscribe(
+        heroes => fail('getById succeeded when expected it to fail'),
+        err => {
+          expect(err.error).toMatch(/No "Hero" key/);
+        }
+      );
+    });
   });
 
   describe('#getWithQuery', () => {
@@ -301,6 +310,15 @@ describe('DefaultDataService', () => {
       // Respond with the expected hero
       req.flush(expectedHero);
     });
+
+    it('should throw when no entity given', () => {
+      service.add(undefined).subscribe(
+        heroes => fail('add succeeded when expected it to fail'),
+        err => {
+          expect(err.error).toMatch(/No "Hero" entity/);
+        }
+      );
+    });
   });
 
   describe('#delete', () => {
@@ -331,6 +349,15 @@ describe('DefaultDataService', () => {
       const req = httpTestingController.expectOne(heroUrlId1);
       const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
+    });
+
+    it('should throw when no id given', () => {
+      service.delete(undefined).subscribe(
+        heroes => fail('delete succeeded when expected it to fail'),
+        err => {
+          expect(err.error).toMatch(/No "Hero" key/);
+        }
+      );
     });
   });
 
@@ -378,6 +405,15 @@ describe('DefaultDataService', () => {
       const req = httpTestingController.expectOne(heroUrlId1);
       const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
+    });
+
+    it('should throw when no update given', () => {
+      service.update(undefined).subscribe(
+        heroes => fail('update succeeded when expected it to fail'),
+        err => {
+          expect(err.error).toMatch(/No "Hero" update data/);
+        }
+      );
     });
   });
 });

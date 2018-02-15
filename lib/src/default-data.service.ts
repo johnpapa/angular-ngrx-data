@@ -53,19 +53,28 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   }
 
   add(entity: T): Observable<T> {
-    return this.execute('POST', this.entityUrl, entity);
+    const entityOrError = entity || new Error(`No "${this.entityName}" entity to add`);
+    return this.execute('POST', this.entityUrl, entityOrError);
   }
 
-  delete(id: any): Observable<null> {
-    return this.execute('DELETE', this.entityUrl + id);
+  delete(key: number | string ): Observable<null> {
+    let err: Error;
+    if (key == null) {
+      err = new Error(`No "${this.entityName}" key to delete`);
+    }
+    return this.execute('DELETE', this.entityUrl + key, err);
   }
 
   getAll(): Observable<T[]> {
     return this.execute('GET', this.entitiesUrl);
   }
 
-  getById(id: any): Observable<T> {
-    return this.execute('GET', this.entityUrl + id);
+  getById(key: number | string): Observable<T> {
+    let err: Error;
+    if (key == null) {
+      err = new Error(`No "${this.entityName}" key to get`);
+    }
+    return this.execute('GET', this.entityUrl + key, err);
   }
 
   getWithQuery(queryParams: QueryParams | string ): Observable<T[]> {
@@ -75,16 +84,24 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   }
 
   update(update: Update<T>): Observable<Update<T>> {
-    return this.execute('PUT', this.entityUrl + update.id, update);
+    const id = update && update.id;
+    const updateOrError = id == null ?
+      new Error(`No "${this.entityName}" update data or id`) :
+      update;
+    return this.execute('PUT', this.entityUrl + id, updateOrError );
   }
 
   protected execute(
     method: HttpMethods,
     url: string,
-    data?: any,
+    data?: any, // data, error, or undefined/null
     options?: any): Observable<any> {
 
     const req: RequestData = { method, url, options };
+
+    if (data instanceof Error) {
+      return this.handleError(req)(data);
+    }
 
     const tail = pipe(
       method === 'GET' ? this.getDelay : this.saveDelay,

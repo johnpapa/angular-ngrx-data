@@ -5,6 +5,8 @@ Here is our checklist.
 
 1. Confirm that the library builds cleanly and that the demo app can use it in production with `npm run build-all`
 
+1. Run `ng lint`. Should be clean.
+
 1. Run `ng tests`. All tests should pass.
 
 1. Bump the npm package version number in `lib/package.json`.

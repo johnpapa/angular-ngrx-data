@@ -1,8 +1,8 @@
 # Ngrx-data Limitations
 
-The _ngrx-data_ library lacks many capabilities of a [full-featured entity management](#alternatives).
+The _ngrx-data_ library lacks many capabilities of a [full-featured entity management](#alternatives) system.
 
-You can often work-around some of the limitations  without too much effort,
+You may be able to work-around some of the limitations  without too much effort,
 particularly when the shortcomings are a problem for just a few entity types.
 
 This page lists many of the serious limitations we've recognized ourselves.
@@ -150,6 +150,108 @@ put hold the entity in cache while you waited for restored connectivity.
 
 There is no such facility in the library today.
 
+## No batch save operations
+
+You can add, update, or delete several entities at a time _from cache_.
+
+But you can only save-add, save-update, or save-delete a single entity at a time to the server.
+
+There is no standard web API for saving multiple entity changes.
+
+If your web API supports such operations,
+you might follow the _ngrx-data_ patterns
+while adding your own entity actions and _ngrx effects_ for these operations.
+
+## Optimistic delete; no compensation
+
+When saving, the _ngrx-data_ `EntityCollectionReducer<T>` deletes the entity from cache _before_ sending a delete request to the server.
+
+This is called an _optimistic delete_ because _ngrx-data_ is optimistic about the prospects for a successful delete.
+
+If the server rejects the save or the save times-out, the reducer does not compensate by restoring the deleted entity to cache.
+
+A future version of _ngrx-data_ could restore the deleted entity when the server delete request fails.
+A future version might also offer a _pessimistic delete_ option.
+
+## Pessimistic add/update
+
+When processing the `SAVE_ADD` or `SAVE_UPDATE` actions,
+The `EntityCollectionReducer` does not immediately add a new entity to the collection or update an existing entity in the collection.
+
+It waits for the `SAVE_ADD_SUCCESS` or `SAVE_UPDATE_SUCCESS` actions, which indicate that the server processed the requests successfully.
+
+This a _pessimistic_ policy because _ngrx-data_ 
+would rather guard against the risk of failure than
+benefit from the (stronger) likelihood of success.
+
+_Ngrx-data_ takes this approach because it does not have the ability to reverse the add or update in cache
+it the request fails.
+
+The delay might be noticeable if the connection to the server is very slow.
+
+A future version of _ngrx-data_ could offer _optimistic_ add and update with compensation for server request failures.
+
+## No explicit _SAVE_UPSERT_
+
+The default `EntityEffects` supports saving a new or existing entity but does not have an explicit
+SAVE_UPSERT action that would _official_ save
+an entity which might be either new or existing.
+
+You may be able to add a new entity with `SAVE_UPDATE`,
+because the `EntityCollectionReducer` implements `SAVE_UPDATE_SUCCESS` 
+by calling the collection `upsertOne()` method.
+
+Do this _only_ if your server supports _upsert-with-PUT_ requests.
+
+## No request concurrency checking
+
+The user saves a new `Customer`, followed by a query for all customers. 
+It the new customer in the query response?
+
+`Ngrx-data` does not coordinate save and query requests and does not guarantee order of responses.
+
+You'll have to manage that yourself.
+Here's some pseudo-code that might do that for the previous example:
+
+```javascript
+// add new customer, then query all customers
+customerService.addEntity(newCustomer)
+  .pipe(
+    concatMap(() => customerService.queryAll())
+  )
+  .subscribe(custs => this.customers = custs);
+```
+
+The same reasoning applies to _any_ request that must follow in a precise sequence.
+
+## No update concurrency checking
+
+There is no intrinsic mechanism to enforce concurrency checks when updating a record even if the record contains a concurrency property.
+
+For example, the user saves a change to the customer's address from "123 Main Street" to "45 Elm Avenue".
+Then the user changes and saves the address again to "89 Bower Road".
+Another user changes the same address to "67 Maiden Lane".
+
+What's the actual address in the database? What's the address in the user's cache?
+
+It could be any of the three addresses depending on when the server saw them and when the responses arrived.
+You cannot know.
+
+Many applications maintain a concurrency property that guards against updating an entity 
+that was updated by someone else.
+The `ngrx-data` library is unaware of this protocol.
+You'll have to manage concurrency yourself.
+
+## No offline capability
+
+_Ngrx-data_ lacks support for accumulating changes while the application is offline and then saving those changes to the server when connectivity is restored.
+
+The _ngrx_ system has some of the ingredients of an offline capability.
+Actions are immutable and serializable so they can be stashed in browser storage of some kind while offline and replayed later.
+
+But there are far more difficult problems to overcome than just recording changes for playback.
+_Ngrx-data_ makes no attempt to address these problems.
+
 ## Query language
 
 Servers often offer a sophisticated query API for selecting entities from the server, sorting them on the server, grabbing related entities at the same time, and reducing the number of downloaded fields.
@@ -162,7 +264,7 @@ There is no apparatus for composing queries or sending them to the server except
 ## An alternative to _ngrx-data_
 
 [BreezeJS](http://www.getbreezenow.com/breezejs) is a free, open source,
-full-featured entity management library that overcomes all of the
+full-featured entity management library that overcomes (almost) all of the
 limitations described above.
 Many Angular (and AngularJS) applications use _Breeze_ today.
 

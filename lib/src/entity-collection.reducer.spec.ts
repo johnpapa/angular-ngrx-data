@@ -482,6 +482,50 @@ describe('EntityCollectionReducer', () => {
     });
   });
 
+  describe('#SAVE_UPDATE_SUCCESS', () => {
+
+    function createTestAction(hero: Update<Hero>)  {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_SUCCESS, hero);
+    }
+
+    it('should update existing entity in collection', () => {
+      const hero: Hero = { id: 2, name: 'B+' };
+      const action = createTestAction(toHeroUpdate(hero));
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[2].name).toBe('B+', 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[2].power).toBe('Fast', 'power');
+    });
+
+    it('can update existing entity\'s key in collection', () => {
+      // Change the pkey (id) and the name of former hero:2
+      const hero: Hero = { id: 42, name: 'Super' };
+      const update = {id: 2, changes: hero };
+      const action = createTestAction(update);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([42, 1], 'ids are the same');
+      expect(collection.entities[42].name).toBe('Super', 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[42].power).toBe('Fast', 'power');
+    });
+
+    // Effectively an upsert
+    it('should add new hero to collection', () => {
+      const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
+      const action = createTestAction(toHeroUpdate(hero));
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13], 'new hero:13');
+      expect(collection.entities[13].name).toBe('New One', 'name');
+      expect(collection.entities[13].power).toBe('Strong', 'power');
+    });
+  });
   /** TODO: TEST REMAINING ACTIONS **/
 
   /***

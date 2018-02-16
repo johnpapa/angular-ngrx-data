@@ -98,7 +98,7 @@ export class EntityCollectionReducerFactory {
         // `id`: the primary key and
         // `changes`: the complete entity or a partial entity of changes.
         case EntityOp.SAVE_UPDATE_SUCCESS: {
-          return adapter.updateOne(action.payload, collection);
+          return adapter.upsertOne(action.payload, collection);
         }
 
         // Cache-only operations

@@ -1,4 +1,9 @@
 ## Angular ngrx-data library ChangeLog
+<a name="1.0.0-alpha.7"></a>
+# release 1.0.0-alpha.7 (NOT YET. IN MASTER)
+
+* SAVE_UPDATE_SUCCESS calls upsert so can do the equivalent of a SAVE_UPSERT by dispatching a SAVE_UPDATE with a new entity.
+Do this _only_ if your server supports upsert requests.
 
 <a name="1.0.0-alpha.6"></a>
 # release 1.0.0-alpha.6 (2018-02-14)

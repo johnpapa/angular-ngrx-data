@@ -49,12 +49,39 @@ querying, caching, and saving _entity data_ ... and that's it.
 ## What is _ngrx_?
 
 [Ngrx](https://github.com/ngrx/platform/blob/master/README.md) is a collection of libraries for writing Angular applications in a "reactive style" that combines the
-[redux](#redux) pattern and tools with [RxJS Observables](#rxjs). 
+**[redux pattern](#redux)** and tools with [RxJS Observables](#rxjs). 
 
-The `ngrx-data` library builds upon three _ngrx_ libraries: 
+`Ngrx-data` builds upon three _ngrx_ libraries: 
 [@ngrx/store](https://github.com/ngrx/platform/blob/master/docs/store/README.md),
 [@ngrx/effects](https://github.com/ngrx/platform/blob/master/docs/effects/README.md), and
-[@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md)
+[@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md).
+
+<a name="ngrx-entity"></a>
+## How is _ngrx-data_ different from _@ngrx/entity_?
+
+**The _ngrx-data_ library _extends_ [@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md)**.
+
+The _@ngrx/entity_ library provides the 
+core representation of a single _entity collection_ within an _ngrx store_.
+Its `EntityAdapter` defines common operations for querying and updating individual cached entity collections.
+
+The _ngrx-data_ library leverages these capabilities while offering higher-level features including:
+
+* metadata-driven entity model.
+
+* actions, reducers, and selectors for all entity types in the model.
+
+* asynchronous fetch and save HTTP operations as _@ngrx/effects_.
+
+* a reactive `EntityService` with a simple API that
+encapsulates _ngrx_ interaction details.
+
+
+
+Nothing is hidden from you.
+The store, the actions, the adapter, and the entity collections remain visible and directly accessible.
+
+The fixes and enhancements in future _@ngrx/entity_ versions flow through _ngrx-data_ to your application.
 
 <a name="redux"></a>
 ## What is _redux_?

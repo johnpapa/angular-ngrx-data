@@ -1,4 +1,5 @@
-import { createEntityDefinition, EntityCollection, EntityDefinition } from './entity-definition';
+import { createEntityDefinition, EntityDefinition } from './entity-definition';
+import { EntityCollection } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityMetadata } from './entity-metadata';

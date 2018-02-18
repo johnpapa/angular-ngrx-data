@@ -1,23 +1,27 @@
 import { NgModule } from '@angular/core';
 
-import { EntityDataServiceConfig, NgrxDataModule } from 'ngrx-data';
+import { DefaultDataServiceConfig, NgrxDataModule } from 'ngrx-data';
 
 import { pluralNames, entityMetadata } from './entity-metadata';
 
-const entityDataServiceConfig: EntityDataServiceConfig = {
-  api: 'api',
+const defaultDataServiceConfig: DefaultDataServiceConfig = {
+  root: 'api',    // root path to web api
+  timeout: 3000, // request timeout
+
+  // Simulate latency for demo
   getDelay: 500,
-  saveDelay: 300,
-  timeout: 3000
+  saveDelay: 800,
 };
 
 @NgModule({
   imports: [
     NgrxDataModule.forRoot({
-      entityDataServiceConfig,
       entityMetadata: entityMetadata,
       pluralNames: pluralNames
     })
+  ],
+  providers: [
+    { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }
   ]
 })
 export class EntityStoreModule {}

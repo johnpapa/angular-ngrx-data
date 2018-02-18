@@ -162,43 +162,14 @@ If your web API supports such operations,
 you might follow the _ngrx-data_ patterns
 while adding your own entity actions and _ngrx effects_ for these operations.
 
-## Optimistic delete; no compensation
-
-When saving, the _ngrx-data_ `EntityCollectionReducer<T>` deletes the entity from cache _before_ sending a delete request to the server.
-
-This is called an _optimistic delete_ because _ngrx-data_ is optimistic about the prospects for a successful delete.
-
-If the server rejects the save or the save times-out, the reducer does not compensate by restoring the deleted entity to cache.
-
-A future version of _ngrx-data_ could restore the deleted entity when the server delete request fails.
-A future version might also offer a _pessimistic delete_ option.
-
-## Pessimistic add/update
-
-When processing the `SAVE_ADD` or `SAVE_UPDATE` actions,
-The `EntityCollectionReducer` does not immediately add a new entity to the collection or update an existing entity in the collection.
-
-It waits for the `SAVE_ADD_SUCCESS` or `SAVE_UPDATE_SUCCESS` actions, which indicate that the server processed the requests successfully.
-
-This a _pessimistic_ policy because _ngrx-data_ 
-would rather guard against the risk of failure than
-benefit from the (stronger) likelihood of success.
-
-_Ngrx-data_ takes this approach because it does not have the ability to reverse the add or update in cache
-it the request fails.
-
-The delay might be noticeable if the connection to the server is very slow.
-
-A future version of _ngrx-data_ could offer _optimistic_ add and update with compensation for server request failures.
-
 ## No explicit _SAVE_UPSERT_
 
 The default `EntityEffects` supports saving a new or existing entity but does not have an explicit
 SAVE_UPSERT action that would _official_ save
 an entity which might be either new or existing.
 
-You may be able to add a new entity with `SAVE_UPDATE`,
-because the `EntityCollectionReducer` implements `SAVE_UPDATE_SUCCESS` 
+You may be able to add a new entity with `SAVE_UPDATE` or `SAVE_UPDATE_OPTIMISTIC`,
+because the `EntityCollectionReducer` implements these actions 
 by calling the collection `upsertOne()` method.
 
 Do this _only_ if your server supports _upsert-with-PUT_ requests.

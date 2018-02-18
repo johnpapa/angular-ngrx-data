@@ -5,13 +5,16 @@ import { EntityAdapter } from '@ngrx/entity';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCollection } from './entity-definition';
-import { toUpdateFactory } from './utils';
+import { EntityActionGuard } from './entity-action-guard';
+import { EntityChangeTracker } from './entity-change-tracker';
+import { EntityCollection } from './interfaces';
+import { defaultSelectId, toUpdateFactory } from './utils';
 
 export type EntityCollectionReducer<T = any> = (
   collection: EntityCollection<T>,
   action: EntityAction
 ) => EntityCollection<T>;
+
 
 /** Create a default reducer for a specific entity collection */
 @Injectable()
@@ -25,7 +28,7 @@ export class EntityCollectionReducerFactory {
   ): EntityCollectionReducer<T> {
 
     /** Extract the primary key (id); default to `id` */
-    selectId = selectId || ((entity: any) => entity.id);
+    selectId = selectId || defaultSelectId;
 
     /**
      * Convert an entity (or partial entity) into the `Update<T>` object
@@ -34,13 +37,26 @@ export class EntityCollectionReducerFactory {
      */
     const toUpdate = toUpdateFactory(selectId);
 
+    /*
+     * Track changes to entities since the last query or save
+     * Can revert some or all of those changes
+     * Required for optimistic saves
+     * TODO: consider using for all cache updates.
+     */
+    const entityChangeTracker = new EntityChangeTracker<T>(
+      entityName, adapter, selectId);
+
+    const guard = new EntityActionGuard(entityName, selectId);
+
     /** Perform Actions against a particular entity collection in the EntityCache */
     return function entityCollectionReducer(
       collection: EntityCollection<T>,
       action: EntityAction
     ): EntityCollection<T> {
       switch (action.op) {
+
         // Only the query ops set loading flag.
+        // Assume query results always come from server and do not need to be guarded.
         case EntityOp.QUERY_ALL:
         case EntityOp.QUERY_BY_KEY:
         case EntityOp.QUERY_MANY: {
@@ -51,22 +67,23 @@ export class EntityCollectionReducerFactory {
           return {
             ...adapter.addAll(action.payload, collection),
             loaded: true, // Only QUERY_ALL_SUCCESS sets loaded to true
-            loading: false
+            loading: false,
+            originalValues: {}
           };
         }
 
         case EntityOp.QUERY_BY_KEY_SUCCESS: {
-          const upsert = toUpdate(action.payload);
-          return upsert ?
+          const upsert = action.payload && toUpdate(action.payload);
+          return upsert == null ?
+            collection.loading ? { ...collection, loading: false } : collection :
             {
               ...adapter.upsertOne(upsert, collection),
               loading: false
-            } :
-            collection.loading ? { ...collection, loading: false } : collection;
+            };
         }
 
         case EntityOp.QUERY_MANY_SUCCESS: {
-          const upserts = (action.payload as T[] || []).map(toUpdate);
+          const upserts = (action.payload as T[]).map(toUpdate);
           return {
             ...adapter.upsertMany(upserts, collection),
             loading: false
@@ -79,39 +96,107 @@ export class EntityCollectionReducerFactory {
           return collection.loading ? { ...collection, loading: false } : collection;
         }
 
-        // Do nothing on other save errors.
-        // The app should listen for those and do something.
+        // Do nothing on save errors.
+        // See the ChangeTrackerMetaReducers
+        // Or the app could listen for those errors and do something.
 
         // pessimistic add; add entity only upon success
+        // It may be OK that the pkey is missing because the server may generate the ID
+        // If it doesn't, the reducer will catch the error in the success action
+        case EntityOp.SAVE_ADD: {
+          return collection;
+        }
+
+        // pessimistic add upon success
         case EntityOp.SAVE_ADD_SUCCESS: {
+          // Ensure the server generated the primary key if the client didn't send one.
+          guard.mustBeEntities([action.payload], action.op, true);
           return adapter.addOne(action.payload, collection);
         }
 
-        // optimistic delete
+        // optimistic add; add entity immediately
+        // Must have pkey to add optimistically
+        case EntityOp.SAVE_ADD_OPTIMISTIC: {
+          guard.mustBeEntities([action.payload], action.op, true);
+          return adapter.addOne(action.payload, collection);
+        }
+
+        // optimistic add succeeded.
+        // Although already added to collection
+        // the server might have added other fields (e.g, concurrency field)
+        // Therefore, update with returned value
+        // Caution: in a race, this update could overwrite unsaved user changes.
+        // Use pessimistic add to avoid this risk.
+        case EntityOp.SAVE_ADD_OPTIMISTIC_SUCCESS: {
+          guard.mustBeEntities([action.payload], action.op, true);
+          const update = toUpdate(action.payload);
+          return adapter.updateOne(update, collection);
+        }
+
+        // pessimistic delete by entity key
         case EntityOp.SAVE_DELETE: {
+          guard.mustBeIds([action.payload], action.op, true);
+          return collection;
+        }
+
+        // pessimistic delete, after success
+        case EntityOp.SAVE_DELETE_SUCCESS: {
           // payload assumed to be entity key
           return adapter.removeOne(action.payload, collection);
         }
 
+        // optimistic delete by entity key immediately
+        case EntityOp.SAVE_DELETE_OPTIMISTIC: {
+          guard.mustBeIds([action.payload], action.op, true);
+          return adapter.removeOne(action.payload, collection);
+        }
+
         // pessimistic update; update entity only upon success
-        // payload must be an` Update<T>` which is
-        // `id`: the primary key and
-        // `changes`: the complete entity or a partial entity of changes.
+        // payload must be an `Update<T>`
+        case EntityOp.SAVE_UPDATE: {
+          guard.mustBeUpdates([action.payload], action.op, true);
+          return collection;
+        }
+
+        // pessimistic update upon success
         case EntityOp.SAVE_UPDATE_SUCCESS: {
           return adapter.upsertOne(action.payload, collection);
         }
 
-        // Cache-only operations
+        // optimistic update; update entity immediately
+        // payload must be an` Update<T>`
+        case EntityOp.SAVE_UPDATE_OPTIMISTIC: {
+          guard.mustBeUpdates([action.payload], action.op, true);
+          return adapter.upsertOne(action.payload, collection);
+        }
+
+        // optimistic update; collection already updated.
+        // Server may have touched other fields
+        // so update the collection again if the server sent different data.
+        // payload must be an` Update<T>`
+        case EntityOp.SAVE_UPDATE_OPTIMISTIC_SUCCESS: {
+          const result = action.payload || {};
+          // A data service like `DefaultDataService<T>` will add `unchanged:true`
+          // if the server responded without data, meaning there is nothing to update.
+          return (result.unchanged) ?
+            collection :
+            adapter.upsertOne(action.payload, collection);
+        }
+
+        ///// Cache-only operations /////
 
         case EntityOp.ADD_ALL: {
+          guard.mustBeEntities(action.payload, action.op);
           return adapter.addAll(action.payload, collection);
         }
 
         case EntityOp.ADD_MANY: {
+          guard.mustBeEntities(action.payload, action.op);
           return adapter.addMany(action.payload, collection);
         }
 
         case EntityOp.ADD_ONE: {
+          guard.mustBeEntities([action.payload], action.op, true);
           return adapter.addOne(action.payload, collection);
         }
 
@@ -119,7 +204,8 @@ export class EntityCollectionReducerFactory {
           return {
             ...adapter.removeAll(collection),
             loaded: false, // Only REMOVE_ALL sets loaded to false
-            loading: false
+            loading: false,
+            originalValues: {}
           };
         }
 
@@ -135,21 +221,25 @@ export class EntityCollectionReducerFactory {
 
         case EntityOp.UPDATE_MANY: {
           // payload must be an array of `Updates<T>`, not entities
+          guard.mustBeUpdates(action.payload, action.op);
           return adapter.updateMany(action.payload, collection);
         }
 
         case EntityOp.UPDATE_ONE: {
           // payload must be an `Update<T>`, not an entity
+          guard.mustBeUpdates([action.payload], action.op, true);
           return adapter.updateOne(action.payload, collection);
         }
 
         case EntityOp.UPSERT_MANY: {
           // payload must be an array of `Updates<T>`, not entities
+          guard.mustBeUpdates(action.payload, action.op);
           return adapter.upsertMany(action.payload, collection);
         }
 
         case EntityOp.UPSERT_ONE: {
           // payload must be an `Update<T>`, not an entity
+          guard.mustBeUpdates([action.payload], action.op, true);
           return adapter.upsertOne(action.payload, collection);
         }
 

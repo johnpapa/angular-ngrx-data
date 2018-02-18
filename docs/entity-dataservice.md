@@ -76,31 +76,24 @@ The [_Entity Metadata_](entity-metadata.md#plurals) guide
 explains how to configure the default `Pluralizer` .
 
 <a name="configuration"></a>
-## Configure the service
+### Configure the _DefaultDataService_
 
 The collection-level data services construct their own URLs for HTTP calls. They typically rely on shared configuration information such as the root of every resource URL.
 
 The shared configuration values are almost always specific to the application and may vary according the runtime environment.
 
-The _ngrx-data_ library defines an [`EntityDataServiceConfig` class](../lib/src/entity-data.service.ts) for conveying shared configuration to an entity collection data service.
+The _ngrx-data_ library defines a [`DefaultDataServiceConfig` class](../lib/src/default-data.service.ts) for conveying shared configuration to an entity collection data service.
 
-The most important configuration property, `api`, returns the _root_ of every web api URL, the parts that come before the entity resource name.
+The most important configuration property, `root`, returns the _root_ of every web api URL, the parts that come before the entity resource name.
 
-The default value is `'api'`, which results in URLs such as `api/heroes`.
+For a `DefaultDataService<T>`, the default value is `'api'`, which results in URLs such as `api/heroes`.
 
-The `timeout` property sets the maximum time (in ms) before the _ng-lib_ persistence operation abandons hope of receiving a server reply and cancels the operation. The default value is `0`, which means the 
+The `timeout` property sets the maximum time (in ms) before the _ng-lib_ persistence operation abandons hope of receiving a server reply and cancels the operation. The default value is `0`, which means that requests do not timeout.
+
+The `delete404OK` flag tells the data service what to do if the server responds to a DELETE request with a `404 - Not Found`.
+
+In general, not finding the resource to delete is harmless and
+you can save yourself the headache of ignoring a DELETE 404 error
+by setting this flag to `true`, which is the default for the `DefaultDataService<T>`.
 
 When running a demo app locally, the server may respond more quickly than it will in production. You can simulate real-world by setting the `getDelay` and `saveDelay` properties.
-
-### Extend _EntityDataServiceConfig_
-
-The `EntityDataServiceConfig` class is designed to match the needs of the `DefaultDataService`. 
-
-You could extend it with additional properties in a derived class and override the `EntityDataServiceConfig` provider like this.
-
-```javascript
-NgrxDataModule.forRoot({
-  entityDataServiceConfig: myDataServiceConfig,
-  ...
-})
-```

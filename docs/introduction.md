@@ -77,16 +77,18 @@ Now register the Web API configuration, metadata, and plurals with the `ngrx-dat
 
 import { pluralNames, entityMetadata } from './entity-metadata';
 
-// Set 'api', the root URL of the remote Web API.
-const entityDataServiceConfig: EntityDataServiceConfig = { api: 'api'};
+// Set 'root', the root URL of the remote Web API.
+const defaultDataServiceConfig: DefaultDataServiceConfig = { root: 'api' };
 
 @NgModule({
   imports: [
     NgrxDataModule.forRoot({
-      entityDataServiceConfig,
       entityMetadata: entityMetadata,
       pluralNames: pluralNames
     })
+  ],
+  providers: [
+    { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }
   ]
 })
 export class EntityStoreModule {}

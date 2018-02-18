@@ -1,6 +1,16 @@
 import { IdSelector, Update } from './ngrx-entity-models';
 
 /**
+ * Default function that returns the entity's primary key (pkey).
+ * Assumes that the entity has an `id` pkey property.
+ * Returns `undefined` if no entity or `id`.
+ * Every selectId fn must return `undefined` when it cannot produce a full pkey.
+ */
+export function defaultSelectId(entity: any) {
+  return entity == null ? undefined : entity.id;
+}
+
+/**
  * Flatten first arg if it is an array
  * Allows fn with ...rest signature to be called with an array instead of spread
  * Example:
@@ -26,7 +36,7 @@ export function flattenArgs<T>(args?: any[]): T[] {
  * `changes` is the entity (or partial entity of changes).
  */
 export function toUpdateFactory<T>(selectId?: IdSelector<T>) {
-  selectId = selectId || ((e: any) => e.id);
+  selectId = selectId || defaultSelectId as IdSelector<T>;
   /**
    * Convert an entity (or partial entity) into the `Update<T>`
    * whose `id` is the primary key and
@@ -34,6 +44,8 @@ export function toUpdateFactory<T>(selectId?: IdSelector<T>) {
    * @param selectId function that returns the entity's primary key (id)
    */
   return function toUpdate(entity: Partial<T>): Update<T> {
-    return entity && { id: selectId(entity) as any, changes: entity } ;
+    const id: any = selectId(entity);
+    if (id == null) { throw new Error('Primary key may not be null/undefined.'); }
+    return entity && { id, changes: entity } ;
   }
 }

@@ -8,7 +8,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { takeUntil } from 'rxjs/operators';
 
-import { Villain } from '../../core';
+import { Villain, IdGeneratorService } from '../../core';
 
 @Component({
   selector: 'app-villain-search',
@@ -26,7 +26,11 @@ export class VillainsComponent implements OnDestroy, OnInit {
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
 
-  constructor(appSelectors: AppSelectors, entityServiceFactory: EntityServiceFactory) {
+  constructor(
+    appSelectors: AppSelectors,
+    entityServiceFactory: EntityServiceFactory,
+    private idGenerator: IdGeneratorService) {
+
     this.dataSource$ = appSelectors.dataSource$();
     this.villainService = entityServiceFactory.create<Villain>('Villain');
     this.filteredVillains$ = this.villainService.filteredEntities$;
@@ -73,7 +77,10 @@ export class VillainsComponent implements OnDestroy, OnInit {
   }
 
   add(villain: Villain) {
-    this.villainService.add(villain);
+    // MUST generate id for villains because
+    // it is configured for optimistic ADD in EntityMetadata.
+    const id = this.idGenerator.nextId();
+    this.villainService.add({ ...villain, id });
   }
 
   unselect() {

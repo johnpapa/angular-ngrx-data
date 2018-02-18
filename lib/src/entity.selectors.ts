@@ -2,7 +2,7 @@ import { createSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityCollection } from './entity-definition';
+import { EntityCollection } from './interfaces';
 import { EntityFilterFn } from './entity-filters';
 import { EntityMetadata } from './entity-metadata';
 import { Dictionary } from './ngrx-entity-models';
@@ -18,7 +18,7 @@ export interface EntitySelectors<T> {
   selectEntities: Selector<EntityCollection<T>, T[]>;
 
   /** Map of entity keys to entities */
-  selectEntityKeyMap: Selector<EntityCollection<T>, Dictionary<T>>;
+  selectEntityMap: Selector<EntityCollection<T>, Dictionary<T>>;
 
   /** Filter pattern applied by the entity collection's filter function */
   selectFilter: Selector<EntityCollection<T>, string>;
@@ -31,6 +31,9 @@ export interface EntitySelectors<T> {
 
   /** True when a multi-entity query command is in progress. */
   selectLoading: Selector<EntityCollection<T>, boolean>;
+
+  /** Original entity values for entities with unsaved changes */
+  selectOriginalValues: Selector<EntityCollection<T>, Dictionary<T>>;
 }
 
 /**
@@ -45,11 +48,11 @@ export function createEntitySelectors<
 ): S {
   // Mostly copied from `@ngrx/entity/state_selectors.ts`
   const selectKeys = (c: EntityCollection<T>) => c.ids;
-  const selectEntityKeyMap = (c: EntityCollection<T>) => c.entities;
+  const selectEntityMap = (c: EntityCollection<T>) => c.entities;
 
   const selectEntities = createSelector(
     selectKeys,
-    selectEntityKeyMap,
+    selectEntityMap,
     (keys: any[], entities: Dictionary<T>): any => keys.map(key => entities[key] as T)
   );
 
@@ -67,6 +70,7 @@ export function createEntitySelectors<
 
   const selectLoaded = (c: EntityCollection<T>) => c.loaded;
   const selectLoading = (c: EntityCollection<T>) => c.loading;
+  const selectOriginalValues = (c: EntityCollection<T>) => c.originalValues;
 
   // Create selectors for each `additionalCollectionState` property.
   const extra = metadata.additionalCollectionState || {};
@@ -77,13 +81,14 @@ export function createEntitySelectors<
 
   return <S> <any> {
     selectKeys,
-    selectEntityKeyMap,
+    selectEntityMap,
     selectEntities,
     selectCount,
     selectFilter,
     selectFilteredEntities,
     selectLoaded,
     selectLoading,
+    selectOriginalValues,
     ...extraSelectors
   };
 }

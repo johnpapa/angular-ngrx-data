@@ -18,7 +18,10 @@ const persistOps: EntityOp[] = [
   EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD,
   EntityOp.SAVE_DELETE,
-  EntityOp.SAVE_UPDATE
+  EntityOp.SAVE_UPDATE,
+  EntityOp.SAVE_ADD_OPTIMISTIC,
+  EntityOp.SAVE_DELETE_OPTIMISTIC,
+  EntityOp.SAVE_UPDATE_OPTIMISTIC
 ];
 
 @Injectable()
@@ -35,6 +38,9 @@ export class EntityEffects {
   ) {}
 
   private persist(action: EntityAction) {
+    if (action.error) {
+      return this.resultHandler.handleError(action)(action.error);
+    }
     try {
       return this.callDataService(action).pipe(
         map(this.resultHandler.handleSuccess(action)),
@@ -57,12 +63,15 @@ export class EntityEffects {
       case EntityOp.QUERY_MANY: {
         return service.getWithQuery(action.payload);
       }
+      case EntityOp.SAVE_ADD_OPTIMISTIC:
       case EntityOp.SAVE_ADD: {
         return service.add(action.payload);
       }
+      case EntityOp.SAVE_DELETE_OPTIMISTIC:
       case EntityOp.SAVE_DELETE: {
         return service.delete(action.payload);
       }
+      case EntityOp.SAVE_UPDATE_OPTIMISTIC:
       case EntityOp.SAVE_UPDATE: {
         return service.update(action.payload);
       }

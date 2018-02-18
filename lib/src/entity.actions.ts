@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
-import { DataServiceError } from './interfaces';
-import { flattenArgs } from './utils';
 
 import { Observable } from 'rxjs/Observable';
 import { Operator } from 'rxjs/Operator';
 import { filter, share, takeUntil } from 'rxjs/operators';
+
+import { DataServiceError } from './interfaces';
+import { flattenArgs } from './utils';
 
 // General purpose entity action types, good for any entity type
 export enum EntityOp {
@@ -35,6 +36,18 @@ export enum EntityOp {
   SAVE_UPDATE_SUCCESS = 'SAVE_UPDATE_SUCCESS',
   SAVE_UPDATE_ERROR = 'SAVE_UPDATE_ERROR',
 
+  SAVE_ADD_OPTIMISTIC = 'SAVE_ADD_OPTIMISTIC',
+  SAVE_ADD_OPTIMISTIC_ERROR = 'SAVE_ADD_OPTIMISTIC_ERROR',
+  SAVE_ADD_OPTIMISTIC_SUCCESS = 'SAVE_ADD_OPTIMISTIC_SUCCESS',
+
+  SAVE_DELETE_OPTIMISTIC = 'SAVE_DELETE_OPTIMISTIC',
+  SAVE_DELETE_OPTIMISTIC_SUCCESS = 'SAVE_DELETE_OPTIMISTIC_SUCCESS',
+  SAVE_DELETE_OPTIMISTIC_ERROR = 'SAVE_DELETE_OPTIMISTIC_ERROR',
+
+  SAVE_UPDATE_OPTIMISTIC = 'SAVE_UPDATE_OPTIMISTIC',
+  SAVE_UPDATE_OPTIMISTIC_SUCCESS = 'SAVE_UPDATE_OPTIMISTIC_SUCCESS',
+  SAVE_UPDATE_OPTIMISTIC_ERROR = 'SAVE_UPDATE_OPTIMISTIC_ERROR',
+
   // Cache actions
   ADD_ALL = 'ADD_ALL',
   ADD_MANY = 'ADD_MANY',
@@ -55,6 +68,9 @@ export interface EntityAction<P = any> extends Action {
   readonly entityName: string;
   readonly op: EntityOp;
   readonly payload?: any;
+  // The only mutable property because
+  // it's the only way to stop downstream action processing
+  error?: Error;
 }
 
 /** "Success" suffix appended to EntityOps that are successful.*/
@@ -67,7 +83,8 @@ export class EntityActionFactory {
   create<P = any>(
     nameOrAction: string | EntityAction,
     op?: EntityOp,
-    payload?: P
+    payload?: P,
+    error?: Error
   ) {
     let entityName: string;
 
@@ -87,7 +104,9 @@ export class EntityActionFactory {
       }
     }
     const type = this.formatActionType(op, entityName);
-    return { type, entityName, op, payload }
+    return error ?
+      { type, entityName, op, payload, error } :
+      { type, entityName, op, payload };
   }
 
   formatActionType(op: string, entityName: string) {

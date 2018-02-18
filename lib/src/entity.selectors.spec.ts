@@ -1,6 +1,6 @@
 import { Selector } from '@ngrx/store';
 
-import { EntityCollection } from './entity-definition';
+import { EntityCollection } from './interfaces';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { PropsFilterFnFactory } from './entity-filters';
 

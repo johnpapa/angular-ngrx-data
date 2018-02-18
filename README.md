@@ -113,6 +113,26 @@ Follow these instructions to
 [install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension)
 and learn how to use them.
 
+## Debug the library in browser dev tools
+
+When running _tests_, open the browser dev tools, go to the "Sources" tab,
+and look for the library files by name.
+
+> In chrome, type [Command-P] and letters of the file name.
+
+Unfortunately, when _running the app_ (e.g., with `ng serve`), 
+you cannot access the _ngrx-data_ library source files.
+The browser dev tools only reveal the _consolidated build file_, `ngrx-data.js`,
+which is ECMA 2015, not TypeScript.
+
+> You can still access the application source files.
+
+The app browser does not refresh when you make changes to the library.
+You must re-generate the library packages with `npm run build-lib`
+to see your changes.
+
+We are looking into this problem and hope to have a better experience soon.
+
 ## Build the app against the npm package
 
 The demo app is setup to build and run against the version of the library in

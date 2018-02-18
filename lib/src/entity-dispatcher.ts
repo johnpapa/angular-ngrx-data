@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
+import { defaultSelectId } from './utils';
 import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
+import { EntityActionGuard } from './entity-action-guard';
 import { EntityCommands } from './entity-commands';
-import { EntityCache, QueryParams } from './interfaces';
+import { EntityCache, EntityDispatcherOptions, QueryParams } from './interfaces';
 import { IdSelector, Update } from './ngrx-entity-models';
 import { toUpdateFactory } from './utils';
 
@@ -13,10 +15,12 @@ import { toUpdateFactory } from './utils';
 export class EntityDispatcher<T> implements EntityCommands<T> {
 
   /**
+   * Utility class with methods to validate EntityAction payloads.
+   */
+  guard: EntityActionGuard<T>;
+
+  /**
    * Convert an entity (or partial entity) into the `Update<T>` object
-   * `id`: the primary key and
-   * `changes`: the entity (or partial entity of changes).
-   *
    * `update...` and `upsert...` methods take `Update<T>` args
    */
   toUpdate: (entity: Partial<T>) => Update<T>
@@ -27,8 +31,14 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
     private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>,
     /** Returns the primary key (id) of this entity */
-    public selectId: IdSelector<T> = (entity: any) => entity.id
+    public selectId: IdSelector<T> = defaultSelectId,
+    /**
+     * Dispatcher options configure dispatcher behavior such as
+     * whether add is optimistic or pessimistic.
+     */
+    public options: EntityDispatcherOptions
   ) {
+    this.guard = new EntityActionGuard<T>(entityName, selectId);
     this.toUpdate = toUpdateFactory<T>(selectId);
   }
 
@@ -41,8 +51,13 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
    * Does not add to cache until save succeeds.
    * Ignored by cache-add if the entity is already in cache.
    */
-  add(entity: T): void {
-    this.dispatch(EntityOp.SAVE_ADD, entity);
+  add(entity: T, isOptimistic?: boolean): void {
+    isOptimistic = isOptimistic != null ? isOptimistic : this.options.optimisticAdd;
+    const op = isOptimistic ? EntityOp.SAVE_ADD_OPTIMISTIC : EntityOp.SAVE_ADD;
+    if (isOptimistic) {
+      this.guard.mustBeEntities([entity], op, true);
+    }
+    this.dispatch(op, entity);
   }
 
   /**
@@ -51,7 +66,7 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
    * Does not restore to cache if the delete fails.
    * @param entity The entity to remove
    */
-  delete(entity: T): void
+  delete(entity: T, isOptimistic?: boolean): void
 
   /**
    * Removes entity from the cache by key (if it is in the cache)
@@ -59,9 +74,13 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
    * Does not restore to cache if the delete fails.
    * @param key The primary key of the entity to remove
    */
-  delete(key: number | string ): void
-  delete(arg: (number | string) | T): void {
-    this.dispatch(EntityOp.SAVE_DELETE, this.getKey(arg));
+  delete(key: number | string, isOptimistic?: boolean ): void
+  delete(arg: (number | string) | T, isOptimistic?: boolean): void {
+    const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticDelete) ?
+      EntityOp.SAVE_DELETE_OPTIMISTIC : EntityOp.SAVE_DELETE;
+    const key = this.getKey(arg);
+    this.guard.mustBeIds([key], op, true);
+    this.dispatch(op, key);
   }
 
   /**
@@ -97,14 +116,23 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
-  update(entity: Partial<T>): void {
+  update(entity: Partial<T>, isOptimistic?: boolean): void {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    this.dispatch(EntityOp.SAVE_UPDATE, update);
+    const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticUpdate) ?
+      EntityOp.SAVE_UPDATE_OPTIMISTIC : EntityOp.SAVE_UPDATE;
+    this.guard.mustBeUpdates([update], op, true);
+    this.dispatch(op, update);
   }
 
   /*** Cache-only operations that do not update remote storage ***/
+
+  // Unguarded for performance.
+  // EntityCollectionReducer<T> runs a guard (which throws)
+  // Developer should understand cache-only methods well enough
+  // to call them with the proper entities.
+  // May reconsider and add guards in future.
 
   /**
    * Replace all entities in the cached collection.
@@ -239,6 +267,17 @@ export class EntityDispatcher<T> implements EntityCommands<T> {
 
 @Injectable()
 export class EntityDispatcherFactory {
+
+  /**
+   * Default dispatcher options.
+   * These defaults are the safest values.
+   */
+  defaultDispatcherOptions = {
+    optimisticAdd: false,
+    optimisticDelete: true,
+    optimisticUpdate: false,
+  };
+
   constructor(
     private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>
@@ -254,6 +293,14 @@ export class EntityDispatcherFactory {
      * Function that returns the primary key for an entity `T`.
      * Usually acquired from `EntityDefinition` metadata.
      */
-    selectId: IdSelector<T> = ((entity: any) => entity.id)
-  ): D { return <D> new EntityDispatcher<T>(entityName, this.entityActionFactory, this.store, selectId)}
+    selectId: IdSelector<T> = defaultSelectId,
+    /** Options that influence dispatcher behavior such as whether
+     * `add()` is optimistic or pessimistic;
+     */
+    dispatcherOptions: Partial<EntityDispatcherOptions> = {}
+  ): D {
+    // merge w/ dispatcher options with defaults
+    const options: EntityDispatcherOptions =
+      Object.assign({}, this.defaultDispatcherOptions, dispatcherOptions);
+    return <D> new EntityDispatcher<T>(entityName, this.entityActionFactory, this.store, selectId, options)}
 }

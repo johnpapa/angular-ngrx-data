@@ -3,9 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { StoreModule, Store } from '@ngrx/store';
 
 import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
-import { EntityCache } from './interfaces';
-import { EntityCollection } from './entity-definition';
-import { ENTITY_METADATA_TOKEN } from './interfaces';
+import { EntityCache, EntityCollection, ENTITY_METADATA_TOKEN } from './interfaces';
 import { EntityService, EntityServiceFactory } from './entity.service';
 
 import { _NgrxDataModuleWithoutEffects } from './ngrx-data.module'

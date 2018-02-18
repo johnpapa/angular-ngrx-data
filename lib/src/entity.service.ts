@@ -29,7 +29,8 @@ export class EntityServiceFactory {
   create<T, S extends EntityService<T> = EntityService<T>>(entityName: string): S {
     entityName = entityName.trim();
     const def = this.entityDefinitionService.getDefinition<T>(entityName);
-    const dispatcher = this.entityDispatcherFactory.create<T>(entityName, def.selectId);
+    const dispatcher =
+      this.entityDispatcherFactory.create<T>(entityName, def.selectId, def.entityDispatcherOptions);
     const selectors$ = this.entitySelectors$Factory.create(entityName, def.selectors);
 
     // Merge selectors$ properties into the dispatcher and return it

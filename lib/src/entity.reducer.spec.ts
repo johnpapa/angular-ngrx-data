@@ -2,13 +2,12 @@ import { Action, ActionReducer, MetaReducer } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
 import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
-import { EntityCache } from './interfaces';
+import { EntityCache, EntityCollection } from './interfaces';
+import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityDefinitionService } from './entity-definition.service';
 import { EntityMetadataMap } from './entity-metadata';
 import { Update } from './ngrx-entity-models';
 
-import { EntityCollection } from './entity-definition';
-import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection.reducer';
 import { EntityCollectionReducers, EntityReducerFactory } from './entity.reducer';
 

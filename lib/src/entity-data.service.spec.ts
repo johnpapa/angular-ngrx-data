@@ -11,7 +11,7 @@ import { HttpUrlGenerator } from './http-url-generator'
 import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
 
 import { EntityDataService } from './entity-data.service';
-import { EntityCollectionDataService, EntityDataServiceConfig, QueryParams } from './interfaces';
+import { EntityCollectionDataService, QueryParams } from './interfaces';
 import { Update } from './ngrx-entity-models';
 
 // region Test Helpers
@@ -82,7 +82,6 @@ class TestHttpUrlGenerator implements HttpUrlGenerator {
 
 ///// Tests begin ////
 describe('EntityDataService', () => {
-  const config = {api: 'api'};
   const nullHttp = {};
   let entityDataService: EntityDataService;
 
@@ -92,7 +91,6 @@ describe('EntityDataService', () => {
       providers: [
         DefaultDataServiceFactory,
         EntityDataService,
-        { provide: EntityDataServiceConfig, useValue: config},
         { provide: HttpClient, useValue: nullHttp },
         { provide: HttpUrlGenerator, useClass: TestHttpUrlGenerator }
       ]

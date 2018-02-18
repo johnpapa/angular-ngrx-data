@@ -20,7 +20,7 @@ export abstract class PersistenceResultHandler {
 
   /** Handle error result of persistence operation for an action */
   abstract handleError(action: EntityAction):
-  (error: DataServiceError) => Observable<Action>
+  (error: DataServiceError | Error) => Observable<Action>
 }
 
 /**
@@ -43,13 +43,17 @@ export class DefaultPersistenceResultHandler implements PersistenceResultHandler
     (error: DataServiceError) => Observable<EntityAction<EntityActionDataServiceError>> {
 
     const errorOp = <EntityOp>(action.op + OP_ERROR);
-    return (error: DataServiceError) =>
-      of(
+    return (error: DataServiceError | Error) => {
+      if (error instanceof Error) {
+        error = new DataServiceError(error, null);
+      }
+      return of(
         this.entityActionFactory.create<EntityActionDataServiceError>(
           action as EntityAction,
           errorOp,
           { originalAction: action as EntityAction, error }
         )
       );
+    };
   }
 }

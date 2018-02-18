@@ -9,14 +9,13 @@ import {
   EntityCache,
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
-  EntityDataServiceConfig,
+  EntityCollection,
   ENTITY_METADATA_TOKEN,
   ENTITY_COLLECTION_META_REDUCERS,
   ENTITY_REDUCER_TOKEN,
   PLURAL_NAMES_TOKEN
 } from './interfaces';
 
-import { EntityCollection } from './entity-definition';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducerFactory } from './entity-collection.reducer';
 import { EntityDataService } from './entity-data.service';
@@ -35,7 +34,6 @@ import { Pluralizer, DefaultPluralizer } from './pluralizer';
 export const entityEffects: any[] = [EntityEffects];
 
 export interface NgrxDataModuleConfig {
-  entityDataServiceConfig?: EntityDataServiceConfig;
   entityMetadata?: EntityMetadataMap;
   entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[],
   pluralNames?: { [name: string]: string };
@@ -88,7 +86,6 @@ export class NgrxDataModule {
     return {
       ngModule: NgrxDataModule,
       providers: [
-        { provide: EntityDataServiceConfig, useValue: config.entityDataServiceConfig },
         { provide: ENTITY_METADATA_TOKEN, multi: true,
           useValue: config.entityMetadata ? config.entityMetadata : []},
         { provide: ENTITY_COLLECTION_META_REDUCERS,

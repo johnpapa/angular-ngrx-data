@@ -1,22 +1,16 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
+import { createEntitySelectors, EntitySelectors } from './entity.selectors';
+import { defaultSelectId } from './utils';
+import { Dictionary, IdSelector, Update } from './ngrx-entity-models';
 import { EntityFilterFn } from './entity-filters';
 import { EntityMetadata } from './entity-metadata';
-import { createEntitySelectors, EntitySelectors } from './entity.selectors';
-import { IdSelector, Update } from './ngrx-entity-models';
-
-export interface EntityCollection<T = any> extends EntityState<T> {
-  /** user's filter pattern */
-  filter: string;
-  /** true if collection was ever filled by QueryAll; forced false if cleared */
-  loaded: boolean;
-  /** true when multi-entity HTTP query operation is in flight */
-  loading: boolean;
-}
+import { EntityCollection, EntityDispatcherOptions } from './interfaces';
 
 export interface EntityDefinition<T = any> {
   entityName: string;
   entityAdapter: EntityAdapter<T>;
+  entityDispatcherOptions?: Partial<EntityDispatcherOptions>;
   initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
   selectId: IdSelector<T>;
@@ -32,13 +26,20 @@ export function createEntityDefinition<T, S extends object>(
     throw new Error('Missing required entityName');
   }
   metadata.entityName = entityName = entityName.trim();
-  const selectId = (metadata.selectId = metadata.selectId || ((entity: any) => entity.id));
+  const selectId = metadata.selectId || defaultSelectId;
   const sortComparer = (metadata.sortComparer = metadata.sortComparer || false);
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
+  const entityDispatcherOptions: Partial<EntityDispatcherOptions> =
+    metadata.entityDispatcherOptions || {};
+
   const initialState: EntityCollection<T>  = entityAdapter.getInitialState({
-    filter: '', loaded: false, loading: false, ...( metadata.additionalCollectionState || {} )
+    filter: '',
+    loaded: false,
+    loading: false,
+    originalValues: {},
+    ...( metadata.additionalCollectionState || {} )
   });
 
   const selectors = createEntitySelectors(metadata);
@@ -46,6 +47,7 @@ export function createEntityDefinition<T, S extends object>(
   return {
     entityName,
     entityAdapter,
+    entityDispatcherOptions,
     initialState,
     metadata,
     selectId,

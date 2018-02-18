@@ -7,3 +7,10 @@
 .mat-card {
   @include mat-card-layout;
 }
+
+.truncate {
+  width: 1.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -18,10 +18,12 @@ This page and other guide pages are markdown pages in the repository `docs` fold
 
 * [Introduction](introduction.md) 
 * [Entity Metadata](entity-metadata.md)
+* [Entity Collection](entity-collection.md)
 * [Entity Service](entity-service.md)
 * [Entity DataService](entity-dataservice.md)
 * [Entity Actions](entity-actions.md)
 * [Entity Reducer](entity-reducer.md)
+* [Entity Change Tracker](entity-change-tracker.md)
 * [Extension Points](extension-points.md)
 * [Limitations](limitations.md)
 * [FAQ: Frequently Asked Questions](faq.md)

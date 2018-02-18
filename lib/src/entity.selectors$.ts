@@ -5,11 +5,10 @@ import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 
 import { EntityActions } from './entity.actions';
-import { EntityCollection } from './entity-definition';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { Dictionary } from './ngrx-entity-models';
 import { EntitySelectors } from './entity.selectors';
-import { EntityCache, ENTITY_CACHE_NAME_TOKEN } from './interfaces';
+import { EntityCache, EntityCollection, ENTITY_CACHE_NAME_TOKEN } from './interfaces';
 
 /**
  * The selector observable functions for entity collection members.
@@ -28,7 +27,7 @@ export interface EntitySelectors$<T> {
   entities$: Observable<T[]> | Store<T[]>;
 
   /** Observable of the map of entity keys to entities */
-  entityKeyMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
   filter$: Observable<string> | Store<string>;
@@ -44,6 +43,9 @@ export interface EntitySelectors$<T> {
 
   /** Observable true when a multi-entity query command is in progress. */
   loading$: Observable<boolean> | Store<boolean>;
+
+  /** Original entity values for entities with unsaved changes */
+  selectOriginalValues: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 }
 
 @Injectable()

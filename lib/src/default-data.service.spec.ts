@@ -24,11 +24,6 @@ class TestHttpUrlGenerator implements HttpUrlGenerator {
   }
 }
 
-const testServiceConfig = {
-  api: 'api',
-  entityName: 'Hero',
-};
-
 ////////  Tests  /////////////
 describe('DefaultDataService', () => {
 
@@ -47,7 +42,7 @@ describe('DefaultDataService', () => {
     httpClient = TestBed.get(HttpClient);
     httpTestingController = TestBed.get(HttpTestingController);
 
-    service = new DefaultDataService(httpClient, httpUrlGenerator, testServiceConfig, 'Hero');
+    service = new DefaultDataService('Hero', httpClient, httpUrlGenerator);
   });
 
   afterEach(() => {
@@ -74,7 +69,7 @@ describe('DefaultDataService', () => {
 
     beforeEach(() => {
       // use test wrapper class to get to protected properties
-      service = new TestService(httpClient, httpUrlGenerator, testServiceConfig, 'Hero');
+      service = new TestService('Hero', httpClient, httpUrlGenerator);
     });
 
     it('has expected name', () => {
@@ -338,7 +333,24 @@ describe('DefaultDataService', () => {
       req.flush({});
     });
 
-    it('should turn 404 when id not found', () => {
+    it('should return successfully when id not found and delete404OK is true (default)', () => {
+      service.delete(1).subscribe(
+        result => expect(result).toEqual({}, 'should return nothing'),
+        fail
+      );
+
+     // One request to DELETE hero from expected URL
+     const req = httpTestingController.expectOne(
+        r => r.method === 'DELETE' && r.url === heroUrlId1);
+
+      // Respond with empty nonsense object
+      req.flush({});
+    });
+
+    it('should return 404 when id not found and delete404OK is false', () => {
+      service = new DefaultDataService('Hero', httpClient, httpUrlGenerator, {
+        delete404OK: false
+      });
       service.delete(1).subscribe(
         heroes => fail('delete succeeded when expected it to fail with a 404'),
         err => {
@@ -361,24 +373,21 @@ describe('DefaultDataService', () => {
     });
   });
 
-
   describe('#update', () => {
     const heroUrlId1 = heroUrl + '1';
 
     it('should return expected hero with id', () => {
-      // Assume that server updates the version
-      const expectedHero: Hero =
-        ({ id: 1, name: 'B', version: 2 });
-
-      // Should return an Update<T>
-      const expectedUpdate: Update<Hero> =
-        ({ id: 1, changes: expectedHero});
-
       // Call service.update with an Update<T> arg
       const updateArg: Update<Hero> = {
         id: 1,
         changes: { id: 1, name: 'B' }
       };
+
+      // The server makes the update AND updates the version concurrency property.
+      const expectedHero: Hero = { id: 1, name: 'B', version: 2 };
+
+      // Service must return an Update<T>
+      const expectedUpdate: Update<Hero> = { id: 1, changes: expectedHero };
 
       service.update(updateArg).subscribe(
         updated => expect(updated).toEqual(expectedUpdate, 'should return expected hero update'),
@@ -393,7 +402,7 @@ describe('DefaultDataService', () => {
       req.flush(expectedHero);
     });
 
-    it('should turn 404 when id not found', () => {
+    it('should return 404 when id not found', () => {
 
       service.update({ id: 1, changes: { id: 1, name: 'B' } }).subscribe(
         update => fail('update succeeded when expected it to fail with a 404'),

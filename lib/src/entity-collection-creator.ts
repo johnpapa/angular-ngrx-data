@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { EntityCollection } from './entity-definition';
+import { EntityCollection } from './interfaces';
 import { EntityDefinitionService } from './entity-definition.service';
 
 @Injectable()
@@ -20,12 +20,13 @@ export class EntityCollectionCreator {
   }
 }
 
-function createEmptyEntityCollection<T>(): EntityCollection<T> {
+export function createEmptyEntityCollection<T>(): EntityCollection<T> {
   return  {
     ids: [],
     entities: {},
     filter: undefined,
     loaded: false,
-    loading: false
+    loading: false,
+    originalValues: {}
   } as EntityCollection<T>;
 }

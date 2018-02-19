@@ -1,10 +1,10 @@
 import { Injectable, InjectionToken } from '@angular/core';
 import { Action, Store, ActionReducer } from '@ngrx/store';
+import { EntityState } from '@ngrx/entity';
 
 import { Observable } from 'rxjs/Observable';
-import { EntityCollection } from './entity-definition';
 import { EntityMetadataMap } from './entity-metadata';
-import { IdSelector, Update } from './ngrx-entity-models';
+import { Dictionary, IdSelector, Update } from './ngrx-entity-models';
 
 export class DataServiceError {
   readonly message: string;
@@ -28,7 +28,7 @@ export const ENTITY_REDUCER_TOKEN = new InjectionToken<ActionReducer<EntityCache
 );
 export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('ngrx-data/Plural Names');
 
-/** A service that */
+/** A service that performs REST-like HTTP data operations */
 export interface EntityCollectionDataService<T> {
   readonly name: string;
   add(entity: T): Observable<T>;
@@ -44,12 +44,25 @@ export interface EntityCache {
   [name: string]: EntityCollection<any>;
 }
 
-@Injectable()
-export class EntityDataServiceConfig {
-  api? = 'api';
-  getDelay? = 0;
-  saveDelay? = 0;
-  timeout? = 0;
+export interface EntityCollection<T = any> extends EntityState<T> {
+  /** user's filter pattern */
+  filter: string;
+  /** true if collection was ever filled by QueryAll; forced false if cleared */
+  loaded: boolean;
+  /** true when multi-entity HTTP query operation is in flight */
+  loading: boolean;
+  /** Original entity values for entities with unsaved changes */
+  originalValues: Dictionary<T>;
+}
+
+/**
+ * Options controlling EntityDispatcher behavior
+ * such as whether `add()` is optimistic or pessimistic
+ */
+export interface EntityDispatcherOptions {
+  optimisticAdd: boolean;
+  optimisticDelete: boolean;
+  optimisticUpdate: boolean;
 }
 
 export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';

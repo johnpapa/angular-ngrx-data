@@ -45,7 +45,8 @@ describe('EntityDefinition', () => {
         entities: {},
         filter: '',
         loaded: false,
-        loading: false
+        loading: false,
+        originalValues: {}
       })
     });
 
@@ -60,6 +61,7 @@ describe('EntityDefinition', () => {
         filter: '',
         loaded: false,
         loading: false,
+        originalValues: {},
         foo: 'foo'
       })
     });
@@ -80,6 +82,21 @@ describe('EntityDefinition', () => {
       delete heroMetadata.sortComparer;
       const def = createEntityDefinition(heroMetadata);
       expect(def.metadata.sortComparer).toBe(false);
+    });
+
+    it('sets `entityDispatchOptions to {} if not in metadata', () => {
+      const def = createEntityDefinition(heroMetadata);
+      expect(def.entityDispatcherOptions).toEqual({});
+    });
+
+    it('passes `metadata.entityDispatchOptions` thru', () => {
+      const options =  {
+        optimisticAdd: false,
+        optimisticUpdate: false,
+      };
+      heroMetadata.entityDispatcherOptions = options;
+      const def = createEntityDefinition(heroMetadata);
+      expect(def.entityDispatcherOptions).toBe(options);
     });
 
     it('creates expected selectors', () => {

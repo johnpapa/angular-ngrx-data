@@ -251,6 +251,93 @@ describe('EntityEffects (marble testing)', () => {
     expect(effects.persist$).toBeObservable(expected);
   });
 
+  it('should return a SAVE_ADD_OPTIMISTIC_SUCCESS with the hero on success', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC_SUCCESS, hero);
+
+    actions$.stream = hot('-a---', { a: action });
+    // delay the response 3 ticks
+    const response = cold('---a|', { a: hero });
+    const expected = cold('----b', { b: completion });
+    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_ADD_OPTIMISTIC_ERROR when service fails', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC, hero);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = hot('-a---', { a: action });
+    const response = cold('----#|', {}, error);
+    const expected = cold('-----b', { b: completion });
+    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_DELETE_OPTIMISTIC_SUCCESS on success', () => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC_SUCCESS);
+
+    actions$.stream = hot('-a---', { a: action });
+    // delay the response 3 ticks
+    const response = cold('---a|', { a: undefined });
+    const expected = cold('----b', { b: completion });
+    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_DELETE_OPTIMISTIC_ERROR when service fails', () => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC, 42);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = hot('-a---', { a: action });
+    const response = cold('----#|', {}, error);
+    const expected = cold('-----b', { b: completion });
+    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_UPDATE_OPTIMISTIC_SUCCESS with the hero on success', () => {
+    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC_SUCCESS, update);
+
+    actions$.stream = hot('-a---', { a: action });
+    // delay the response 3 ticks
+    const response = cold('---a|', { a: update });
+    const expected = cold('----b', { b: completion });
+    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_UPDATE_OPTIMISTIC_ERROR when service fails', () => {
+    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC, update);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = hot('-a---', { a: action });
+    const response = cold('----#|', {}, error);
+    const expected = cold('-----b', { b: completion });
+    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
   it(`should not do anything with an irrelevant action`, () => {
     // Would clear the cached collection
     const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);

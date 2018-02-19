@@ -5,8 +5,8 @@ import { EntityAdapter } from '@ngrx/entity';
 import { IdSelector, Update } from './ngrx-entity-models';
 
 import { EntityAction, EntityOp } from './entity.actions';
-import { EntityCache, ENTITY_COLLECTION_META_REDUCERS } from './interfaces';
-import { EntityCollection, EntityDefinition } from './entity-definition';
+import { EntityCache,  EntityCollection, ENTITY_COLLECTION_META_REDUCERS } from './interfaces';
+import { EntityDefinition } from './entity-definition';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection.reducer';
 import { EntityDefinitionService } from './entity-definition.service';
@@ -41,8 +41,8 @@ export class EntityReducerFactory {
   create(): ActionReducer<EntityCache, EntityAction> {
     return (state: EntityCache = {}, action: EntityAction): EntityCache => {
       const entityName = action.entityName;
-      if (!entityName) {
-        return state; // not an EntityAction
+      if (!entityName || action.error) {
+        return state; // not a valid EntityAction
       }
 
       const collection = state[entityName];
@@ -57,11 +57,18 @@ export class EntityReducerFactory {
         this.entityCollectionReducers[entityName] = reducer;
       }
 
-      const newCollection = collection ?
-        reducer(collection, action) :
-        reducer(this.entityCollectionCreator.create(entityName), action);
+      let newCollection: EntityCollection;
+      try {
+        newCollection = collection ?
+          reducer(collection, action) :
+          reducer(this.entityCollectionCreator.create(entityName), action);
+      } catch (error) {
+        // TODO:  Log properly, not to console
+        console.error(action.error);
+        action.error = error;
+      }
 
-      return collection === newCollection ?
+      return action.error || collection === newCollection ?
         state :
         { ...state, ...{ [entityName]: newCollection } };
     };

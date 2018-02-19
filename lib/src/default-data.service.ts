@@ -1,15 +1,15 @@
 import { Injectable, Optional } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 
 import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
+import { of } from 'rxjs/observable/of';
 import { pipe } from 'rxjs/util/pipe';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
 import { HttpUrlGenerator } from './http-url-generator';
 import {
   DataServiceError, EntityCollectionDataService,
-  EntityDataServiceConfig,
   HttpMethods, QueryParams, RequestData
  } from './interfaces';
 
@@ -19,12 +19,30 @@ import { Update } from './ngrx-entity-models';
 export const noDelay = <K>(source: Observable<K>) => source;
 
 /**
+ * Optional configuration settings for an entity collection data service
+ * such as the `DefaultDataService<T>`.
+ */
+export abstract class DefaultDataServiceConfig {
+  /** root path of the web api (default: 'api') */
+  root?: string;
+  /** Is a DELETE 404 really OK? (default: true) */
+  delete404OK?: boolean;
+  /** Simulate GET latency in a demo (default: 0) */
+  getDelay?: number;
+  /** Simulate save method (PUT/POST/DELETE) latency in a demo (default: 0) */
+  saveDelay?: number;
+  /** request timeout in MS (default: 0)*/
+  timeout?: number; //
+}
+
+/**
  * A basic, generic entity data service
  * suitable for persistence of most entities.
  * Assumes a common REST-y web API
  */
 export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   protected _name: string;
+  protected delete404OK: boolean;
   protected entityName: string;
   protected entityUrl: string;
   protected entitiesUrl: string;
@@ -35,16 +53,22 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   get name() { return this._name; }
 
   constructor(
+    entityName: string,
     protected http: HttpClient,
     protected httpUrlGenerator: HttpUrlGenerator,
-    config: EntityDataServiceConfig,
-    entityName: string
+    config: DefaultDataServiceConfig = {},
   ) {
     this._name = `${entityName} DefaultDataService`;
     this.entityName = entityName;
     config = config || {};
-    const { api = '', getDelay = 0, saveDelay = 0, timeout: to = 0 } = config;
-    const root = api || 'api';
+    const {
+      root = 'api',
+      delete404OK = true,
+      getDelay = 0,
+      saveDelay = 0,
+      timeout: to = 0,
+    } = config;
+    this.delete404OK = delete404OK;
     this.entityUrl = httpUrlGenerator.entityResource(entityName, root)
     this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root)
     this.getDelay = getDelay ? delay(getDelay) : noDelay;
@@ -122,12 +146,21 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
       case 'POST': {
         return this.http.post(url, data, options).pipe(tail);
       }
+      // N.B.: It must return an Update<T>
       case 'PUT': {
         const { id, changes } = data; // data must be Update<T>
         return this.http.put(url, changes, options)
           .pipe(
-            // return the original Update<T> with merged updated data (if any).
-            map(updated => ({id, changes: {...changes, ...updated}})),
+            map(updated => {
+              // Return Update<T> with merged updated data (if any).
+              // If no data from server,
+              const noData = Object.keys(updated || {}).length === 0;
+              // assume the server made no additional changes of its own and
+              // append `unchanged: true` to the original payload.
+              return noData ?
+                { ...data, unchanged: true } :
+                { id, changes: { ...changes, ...updated } };
+            }),
             tail
           );
       }
@@ -140,9 +173,18 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
 
   private handleError(reqData: RequestData) {
     return (err: any) => {
+      const ok = this.handleDelete404(err, reqData);
+      if (ok) { return ok; }
       const error = new DataServiceError(err, reqData);
       return new ErrorObservable(error);
     };
+  }
+
+  private handleDelete404(error: HttpErrorResponse, reqData: RequestData) {
+    if (error.status === 404 && reqData.method === 'DELETE' && this.delete404OK) {
+      return of({})
+    }
+    return undefined;
   }
 }
 
@@ -156,12 +198,12 @@ export class DefaultDataServiceFactory {
   constructor(
     protected http: HttpClient,
     protected httpUrlGenerator: HttpUrlGenerator,
-    @Optional() protected config: EntityDataServiceConfig,
+    @Optional() protected config: DefaultDataServiceConfig,
   ) {
-    config = config || new EntityDataServiceConfig();
+    config = config || {};
   }
 
   create<T>(entityName: string) {
-    return new DefaultDataService<T>(this.http, this.httpUrlGenerator, this.config, entityName);
+    return new DefaultDataService<T>(entityName, this.http, this.httpUrlGenerator, this.config);
   }
 }

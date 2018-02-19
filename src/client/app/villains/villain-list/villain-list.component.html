@@ -10,7 +10,7 @@
           <mat-icon>delete</mat-icon>
         </button>
         <div class="selectable-item" [class.selected]="villain === selectedVillain">
-          <div class="badge">{{villain.id}}</div>
+          <div class="badge truncate" [title]="villain.id">{{villain.id}}</div>
           <div class="item-text" (click)="onSelect(villain)">
             <div class="name">{{villain.name}}</div>
             <div class="saying">{{villain.saying}}</div>

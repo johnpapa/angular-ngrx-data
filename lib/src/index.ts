@@ -1,5 +1,11 @@
-export { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
+export {
+  DefaultDataService,
+  DefaultDataServiceConfig,
+  DefaultDataServiceFactory
+} from './default-data.service';
 export * from './entity.actions';
+export * from './entity-action-guard';
+export * from './entity-change-tracker';
 export { EntityCommands, EntityCacheCommands, EntityServerCommands } from './entity-commands';
 export * from './entity-collection.reducer';
 export * from './entity-collection-creator';

@@ -1,9 +1,26 @@
 ## Angular ngrx-data library ChangeLog
-<a name="1.0.0-alpha.7"></a>
-# release 1.0.0-alpha.7 (NOT YET. IN MASTER)
 
-* SAVE_UPDATE_SUCCESS calls upsert so can do the equivalent of a SAVE_UPSERT by dispatching a SAVE_UPDATE with a new entity.
+<a name="1.0.0-alpha.7"></a>
+# release 1.0.0-alpha.7 (2018-02-19)
+
+* Support both optimistic and pessimistic save strategies
+* New `EntityMetadata.entityDispatcherOptions` enables setting the strategy _per collection_.
+* Add `EntityChangeTracker`
+* `SAVE_UPDATE` processing calls _upsert_ so can do the equivalent of a `SAVE_UPSERT` by dispatching a `SAVE_UPDATE` with a new entity.
 Do this _only_ if your server supports upsert requests.
+* `EntityCollection<T>` interface moved to `./interfaces.ts`
+* `EntityDataServiceConfig` is now the `DefaultDataServiceConfig` and moved to `default-data.service.ts`
+* `NgrxDataModule.forRoot` no longer takes an `EntityDataServiceConfig`. Instead you should provide the `DefaultDataServiceConfig` in your own module providers.
+
+### Breaking Changes
+
+* The transition from `EntityDataServiceConfig` to `DefaultDataServiceConfig` is
+a breaking change. 
+See the ["_Introduction_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md)
+document for an example.
+
+* The previous save operations did not revert entities that failed to save.
+The next version will revert those entities after a save error.
 
 <a name="1.0.0-alpha.6"></a>
 # release 1.0.0-alpha.6 (2018-02-14)

@@ -1,6 +1,8 @@
+import { defaultSelectId } from './utils';
 import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
 import { EntityDispatcher, EntityDispatcherFactory } from './entity-dispatcher';
 import { EntityCommands } from './entity-commands';
+import { EntityDispatcherOptions } from './interfaces';
 import { Update } from './ngrx-entity-models';
 
 class Hero {
@@ -8,6 +10,9 @@ class Hero {
   name: string;
   saying?: string;
 }
+
+const defaultDispatcherOptions =
+  new EntityDispatcherFactory(null, null).defaultDispatcherOptions;
 
 describe('EntityDispatcher', () => {
 
@@ -17,9 +22,9 @@ describe('EntityDispatcher', () => {
     // only interested in calls to store.dispatch()
     const testStore = jasmine.createSpyObj('store', ['dispatch']);
 
-    const selectId = (entity: any) => entity.id;
+    const selectId = defaultSelectId;
     const entityActionFactory = new EntityActionFactory();
-    const dispatcher = new EntityDispatcher('Hero', entityActionFactory, testStore, selectId)
+    const dispatcher = new EntityDispatcher<Hero>('Hero', entityActionFactory, testStore, selectId, defaultDispatcherOptions)
     return { dispatcher, testStore };
   }
 });
@@ -48,199 +53,247 @@ export function commandDispatchTest(
     expect(dispatcher.entityName).toBe('Hero')
   });
 
-  it('#add(hero) dispatches SAVE_ADD', () => {
-    const hero: Hero = {id: 42, name: 'test'};
-    dispatcher.add(hero);
+  describe('Save actions', () => {
 
-    expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD);
-    expect(dispatchedAction().payload).toBe(hero);
+    // By default add and update are pessimistic and delete is optimistic.
+    // Tests override in the dispatcher method calls as necessary.
+
+    describe('(optimistic)', () => {
+      it('#add(hero) dispatches SAVE_ADD_OPTIMISTIC', () => {
+        const hero: Hero = {id: 42, name: 'test'};
+        dispatcher.add(hero, /* isOptimistic */ true);
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_OPTIMISTIC);
+        expect(dispatchedAction().payload).toBe(hero);
+      });
+
+      it('#delete(42) dispatches SAVE_DELETE_OPTIMISTIC for the id:42', () => {
+        dispatcher.delete(42); // optimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_OPTIMISTIC);
+        expect(dispatchedAction().payload).toBe(42);
+      });
+
+      it('#delete(hero) dispatches SAVE_DELETE_OPTIMISTIC for the hero.id', () => {
+        const id = 42;
+        const hero: Hero = {id, name: 'test'};
+
+        dispatcher.delete(hero); // optimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_OPTIMISTIC);
+        expect(dispatchedAction().payload).toBe(id);
+      });
+
+      it('#update(hero) dispatches SAVE_UPDATE_OPTIMISTIC with an update payload', () => {
+        const hero: Hero = {id: 42, name: 'test'}
+        const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
+
+        dispatcher.update(hero, /* isOptimistic */ true);
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE_OPTIMISTIC);
+        expect(dispatchedAction().payload).toEqual(expectedUpdate);
+      });
+    });
+
+    describe('(pessimistic)', () => {
+      it('#add(hero) dispatches SAVE_ADD', () => {
+        const hero: Hero = {id: 42, name: 'test'};
+        dispatcher.add(hero); // pessimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD);
+        expect(dispatchedAction().payload).toBe(hero);
+      });
+
+      it('#delete(42) dispatches SAVE_DELETE for the id:42', () => {
+        dispatcher.delete(42, /* isOptimistic */ false); // optimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
+        expect(dispatchedAction().payload).toBe(42);
+      });
+
+      it('#delete(hero) dispatches SAVE_DELETE for the hero.id', () => {
+        const id = 42;
+        const hero: Hero = {id, name: 'test'};
+
+        dispatcher.delete(hero, /* isOptimistic */ false); // optimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
+        expect(dispatchedAction().payload).toBe(id);
+      });
+
+      it('#update(hero) dispatches SAVE_UPDATE with an update payload', () => {
+        const hero: Hero = {id: 42, name: 'test'}
+        const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
+
+        dispatcher.update(hero); // pessimistic by default
+
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE);
+        expect(dispatchedAction().payload).toEqual(expectedUpdate);
+      });
+    });
   });
 
-  it('#delete(42) dispatches SAVE_DELETE for the id:42', () => {
-    dispatcher.delete(42);
+  describe('Query actions', () => {
+    it('#getAll() dispatches QUERY_ALL for the Hero collection', () => {
+      dispatcher.getAll();
 
-    expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
-    expect(dispatchedAction().payload).toBe(42);
-  });
+      expect(dispatchedAction().op).toBe(EntityOp.QUERY_ALL);
+      expect(dispatchedAction().entityName).toBe('Hero');
+    });
 
-  it('#delete(hero) dispatches SAVE_DELETE for the hero.id', () => {
-    const id = 42;
-    const hero: Hero = {id, name: 'test'};
+    it('#getByKey(42) dispatches QUERY_BY_KEY for the id:42', () => {
+      dispatcher.getByKey(42);
 
-    dispatcher.delete(hero);
+      expect(dispatchedAction().op).toBe(EntityOp.QUERY_BY_KEY);
+      expect(dispatchedAction().payload).toBe(42);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
-    expect(dispatchedAction().payload).toBe(id);
-  });
+    it('#getWithQuery(QueryParams) dispatches QUERY_MANY', () => {
+      dispatcher.getWithQuery({name: 'B'});
 
-  it('#getAll() dispatches QUERY_ALL for the Hero collection', () => {
-    dispatcher.getAll();
+      expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
+      expect(dispatchedAction().entityName).toBe('Hero');
+      expect(dispatchedAction().payload).toEqual({name: 'B'}, 'params')
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.QUERY_ALL);
-    expect(dispatchedAction().entityName).toBe('Hero');
-  });
+    it('#getWithQuery(string) dispatches QUERY_MANY', () => {
+      dispatcher.getWithQuery('name=B');
 
-  it('#getByKey(42) dispatches QUERY_BY_KEY for the id:42', () => {
-    dispatcher.getByKey(42);
-
-    expect(dispatchedAction().op).toBe(EntityOp.QUERY_BY_KEY);
-    expect(dispatchedAction().payload).toBe(42);
-  });
-
-  it('#getWithQuery(QueryParams) dispatches QUERY_MANY', () => {
-    dispatcher.getWithQuery({name: 'B'});
-
-    expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
-    expect(dispatchedAction().entityName).toBe('Hero');
-    expect(dispatchedAction().payload).toEqual({name: 'B'}, 'params')
-  });
-
-  it('#getWithQuery(string) dispatches QUERY_MANY', () => {
-    dispatcher.getWithQuery('name=B');
-
-    expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
-    expect(dispatchedAction().entityName).toBe('Hero');
-    expect(dispatchedAction().payload).toEqual('name=B', 'params')
-  });
-
-  it('#update(hero) dispatches SAVE_UPDATE with an update payload', () => {
-    const hero: Hero = {id: 42, name: 'test'}
-    const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
-
-    dispatcher.update(hero);
-
-    expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE);
-    expect(dispatchedAction().payload).toEqual(expectedUpdate);
+      expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
+      expect(dispatchedAction().entityName).toBe('Hero');
+      expect(dispatchedAction().payload).toEqual('name=B', 'params')
+    });
   });
 
   /*** Cache-only operations ***/
+  describe('Cache-only actions', () => {
+    it('#addAllToCache dispatches ADD_ALL', () => {
+      const heroes: Hero[] = [
+        { id: 42, name: 'test 42' },
+        { id: 84, name: 'test 84', saying: 'howdy' }
+      ];
+      dispatcher.addAllToCache(heroes);
 
-  it('#addAllToCache dispatches ADD_ALL', () => {
-    const heroes: Hero[] = [
-      { id: 42, name: 'test 42' },
-      { id: 84, name: 'test 84', saying: 'howdy' }
-    ];
-    dispatcher.addAllToCache(heroes);
+      expect(dispatchedAction().op).toBe(EntityOp.ADD_ALL);
+      expect(dispatchedAction().payload).toBe(heroes);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.ADD_ALL);
-    expect(dispatchedAction().payload).toBe(heroes);
-  });
+    it('#addOneToCache dispatches ADD_ONE', () => {
+      const hero: Hero = { id: 42, name: 'test' };
+      dispatcher.addOneToCache(hero);
 
-  it('#addOneToCache dispatches ADD_ONE', () => {
-    const hero: Hero = { id: 42, name: 'test' };
-    dispatcher.addOneToCache(hero);
+      expect(dispatchedAction().op).toBe(EntityOp.ADD_ONE);
+      expect(dispatchedAction().payload).toBe(hero);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.ADD_ONE);
-    expect(dispatchedAction().payload).toBe(hero);
-  });
+    it('#addManyToCache dispatches ADD_MANY', () => {
+      const heroes: Hero[] = [
+        { id: 42, name: 'test 42' },
+        { id: 84, name: 'test 84', saying: 'howdy' }
+      ];
+      dispatcher.addManyToCache(heroes);
 
-  it('#addManyToCache dispatches ADD_MANY', () => {
-    const heroes: Hero[] = [
-      { id: 42, name: 'test 42' },
-      { id: 84, name: 'test 84', saying: 'howdy' }
-    ];
-    dispatcher.addManyToCache(heroes);
+      expect(dispatchedAction().op).toBe(EntityOp.ADD_MANY);
+      expect(dispatchedAction().payload).toBe(heroes);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.ADD_MANY);
-    expect(dispatchedAction().payload).toBe(heroes);
-  });
+    it('#clearCache() dispatches REMOVE_ALL for the Hero collection', () => {
+      dispatcher.clearCache();
 
-  it('#clearCache() dispatches REMOVE_ALL for the Hero collection', () => {
-    dispatcher.clearCache();
+      expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ALL);
+      expect(dispatchedAction().entityName).toBe('Hero');
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ALL);
-    expect(dispatchedAction().entityName).toBe('Hero');
-  });
+    it('#removeOneFromCache(key) dispatches REMOVE_ONE', () => {
+      const id = 42;
+      dispatcher.removeOneFromCache(id);
 
-  it('#removeOneFromCache(key) dispatches REMOVE_ONE', () => {
-    const id = 42;
-    dispatcher.removeOneFromCache(id);
+      expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ONE);
+      expect(dispatchedAction().payload).toBe(id);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ONE);
-    expect(dispatchedAction().payload).toBe(id);
-  });
+    it('#removeOneFromCache(entity) dispatches REMOVE_ONE', () => {
+      const id = 42;
+      const hero: Hero = {id, name: 'test'};
+      dispatcher.removeOneFromCache(hero);
 
-  it('#removeOneFromCache(entity) dispatches REMOVE_ONE', () => {
-    const id = 42;
-    const hero: Hero = {id, name: 'test'};
-    dispatcher.removeOneFromCache(hero);
+      expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ONE);
+      expect(dispatchedAction().payload).toBe(id);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ONE);
-    expect(dispatchedAction().payload).toBe(id);
-  });
+    it('#removeManyFromCache(keys) dispatches REMOVE_MANY', () => {
+      const keys = [42, 84];
+      dispatcher.removeManyFromCache(keys);
 
-  it('#removeManyFromCache(keys) dispatches REMOVE_MANY', () => {
-    const keys = [42, 84];
-    dispatcher.removeManyFromCache(keys);
+      expect(dispatchedAction().op).toBe(EntityOp.REMOVE_MANY);
+      expect(dispatchedAction().payload).toBe(keys);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.REMOVE_MANY);
-    expect(dispatchedAction().payload).toBe(keys);
-  });
+    it('#removeManyFromCache(entities) dispatches REMOVE_MANY', () => {
+      const heroes: Hero[] = [
+        { id: 42, name: 'test 42' },
+        { id: 84, name: 'test 84', saying: 'howdy' }
+      ];
+      const keys = heroes.map(h => h.id);
+      dispatcher.removeManyFromCache(heroes);
 
-  it('#removeManyFromCache(entities) dispatches REMOVE_MANY', () => {
-    const heroes: Hero[] = [
-      { id: 42, name: 'test 42' },
-      { id: 84, name: 'test 84', saying: 'howdy' }
-    ];
-    const keys = heroes.map(h => h.id);
-    dispatcher.removeManyFromCache(heroes);
+      expect(dispatchedAction().op).toBe(EntityOp.REMOVE_MANY);
+      expect(dispatchedAction().payload).toEqual(keys);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.REMOVE_MANY);
-    expect(dispatchedAction().payload).toEqual(keys);
-  });
+    it('#toUpdate() helper method creates Update<T>', () => {
+      const hero: Partial<Hero> = { id: 42, name: 'test' };
+      const expected = { id: 42, changes: hero };
+      const update = dispatcher.toUpdate(hero);
+      expect(update).toEqual(expected);
+    });
 
-  it('#toUpdate() helper method creates Update<T>', () => {
-    const hero: Partial<Hero> = { id: 42, name: 'test' };
-    const expected = { id: 42, changes: hero };
-    const update = dispatcher.toUpdate(hero);
-    expect(update).toEqual(expected);
-  });
+    it('#updateOneInCache dispatches UPDATE_ONE', () => {
+      const hero: Partial<Hero> = { id: 42, name: 'test' };
+      const update = { id: 42, changes: hero };
+      dispatcher.updateOneInCache(hero);
 
-  it('#updateOneInCache dispatches UPDATE_ONE', () => {
-    const hero: Partial<Hero> = { id: 42, name: 'test' };
-    const update = { id: 42, changes: hero };
-    dispatcher.updateOneInCache(hero);
+      expect(dispatchedAction().op).toBe(EntityOp.UPDATE_ONE);
+      expect(dispatchedAction().payload).toEqual(update);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.UPDATE_ONE);
-    expect(dispatchedAction().payload).toEqual(update);
-  });
+    it('#updateManyInCache dispatches UPDATE_MANY', () => {
+      const heroes: Partial<Hero>[] = [
+        { id: 42, name: 'test 42' },
+        { id: 84, saying: 'ho ho ho' }
+      ];
+      const updates = [
+        { id: 42, changes: heroes[0] },
+        { id: 84, changes: heroes[1] }
+      ];
+      dispatcher.updateManyInCache(heroes);
 
-  it('#updateManyInCache dispatches UPDATE_MANY', () => {
-    const heroes: Partial<Hero>[] = [
-      { id: 42, name: 'test 42' },
-      { id: 84, saying: 'ho ho ho' }
-    ];
-    const updates = [
-      { id: 42, changes: heroes[0] },
-      { id: 84, changes: heroes[1] }
-    ];
-    dispatcher.updateManyInCache(heroes);
+      expect(dispatchedAction().op).toBe(EntityOp.UPDATE_MANY);
+      expect(dispatchedAction().payload).toEqual(updates);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.UPDATE_MANY);
-    expect(dispatchedAction().payload).toEqual(updates);
-  });
+    it('#upsertOneInCache dispatches UPSERT_ONE', () => {
+      const hero: Partial<Hero> = { id: 42, name: 'test' };
+      const upsert = { id: 42, changes: hero };
+      dispatcher.upsertOneInCache(hero);
 
-  it('#upsertOneInCache dispatches UPSERT_ONE', () => {
-    const hero: Partial<Hero> = { id: 42, name: 'test' };
-    const upsert = { id: 42, changes: hero };
-    dispatcher.upsertOneInCache(hero);
+      expect(dispatchedAction().op).toBe(EntityOp.UPSERT_ONE);
+      expect(dispatchedAction().payload).toEqual(upsert);
+    });
 
-    expect(dispatchedAction().op).toBe(EntityOp.UPSERT_ONE);
-    expect(dispatchedAction().payload).toEqual(upsert);
-  });
+    it('#upsertManyInCache dispatches UPSERT_MANY', () => {
+      const heroes: Partial<Hero>[] = [
+        { id: 42, name: 'test 42' },
+        { id: 84, saying: 'ho ho ho' }
+      ];
+      const upserts = [
+        { id: 42, changes: heroes[0] },
+        { id: 84, changes: heroes[1] }
+      ];
+      dispatcher.upsertManyInCache(heroes);
 
-  it('#upsertManyInCache dispatches UPSERT_MANY', () => {
-    const heroes: Partial<Hero>[] = [
-      { id: 42, name: 'test 42' },
-      { id: 84, saying: 'ho ho ho' }
-    ];
-    const upserts = [
-      { id: 42, changes: heroes[0] },
-      { id: 84, changes: heroes[1] }
-    ];
-    dispatcher.upsertManyInCache(heroes);
-
-    expect(dispatchedAction().op).toBe(EntityOp.UPSERT_MANY);
-    expect(dispatchedAction().payload).toEqual(upserts);
+      expect(dispatchedAction().op).toBe(EntityOp.UPSERT_MANY);
+      expect(dispatchedAction().payload).toEqual(upserts);
+    });
   });
 }

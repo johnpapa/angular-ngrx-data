@@ -64,8 +64,12 @@ describe('EntityEffects (normal testing)', () => {
 
   function expectCompletion(completion: EntityAction) {
     effects.persist$.subscribe(
-      result => expect(result).toEqual(completion),
-      fail
+      result => {
+        expect(result).toEqual(completion)
+      },
+      e => {
+        fail(e);
+      }
     )
   }
 
@@ -233,6 +237,84 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_UPDATE_ERROR when service fails', () => {
     const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
     const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE, update);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = of(action);
+    const response = new ErrorObservable(error);
+    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_ADD_OPTIMISTIC_SUCCESS with the hero on success', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC_SUCCESS, hero);
+
+    actions$.stream = of(action);
+    const response = of(hero);
+    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_ADD_OPTIMISTIC_ERROR when service fails', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_OPTIMISTIC, hero);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = of(action);
+    const response = new ErrorObservable(error);
+    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_DELETE_OPTIMISTIC_SUCCESS on success', () => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC_SUCCESS);
+
+    actions$.stream = of(action);
+    const response = of(undefined);
+    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_DELETE_OPTIMISTIC_ERROR when service fails', () => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_OPTIMISTIC, 42);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
+    const error = completion.payload.error;
+
+    actions$.stream = of(action);
+    const response = new ErrorObservable(error);
+    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_UPDATE_OPTIMISTIC_SUCCESS with the hero on success', () => {
+    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC_SUCCESS, update);
+
+    actions$.stream = of(action);
+    const response = of(update);
+    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
+
+    expectCompletion(completion);
+  });
+
+  it('should return a SAVE_UPDATE_OPTIMISTIC_ERROR when service fails', () => {
+    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC, update);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
     const error = completion.payload.error;

@@ -3,9 +3,8 @@ import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { EntityCache } from './interfaces';
-import { EntityCollection } from './entity-definition';
-import { EntityCollectionCreator } from './entity-collection-creator';
+import { EntityCache, EntityCollection } from './interfaces';
+import { EntityCollectionCreator, createEmptyEntityCollection } from './entity-collection-creator';
 import { EntityMetadata, EntityMetadataMap } from './entity-metadata';
 import { PropsFilterFnFactory } from './entity-filters';
 import { createEntitySelectors, EntitySelectors } from './entity.selectors';
@@ -29,15 +28,7 @@ describe('EntitySelectors$', () => {
   };
 
   /** As entityAdapter.initialState would create it */
-  const emptyHeroCollection: HeroCollection = {
-    ids: [],
-    entities: {},
-    filter: undefined,
-    loaded: false,
-    loading: false,
-    foo: 'foo',
-    bar: 3.14
-  }
+  const emptyHeroCollection = createHeroState({ foo: 'foo', bar: 3.14 })
 
   const villainMetadata: EntityMetadata<Villain> = {
     entityName: 'Villain',
@@ -50,15 +41,12 @@ describe('EntitySelectors$', () => {
 
     const entityCacheSelector = createFeatureSelector<EntityCache>('entityCache');
 
-    const initialState: HeroCollection = {
+    const initialState = createHeroState({
       ids: [1],
       entities: {1: {id: 1, name: 'A'}},
-      filter: '',
-      loaded: false,
-      loading: false,
       foo: 'foo foo',
       bar: 42
-    };
+    })
 
     beforeEach(() => {
       collectionCreator  = jasmine.createSpyObj('entityCollectionCreator', ['create']);
@@ -216,15 +204,14 @@ describe('EntitySelectors$', () => {
       // The default state feature exists to prevent selectors$ subscriptions
       // from bombing before the collection is initialized or
       // during time-travel debugging.
-      const defaultHeroState: HeroCollection = {
+      const defaultHeroState = createHeroState({
         ids: [1],
         entities: {1: {id: 1, name: 'A'}},
-        filter: '',
         loaded: true,
-        loading: false,
         foo: 'foo foo',
         bar: 42
-      };
+      });
+
       collectionCreator.create.and.returnValue(defaultHeroState);
       const selectors$ =
         factory.create<Hero, HeroSelectors$>('Hero', selectors); // <- override default state
@@ -244,6 +231,10 @@ describe('EntitySelectors$', () => {
 });
 
 /////// Test values and helpers /////////
+
+function createHeroState(state: Partial<HeroCollection>): HeroCollection {
+  return { ...createEmptyEntityCollection<Hero>(), ...state } as HeroCollection;
+}
 
 function nameFilter<T>(entities: T[], pattern: string) {
   return PropsFilterFnFactory<any>(['name'])(entities, pattern);

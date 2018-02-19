@@ -1,4 +1,4 @@
-import { EntityMetadataMap, PropsFilterFnFactory } from 'ngrx-data';
+import { defaultSelectId, EntityMetadataMap, PropsFilterFnFactory } from 'ngrx-data';
 
 import { Hero, Villain } from '../core/model';
 
@@ -14,7 +14,7 @@ export function sortByName(a: { name: string }, b: { name: string }): number {
  * It isn't necessary because `id` is the primary key property by default.
  */
 export function selectId<T extends { id: any }>(entity: T) {
-  return entity.id;
+  return entity == null ? undefined : entity.id;
 }
 
 /** Filter for entities whose name matches the case-insensitive pattern */
@@ -29,15 +29,19 @@ export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
 ////////////
 
 export const entityMetadata: EntityMetadataMap = {
+
   Hero: {
     entityName: 'Hero', // required for minification
-    selectId, // not necessary but shows you can supply a function
+    selectId: selectId, // not necessary but shows you can supply a function
     sortComparer: sortByName,
     filterFn: nameFilter
   },
+
   Villain: {
     entityName: 'Villain', // required for minification
-    filterFn: nameAndSayingFilter
+    filterFn: nameAndSayingFilter,
+    // Optional: set certain default dispatcher behaviors
+    entityDispatcherOptions: { optimisticAdd: true, optimisticUpdate: true }
   }
 };
 

@@ -34,6 +34,21 @@ For example, querying all heroes results in the entity type, `QUERY_ALL [Hero]`.
 If you don't like that approach you can replace the `formatActionType()` method with a generator that produces action type names that are more to your liking.
 The ngrx-data library doesn't make decisions based on the `Action.type`.
 
+## Custom _EntityDispatcher_
+
+### Change the default save strategy
+
+The dispatcher's `add()`, `update()`, `delete()` methods dispatch
+_optimistic_ or _pessimistic_ save actions based on settings in the `EntityDispatcherOptions`.
+
+These options come from the `EntityDispatcherFactory` that creates the dispatcher.
+This factory gets the options from the entity's metadata.
+But where the metadata lack options, the factory relies on its `defaultDispatcherOptions`.
+
+You can set these default options directly by injecting the `EntityDispatcherFactory`
+and re-setting `defaultDispatcherOptions` _before_ creating dispatchers
+(or creating an `EntityService` which creates a dispatcher).
+
 ## Custom _effects_
 
 The _ngrx-data_ library has one ngrx `@Effect`, the `EntityEffects` class.

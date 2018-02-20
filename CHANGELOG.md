@@ -5,6 +5,24 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.1"></a>
+# 0.2.1 (2018-02-19)
+- Changed _ngrx-data_ paths in `tsconfig.app.json` and `tsconfig.spec.json`
+to point to `"../../lib/src"` instead of `"../../dist/ngrx-data"`.
+
+  This enables debugging and rebuilding of the app when you change an ngrx-data library
+  file while running `ng serve`.
+  Without that change, could only debug into the consolidated, build `ngrx-data.js` file
+  (no `.ts`!) and had to re-run `npm run build-lib` to get lib changes to propagate.
+
+  You still see TWO files in the debugger for each source file, both claiming to be from `.ts`.
+  The one you want always ends `../lib/src/file-name.ts`.
+
+  Do not know if this change affects a production build of the demo app.
+  Don't think we care.
+
+  Should not affect the builds of the _ngrx-data lib packages_!
+
 <a name="0.2.0"></a>
 # 0.2.0 (2018-02-13)
 - Moved library CHANGELOG.md to the `../lib` folder

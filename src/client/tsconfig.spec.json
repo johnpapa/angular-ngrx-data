@@ -4,9 +4,9 @@
     "outDir": "../../out-tsc/spec",
     "module": "commonjs",
     "target": "es5",
-    "baseUrl": "",
+    "baseUrl": ".",
     "paths": {
-      "ngrx-data": ["../../dist/ngrx-data"]
+      "ngrx-data": ["../../lib/src"]
     },
     "types": [
       "jasmine",

@@ -120,18 +120,13 @@ and look for the library files by name.
 
 > In chrome, type [Command-P] and letters of the file name.
 
-Unfortunately, when _running the app_ (e.g., with `ng serve`), 
-you cannot access the _ngrx-data_ library source files.
-The browser dev tools only reveal the _consolidated build file_, `ngrx-data.js`,
-which is ECMA 2015, not TypeScript.
+When _running the app_ (e.g., with `ng serve`), 
+the browser dev tools give you TWO choices for a given TypeScript source file, both claiming to be from `.ts`.
 
-> You can still access the application source files.
+The one you want for library and app files ends in `/lib/src/file-name.ts` and
+`/src/client/app/path/file-name.ts` respectively.
 
-The app browser does not refresh when you make changes to the library.
-You must re-generate the library packages with `npm run build-lib`
-to see your changes.
-
-We are looking into this problem and hope to have a better experience soon.
+> Hope to solve the _two file_ problem.
 
 ## Build the app against the npm package
 
@@ -188,6 +183,14 @@ The `src/server` folder has code for a local node web api server, configured for
 > * Explain how to build and run the server.
 > * Explain how to build and serve the mongo db
 
+## Bad/surplus _npm scripts_
+
+We know there are a great many npm script commands in `package.json`,
+many (most?) of which don't work.
+
+They're on our list for future cleanup.
+Please don't create issues for them
+(although PRs that fix them are welcome).
 <!-- 
 
 >TODO: Fix the broken server-oriented commands in package.json

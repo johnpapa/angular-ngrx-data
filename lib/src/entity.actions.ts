@@ -137,13 +137,16 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
     }
   }
 
+  // Can't name it `filter` because of `import 'rxjs/add/operator/filter';` (issue 97).
+  // 'where' was an alias for `filter` long ago but no import risk now.
+
   /**
-   * Filter actions based on a predicate.
+   * Filter EntityActions based on a predicate.
    * @param predicate -returns true if EntityAction passes the test.
    * Example:
-   *  this.actions$.filter(ea => ea.op.includes(EntityAction.OP_SUCCESS)) // Successful hero action
+   *  this.actions$.where(ea => ea.op.includes(EntityAction.OP_SUCCESS)) // Successful hero action
    */
-  filter(predicate: (ea: EntityAction) => boolean) {
+  where(predicate: (ea: EntityAction) => boolean) {
     return filter(predicate)(this) as EntityActions;
   }
 
@@ -173,12 +176,12 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
     const names: string[] = flattenArgs(allowedEntityNames);
     switch (names.length) {
       case 0:
-        return this.filter(ea => !!ea.entityName);
+        return this.where(ea => !!ea.entityName);
       case 1:
         const name = names[0];
-        return this.filter(ea => name === ea.entityName);
+        return this.where(ea => name === ea.entityName);
       default:
-        return this.filter(ea => ea.entityName && names.some(n => n === ea.entityName));
+        return this.where(ea => ea.entityName && names.some(n => n === ea.entityName));
     }
   }
 
@@ -197,7 +200,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
   ofOp(...allowedOps: any[]) {
     // string is the runtime type of an EntityOp enum
     const ops: string[] = flattenArgs(allowedOps);
-    return this.filter(ea => ea.op && ops.some(op => op === ea.op));
+    return this.where(ea => ea.op && ops.some(op => op === ea.op));
   }
 
   /**
@@ -214,7 +217,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
   ofType(...allowedTypes: string[]): EntityActions;
   ofType(...allowedTypes: any[]): EntityActions {
     const types: string[] = flattenArgs(allowedTypes);
-    return this.filter(ea => !!ea.entityName && types.some(type => type === ea.type));
+    return this.where(ea => !!ea.entityName && types.some(type => type === ea.type));
   }
 
   /**

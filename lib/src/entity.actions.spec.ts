@@ -103,9 +103,9 @@ describe('EntityActions', () => {
     results = [];
   });
 
-  it('#filter', () => {
+  it('#where', () => {
     // Filter for the 'Hero' EntityAction with a payload
-    eas.filter(ea => ea.entityName === 'Hero' && ea.payload != null)
+    eas.where(ea => ea.entityName === 'Hero' && ea.payload != null)
       .subscribe(ea => results.push(ea));
 
     // This is it

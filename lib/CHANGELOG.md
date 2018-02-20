@@ -1,7 +1,7 @@
 ## Angular ngrx-data library ChangeLog
 
 <a name="1.0.0-alpha.8"></a>
-# release 1.0.0-alpha.7 (2018-02-19)
+# release 1.0.0-alpha.8 (2018-02-19)
 * renamed `EntityActions.filter` to `EntityActions.where`.
 Fixes conflict with `import 'rxjs/add/operator/filter';` #97 [minor breaking change]
 

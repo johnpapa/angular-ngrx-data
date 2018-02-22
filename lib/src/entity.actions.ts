@@ -128,7 +128,7 @@ export interface EntityActionDataServiceError {
  */
 @Injectable()
 export class EntityActions<V extends EntityAction = EntityAction> extends Observable<V> {
-  // Inject the ngrx/entity Actions observable that watches dispatches to the store
+  // Inject the ngrx/effect Actions observable that watches dispatches to the store
   constructor(source?: Actions) {
     super();
 

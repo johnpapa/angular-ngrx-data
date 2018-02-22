@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
-import { Actions, Effect } from '@ngrx/effects';
+import { Effect } from '@ngrx/effects';
 
 import { Observable } from 'rxjs/Observable';
 import { concatMap, catchError, map } from 'rxjs/operators';
@@ -28,6 +28,8 @@ const persistOps: EntityOp[] = [
 export class EntityEffects {
 
   @Effect()
+  // Concurrent persistence requests considered unsafe.
+  // `concatMap` ensures each request must complete-or-fail before making the next request.
   persist$ = this.actions$.ofOp(persistOps).pipe(concatMap(action => this.persist(action)));
 
   constructor(

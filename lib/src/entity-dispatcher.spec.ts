@@ -1,6 +1,6 @@
 import { defaultSelectId } from './utils';
 import { EntityAction, EntityActionFactory, EntityOp } from './entity.actions';
-import { EntityDispatcher, EntityDispatcherFactory } from './entity-dispatcher';
+import { EntityDispatcher, EntityDispatcherBase, EntityDispatcherFactory } from './entity-dispatcher';
 import { EntityCommands } from './entity-commands';
 import { EntityDispatcherOptions } from './interfaces';
 import { Update } from './ngrx-entity-models';
@@ -24,7 +24,7 @@ describe('EntityDispatcher', () => {
 
     const selectId = defaultSelectId;
     const entityActionFactory = new EntityActionFactory();
-    const dispatcher = new EntityDispatcher<Hero>('Hero', entityActionFactory, testStore, selectId, defaultDispatcherOptions)
+    const dispatcher = new EntityDispatcherBase<Hero>('Hero', entityActionFactory, testStore, selectId, defaultDispatcherOptions)
     return { dispatcher, testStore };
   }
 });

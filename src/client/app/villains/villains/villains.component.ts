@@ -1,50 +1,32 @@
-import { Component, OnInit, ChangeDetectionStrategy, OnDestroy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { AppSelectors } from '../../store/app-config';
-import { EntityService, EntityServiceFactory } from 'ngrx-data';
-
 import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { takeUntil } from 'rxjs/operators';
 
-import { Villain, IdGeneratorService } from '../../core';
+import { Villain } from '../../core';
+import { VillainsService } from '../villains.service';
 
 @Component({
-  selector: 'app-villain-search',
+  selector: 'app-villains',
   templateUrl: './villains.component.html',
   styleUrls: ['./villains.component.scss'],
+  providers: [ VillainsService ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainsComponent implements OnDestroy, OnInit {
-  private onDestroy = new Subject();
+export class VillainsComponent implements OnInit {
   addingVillain = false;
   selectedVillain: Villain = null;
-  villainService: EntityService<Villain>;
 
-  dataSource$: Observable<string>;
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
 
-  constructor(
-    appSelectors: AppSelectors,
-    entityServiceFactory: EntityServiceFactory,
-    private idGenerator: IdGeneratorService) {
-
-    this.dataSource$ = appSelectors.dataSource$();
-    this.villainService = entityServiceFactory.create<Villain>('Villain');
-    this.filteredVillains$ = this.villainService.filteredEntities$;
-    this.loading$ = this.villainService.loading$;
+  constructor(public villainsService: VillainsService) {
+    this.filteredVillains$ = this.villainsService.filteredEntities$;
+    this.loading$ = this.villainsService.loading$;
   }
 
   ngOnInit() {
-    this.dataSource$
-      .pipe(takeUntil(this.onDestroy))
-      .subscribe((value: string) => this.getVillains());
-  }
-
-  ngOnDestroy() {
-    this.onDestroy.next();
+    this.villainsService.initialize();
   }
 
   clear() {
@@ -54,7 +36,7 @@ export class VillainsComponent implements OnDestroy, OnInit {
 
   deleteVillain(villain: Villain) {
     this.unselect();
-    this.villainService.delete(villain.id);
+    this.villainsService.delete(villain.id);
   }
 
   enableAddMode() {
@@ -63,7 +45,7 @@ export class VillainsComponent implements OnDestroy, OnInit {
   }
 
   getVillains() {
-    this.villainService.getAll();
+    this.villainsService.getAll();
     this.unselect();
   }
 
@@ -73,14 +55,11 @@ export class VillainsComponent implements OnDestroy, OnInit {
   }
 
   update(villain: Villain) {
-    this.villainService.update(villain);
+    this.villainsService.update(villain);
   }
 
   add(villain: Villain) {
-    // MUST generate id for villains because
-    // it is configured for optimistic ADD in EntityMetadata.
-    const id = this.idGenerator.nextId();
-    this.villainService.add({ ...villain, id });
+    this.villainsService.add(villain);
   }
 
   unselect() {

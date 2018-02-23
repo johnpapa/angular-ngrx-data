@@ -4,7 +4,7 @@
     <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain"
       matTooltip="Add a new villain">Add</button>
   </div>
-  <app-filter [entityService]="villainService" filterPlaceholder="Filter by each villain's name and saying"
+  <app-filter [entityService]="villainsService" filterPlaceholder="Filter by each villain's name and saying"
     class="filter-panel"></app-filter>
 </div>
 <div class="content-container">

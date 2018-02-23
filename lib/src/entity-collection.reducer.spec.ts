@@ -17,8 +17,8 @@ export class Hero { id: number; name: string; power?: string }
 export class Villain { key: string; name: string; }
 
 const metadata: EntityMetadataMap = {
-  Hero: {entityName: 'Hero'},
-  Villain: {entityName: 'Villain', selectId: (villain: Villain) => villain.key },
+  Hero: {},
+  Villain: { selectId: (villain: Villain) => villain.key },
 }
 
 describe('EntityCollectionReducer', () => {

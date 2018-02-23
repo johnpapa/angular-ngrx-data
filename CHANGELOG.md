@@ -5,6 +5,14 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.2"></a>
+# 0.2.2 (2018-02-23)
+
+Revises the demo app and updates the docs to conform to alpha.9
+* Adds `HeroesService` and `VillainsService`
+* Updates the `EntityMetadata`
+* Adds `HeroesV1Component` to illustrate using `EntityServiceFactory` directly w/o `HeroService`.
+
 <a name="0.2.1"></a>
 # 0.2.1 (2018-02-19)
 - Changed _ngrx-data_ paths in `tsconfig.app.json` and `tsconfig.spec.json`

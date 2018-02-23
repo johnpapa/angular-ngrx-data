@@ -9,19 +9,23 @@ Each _entity type_ appears as named instance of the _ngrx-data_ [**`EntityMetada
 
 You can specify metadata for several entities at the same time in an **`EntityMetadataMap`**.
 
-Here is an example `EntityMetadataMap` from the demo app that defines metadata for two entities, `Hero` and `Villain`.
+Here is an example `EntityMetadataMap` similar to the one in the demo app 
+that defines metadata for two entities, `Hero` and `Villain`.
 
 ```javascript
 export const appEntityMetadata: EntityMetadataMap = {
   Hero: {
-    entityName: 'Hero',
-    selectId,
-    sortComparer: sortByName,
-    filterFn: nameFilter
+    /* optional settings */
+    filterFn: nameFilter,
+    sortComparer: sortByName
   },
   Villain: {
-    entityName: 'Villain',
-    filterFn: nameAndSayingFilter
+    villainSelectId, // necessary if key is not `id`
+
+    /* optional settings */
+    entityName: 'Villain', // optional because same as map key
+    filterFn: nameAndSayingFilter,
+    entityDispatcherOptions: { optimisticAdd: true, optimisticUpdate: true }
   }
 };
 ```
@@ -72,7 +76,16 @@ Type `T` is your application's TypeScript representation of that entity; it can 
 ### _entityName_
 
 The `entityName` of the type is the only **required metadata property**. 
-It's the unique _key_ of the entity type's metadata in the `EntityMetadataMap` and in cache. 
+It's the unique _key_ of the entity type's metadata in cache. 
+
+It _must_ be specified for individual `EntityMetadata` instances.
+If you omit it in an `EntityMetadataMap`, the map _key_ becomes the `entityName` as in this example.
+
+```javascript
+const map = {
+  Hero: {} // "Hero" becomes the entityName
+}
+```
 
 The spelling and case (typically PascalCase) of the `entityName` is important for _ngrx-data_ conventions. It appears in the generated [_entity actions_](docs/entity-actions), in error messages, and in the persistence operations.
 
@@ -167,6 +180,19 @@ export function sortByName(a: { name: string }, b: { name: string }): number {
 Run the demo app and try changing existing hero names or adding new heroes. 
 
 Your app can call the `selectKey` selector to see the collection's `ids` property, which returns an array of the collection's primary key values in sorted order.
+
+<a name="entity-dispatcher-options"></a>
+### _entityDispatcherOptions_
+
+These options determine the default behavior of the collection's _dispatcher_ which sends actions to the reducers and effects.
+
+A dispatcher save command will add, delete, or update
+the collection _before_ sending a corresponding HTTP request (_optimistic_) or _after_ (_pessimistic_).
+The caller can specify in the optional `isOptimistic` parameter.
+If the caller doesn't specify, the dispatcher chooses based on default options.
+
+The _default_ defaults are the safe ones: _optimistic_ for delete and _pessimistic_ for add and update.
+You can override those choices here.
 
 <a name=additional-collection-state></a>
 ### _additionalCollectionState_

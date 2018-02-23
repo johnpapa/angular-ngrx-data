@@ -45,7 +45,7 @@ export interface EntitySelectors$<T> {
   loading$: Observable<boolean> | Store<boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  selectOriginalValues: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 }
 
 @Injectable()

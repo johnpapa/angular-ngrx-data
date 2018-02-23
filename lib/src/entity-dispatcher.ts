@@ -12,7 +12,27 @@ import { toUpdateFactory } from './utils';
 /**
  * Dispatches Entity-related commands to effects and reducers
  */
-export class EntityDispatcher<T> implements EntityCommands<T> {
+export interface EntityDispatcher<T> extends EntityCommands<T> {
+  /** Name of the entity type */
+  entityName: string;
+
+  /**
+   * Utility class with methods to validate EntityAction payloads.
+   */
+  guard: EntityActionGuard<T>;
+
+  /** Returns the primary key (id) of this entity */
+  selectId: IdSelector<T>;
+
+  /**
+   * Convert an entity (or partial entity) into the `Update<T>` object
+   * `update...` and `upsert...` methods take `Update<T>` args
+   */
+  toUpdate: (entity: Partial<T>) => Update<T>;
+}
+
+
+export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
 
   /**
    * Utility class with methods to validate EntityAction payloads.
@@ -286,7 +306,7 @@ export class EntityDispatcherFactory {
   /**
    * Create an `EntityDispatcher` for an entity type `T` and store.
    */
-  create<T, D extends EntityDispatcher<T> = EntityDispatcher<T>>(
+  create<T>(
     /** Name of the entity type */
     entityName: string,
     /**
@@ -298,9 +318,9 @@ export class EntityDispatcherFactory {
      * `add()` is optimistic or pessimistic;
      */
     dispatcherOptions: Partial<EntityDispatcherOptions> = {}
-  ): D {
+  ): EntityDispatcher<T> {
     // merge w/ dispatcher options with defaults
     const options: EntityDispatcherOptions =
       Object.assign({}, this.defaultDispatcherOptions, dispatcherOptions);
-    return <D> new EntityDispatcher<T>(entityName, this.entityActionFactory, this.store, selectId, options)}
+    return new EntityDispatcherBase<T>(entityName, this.entityActionFactory, this.store, selectId, options)}
 }

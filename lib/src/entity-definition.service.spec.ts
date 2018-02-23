@@ -10,7 +10,7 @@ import { EntityDefinitionService } from './entity-definition.service';
 class LazyModule {
 
   lazyMetadataMap = {
-    Sidekick: { entityName: 'Sidekick' }
+    Sidekick: { }
   };
 
   constructor(entityDefinitionService: EntityDefinitionService) {
@@ -25,8 +25,8 @@ describe('EntityDefinitionService', () => {
 
   beforeEach(() => {
     metadataMap = {
-      Hero: { entityName: 'Hero' },
-      Villain: { entityName: 'Villain' }
+      Hero: { },
+      Villain: { }
     };
 
     TestBed.configureTestingModule({
@@ -70,14 +70,25 @@ describe('EntityDefinitionService', () => {
 
     it('can register new definitions by metadata map', () => {
       service.registerMetadataMap({
-        Foo: {entityName: 'Foo' },
-        Bar: {entityName: 'Bar' }
+        Foo: { },
+        Bar: { }
       });
 
       let def = service.getDefinition('Foo');
       expect(def).toBeDefined('Foo');
       def = service.getDefinition('Bar');
       expect(def).toBeDefined('Bar');
+      def = service.getDefinition('Hero');
+      expect(def).toBeDefined('Hero still defined');
+    });
+
+    it('entityName property should trump map key', () => {
+      service.registerMetadataMap({
+        1: { entityName: 'Foo' } // key and entityName differ
+      });
+
+      let def = service.getDefinition('Foo');
+      expect(def).toBeDefined('Foo');
       def = service.getDefinition('Hero');
       expect(def).toBeDefined('Hero still defined');
     });

@@ -53,13 +53,11 @@ You begin with a description of the entity model in a few lines of metadata.
 // Metadata for the entity model
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
-    entityName: 'Hero',
     sortComparer: sortByName, // optional
     filterFn: nameFilter      // optional
   },
   
   Villain: {
-    entityName: 'Villain',
     filterFn: nameAndSayingFilter // optional
   }
 };

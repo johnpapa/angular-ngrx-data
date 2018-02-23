@@ -1,10 +1,33 @@
-## Angular ngrx-data library ChangeLog
+# Angular ngrx-data library ChangeLog
+
+<a name="1.0.0-alpha.9"></a>
+# release 1.0.0-alpha.9 (2018-02-23)
+* Can create a `EntityService<T>` with new `EntityServiceBase<T>()`
+* Can create an `EntityDispatcher<T>` with new `EntityDispatcherBase()`.
+* Refactored `EntityServiceFactory` and `EntityDispatcherFactory` to suit.
+* Fixed `EntityCommands` interface for `isOptimistic` flag
+* `EntityMetadataMap.entityName` no longer required because can determine `entityName` from the map's key.
+
+Significant refactoring of `EntityService<T>` so can create write a class that
+derives from `EntityServiceBase<T>` as in this example.
+
+```
+@Injectable()
+export class HeroesService extends EntityServiceBase<Hero>{ ... }
+```
+
+See demo app's `HeroesService` and `VillainsService`.
+
+`EntityServiceFactory.create<T>` still works.
+It is useful for simple service creation
+and when defining an entity service class with much smaller API service.
+
+
 
 <a name="1.0.0-alpha.8"></a>
 # release 1.0.0-alpha.8 (2018-02-19)
 * renamed `EntityActions.filter` to `EntityActions.where`.
 Fixes conflict with `import 'rxjs/add/operator/filter';` #97 [minor breaking change]
-
 
 <a name="1.0.0-alpha.7"></a>
 # release 1.0.0-alpha.7 (2018-02-19)

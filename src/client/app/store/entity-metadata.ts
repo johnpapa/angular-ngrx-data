@@ -13,7 +13,7 @@ export function sortByName(a: { name: string }, b: { name: string }): number {
  * This function is a demonstration.
  * It isn't necessary because `id` is the primary key property by default.
  */
-export function selectId<T extends { id: any }>(entity: T) {
+export function villainSelectId<T extends { id: any }>(entity: T) {
   return entity == null ? undefined : entity.id;
 }
 
@@ -31,16 +31,15 @@ export function nameAndSayingFilter<T>(entities: T[], pattern: string) {
 export const entityMetadata: EntityMetadataMap = {
 
   Hero: {
-    entityName: 'Hero', // required for minification
-    selectId: selectId, // not necessary but shows you can supply a function
-    sortComparer: sortByName,
-    filterFn: nameFilter
+    filterFn: nameFilter,    // optional
+    sortComparer: sortByName // optional
   },
 
   Villain: {
-    entityName: 'Villain', // required for minification
-    filterFn: nameAndSayingFilter,
-    // Optional: set certain default dispatcher behaviors
+    entityName: 'Villain', // optional because same as map key
+    selectId: villainSelectId,  //  a non-default function
+    filterFn: nameAndSayingFilter, // optional
+    // Optional: overrides certain default dispatcher behaviors
     entityDispatcherOptions: { optimisticAdd: true, optimisticUpdate: true }
   }
 };

@@ -45,8 +45,24 @@ creates an `EntityService` for `Hero` entities.
  
 >We'll go inside the factory [later in this guide](#entity-service-factory).
 
-Alternatively, we could have created a single `HeroEntityService` elsewhere, perhaps in the `AppModule`, and injected it into the component's constructor.
-That's the app designer's choice.
+
+### Create the _EntityService_ as a class
+
+Alternatively, you could have created a single `HeroEntityService` elsewhere, perhaps in the `AppModule`, and injected it into the component's constructor.
+
+There are two basic ways to create the service class.
+
+1. Derive from `EntityServiceBase<T>`
+1. Write a `HeroEntityService` with just the API you need.
+
+When `HeroEntityService` derives from `EntityServiceBase<T>` it must inject the `EntityServiceFactory` into its constructor.
+There are examples of this approach in the demo app.
+
+When defining an `HeroEntityService` with a limited API,
+you may also inject `EntityServiceFactory` as a source of the
+functionality that you choose to expose.
+
+Let your preferred style and app needs determine which creation technique you choose.
 
 ### Set component _selector$_ properties
 
@@ -130,4 +146,4 @@ the effects of the command. If the command did something you care about, a _sele
 <a name="entity-service-factory"></a>
 ## _EntityServiceFactory_
 
-The `create<T>()` method of the _ngrx-data_ [`EntityServiceFactory`](../lib/src/entity-service) produces a new object that implements the `EntityService` interface for the entity type `T`. 
+The `create<T>()` method of the _ngrx-data_ [`EntityServiceFactory`](../lib/src/entity-service) produces a new instance of the `EntityServiceBase<T>` class that implements the `EntityService` interface for the entity type `T`. 

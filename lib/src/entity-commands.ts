@@ -8,7 +8,7 @@ export interface EntityServerCommands<T> {
    * Does not add to cache until save succeeds.
    * Ignored by cache-add if the entity is already in cache.
    */
-  add(entity: T): void;
+  add(entity: T, isOptimistic?: boolean): void;
 
   /**
    * Removes entity from the cache by key (if it is in the cache).
@@ -16,7 +16,7 @@ export interface EntityServerCommands<T> {
    * Does not restore to cache if the delete fails.
    * @param key The primary key of the entity to remove
    */
-  delete(key: number | string): void;
+  delete(key: number | string, isOptimistic?: boolean): void;
 
   /**
    * Removes entity from the cache (if it is in the cache)
@@ -24,7 +24,7 @@ export interface EntityServerCommands<T> {
    * Does not restore to cache if the delete fails.
    * @param entity The entity to remove
    */
-  delete(entity: T): void
+  delete(entity: T, isOptimistic?: boolean): void
 
   /**
    * Query remote storage for all entities and
@@ -53,7 +53,7 @@ export interface EntityServerCommands<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
-  update(entity: Partial<T>): void;
+  update(entity: Partial<T>, isOptimistic?: boolean): void;
 }
 
 /*** Cache-only commands that do not update remote storage ***/

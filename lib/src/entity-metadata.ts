@@ -2,10 +2,12 @@ import { EntityDispatcherOptions } from './interfaces';
 import { EntityFilterFn } from './entity-filters';
 import { IdSelector, Comparer } from './ngrx-entity-models';
 
+/** Map entity-type name to its EntityMetadata */
 export interface EntityMetadataMap {
-  [entity: string]: EntityMetadata<any>;
+  [entityName: string]: Partial<EntityMetadata<any>>;
 }
 
+/** Metadata that describe an entity type and its collection to ngrx-data */
 export interface EntityMetadata<T = any, S extends object = {}> {
   entityName: string;
   entityDispatcherOptions?: Partial<EntityDispatcherOptions>,

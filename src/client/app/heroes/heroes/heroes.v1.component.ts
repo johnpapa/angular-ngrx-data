@@ -1,33 +1,37 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { EntityService, EntityServiceFactory } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 
 import { Hero } from '../../core';
-import { HeroesService } from '../heroes.service';
+
+// Simpler version;
+// How it could be if the app didn't toggle between local and remote API endpoints
+// Instead of creating a HeroService, use the EntityServiceFactory to create it.
 
 @Component({
-  selector: 'app-heroes',
+  selector: 'app-heroes-v1',
   templateUrl: './heroes.component.html',
   styleUrls: ['./heroes.component.scss'],
-  providers: [ HeroesService ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroesComponent implements OnInit {
+export class HeroesV1Component implements OnInit {
   addingHero = false;
   selectedHero: Hero;
 
   filteredHeroes$: Observable<Hero[]>;
+  heroesService: EntityService<Hero>;
   loading$: Observable<boolean>;
 
-  constructor(public heroesService: HeroesService) {
+  constructor(entityServiceFactory: EntityServiceFactory) {
+    this.heroesService = entityServiceFactory.create<Hero>('Hero');
     this.filteredHeroes$ = this.heroesService.filteredEntities$;
     this.loading$ = this.heroesService.loading$;
   }
 
   ngOnInit() {
-    this.heroesService.initialize();
-
+    this.getHeroes();
   }
 
   clear() {

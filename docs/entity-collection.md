@@ -3,7 +3,7 @@
 The _ngrx-data_ library maintains a _cache_ (`EntityCache`) of
 _entity collections_ for each _entity type_ in the _ngrx store_.
 
-An _entity_collection_  implements the [`EntityCollection<T>` interface](../lib/src/interfaces.ts).
+An _entity_collection_  implements the [`EntityCollection<T>` interface](../lib/src/reducers/entity-reducer.ts).
 
 | Property   | Meaning                                  |
 | ---------- |------------------------------------------|

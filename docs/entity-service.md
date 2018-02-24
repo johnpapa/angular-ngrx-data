@@ -1,12 +1,12 @@
 # Entity Service
 
-An **[`EntityService<T>`](../lib/src/entity.service.ts)**
+An **[`EntityService<T>`](../lib/src/entity-service/entity.service.ts)**
 is a facade over the _ngrx-data_ **dispatcher** and **selectors$** that manages an entity `T` collection cached in the _ngrx store_.
 
 The **_Dispatcher_** features **command** methods that dispatch [_entity actions_](entity-actions.md) to the _ngrx store_.
 These commands either update the entity collection directly or trigger HTTP requests to a server. When the server responds, the _ngrx-data_ library dispatches new actions with the response data and these actions update the entity collection.
 
-The [`EntityCommands`](../lib/src/entity-commands.ts) interface lists all the commands and what they do.
+The [`EntityCommands`](../lib/src/dispatchers/entity-commands.ts) interface lists all the commands and what they do.
 
 Your application calls these _command methods_ to update 
 the _cached entity collection_ in the _ngrx store_.
@@ -14,7 +14,7 @@ the _cached entity collection_ in the _ngrx store_.
 **_Selectors$_** are properties returning _selector observables_. 
 Each _observable_ watches for a specific change in the cached entity collection and emits the changed value.
 
-The [`EntitySelectors$`](../lib/src/entity.selectors$.ts) interface 
+The [`EntitySelectors$`](../lib/src/selectors/entity-selectors$.ts) interface 
 lists all of the pre-defined _selector observable properties_ and 
 explains which collection properties they observe.
 
@@ -146,4 +146,4 @@ the effects of the command. If the command did something you care about, a _sele
 <a name="entity-service-factory"></a>
 ## _EntityServiceFactory_
 
-The `create<T>()` method of the _ngrx-data_ [`EntityServiceFactory`](../lib/src/entity-service) produces a new instance of the `EntityServiceBase<T>` class that implements the `EntityService` interface for the entity type `T`. 
+The `create<T>()` method of the _ngrx-data_ [`EntityServiceFactory`](../lib/src/entity-service/entity-service.ts) produces a new instance of the `EntityServiceBase<T>` class that implements the `EntityService` interface for the entity type `T`. 

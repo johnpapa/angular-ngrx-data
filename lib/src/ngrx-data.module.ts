@@ -2,34 +2,40 @@ import { ModuleWithProviders, NgModule, InjectionToken } from '@angular/core';
 import { ActionReducer, MetaReducer, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { DefaultDataServiceFactory } from './default-data.service';
-import { EntityAction, EntityActionFactory, EntityActions } from './entity.actions';
+import { EntityAction, EntityActionFactory, EntityActions } from './actions';
 
 import {
+  DefaultDataServiceFactory, EntityDataService,
+  HttpUrlGenerator, DefaultHttpUrlGenerator,
+  PersistenceResultHandler, DefaultPersistenceResultHandler
+} from './dataservices';
+
+import { EntityDispatcherFactory } from './dispatchers';
+
+import {
+  EntityDefinitionService,
+  EntityMetadataMap,
+  ENTITY_METADATA_TOKEN
+} from './entity-metadata';
+
+import { EntityEffects } from './effects';
+import { EntityServiceFactory } from './entity-service';
+
+import {
+  createEntityReducer,
   EntityCache,
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
   EntityCollection,
-  ENTITY_METADATA_TOKEN,
+  EntityCollectionCreator,
   ENTITY_COLLECTION_META_REDUCERS,
-  ENTITY_REDUCER_TOKEN,
-  PLURAL_NAMES_TOKEN
-} from './interfaces';
+  EntityCollectionReducerFactory,
+  EntityReducerFactory,
+  ENTITY_REDUCER_TOKEN
+} from './reducers';
 
-import { EntityCollectionCreator } from './entity-collection-creator';
-import { EntityCollectionReducerFactory } from './entity-collection.reducer';
-import { EntityDataService } from './entity-data.service';
-import { EntityDefinitionService } from './entity-definition.service';
-import { EntityDispatcherFactory } from './entity-dispatcher';
-import { EntityEffects } from './entity.effects';
-import { EntityMetadataMap } from './entity-metadata';
-import { EntityReducerFactory, createEntityReducer } from './entity.reducer';
-import { EntitySelectors } from './entity.selectors';
-import { EntitySelectors$Factory } from './entity.selectors$';
-import { EntityServiceFactory } from './entity.service';
-import { HttpUrlGenerator, DefaultHttpUrlGenerator } from './http-url-generator';
-import { PersistenceResultHandler, DefaultPersistenceResultHandler } from './persistence-result-handler.service';
-import { Pluralizer, DefaultPluralizer } from './pluralizer';
+import { EntitySelectors, EntitySelectors$Factory } from './selectors';
+import { Pluralizer, DefaultPluralizer, PLURAL_NAMES_TOKEN } from './utils';
 
 export const entityEffects: any[] = [EntityEffects];
 

@@ -112,7 +112,7 @@ Each collection's `filteredEntities` selector applies the filter function to the
 
 If there is no filter function, the `filteredEntities` selector is the same as the `selectAll` selector, which returns all entities in the collection.
 
-A filter function (see [`EntityFilterFn<T>`](../lib/src/entity-filters.ts)) takes an entity collection and the user's filtering criteria (the filter _pattern_) and returns an array of the selected entities.
+A filter function (see [`EntityFilterFn<T>`](../lib/src/entity-metadata/entity-filters.ts)) takes an entity collection and the user's filtering criteria (the filter _pattern_) and returns an array of the selected entities.
 
 Here's an example that filters for entities with a `name` property whose value contains the search string.
 
@@ -148,7 +148,7 @@ Not every entity will have a primary key property named `id`. For some entities,
 
 In these cases, you specify a `selectId` function that, given an entity instance, returns an integer or string primary key value.
 
-In the [entity reducer tests](../lib/src/entity.reducer.spec.ts), the `Villain` type has a string primary key property named `key`.
+In the [entity reducer tests](../lib/src/reducers/entity-reducer.spec.ts), the `Villain` type has a string primary key property named `key`.
 The `selectorId` function is this:
 
 ```javascript
@@ -202,7 +202,7 @@ Each _ngrx-data_ entity collection in the the store has
 
 You can add your own collection properties by setting the `additionalCollectionState` property to an object with those custom collection properties.
 
-The [entity selectors tests](../lib/src/entity.selectors.spec.ts) illustrate by adding `foo` and `bar` collection properties to test hero metadata.
+The [entity selectors tests](../lib/src/selectors/entity-selectors.spec.ts) illustrate by adding `foo` and `bar` collection properties to test hero metadata.
 
 ```javascript
   additionalCollectionState: {

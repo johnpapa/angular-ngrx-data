@@ -46,12 +46,12 @@ the `reducerMap` is a hash of reducers, keyed by _entity-type-name_.
 <a name="collection-reducer-factory"></a>
 ## Default _EntityCollectionReducer_
 
-The [`EntityCollectionReducerFactory`](../lib/src/entity-collection-reducer.ts`)
+The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts`)
 creates a default reducer that leverages the capabilities of the `@ngrx/entity/EntityAdapter`, 
 guided by the app's [_entity metadata_](guide/entity-metadata.md).
 
 The default reducer decides what to do based on the `EntityAction.op` property,whose string value it expects will be a member of the
-[`EntityOp` enum](../lib/src/entity.actions.ts).
+[`EntityOp` enum](../lib/src/actions/entity-actions.ts).
 
 Many of the `EntityOp` values are ignored; the reducer simply returns the
 _entity collection_ as given.
@@ -69,7 +69,7 @@ They make a copy of the collection and only update copies of the objects within 
 See the [@ngrx/entity/EntityAdapter collection methods](https://github.com/ngrx/platform/blob/master/docs/entity/adapter.md#adapter-collection-methods) for a basic guide to the
 cache altering operations performed by the default _entity collection reducer_.
 
-The [`EntityCollectionReducerFactory`](../lib/src/entity-collection-reducer.ts`) and its tests are the authority on how the default reducer actually works.
+The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts`) and its tests are the authority on how the default reducer actually works.
 
 <a name='initialize'></a>
 ## Initializing collection state
@@ -79,11 +79,11 @@ There are no collections in this cache.
 
 If the master _entity reducer_ can't find a collection for the _action_'s entity type, 
 it creates a new, initialized collection with the help of the
-[`EntityCollectionCreator`](../lib/src/entity-collection-creator.ts), which was
+[`EntityCollectionCreator`](../lib/src/reducers/entity-collection-creator.ts), which was
 injected into the `EntityReducerFactory`.
 
 The _creator_ returns an initialized collection from the `initialState` in the entity's 
-[`EntityDefinition`](../lib/src/entity-definition.ts).
+[`EntityDefinition`](../lib/src/entity-metadata/entity-definition.ts).
 If the entity type doesn't have a _definition_ or the definition doesn't have an `initialState` property value, 
 the creator returns an `EntityCollection`.
 

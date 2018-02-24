@@ -145,7 +145,7 @@ Where do you keep the user's pending, unsaved changes?
 
 One approach is to keep track of pending changes, either in a change-tracker or in the entity data themselves.
 Then you might be able to use one of the 
-[_cache-only_ commands](../lib/src/entity-commands.ts) to
+[_cache-only_ commands](../lib/src/entity-metadata/entity-commands.ts) to
 put hold the entity in cache while you waited for restored connectivity.
 
 There is no such facility in the library today.

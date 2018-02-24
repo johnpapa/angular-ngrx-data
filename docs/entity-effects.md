@@ -11,7 +11,7 @@ You implement one or more _effects_ with the help of the [`@ngrx/effects` packag
 _Actions_ dispatched to the _ngrx store_ can be detected and processed by your _effect_ method.
 After processing, whether synchronously or asynchronously, your method can dispatch new action(s) to the _store_
 
-The _ngrx-data_ library implements an effect named `persist$` in its [`EntityEffects` class](../lib/src/entity.effects.ts).
+The _ngrx-data_ library implements an effect named `persist$` in its [`EntityEffects` class](../lib/src/effects/entity-effects.ts).
 
 The `persist$` method filters for certain `EntityAction.op` values.
 These values turn into HTTP GET, PUT, POST, and DELETE requests with entity data.

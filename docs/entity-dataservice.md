@@ -2,7 +2,7 @@
 
 The _ngrx-data_ library expects to persist entity data with calls to a REST-like web api with endpoints for each entity type.
 
-The [`EntityDataService`](../lib/src/entity-data.service.ts) maintains a registry of service classes dedicated to persisting data for a specific entity type. 
+The [`EntityDataService`](../lib/src/dataservices/entity-data.service.ts) maintains a registry of service classes dedicated to persisting data for a specific entity type. 
 
 When the _ngrx-data_ library sees an action for an entity _persistence operation_, it asks the `EntityDataService` for the registered data service that makes HTTP calls for that entity type, and calls the appropriate service method.
 
@@ -41,7 +41,7 @@ You can add custom data services to it by creating instances of those classes an
 
 1. register several data services at the same time with by calling `registerServices` with an _entity-name/service_ map.
 
->You can create and import a module that registers your custom data services as show in the [EntityDataService tests](../lib/src/entity-data.service.spec.ts)
+>You can create and import a module that registers your custom data services as show in the [EntityDataService tests](../lib/src/dataservices/entity-data.service.spec.ts)
 
 If you decide to register an entity data service, be sure to do so _before_ you ask _ngrx-data_ to perform a persistence operation for that entity.
 
@@ -49,7 +49,7 @@ Otherwise, the _ngrx-data_ library will create and register an instance of the d
 
 ## The _DefaultDataService_
 
-The demo app doesn't register any entity data services. It relies entirely on a [`DefaultDataService<T>`](../lib/src/default-data.service.ts), created for the entity type by the injected `DefaultDataServiceFactory`.
+The demo app doesn't register any entity data services. It relies entirely on a [`DefaultDataService<T>`](../lib/src/dataservices/default-data.service.ts), created for the entity type by the injected `DefaultDataServiceFactory`.
 
 A `DefaultDataService<T>` makes REST-like calls to the server's web api with Angular's `HttpClient`.
 
@@ -68,9 +68,9 @@ The `QUERY_ALL` action to get all heroes would result in an HTTP GET request to 
 The `DefaultDataService` doesn't know how to pluralize the entity type name.
 It doesn't even know how to create the base resource names.
 It relies on an injected 
-[`HttpUrlGenerator` service](../lib/src/http-url-generator.ts) those.
+[`HttpUrlGenerator` service](../lib/src/dataservices/http-url-generator.ts) those.
 And the default implementation of that generator relies on the 
-[`Pluralizer`](../lib/src/pluralizer.ts) service to
+[`Pluralizer`](../lib/src/utils/pluralizer.ts) service to
 get the collection resource name.
 The [_Entity Metadata_](entity-metadata.md#plurals) guide
 explains how to configure the default `Pluralizer` .
@@ -82,7 +82,7 @@ The collection-level data services construct their own URLs for HTTP calls. They
 
 The shared configuration values are almost always specific to the application and may vary according the runtime environment.
 
-The _ngrx-data_ library defines a [`DefaultDataServiceConfig` class](../lib/src/default-data.service.ts) for conveying shared configuration to an entity collection data service.
+The _ngrx-data_ library defines a [`DefaultDataServiceConfig` class](../lib/src/dataservices/default-data.service.ts) for conveying shared configuration to an entity collection data service.
 
 The most important configuration property, `root`, returns the _root_ of every web api URL, the parts that come before the entity resource name.
 

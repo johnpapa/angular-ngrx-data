@@ -18,7 +18,8 @@ It has two additional properties:
 * `entityName` - the name of the entity type
 * `op` - the name of an entity operation
 
-The `op` name is member of the `EntityOp` enumeration.
+The `op` name is member of the 
+[`EntityOp` enumeration](../lib/src/actions/entity-op.ts).
 Each `EntityOp` corresponds to one of (roughly) _twenty-six_ operations
 that the _ngrx-data_ library can perform.
 

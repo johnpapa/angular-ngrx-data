@@ -6,7 +6,8 @@ The [`EntityDataService`](../lib/src/dataservices/entity-data.service.ts) mainta
 
 When the _ngrx-data_ library sees an action for an entity _persistence operation_, it asks the `EntityDataService` for the registered data service that makes HTTP calls for that entity type, and calls the appropriate service method.
 
-A data service is an instance of a class that implements the [`EntityCollectionDataService<T>` interface](../lib/src/interfaces.ts).
+A data service is an instance of a class that implements the 
+[`EntityCollectionDataService<T>` interface](../lib/src/dataservices/entity-data.service.ts).
 This interface supports a basic set of CRUD operations that return `Observables`: 
 
 | Method        | Meaning |

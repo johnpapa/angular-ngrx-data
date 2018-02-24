@@ -13,7 +13,7 @@ The _payload_ carries the data necessary to process the action.
 The store sends actions to an _ngrx reducer_ which recognizes the action, extracts the payload, and performs some operation on some state in the store.
 
 ### _EntityActions_
-An [`EntityAction`](../lib/src/actions/entity-actions.ts) is a super-set of the _ngrx `Action`_.
+An [`EntityAction`](../lib/src/actions/entity-action.ts) is a super-set of the _ngrx `Action`_.
 It has two additional properties:
 * `entityName` - the name of the entity type
 * `op` - the name of an entity operation

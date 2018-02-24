@@ -1,4 +1,20 @@
 # Angular ngrx-data library ChangeLog
+<a name="1.0.0-alpha.10"></a>
+# release 1.0.0-alpha.10 (2018-02-24)
+
+*Breaking change alert!*
+
+* Rename EntityOp enums and change their string values
+* Change the generated EntityAction types by changing default formatter
+* Source files moved into subdirectories and many source renamed
+
+### Breaking Changes
+
+The `EntityAction` changes are to better conform to "standards" seen in the wild.
+They also guard against collisions with your custom entity action types
+
+The file renaming and restructuring is for easier reading.
+Shouldn't affect applications which do not deep link into the library.
 
 <a name="1.0.0-alpha.9"></a>
 # release 1.0.0-alpha.9 (2018-02-23)

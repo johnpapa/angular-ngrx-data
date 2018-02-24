@@ -28,8 +28,8 @@ Be sure to test your alternatives.
 The `EntityActionFactory.create()` method relies on the `formatActionType()` method to
 produce the `Action.type` string. 
 
-The default implementation concatenates the `EntityOp` with the name of the entity type.
-For example, querying all heroes results in the entity type, `QUERY_ALL [Hero]`.
+The default implementation concatenates the entity type name with the `EntityOp`.
+For example, querying all heroes results in the entity type, `[Hero] ngrx-data/query-all`.
 
 If you don't like that approach you can replace the `formatActionType()` method with a generator that produces action type names that are more to your liking.
 The ngrx-data library doesn't make decisions based on the `Action.type`.

@@ -59,8 +59,9 @@ describe('EntityActionFactory', () => {
   it('can re-format generated action.type with custom #formatActionType()', () => {
     factory.formatActionType = (op, entityName) => `${entityName}_${op}`.toUpperCase();
 
+    const expected = ('Hero_' + EntityOp.QUERY_ALL).toUpperCase();
     const action = factory.create('Hero', EntityOp.QUERY_ALL);
-    expect(action.type).toBe('HERO_QUERY_ALL');
+    expect(action.type).toBe(expected);
   });
 
   it('should throw if do not specify entity name', () => {
@@ -86,7 +87,7 @@ describe('EntityActions', () => {
     foo: <Action> {type: 'Foo'},
     hero_query_all: entityActionFactory.create('Hero', EntityOp.QUERY_ALL),
     villain_query_many: entityActionFactory.create('Villain', EntityOp.QUERY_MANY),
-    hero_delete: entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42),
+    hero_delete: entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42),
     bar: <Action> <any> {type: 'Bar', payload: 'bar'},
   };
 
@@ -189,13 +190,15 @@ describe('EntityActions', () => {
     ofOpTest();
   });
 
-  it('#ofOp with ...rest args', () => {    const ops = [EntityOp.QUERY_ALL, EntityOp.QUERY_MANY];
+  it('#ofOp with ...rest args', () => {
+    const ops = [EntityOp.QUERY_ALL, EntityOp.QUERY_MANY];
 
     eas.ofOp(...ops).subscribe(ea => results.push(ea));
     ofOpTest();
   });
 
-  it('#ofOp with array args', () => {    const ops = [EntityOp.QUERY_ALL, EntityOp.QUERY_MANY];
+  it('#ofOp with array args', () => {
+    const ops = [EntityOp.QUERY_ALL, EntityOp.QUERY_MANY];
 
     eas.ofOp(ops).subscribe(ea => results.push(ea));
     ofOpTest();
@@ -211,23 +214,23 @@ describe('EntityActions', () => {
   }
 
   ///////////////
+  const testTypeNames = [
+    entityActionFactory.formatActionType(EntityOp.QUERY_ALL, 'Hero'),
+    entityActionFactory.formatActionType(EntityOp.QUERY_MANY, 'Villain'),
+  ];
 
   it('#ofType with string args', () => {
-    eas.ofType('QUERY_ALL [HERO]', 'QUERY_MANY [VILLAIN]')
-    .subscribe(ea => results.push(ea));
-
+    eas.ofType(testTypeNames).subscribe(ea => results.push(ea));
     ofTypeTest();
   });
 
-  it('#ofType with ...rest args', () => {    const types = ['QUERY_ALL [HERO]', 'QUERY_MANY [VILLAIN]'];
-
-    eas.ofType(...types).subscribe(ea => results.push(ea));
+  it('#ofType with ...rest args', () => {
+    eas.ofType(...testTypeNames).subscribe(ea => results.push(ea));
     ofTypeTest();
   });
 
-  it('#ofType with array args', () => {    const types = ['QUERY_ALL [HERO]', 'QUERY_MANY [VILLAIN]'];
-
-    eas.ofType(types).subscribe(ea => results.push(ea));
+  it('#ofType with array args', () => {
+    eas.ofType(testTypeNames).subscribe(ea => results.push(ea));
     ofTypeTest();
   });
 
@@ -252,7 +255,7 @@ describe('EntityActions', () => {
     actions.subscribe(null, null, () => completed++);
     actions.subscribe(ea => results.push(ea), null, () => completed++);
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE, 42)
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42)
 
     source.next(action);
     source.next(action);

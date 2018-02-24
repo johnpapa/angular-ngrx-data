@@ -168,7 +168,7 @@ The default `EntityEffects` supports saving a new or existing entity but does no
 SAVE_UPSERT action that would _official_ save
 an entity which might be either new or existing.
 
-You may be able to add a new entity with `SAVE_UPDATE` or `SAVE_UPDATE_OPTIMISTIC`,
+You may be able to add a new entity with `SAVE_UPDATE` or `SAVE_UPDATE_ONE_OPTIMISTIC`,
 because the `EntityCollectionReducer` implements these actions 
 by calling the collection `upsertOne()` method.
 

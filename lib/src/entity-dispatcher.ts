@@ -73,7 +73,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    */
   add(entity: T, isOptimistic?: boolean): void {
     isOptimistic = isOptimistic != null ? isOptimistic : this.options.optimisticAdd;
-    const op = isOptimistic ? EntityOp.SAVE_ADD_OPTIMISTIC : EntityOp.SAVE_ADD;
+    const op = isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD;
     if (isOptimistic) {
       this.guard.mustBeEntities([entity], op, true);
     }
@@ -97,7 +97,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   delete(key: number | string, isOptimistic?: boolean ): void
   delete(arg: (number | string) | T, isOptimistic?: boolean): void {
     const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticDelete) ?
-      EntityOp.SAVE_DELETE_OPTIMISTIC : EntityOp.SAVE_DELETE;
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC : EntityOp.SAVE_DELETE_ONE;
     const key = this.getKey(arg);
     this.guard.mustBeIds([key], op, true);
     this.dispatch(op, key);
@@ -141,7 +141,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
     const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticUpdate) ?
-      EntityOp.SAVE_UPDATE_OPTIMISTIC : EntityOp.SAVE_UPDATE;
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC : EntityOp.SAVE_UPDATE_ONE;
     this.guard.mustBeUpdates([update], op, true);
     this.dispatch(op, update);
   }

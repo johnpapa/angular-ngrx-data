@@ -268,10 +268,10 @@ describe('EntityCollectionReducer', () => {
 
   });
 
-  describe('#SAVE_ADD_OPTIMISTIC', () => {
+  describe('#SAVE_ADD_ONE_OPTIMISTIC', () => {
 
     function createTestAction(hero: Hero)  {
-      return createAction('Hero', EntityOp.SAVE_ADD_OPTIMISTIC, hero);
+      return createAction('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC, hero);
     }
 
     it('should add a new hero to collection', () => {
@@ -290,7 +290,7 @@ describe('EntityCollectionReducer', () => {
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
       expect(action.error.message)
-        .toMatch(/SAVE_ADD_OPTIMISTIC payload is not an entity with a valid key/);
+        .toMatch(/payload is not an entity with a valid key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -328,7 +328,7 @@ describe('EntityCollectionReducer', () => {
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
       expect(action.error.message)
-        .toMatch(/SAVE_ADD_SUCCESS payload is not an entity with a valid key/);
+        .toMatch(/payload is not an entity with a valid key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -344,10 +344,10 @@ describe('EntityCollectionReducer', () => {
     });
   });
 
-  describe('#SAVE_UPDATE_OPTIMISTIC', () => {
+  describe('#SAVE_UPDATE_ONE_OPTIMISTIC', () => {
 
     function createTestAction(hero: Update<Hero>)  {
-      return createAction('Hero', EntityOp.SAVE_UPDATE_OPTIMISTIC, hero);
+      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC, hero);
     }
 
     it('should update existing entity in collection', () => {
@@ -392,7 +392,7 @@ describe('EntityCollectionReducer', () => {
   describe('#SAVE_UPDATE_SUCCESS', () => {
 
     function createTestAction(hero: Update<Hero>)  {
-      return createAction('Hero', EntityOp.SAVE_UPDATE_SUCCESS, hero);
+      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, hero);
     }
 
     it('should update existing entity in collection', () => {
@@ -456,7 +456,7 @@ describe('EntityCollectionReducer', () => {
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
       expect(action.error.message)
-        .toMatch(/ADD_ONE payload is not an entity with a valid key/);
+        .toMatch(/payload is not an entity with a valid key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -556,7 +556,7 @@ describe('EntityCollectionReducer', () => {
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
       expect(action.error.message)
-        .toMatch(/UPDATE_ONE payload is not an Update<Hero> with a valid id/);
+        .toMatch(/payload is not an Update<Hero> with a valid id/);
     });
 
     it('should update existing entity in collection', () => {
@@ -700,7 +700,7 @@ describe('EntityCollectionReducer', () => {
     [
       EntityOp.SAVE_ADD,
       EntityOp.SAVE_ADD_ERROR,
-      EntityOp.SAVE_ADD_OPTIMISTIC_ERROR
+      EntityOp.SAVE_ADD_ONE_OPTIMISTIC_ERROR
     ].forEach(op => testAddNoop(op));
 
     function testAddNoop(op: EntityOp) {
@@ -715,10 +715,10 @@ describe('EntityCollectionReducer', () => {
     }
 
     [
-      EntityOp.SAVE_DELETE,
-      EntityOp.SAVE_DELETE_ERROR,
-      EntityOp.SAVE_DELETE_OPTIMISTIC_SUCCESS,
-      EntityOp.SAVE_DELETE_OPTIMISTIC_ERROR
+      EntityOp.SAVE_DELETE_ONE,
+      EntityOp.SAVE_DELETE_ONE_ERROR,
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS,
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_ERROR
     ].forEach(op => testDeleteNoop(op));
 
     function testDeleteNoop(op: EntityOp) {
@@ -732,10 +732,10 @@ describe('EntityCollectionReducer', () => {
     }
 
     [
-      EntityOp.SAVE_UPDATE,
-      EntityOp.SAVE_UPDATE_ERROR,
-      EntityOp.SAVE_UPDATE_OPTIMISTIC_SUCCESS,
-      EntityOp.SAVE_UPDATE_OPTIMISTIC_ERROR
+      EntityOp.SAVE_UPDATE_ONE,
+      EntityOp.SAVE_UPDATE_ONE_ERROR,
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS,
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_ERROR
     ].forEach(op => testUpdateNoop(op));
 
     function testUpdateNoop(op: EntityOp) {

@@ -59,38 +59,38 @@ export function commandDispatchTest(
     // Tests override in the dispatcher method calls as necessary.
 
     describe('(optimistic)', () => {
-      it('#add(hero) dispatches SAVE_ADD_OPTIMISTIC', () => {
+      it('#add(hero) dispatches SAVE_ADD_ONE_OPTIMISTIC', () => {
         const hero: Hero = {id: 42, name: 'test'};
         dispatcher.add(hero, /* isOptimistic */ true);
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_OPTIMISTIC);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_ONE_OPTIMISTIC);
         expect(dispatchedAction().payload).toBe(hero);
       });
 
-      it('#delete(42) dispatches SAVE_DELETE_OPTIMISTIC for the id:42', () => {
+      it('#delete(42) dispatches SAVE_DELETE_ONE_OPTIMISTIC for the id:42', () => {
         dispatcher.delete(42); // optimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_OPTIMISTIC);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC);
         expect(dispatchedAction().payload).toBe(42);
       });
 
-      it('#delete(hero) dispatches SAVE_DELETE_OPTIMISTIC for the hero.id', () => {
+      it('#delete(hero) dispatches SAVE_DELETE_ONE_OPTIMISTIC for the hero.id', () => {
         const id = 42;
         const hero: Hero = {id, name: 'test'};
 
         dispatcher.delete(hero); // optimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_OPTIMISTIC);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC);
         expect(dispatchedAction().payload).toBe(id);
       });
 
-      it('#update(hero) dispatches SAVE_UPDATE_OPTIMISTIC with an update payload', () => {
+      it('#update(hero) dispatches SAVE_UPDATE_ONE_OPTIMISTIC with an update payload', () => {
         const hero: Hero = {id: 42, name: 'test'}
         const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
 
         dispatcher.update(hero, /* isOptimistic */ true);
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE_OPTIMISTIC);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC);
         expect(dispatchedAction().payload).toEqual(expectedUpdate);
       });
     });
@@ -107,7 +107,7 @@ export function commandDispatchTest(
       it('#delete(42) dispatches SAVE_DELETE for the id:42', () => {
         dispatcher.delete(42, /* isOptimistic */ false); // optimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_ONE);
         expect(dispatchedAction().payload).toBe(42);
       });
 
@@ -117,7 +117,7 @@ export function commandDispatchTest(
 
         dispatcher.delete(hero, /* isOptimistic */ false); // optimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_DELETE_ONE);
         expect(dispatchedAction().payload).toBe(id);
       });
 
@@ -127,7 +127,7 @@ export function commandDispatchTest(
 
         dispatcher.update(hero); // pessimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_UPDATE_ONE);
         expect(dispatchedAction().payload).toEqual(expectedUpdate);
       });
     });

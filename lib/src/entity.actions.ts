@@ -9,58 +9,67 @@ import { filter, share, takeUntil } from 'rxjs/operators';
 import { DataServiceError } from './interfaces';
 import { flattenArgs } from './utils';
 
-// General purpose entity action types, good for any entity type
+/** "Success" suffix appended to EntityOps that are successful.*/
+export const OP_SUCCESS = '/success';
+
+/** "Error" suffix appended to EntityOps that have failed.*/
+export const OP_ERROR = '/error'
+
+// Ensure that these suffix values and the EntityOp suffixes match
+// Cannot do that programmatically.
+
+/** General purpose entity action operations, good for any entity type */
 export enum EntityOp {
   // Persisting Actions (more to come)
-  QUERY_ALL = 'QUERY_ALL',
-  QUERY_ALL_SUCCESS = 'QUERY_ALL_SUCCESS',
-  QUERY_ALL_ERROR = 'QUERY_ALL_ERROR',
+  QUERY_ALL = 'ngrx-data/query-all',
+  QUERY_ALL_SUCCESS = 'ngrx-data/query-all/success',
+  QUERY_ALL_ERROR = 'ngrx-data/query-all/error',
 
-  QUERY_MANY = 'QUERY_MANY',
-  QUERY_MANY_SUCCESS = 'QUERY_MANY_SUCCESS',
-  QUERY_MANY_ERROR = 'QUERY_MANY_ERROR',
+  QUERY_MANY = 'ngrx-data/query-many',
+  QUERY_MANY_SUCCESS = 'ngrx-data/query-many/success',
+  QUERY_MANY_ERROR = 'ngrx-data/query-many/error',
 
-  QUERY_BY_KEY = 'QUERY_BY_ID',
-  QUERY_BY_KEY_SUCCESS = 'QUERY_BY_ID_SUCCESS',
-  QUERY_BY_KEY_ERROR = 'QUERY_BY_ID_ERROR',
+  QUERY_BY_KEY = 'ngrx-data/query-by-id',
+  QUERY_BY_KEY_SUCCESS = 'ngrx-data/query-by-id/success',
+  QUERY_BY_KEY_ERROR = 'ngrx-data/query-by-id/error',
 
-  SAVE_ADD = 'SAVE_ADD',
-  SAVE_ADD_ERROR = 'SAVE_ADD_ERROR',
-  SAVE_ADD_SUCCESS = 'SAVE_ADD_SUCCESS',
+  SAVE_ADD = 'ngrx-data/save/add-one',
+  SAVE_ADD_ERROR = 'ngrx-data/save/add-one/error',
+  SAVE_ADD_SUCCESS = 'ngrx-data/save/add-one/success',
 
-  SAVE_DELETE = 'SAVE_DELETE',
-  SAVE_DELETE_SUCCESS = 'SAVE_DELETE_SUCCESS',
-  SAVE_DELETE_ERROR = 'SAVE_DELETE_ERROR',
+  SAVE_DELETE_ONE = 'ngrx-data/save/delete-one',
+  SAVE_DELETE_ONE_SUCCESS = 'ngrx-data/save/delete-one/success',
+  SAVE_DELETE_ONE_ERROR = 'ngrx-data/save/delete-one/error',
 
-  SAVE_UPDATE = 'SAVE_UPDATE',
-  SAVE_UPDATE_SUCCESS = 'SAVE_UPDATE_SUCCESS',
-  SAVE_UPDATE_ERROR = 'SAVE_UPDATE_ERROR',
+  SAVE_UPDATE_ONE = 'ngrx-data/save/update-one',
+  SAVE_UPDATE_ONE_SUCCESS = 'ngrx-data/save/update-one/success',
+  SAVE_UPDATE_ONE_ERROR = 'ngrx-data/save/update-one/error',
 
-  SAVE_ADD_OPTIMISTIC = 'SAVE_ADD_OPTIMISTIC',
-  SAVE_ADD_OPTIMISTIC_ERROR = 'SAVE_ADD_OPTIMISTIC_ERROR',
-  SAVE_ADD_OPTIMISTIC_SUCCESS = 'SAVE_ADD_OPTIMISTIC_SUCCESS',
+  SAVE_ADD_ONE_OPTIMISTIC = 'ngrx-data/save/add-one/optimistic',
+  SAVE_ADD_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/add-one/optimistic/error',
+  SAVE_ADD_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/add-one/optimistic/success',
 
-  SAVE_DELETE_OPTIMISTIC = 'SAVE_DELETE_OPTIMISTIC',
-  SAVE_DELETE_OPTIMISTIC_SUCCESS = 'SAVE_DELETE_OPTIMISTIC_SUCCESS',
-  SAVE_DELETE_OPTIMISTIC_ERROR = 'SAVE_DELETE_OPTIMISTIC_ERROR',
+  SAVE_DELETE_ONE_OPTIMISTIC = 'ngrx-data/save/delete-one/optimistic',
+  SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/delete-one/optimistic/success',
+  SAVE_DELETE_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/delete-one/optimistic/error',
 
-  SAVE_UPDATE_OPTIMISTIC = 'SAVE_UPDATE_OPTIMISTIC',
-  SAVE_UPDATE_OPTIMISTIC_SUCCESS = 'SAVE_UPDATE_OPTIMISTIC_SUCCESS',
-  SAVE_UPDATE_OPTIMISTIC_ERROR = 'SAVE_UPDATE_OPTIMISTIC_ERROR',
+  SAVE_UPDATE_ONE_OPTIMISTIC = 'ngrx-data/save/update-one/optimistic',
+  SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/update-one/optimistic/success',
+  SAVE_UPDATE_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/update-one/optimistic/error',
 
   // Cache actions
-  ADD_ALL = 'ADD_ALL',
-  ADD_MANY = 'ADD_MANY',
-  ADD_ONE = 'ADD_ONE',
-  REMOVE_MANY = 'REMOVE_MANY',
-  REMOVE_ONE = 'REMOVE_ONE',
-  REMOVE_ALL = 'REMOVE_ALL',
-  UPDATE_MANY = 'UPDATE_MANY',
-  UPDATE_ONE = 'UPDATE_ONE',
-  UPSERT_MANY = 'UPSERT_MANY',
-  UPSERT_ONE = 'UPSERT_ONE',
+  ADD_ALL = 'ngrx-data/add-all',
+  ADD_MANY = 'ngrx-data/add-many',
+  ADD_ONE = 'ngrx-data/add-one',
+  REMOVE_MANY = 'ngrx-data/remove-many',
+  REMOVE_ONE = 'ngrx-data/remove-one',
+  REMOVE_ALL = 'ngrx-data/remove-all',
+  UPDATE_MANY = 'ngrx-data/update-many',
+  UPDATE_ONE = 'ngrx-data/update-one',
+  UPSERT_MANY = 'ngrx-data/upsert-many',
+  UPSERT_ONE = 'ngrx-data/upsert-one',
 
-  SET_FILTER = 'SET_FILTER',
+  SET_FILTER = 'ngrx-data/set-filter',
 }
 
 export interface EntityAction<P = any> extends Action {
@@ -72,11 +81,6 @@ export interface EntityAction<P = any> extends Action {
   // it's the only way to stop downstream action processing
   error?: Error;
 }
-
-/** "Success" suffix appended to EntityOps that are successful.*/
-export const OP_SUCCESS = '_SUCCESS';
-/** "Error" suffix appended to EntityOps that have failed.*/
-export const OP_ERROR = '_ERROR'
 
 @Injectable()
 export class EntityActionFactory {
@@ -110,8 +114,8 @@ export class EntityActionFactory {
   }
 
   formatActionType(op: string, entityName: string) {
-    return `${op} [${entityName}]`.toUpperCase();
-    // return `[${entityName}] ${op.toUpperCase()} `; // an alternative
+    return `[${entityName}] ${op}`;
+    // return `${op} [${entityName}]`.toUpperCase(); // an alternative
   }
 }
 

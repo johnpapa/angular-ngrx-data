@@ -26,7 +26,7 @@ The `EntityActionFactory.create()` method creates an `Action` instance
 whose `type` is a string composed from the `entityName`
 and the `op`.
 
-For example, the `Action.type` for the operation that queries the server for all heroes is `QUERY_ALL [HERO]`
+For example, the default generated `Action.type` for the operation that queries the server for all heroes is `[Hero] ngrx-data/query-all`.
 
 >Note that **_each entity type has its own _unique_ `Action` for each operation_**, as if you had created them individually by hand.
 

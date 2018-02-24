@@ -116,7 +116,7 @@ export class EntityCollectionReducerFactory {
 
         // optimistic add; add entity immediately
         // Must have pkey to add optimistically
-        case EntityOp.SAVE_ADD_OPTIMISTIC: {
+        case EntityOp.SAVE_ADD_ONE_OPTIMISTIC: {
           guard.mustBeEntities([action.payload], action.op, true);
           return adapter.addOne(action.payload, collection);
         }
@@ -127,45 +127,45 @@ export class EntityCollectionReducerFactory {
         // Therefore, update with returned value
         // Caution: in a race, this update could overwrite unsaved user changes.
         // Use pessimistic add to avoid this risk.
-        case EntityOp.SAVE_ADD_OPTIMISTIC_SUCCESS: {
+        case EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS: {
           guard.mustBeEntities([action.payload], action.op, true);
           const update = toUpdate(action.payload);
           return adapter.updateOne(update, collection);
         }
 
         // pessimistic delete by entity key
-        case EntityOp.SAVE_DELETE: {
+        case EntityOp.SAVE_DELETE_ONE: {
           guard.mustBeIds([action.payload], action.op, true);
           return collection;
         }
 
         // pessimistic delete, after success
-        case EntityOp.SAVE_DELETE_SUCCESS: {
+        case EntityOp.SAVE_DELETE_ONE_SUCCESS: {
           // payload assumed to be entity key
           return adapter.removeOne(action.payload, collection);
         }
 
         // optimistic delete by entity key immediately
-        case EntityOp.SAVE_DELETE_OPTIMISTIC: {
+        case EntityOp.SAVE_DELETE_ONE_OPTIMISTIC: {
           guard.mustBeIds([action.payload], action.op, true);
           return adapter.removeOne(action.payload, collection);
         }
 
         // pessimistic update; update entity only upon success
         // payload must be an `Update<T>`
-        case EntityOp.SAVE_UPDATE: {
+        case EntityOp.SAVE_UPDATE_ONE: {
           guard.mustBeUpdates([action.payload], action.op, true);
           return collection;
         }
 
         // pessimistic update upon success
-        case EntityOp.SAVE_UPDATE_SUCCESS: {
+        case EntityOp.SAVE_UPDATE_ONE_SUCCESS: {
           return adapter.upsertOne(action.payload, collection);
         }
 
         // optimistic update; update entity immediately
         // payload must be an` Update<T>`
-        case EntityOp.SAVE_UPDATE_OPTIMISTIC: {
+        case EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC: {
           guard.mustBeUpdates([action.payload], action.op, true);
           return adapter.upsertOne(action.payload, collection);
         }
@@ -174,7 +174,7 @@ export class EntityCollectionReducerFactory {
         // Server may have touched other fields
         // so update the collection again if the server sent different data.
         // payload must be an` Update<T>`
-        case EntityOp.SAVE_UPDATE_OPTIMISTIC_SUCCESS: {
+        case EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS: {
           const result = action.payload || {};
           // A data service like `DefaultDataService<T>` will add `unchanged:true`
           // if the server responded without data, meaning there is nothing to update.

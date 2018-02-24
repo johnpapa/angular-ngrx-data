@@ -17,11 +17,11 @@ const persistOps: EntityOp[] = [
   EntityOp.QUERY_BY_KEY,
   EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD,
-  EntityOp.SAVE_DELETE,
-  EntityOp.SAVE_UPDATE,
-  EntityOp.SAVE_ADD_OPTIMISTIC,
-  EntityOp.SAVE_DELETE_OPTIMISTIC,
-  EntityOp.SAVE_UPDATE_OPTIMISTIC
+  EntityOp.SAVE_DELETE_ONE,
+  EntityOp.SAVE_UPDATE_ONE,
+  EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
+  EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
+  EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC
 ];
 
 @Injectable()
@@ -65,16 +65,16 @@ export class EntityEffects {
       case EntityOp.QUERY_MANY: {
         return service.getWithQuery(action.payload);
       }
-      case EntityOp.SAVE_ADD_OPTIMISTIC:
+      case EntityOp.SAVE_ADD_ONE_OPTIMISTIC:
       case EntityOp.SAVE_ADD: {
         return service.add(action.payload);
       }
-      case EntityOp.SAVE_DELETE_OPTIMISTIC:
-      case EntityOp.SAVE_DELETE: {
+      case EntityOp.SAVE_DELETE_ONE_OPTIMISTIC:
+      case EntityOp.SAVE_DELETE_ONE: {
         return service.delete(action.payload);
       }
-      case EntityOp.SAVE_UPDATE_OPTIMISTIC:
-      case EntityOp.SAVE_UPDATE: {
+      case EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC:
+      case EntityOp.SAVE_UPDATE_ONE: {
         return service.update(action.payload);
       }
       default: {

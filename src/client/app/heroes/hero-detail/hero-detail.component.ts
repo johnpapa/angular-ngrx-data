@@ -1,11 +1,9 @@
 import {
-  AfterViewInit,
   Component,
   Input,
   ElementRef,
   EventEmitter,
   OnChanges,
-  OnInit,
   Output,
   ViewChild,
   SimpleChanges,
@@ -21,7 +19,7 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
   styleUrls: ['./hero-detail.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
+export class HeroDetailComponent implements OnChanges {
   @Input() hero: Hero;
   @Output() unselect = new EventEmitter<string>();
   @Output() add = new EventEmitter<Hero>();
@@ -39,16 +37,8 @@ export class HeroDetailComponent implements AfterViewInit, OnChanges, OnInit {
 
   constructor(private fb: FormBuilder) {}
 
-  ngAfterViewInit() {
-    this.setFocus();
-  }
-
-  ngOnInit() {}
-
   ngOnChanges(changes: SimpleChanges) {
-    if (!changes.hero.firstChange) {
-      this.setFocus();
-    }
+    this.setFocus();
     if (this.hero && this.hero.id) {
       this.addMode = false;
       this.form.patchValue(this.hero);

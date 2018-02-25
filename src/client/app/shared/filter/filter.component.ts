@@ -1,8 +1,7 @@
 import { Component, OnDestroy, OnInit, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { Subject } from 'rxjs/Subject';
-import { debounceTime, distinctUntilChanged, takeUntil, take, tap } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 
 import { EntityService } from 'ngrx-data';
 
@@ -11,11 +10,10 @@ import { EntityService } from 'ngrx-data';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss']
 })
-export class FilterComponent implements OnDestroy, OnInit {
+export class FilterComponent implements OnInit {
   @Input() entityService: EntityService<any>;
   @Input() filterPlaceholder: string;
   filter: FormControl = new FormControl();
-  private onDestroy = new Subject();
 
   clear() {
     this.filter.setValue('');
@@ -24,18 +22,13 @@ export class FilterComponent implements OnDestroy, OnInit {
   ngOnInit() {
     // Set the filter to the current value from store or ''
     this.entityService.filter$
-      .pipe(
-        take(1)
-        // always completes so no need to unsubscribe
-      )
+      .pipe(take(1))
+      // take(1) completes so no need to unsubscribe
       .subscribe(value => this.filter.setValue(value));
 
     this.filter.valueChanges
-      .pipe(takeUntil(this.onDestroy), debounceTime(300), distinctUntilChanged())
+      .pipe(debounceTime(300), distinctUntilChanged())
+      // no need to unsubscribe because subscribing to self
       .subscribe(pattern => this.entityService.setFilter(pattern));
-  }
-
-  ngOnDestroy() {
-    this.onDestroy.next(true);
   }
 }

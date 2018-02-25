@@ -55,21 +55,20 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     entityName: string,
     protected http: HttpClient,
     protected httpUrlGenerator: HttpUrlGenerator,
-    config: DefaultDataServiceConfig = {},
+    config?: DefaultDataServiceConfig,
   ) {
     this._name = `${entityName} DefaultDataService`;
     this.entityName = entityName;
-    config = config || {};
     const {
       root = 'api',
       delete404OK = true,
       getDelay = 0,
       saveDelay = 0,
       timeout: to = 0,
-    } = config;
+    } = (config || {});
     this.delete404OK = delete404OK;
-    this.entityUrl = httpUrlGenerator.entityResource(entityName, root)
-    this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root)
+    this.entityUrl = httpUrlGenerator.entityResource(entityName, root);
+    this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root);
     this.getDelay = getDelay ? delay(getDelay) : noDelay;
     this.saveDelay = saveDelay ? delay(saveDelay) : noDelay;
     this.timeout = to ? timeout(to) : noDelay;
@@ -181,7 +180,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
 
   private handleDelete404(error: HttpErrorResponse, reqData: RequestData) {
     if (error.status === 404 && reqData.method === 'DELETE' && this.delete404OK) {
-      return of({})
+      return of({});
     }
     return undefined;
   }

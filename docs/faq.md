@@ -139,7 +139,7 @@ You replace them with new objects, created through a merge of the previous prope
 Arrays are completely replaced with you add, remove, or replace any of their items.
 
 <a name="rxjs"></a>
-## What are _RxJS Observables_"
+## What are _RxJS Observables_
 
 [RxJS Observables](http://reactivex.io/rxjs/) is a library for programming in a "reactive style".
 

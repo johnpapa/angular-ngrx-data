@@ -3,6 +3,7 @@ import { FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs/Observable';
 
+import { FilterObserver } from '../../shared/filter';
 import { Villain } from '../../core';
 import { VillainsService } from '../villains.service';
 
@@ -17,10 +18,12 @@ export class VillainsComponent implements OnInit {
   addingVillain = false;
   selectedVillain: Villain = null;
 
+  filterObserver: FilterObserver;
   filteredVillains$: Observable<Villain[]>;
   loading$: Observable<boolean>;
 
   constructor(public villainsService: VillainsService) {
+    this.filterObserver = villainsService.filterObserver;
     this.filteredVillains$ = this.villainsService.filteredEntities$;
     this.loading$ = this.villainsService.loading$;
   }

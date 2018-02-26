@@ -3,7 +3,7 @@
     <button mat-raised-button color="primary" type="button" (click)="getHeroes()" matTooltip="Refresh the heroes">Refresh</button>
     <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero" matTooltip="Add a new hero">Add</button>
   </div>
-  <app-filter [entityService]="heroesService" filterPlaceholder="Filter by each hero's name"
+  <app-filter [filterObserver]="filterObserver" filterPlaceholder="Filter by each hero's name"
     class="filter-panel"></app-filter>
 </div>
 <div class="content-container">

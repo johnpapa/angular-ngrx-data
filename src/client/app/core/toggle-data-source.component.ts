@@ -1,6 +1,6 @@
 import { Component, OnInit, Optional, EventEmitter, HostBinding } from '@angular/core';
 
-import { InMemoryDataService } from '../core';
+import { InMemoryDataService } from '../../in-memory-data.service';
 import { AppDispatchers } from '../store/app-config';
 
 @Component({

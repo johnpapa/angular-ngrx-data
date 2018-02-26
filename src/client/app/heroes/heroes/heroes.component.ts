@@ -3,6 +3,7 @@ import { FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs/Observable';
 
+import { FilterObserver } from '../../shared/filter';
 import { Hero } from '../../core';
 import { HeroesService } from '../heroes.service';
 
@@ -17,17 +18,18 @@ export class HeroesComponent implements OnInit {
   addingHero = false;
   selectedHero: Hero;
 
+  filterObserver: FilterObserver;
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
 
   constructor(public heroesService: HeroesService) {
+    this.filterObserver = heroesService.filterObserver;
     this.filteredHeroes$ = this.heroesService.filteredEntities$;
     this.loading$ = this.heroesService.loading$;
   }
 
   ngOnInit() {
     this.heroesService.initialize();
-
   }
 
   clear() {

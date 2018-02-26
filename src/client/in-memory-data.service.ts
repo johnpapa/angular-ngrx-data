@@ -5,8 +5,6 @@ import { Injectable } from '@angular/core';
 
 import { RequestInfo, RequestInfoUtilities, ParsedRequestUrl } from 'angular-in-memory-web-api';
 
-import { Hero, Villain } from './model';
-
 /** In-memory database data */
 interface Db {
   [collectionName: string]: any[];
@@ -71,7 +69,7 @@ function mapCollectionName(name: string): string {
  * Development data
  */
 function getDbData() {
-  const heroes: Hero[] = [
+  const heroes: any[] = [
     {
       id: 11,
       name: 'Maxwell Smart',
@@ -94,7 +92,7 @@ function getDbData() {
     }
   ];
 
-  const villains: Villain[] = [
+  const villains: any[] = [
     {
       id: 21,
       name: 'Dr. Evil',

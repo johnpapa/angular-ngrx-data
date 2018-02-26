@@ -4,6 +4,7 @@ import { EntityService, EntityServiceFactory } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 
+import { FilterObserver } from '../../shared/filter';
 import { Hero } from '../../core';
 
 // Simpler version;
@@ -20,6 +21,7 @@ export class HeroesV1Component implements OnInit {
   addingHero = false;
   selectedHero: Hero;
 
+  filterObserver: FilterObserver;
   filteredHeroes$: Observable<Hero[]>;
   heroesService: EntityService<Hero>;
   loading$: Observable<boolean>;
@@ -28,6 +30,12 @@ export class HeroesV1Component implements OnInit {
     this.heroesService = entityServiceFactory.create<Hero>('Hero');
     this.filteredHeroes$ = this.heroesService.filteredEntities$;
     this.loading$ = this.heroesService.loading$;
+
+    /** User's filter pattern */
+    this.filterObserver = {
+      filter$: this.heroesService.filter$,
+      setFilter: this.heroesService.setFilter.bind(this)
+    };
   }
 
   ngOnInit() {

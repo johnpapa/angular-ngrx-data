@@ -1,9 +1,14 @@
-import { Component, OnDestroy, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
+import { Observable } from 'rxjs/Observable';
 import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 
-import { EntityService } from 'ngrx-data';
+/** FilterComponent binds to a FilterObserver from parent component */
+export interface FilterObserver {
+  filter$: Observable<string>;
+  setFilter(filterValue: string): void;
+}
 
 @Component({
   selector: 'app-filter',
@@ -11,7 +16,7 @@ import { EntityService } from 'ngrx-data';
   styleUrls: ['./filter.component.scss']
 })
 export class FilterComponent implements OnInit {
-  @Input() entityService: EntityService<any>;
+  @Input() filterObserver: FilterObserver;
   @Input() filterPlaceholder: string;
   filter: FormControl = new FormControl();
 
@@ -20,15 +25,17 @@ export class FilterComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Set the filter to the current value from store or ''
-    this.entityService.filter$
-      .pipe(take(1))
-      // take(1) completes so no need to unsubscribe
-      .subscribe(value => this.filter.setValue(value));
+    // Set the filter to the current value from filterObserver or ''
+    // IMPORTANT: filterObserver must emit at least once!
+    this.filterObserver.filter$
+    .pipe(take(1))
+    // take(1) completes so no need to unsubscribe
+    .subscribe(value => this.filter.setValue(value));
 
     this.filter.valueChanges
-      .pipe(debounceTime(300), distinctUntilChanged())
+      .pipe(
+        debounceTime(300), distinctUntilChanged())
       // no need to unsubscribe because subscribing to self
-      .subscribe(pattern => this.entityService.setFilter(pattern));
+      .subscribe(pattern => this.filterObserver.setFilter(pattern));
   }
 }

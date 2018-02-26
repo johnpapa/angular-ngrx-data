@@ -4,6 +4,11 @@ The ngrx-data library has its own [CHANGELOG.md](lib/CHANGELOG.md) and versionin
 Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
+<a name="0.2.4"></a>
+# 0.2.4 (2018-02-26)
+
+App refactors based on learnings from our Angular Awesome workshop.
+
 <a name="0.2.3"></a>
 # 0.2.3 (2018-02-24)
 

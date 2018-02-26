@@ -7,7 +7,7 @@ import { filter, takeUntil, tap } from 'rxjs/operators';
 
 import { EntityAction, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
 
-import { ToastService } from './toast.service';
+import { ToastService } from '../core/toast.service';
 
 /** Report ngrx-data success/error actions as toast messages **/
 @Injectable()

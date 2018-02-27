@@ -1,7 +1,5 @@
 import { defaultSelectId, EntityMetadataMap, PropsFilterFnFactory } from 'ngrx-data';
 
-import { Hero, Villain } from '../core/model';
-
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
     filterFn: nameFilter,    // optional

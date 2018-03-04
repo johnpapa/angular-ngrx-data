@@ -1,7 +1,25 @@
 # Angular _ngrx-data_ Overview
 
-The _ngrx-data_ library makes it easier to write an Angular application that manages [entity](faq.md#entity) data with 
-[ngrx](faq.md#ngrx) in a "reactive" style, following the [redux](faq.md#redux) pattern.
+## Zero Boilerplate Ngrx
+
+***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
+
+[_Ngrx_](faq.md#ngrx) helps Angular application manage shared state in a "reactive" style, following the [redux](faq.md#redux) pattern.
+
+Everyone complains about the amount of boilerplate code you must write and maintain to manage [entity](faq.md#entity) data with ngrx.
+
+Every entity type has a multitude of actions, reducer cases, and selectors that look virtually same across all entity types.
+
+Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you.
+Ngrx-Data _eliminates it altogether_.
+
+Ngrx-data's surprisingly simple approach is give all entities the same representation in an entity cache within the ngrx state tree. Then it dynamically generates all ngrx actions, reducers, selectors and effects as you need them.
+
+**It's still ngrx**. This is a _library for ngrx_, not an ngrx alternative.
+
+Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let ngrx-data write these for you.
+
+You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
 
 See the [README.md](../readme.md) for instructions on installing the library and running the demo app.
 
@@ -12,7 +30,7 @@ Learn about _ngrx-data_.
 * Review the library source code in the `lib` folder.
 * Read the guides in the `docs` folder.
 
-## Ngrx-data guides
+## _Ngrx-Data_ guides
 
 This page and other guide pages are markdown pages in the repository `docs` folder.
 

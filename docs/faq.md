@@ -1,5 +1,18 @@
 # Ngrx-data FAQs
 
+<a name="no-boilerplate-claim"></a>
+## You said I'd never write an action. But what if ...
+
+Hold on. We said "you _may never_ write an action, reducer, selector, or effect."
+
+That doesn’t mean you _won’t ever_.
+In fact, a critical feature of _ngrx-data_ is that you can add your own properties to collections, additional actions, reducer cases, selectors, etc.
+
+You aren't locked in to the way ngrx-data does things.
+You can customize almost anything, both at the single entity-type level and for all entity types.
+
+But you ONLY do so when you want to do something unusual … and that, by definition, is not boilerplate.
+
 <a name="entity"></a>
 ## What is an _entity_?
 

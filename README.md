@@ -1,7 +1,31 @@
 # Angular ngrx-data
 
+## Zero Boilerplate Ngrx
+
+***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
+
+[_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the 
+[redux](https://redux.js.org) pattern.
+
+Everyone complains about the amount of boilerplate code you must write and maintain to manage
+[entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
+
+In standard ngrx, every entity type has a multitude of actions, reducer cases, and selectors that look virtually the same across all entity types.
+
+Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you.
+[Ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it altogether_.
+
+_Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. Then, to fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
+
+**It's still ngrx**. This is a _library for ngrx_, not an ngrx alternative.
+
+Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
+
+You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
+
+
 The
-[`ngrx-data` library](https://github.com/johnpapa/angular-ngrx-data)
+[_ngrx-data_ library](https://github.com/johnpapa/angular-ngrx-data)
 makes it easier to write an Angular application that manages
 [entity](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/faq.md#entity)
 data with
@@ -27,10 +51,12 @@ The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically 
 
 The
 ["_Introduction to ngrx-data_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md)
-guide offers a quick overview.
+guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
 
 The
 ["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
+
+This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_. 
 
 ## Explore this repository
 

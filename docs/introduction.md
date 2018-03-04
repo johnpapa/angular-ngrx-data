@@ -37,13 +37,13 @@ The _ngrx-data_ library uses conventions to drive a standard set of behaviors th
 
 Server responses become new _ngrx actions_ that pass through _ngrx reducers_, where they update the _ngrx store_, triggering the store `Observables` that send values through _ngrx selectors_ to your application components. 
 
-Internally, _ngrx-data_ give every entity the same representation in an entity cache within the ngrx state tree. Then it dynamically generates all ngrx actions, reducers, selectors and effects as you need them.
+Internally _ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. Then, to fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
 
 The mechanics are handled for you _inside the library_. **You don't have to write any _ngrx_ code**. Just follow the _ngrx-data usage_ pattern and get on with your life.
 
 **It's still ngrx**. This is a _library for ngrx_, not an ngrx alternative.
 
-Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let ngrx-data write these for you.
+Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
 
 You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
 

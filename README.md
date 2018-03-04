@@ -17,21 +17,12 @@ Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for
 
 _Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. Then, to fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
 
-**It's still ngrx**. This is a _library for ngrx_, not an ngrx alternative.
+## It's still _ngrx_
+This is a _library for ngrx_, not an ngrx alternative.
 
 Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
 
 You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
-
-
-The
-[_ngrx-data_ library](https://github.com/johnpapa/angular-ngrx-data)
-makes it easier to write an Angular application that manages
-[entity](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/faq.md#entity)
-data with
-[ngrx](https://github.com/ngrx/platform/blob/master/README.md)
-in a "reactive" style, following the
-[redux](https://redux.js.org/) pattern.
 
 ## Why use _ngrx-data_?
 

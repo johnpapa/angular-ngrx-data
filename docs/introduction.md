@@ -118,7 +118,7 @@ import { Hero } from '../../core';
   templateUrl: './heroes.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroesComponent implements OnDestroy, OnInit {
+export class HeroesComponent implements OnInit {
   heroes$: Observable<Hero[]>;
   heroService: EntityService<Hero>;
 

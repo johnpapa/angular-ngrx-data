@@ -29,7 +29,7 @@ export class EntityEffects {
   @Effect()
   // Concurrent persistence requests considered unsafe.
   // `concatMap` ensures each request must complete-or-fail before making the next request.
-  persist$ = this.actions$.ofOp(persistOps).pipe(concatMap(action => this.persist(action)));
+  persist$: Observable<Action> = this.actions$.ofOp(persistOps).pipe(concatMap(action => this.persist(action)));
 
   constructor(
     private actions$: EntityActions,
@@ -38,7 +38,7 @@ export class EntityEffects {
     private resultHandler: PersistenceResultHandler
   ) {}
 
-  private persist(action: EntityAction) {
+  private persist(action: EntityAction): Observable<Action> {
     if (action.error) {
       return this.resultHandler.handleError(action)(action.error);
     }

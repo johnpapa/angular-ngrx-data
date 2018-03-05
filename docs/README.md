@@ -13,9 +13,10 @@ In standard ngrx, every entity type has a multitude of actions, reducer cases, a
 Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you.
 Ngrx-Data _eliminates it altogether_.
 
-_Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. Then, to fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
+_Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
 
 ## It's still _ngrx_
+
 This is a _library for ngrx_, not an ngrx alternative.
 
 Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.

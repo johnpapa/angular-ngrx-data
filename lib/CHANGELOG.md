@@ -1,4 +1,16 @@
 # Angular ngrx-data library ChangeLog
+
+<a name="1.0.0-alpha.11"></a>
+# release 1.0.0-alpha.11 (2018-03-15)
+
+*Breaking change alert*
+Renamed `EntityOp.SAVE_ADD` to `SAVE_ADD_ONE` for consistency.
+No functional changes.
+
+Small refactors for testability
+* EntityEffects: expose `persistOps`
+* EntityReducerFactory: new `getOrCreateReducer()` method.
+
 <a name="1.0.0-alpha.10"></a>
 # release 1.0.0-alpha.10 (2018-02-24)
 

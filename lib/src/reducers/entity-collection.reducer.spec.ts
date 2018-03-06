@@ -311,7 +311,7 @@ describe('EntityCollectionReducer', () => {
   describe('#SAVE_ADD_SUCCESS', () => {
 
     function createTestAction(hero: Hero)  {
-      return createAction('Hero', EntityOp.SAVE_ADD_SUCCESS, hero);
+      return createAction('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero);
     }
 
     it('should add a new hero to collection', () => {
@@ -700,8 +700,8 @@ describe('EntityCollectionReducer', () => {
 
   describe('"Do nothing" save actions', () => {
     [
-      EntityOp.SAVE_ADD,
-      EntityOp.SAVE_ADD_ERROR,
+      EntityOp.SAVE_ADD_ONE,
+      EntityOp.SAVE_ADD_ONE_ERROR,
       EntityOp.SAVE_ADD_ONE_OPTIMISTIC_ERROR
     ].forEach(op => testAddNoop(op));
 

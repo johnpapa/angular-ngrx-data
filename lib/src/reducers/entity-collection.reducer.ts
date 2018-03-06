@@ -103,12 +103,12 @@ export class EntityCollectionReducerFactory {
         // pessimistic add; add entity only upon success
         // It may be OK that the pkey is missing because the server may generate the ID
         // If it doesn't, the reducer will catch the error in the success action
-        case EntityOp.SAVE_ADD: {
+        case EntityOp.SAVE_ADD_ONE: {
           return collection;
         }
 
         // pessimistic add upon success
-        case EntityOp.SAVE_ADD_SUCCESS: {
+        case EntityOp.SAVE_ADD_ONE_SUCCESS: {
           // Ensure the server generated the primary key if the client didn't send one.
           guard.mustBeEntities([action.payload], action.op, true);
           return adapter.addOne(action.payload, collection);

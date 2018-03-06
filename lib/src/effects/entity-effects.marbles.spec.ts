@@ -172,8 +172,8 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD, hero);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_SUCCESS, hero);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero);
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -186,7 +186,7 @@ describe('EntityEffects (marble testing)', () => {
 
   it('should return a SAVE_ADD_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD, hero);
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
     const error = completion.payload.error;

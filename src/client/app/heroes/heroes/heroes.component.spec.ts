@@ -277,7 +277,7 @@ function heroesComponentDeclarationsSetup() {
  */
 function getInitializedComponent() {
   const setup = heroesComponentClassSetup()
-  const { createHeroAction, dispatchSpy, initialHeroes, setPersistResponses } = setup;
+  const { createHeroAction, initialHeroes, setPersistResponses } = setup;
 
   const fixture = TestBed.createComponent(HeroesComponent);
   const component = fixture.componentInstance;

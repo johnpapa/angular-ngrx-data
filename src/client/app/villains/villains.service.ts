@@ -1,18 +1,21 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Villain, IdGeneratorService } from '../core';
 
 import { AppSelectors } from '../store/app-config';
 import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
 
 import { FilterObserver } from '../shared/filter';
-import { Subscription } from 'rxjs/Subscription';
+import { shareReplay, tap } from 'rxjs/operators';
 
 @Injectable()
-export class VillainsService extends EntityServiceBase<Villain> implements OnDestroy {
-  private subscription: Subscription;
-
+export class VillainsService extends EntityServiceBase<Villain> {
   filterObserver: FilterObserver;
 
+  /** Run `getAll` if the datasource changes. */
+  getAllOnDataSourceChange = this.appSelectors.dataSource$().pipe(
+    tap(_ => this.getAll()),
+    shareReplay(1)
+  );
   constructor(
     entityServiceFactory: EntityServiceFactory,
     private appSelectors: AppSelectors,
@@ -34,16 +37,5 @@ export class VillainsService extends EntityServiceBase<Villain> implements OnDes
       villain = { ...villain, id };
     }
     super.add(villain);
-  }
-
-  initialize() {
-    if (!this.subscription) {
-      // Re-fetch all when toggle between local and remote web api
-      this.subscription = this.appSelectors.dataSource$().subscribe(() => this.getAll());
-    }
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
   }
 }

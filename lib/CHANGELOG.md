@@ -1,5 +1,10 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.12"></a>
+# release 1.0.0-alpha.12 (2018-03-15
+
+* EntityEffects.persist is now public, mostly for easier testing
+
 <a name="1.0.0-alpha.11"></a>
 # release 1.0.0-alpha.11 (2018-03-15)
 

@@ -1,3 +1,10 @@
+/*
+ * Test the component by mocking its injected ngrx-data HeroesService
+ *
+ * You have a choice of testing the component class alone or the component-and-its-template.
+ * The latter requires importing more stuff and a bit more setup.
+ */
+
 // region imports
 import { Component, CUSTOM_ELEMENTS_SCHEMA, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -6,7 +13,6 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { Action, StoreModule, Store } from '@ngrx/store';
 import { Actions, EffectsModule } from '@ngrx/effects';
-import { provideMockActions } from '@ngrx/effects/testing'; // interesting but not used
 
 import {
   EntityAction, EntityActionFactory, EntityCache, EntityOp,
@@ -35,264 +41,171 @@ import { HeroDetailComponent } from '../hero-detail/hero-detail.component';
 
 // endregion imports
 
-describe('HeroesComponent class-only (integration)', () => {
+describe('HeroesComponent (mock HeroesService)', () => {
+  let appSelectorsDataSource: BehaviorSubject<string>;
+  let component: HeroesComponent;
+  let heroesService: HeroesService;
+  let testStore: Store<EntityCache>;
 
-  it('can instantiate component', () => {
-    heroesComponentClassSetup();
-    const component: HeroesComponent = TestBed.get(HeroesComponent);
-    expect(component).toBeDefined();
-  });
-
-  it('should initialize component with getAll() [no helper]', () => {
-    const { createHeroAction, initialHeroes, setPersistResponses } = heroesComponentClassSetup();
-
-    const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
-
-    let succeeded = false;
-
-    const component: HeroesComponent = TestBed.get(HeroesComponent);
-    component.ngOnInit();
-
-    component.loading$.pipe(first()).subscribe(loading =>
-      expect(loading).toBe(true, 'loading while getting all')
-    );
-
-    setPersistResponses(getAllSuccessAction);
-
-    component.filteredHeroes$.subscribe(heroes => {
-      succeeded = true;
-      expect(heroes.length).toBe(initialHeroes.length);
-    });
-
-    component.loading$.pipe(first()).subscribe(loading =>
-      expect(loading).toBe(false, 'loading after getting all')
-    );
-
-    expect(succeeded).toBe(true, 'should have gotten heroes');
-  });
-
-  it('should initialize component with getAll() [using helper]', () => {
-    const { component, initialHeroes } = getInitializedComponentClass();
-
-    let succeeded = false;
-
-    // Pessimistic so works even when the effect actions doesn't complete
-    component.filteredHeroes$.subscribe(heroes => {
-      succeeded = true;
-      expect(heroes.length).toBe(initialHeroes.length);
-    });
-
-    expect(succeeded).toBe(true, 'should have gotten heroes');
-  });
-
-  it('should filter heroes when filter value changes', () => {
-    const { component, createHeroAction } = getInitializedComponentClass();
-
-    let subscriptionCalled = false;
-
-    // The data-bound FilterComponent would call the observer like this
-    component.filterObserver.setFilter('a'); // case insensitive
-
-    component.filteredHeroes$.subscribe(heroes => {
-      subscriptionCalled = true;
-      expect(heroes.length).toBe(1);
-      expect(heroes[0].name).toBe('A');
-    });
-
-    expect(subscriptionCalled).toBe(true, 'subscription was called');
-  });
-
-  it('should delete a hero', () => {
-    const { component, createHeroAction, dispatchSpy, heroReducerSpy, initialHeroes, setPersistResponses } = getInitializedComponentClass();
-
-    let subscriptionCalled = false;
-
-    component.deleteHero(initialHeroes[1]); // 'B'
-
-    const success = createHeroAction(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
-
-    setPersistResponses(success);
-
-    component.filteredHeroes$.subscribe(heroes => {
-      subscriptionCalled = true;
-      expect(heroes.length).toBe(initialHeroes.length - 1);
-    });
-
-    expect(subscriptionCalled).toBe(true, 'subscription was called');
-    expect(dispatchSpy.calls.count()).toBe(1, 'can only see the direct dispatch to the store!');
-    expect(heroReducerSpy.calls.count()).toBe(2, 'HroReducer called twice');
-  });
-
-  it('should add a hero', () => {
-    const { component, createHeroAction, initialHeroes, setPersistResponses } = getInitializedComponentClass();
-
-    let subscriptionCalled = false;
-
-    const testHero: Hero = {id: undefined, name: 'Test', saying: 'Say test'}
-
-    component.add(testHero)
-
-    const success = createHeroAction(EntityOp.SAVE_ADD_ONE_SUCCESS, { ...testHero, id: 42 });
-
-    setPersistResponses(success);
-
-    component.filteredHeroes$.subscribe(heroes => {
-      subscriptionCalled = true;
-      expect(heroes.length).toBe(initialHeroes.length + 1);
-    });
-
-    expect(subscriptionCalled).toBe(true, 'subscription was called');
-  });
-});
-
-describe('HeroesComponent class+template (integration)', () => {
-
-  beforeEach(heroesComponentDeclarationsSetup);
-
-  it('should display all heroes', () => {
-    const { component, fixture, initialHeroes, view} = getInitializedComponent();
-    const itemEls = view.querySelectorAll('ul.heroes li');
-    expect(itemEls.length).toBe(initialHeroes.length);
-  });
-
-});
-
-// region CLASS-ONLY test helpers
-
-function heroesComponentClassSetup() {
-  TestBed.configureTestingModule({
-    imports: [
-      StoreModule.forRoot({}),
-      EffectsModule.forRoot([]),
-      EntityStoreModule
-    ],
-    providers: [
-      Actions,
-      AppSelectors,
-      HeroesComponent, // When testing class-only
-      HeroesService,
-      { provide: HttpClient, useValue: null },
-    ]
-  });
-
-  // Component listens for toggle between local and remote DB
-  const appSelectorsSubject = new BehaviorSubject('local');
-  const appSelectors: AppSelectors = TestBed.get(AppSelectors);
-  spyOn(appSelectors, 'dataSource$').and.returnValue(appSelectorsSubject);
-
-  // Create Hero entity actions as ngrx-data will do it
-  const entityActionFactory: EntityActionFactory = TestBed.get(EntityActionFactory);
+  let entityActionFactory: EntityActionFactory
+  /** Create Hero entity actions as ngrx-data will do it */
   function createHeroAction(op: EntityOp, payload?: any) {
     return entityActionFactory.create('Hero', op, payload);
   }
 
-  // Spy on EntityEffects
-  const effects: EntityEffects = TestBed.get(EntityEffects);
-  let persistResponsesSubject: Subject<Action>;
-
-  // cast `effects` to `any` so can spy on private `persist()` method
-  const persistSpy = spyOn(effects as any, 'persist').and
-    .callFake((action: EntityAction) => persistResponsesSubject = new Subject<Action>());
-
-  // Control EntityAction responses from EntityEffects spy
-  function setPersistResponses(...actions: Action[]) {
-    actions.forEach(action => persistResponsesSubject.next(action));
-    persistResponsesSubject.complete();
-  }
-
-  // Sample Hero test data
   const initialHeroes = [
     {id: 1, name: 'A', saying: 'A says'},
     {id: 3, name: 'B', saying: 'B says'},
     {id: 2, name: 'C', saying: 'C says'},
   ];
 
-  // Spy on dispatches to the store (not very useful)
-  const testStore: Store<EntityCache> = TestBed.get(Store);
-  const dispatchSpy = spyOn(testStore, 'dispatch').and.callThrough();
+  describe('class-only', () => {
 
-  return {
-    appSelectors, appSelectorsSubject,
-    createHeroAction,
-    dispatchSpy,
-    effects,
-    entityActionFactory,
-    initialHeroes,
-    persistResponsesSubject,
-    persistSpy,
-    setPersistResponses,
-    testStore
-  };
-}
+    beforeEach(heroesComponentCoreSetup);
 
-/**
- * Create and initialize the component for CLASS-ONLY tests.
- * Initialization gets all Heroes.
- */
-function getInitializedComponentClass() {
-  const setup = heroesComponentClassSetup()
-  const { createHeroAction, dispatchSpy, initialHeroes, setPersistResponses } = setup;
+    beforeEach(() => {
+      component = TestBed.get(HeroesComponent);
+      component.ngOnInit(); // triggers getAll heroes
+    });
 
-  const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
+    it('should initialize component with getAll()', () => {
+      let subscriptionCalled = false;
 
-  // When testing the class-only, can inject it as if it were a service
-  const component: HeroesComponent = TestBed.get(HeroesComponent);
-  component.ngOnInit();
+      component.filteredHeroes$.subscribe(heroes => {
+        subscriptionCalled = true;
+        expect(heroes.length).toBe(initialHeroes.length);
+      });
 
-  setPersistResponses(getAllSuccessAction);
+      component.loading$.pipe(first()).subscribe(loading => expect(loading).toBe(false, 'loading after'));
 
-  dispatchSpy.calls.reset(); // don't count the getAll actions
+      expect(subscriptionCalled).toBe(true, 'should have gotten heroes');
+    });
 
-  // Spy on HeroReducer
-  const entityReducerFactory: EntityReducerFactory = TestBed.get(EntityReducerFactory);
-  const heroReducer: EntityCollectionReducer<Hero>  =
-    entityReducerFactory.getOrCreateReducer<Hero>('Hero');
-  const heroReducerSpy = jasmine.createSpy('HeroReducer', heroReducer).and.callThrough();
-  // re-register the spy version
-  entityReducerFactory.registerReducer<Hero>('Hero', heroReducerSpy);
+    it('should filter heroes when filter value changes', () => {
+      let subscriptionCalled = false;
 
-  return { ...setup, component, heroReducerSpy }
-}
-// endregion CLASS-ONLY test helpers
+      // The data-bound FilterComponent would call the observer like this
+      component.filterObserver.setFilter('a'); // case insensitive
 
-// region CLASS+TEMPLATE test helpers
+      component.filteredHeroes$.subscribe(heroes => {
+        subscriptionCalled = true;
+        expect(heroes.length).toBe(1);
+        expect(heroes[0].name).toBe('A');
+      });
 
-// Call this when testing class/template interaction
-// Not needed when testing class-only
-function heroesComponentDeclarationsSetup() {
-  TestBed.configureTestingModule({
-    imports: [
-      ReactiveFormsModule
-    ],
-    declarations: [
-      FilterComponent,
-      HeroesComponent,
-      HeroListComponent, HeroDetailComponent,
-    ],
-    schemas: [ CUSTOM_ELEMENTS_SCHEMA ] // ignore Angular Material elements
+      expect(subscriptionCalled).toBe(true, 'subscription was called');
+    });
+
+    it('should delete a hero', () => {
+      let subscriptionCalled = false;
+
+      spyOn(heroesService, 'add').and.callFake(() => {
+        const success = createHeroAction(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
+        testStore.dispatch(success);
+      });
+
+      component.deleteHero(initialHeroes[1]); // 'B'
+
+      component.filteredHeroes$.subscribe(heroes => {
+        subscriptionCalled = true;
+        expect(heroes.length).toBe(initialHeroes.length - 1);
+      });
+
+      expect(subscriptionCalled).toBe(true, 'subscription was called');
+    });
+
+    it('should add a hero', () => {
+      let subscriptionCalled = false;
+
+      const testHero: Hero = {id: undefined, name: 'Test', saying: 'Say test'}
+
+      spyOn(heroesService, 'add').and.callFake(() => {
+        const success = createHeroAction(EntityOp.SAVE_ADD_ONE_SUCCESS, { ...testHero, id: 42 });
+        testStore.dispatch(success);
+      });
+
+      component.add(testHero)
+
+      component.filteredHeroes$.subscribe(heroes => {
+        subscriptionCalled = true;
+        expect(heroes.length).toBe(initialHeroes.length + 1);
+      });
+
+      expect(subscriptionCalled).toBe(true, 'subscription was called');
+    });
   });
-}
 
-/**
- * Create and initialize the component CLASS-AND-TEMPLATE tests.
- * Initialization gets all Heroes.
- */
-function getInitializedComponent() {
-  const setup = heroesComponentClassSetup()
-  const { createHeroAction, initialHeroes, setPersistResponses } = setup;
+  describe('class+template', () => {
 
-  const fixture = TestBed.createComponent(HeroesComponent);
-  const component = fixture.componentInstance;
-  const view: HTMLElement = fixture.nativeElement;
+    let fixture: ComponentFixture<HeroesComponent>;
+    let view: HTMLElement;
 
-  fixture.detectChanges(); // triggers ngOnInit() which gets all heroes.
+    beforeEach(heroesComponentDeclarationsSetup);
+    beforeEach(heroesComponentCoreSetup);
 
-  const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
-  setPersistResponses(getAllSuccessAction);
+    beforeEach(() => {
+      fixture = TestBed.createComponent(HeroesComponent);
+      component = fixture.componentInstance;
+      view = fixture.nativeElement;
 
-  fixture.detectChanges(); // populate view with heroes from store.
+      fixture.detectChanges(); // triggers ngOnInit() which gets all heroes.
+      fixture.detectChanges(); // populate view with heroes from store.
+    });
 
-  return { ...setup, component, fixture, view }
-}
+    it('should display all heroes', () => {
+      const itemEls = view.querySelectorAll('ul.heroes li');
+      expect(itemEls.length).toBe(initialHeroes.length);
+    });
 
-// endregion CLASS+TEMPLATE test helpers
+  });
+
+  // region helpers
+  function heroesComponentCoreSetup() {
+    TestBed.configureTestingModule({
+      imports: [
+        StoreModule.forRoot({}),
+        EffectsModule.forRoot([]),
+        EntityStoreModule
+      ],
+      providers: [
+        AppSelectors,
+        HeroesComponent, // When testing class-only
+        HeroesService,
+        { provide: HttpClient, useValue: null },
+      ]
+    });
+
+    // Component listens for toggle between local and remote DB
+    appSelectorsDataSource = new BehaviorSubject('local');
+    const appSelectors: AppSelectors = TestBed.get(AppSelectors);
+    spyOn(appSelectors, 'dataSource$').and.returnValue(appSelectorsDataSource);
+
+    entityActionFactory = TestBed.get(EntityActionFactory);
+
+    heroesService = TestBed.get(HeroesService);
+    spyOn(heroesService, 'getAll').and.callFake(() => {
+      const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
+      testStore.dispatch(getAllSuccessAction);
+    });
+
+    testStore = TestBed.get(Store);
+  }
+
+  // Call this when testing class/template interaction
+  // Not needed when testing class-only
+  function heroesComponentDeclarationsSetup() {
+    TestBed.configureTestingModule({
+      imports: [
+        ReactiveFormsModule
+      ],
+      declarations: [
+        FilterComponent,
+        HeroesComponent,
+        HeroListComponent, HeroDetailComponent,
+      ],
+      schemas: [ CUSTOM_ELEMENTS_SCHEMA ] // ignore Angular Material elements
+    });
+  }
+
+  // endregion helpers
+});

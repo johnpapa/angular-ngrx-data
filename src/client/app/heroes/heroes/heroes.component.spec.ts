@@ -189,6 +189,8 @@ function heroesComponentClassSetup() {
   // Spy on EntityEffects
   const effects: EntityEffects = TestBed.get(EntityEffects);
   let persistResponsesSubject: Subject<Action>;
+
+  // cast `effects` to `any` so can spy on private `persist()` method
   const persistSpy = spyOn(effects as any, 'persist').and
     .callFake((action: EntityAction) => persistResponsesSubject = new Subject<Action>());
 

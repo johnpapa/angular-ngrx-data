@@ -1,6 +1,6 @@
 # Angular _ngrx-data_ Overview
 
-## Zero Boilerplate Ngrx
+## Zero Ngrx Boilerplate
 
 ***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
 

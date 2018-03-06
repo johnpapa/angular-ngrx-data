@@ -38,7 +38,12 @@ export class EntityEffects {
     private resultHandler: PersistenceResultHandler
   ) {}
 
-  private persist(action: EntityAction): Observable<Action> {
+  /**
+   * Perform the requested persistence operation and return a completing Observable<Action>
+   * that the effect should dispatch to the store after the server responds.
+   * @param action A persistence operation EntityAction
+   */
+  persist(action: EntityAction): Observable<Action> {
     if (action.error) {
       return this.resultHandler.handleError(action)(action.error);
     }

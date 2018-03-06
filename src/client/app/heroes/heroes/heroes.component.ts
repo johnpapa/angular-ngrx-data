@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 import { FilterObserver } from '../../shared/filter';
 import { Hero } from '../../core';
@@ -11,12 +12,12 @@ import { HeroesService } from '../heroes.service';
   selector: 'app-heroes',
   templateUrl: './heroes.component.html',
   styleUrls: ['./heroes.component.scss'],
-  providers: [ HeroesService ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroesComponent implements OnInit {
+export class HeroesComponent implements OnInit, OnDestroy {
   addingHero = false;
   selectedHero: Hero;
+  subscription: Subscription;
 
   filterObserver: FilterObserver;
   filteredHeroes$: Observable<Hero[]>;
@@ -29,7 +30,11 @@ export class HeroesComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.heroesService.initialize();
+    this.subscription = this.heroesService.getAllOnDataSourceChange.subscribe();
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   clear() {

@@ -1,7 +1,8 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { Observable } from 'rxjs/Observable';
+import { Subscription } from 'rxjs/Subscription';
 
 import { FilterObserver } from '../../shared/filter';
 import { Villain } from '../../core';
@@ -11,12 +12,12 @@ import { VillainsService } from '../villains.service';
   selector: 'app-villains',
   templateUrl: './villains.component.html',
   styleUrls: ['./villains.component.scss'],
-  providers: [ VillainsService ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainsComponent implements OnInit {
+export class VillainsComponent implements OnInit, OnDestroy {
   addingVillain = false;
   selectedVillain: Villain = null;
+  subscription: Subscription;
 
   filterObserver: FilterObserver;
   filteredVillains$: Observable<Villain[]>;
@@ -29,7 +30,11 @@ export class VillainsComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.villainsService.initialize();
+    this.subscription = this.villainsService.getAllOnDataSourceChange.subscribe();
+  }
+
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   clear() {

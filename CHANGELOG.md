@@ -5,8 +5,25 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.6"></a>
+# 0.2.6 (2018-03-05)
+
+Depends on alpha.12
+
+More `HeroesComponent` tests
+* Now demonstrates `HeroesService` test double
+* Tests from 0.2.5 are in `heroes.component.effects.spec.ts`.
+
+Sample revised 
+* HeroesService and Villains service no longer `getAll()` when the datasource (local/remote) changes.
+* Instead they expose a `getAllOnDataSourceChange` observable that runs `getAll()` and caches the result
+when the datasource changes IF a component subscribes.
+* HeroesComponent and VillainsComponent subscribe to `getAllOnDataSourceChange`
+* Those components now start with the cached version of the `getAll()` results. 
+Press refresh or toggle the datasource to trigger a new `getAll()`
+
 <a name="0.2.5"></a>
-# 0.2.4 (2018-03-05)
+# 0.2.5 (2018-03-05)
 
 Add HeroesComponent tests to illustrate how one might write test components. Experimental. 
 

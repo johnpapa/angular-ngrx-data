@@ -1,17 +1,21 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
 
-import { Subscription } from 'rxjs/Subscription';
+import { shareReplay, tap } from 'rxjs/operators';
 
 import { AppSelectors } from '../store/app-config';
 import { Hero } from '../core';
 import { FilterObserver } from '../shared/filter';
 
 @Injectable()
-export class HeroesService extends EntityServiceBase<Hero> implements OnDestroy {
-  private subscription: Subscription;
-
+export class HeroesService extends EntityServiceBase<Hero> {
   filterObserver: FilterObserver;
+
+  /** Run `getAll` if the datasource changes. */
+  getAllOnDataSourceChange = this.appSelectors.dataSource$().pipe(
+    tap(_ => this.getAll()),
+    shareReplay(1)
+  );
 
   constructor(
     entityServiceFactory: EntityServiceFactory,
@@ -25,14 +29,4 @@ export class HeroesService extends EntityServiceBase<Hero> implements OnDestroy 
     };
   }
 
-  initialize() {
-    if (!this.subscription) {
-      // Re-fetch all when toggle between local and remote web api
-      this.subscription = this.appSelectors.dataSource$().subscribe(() => this.getAll());
-    }
-  }
-
-  ngOnDestroy() {
-    this.subscription.unsubscribe();
-  }
 }

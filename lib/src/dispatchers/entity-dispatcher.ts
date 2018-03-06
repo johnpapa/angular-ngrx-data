@@ -80,7 +80,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    */
   add(entity: T, isOptimistic?: boolean): void {
     isOptimistic = isOptimistic != null ? isOptimistic : this.options.optimisticAdd;
-    const op = isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD;
+    const op = isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD_ONE;
     if (isOptimistic) {
       this.guard.mustBeEntities([entity], op, true);
     }

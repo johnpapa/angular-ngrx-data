@@ -39,7 +39,7 @@ export class EntityReducerFactory {
 
   /**
    * Create the ngrx-data entity reducer which delegates to
-   * an EntityCollectionReducer based on the action.entityName
+   * an EntityCollectionReducer based on the action.entityName.
    */
   create(): ActionReducer<EntityCache, EntityAction> {
     return (state: EntityCache = {}, action: EntityAction): EntityCache => {
@@ -49,16 +49,7 @@ export class EntityReducerFactory {
       }
 
       const collection = state[entityName];
-      let def: EntityDefinition;
-      let reducer = this.entityCollectionReducers[entityName];
-
-      if (!reducer) {
-        def = this.entityDefinitionService.getDefinition(entityName);
-        reducer = this.entityCollectionReducerFactory.create(
-          entityName, def.entityAdapter, def.selectId);
-        reducer = this.registerReducer(entityName, reducer);
-        this.entityCollectionReducers[entityName] = reducer;
-      }
+      const reducer = this.getOrCreateReducer(entityName)
 
       let newCollection: EntityCollection;
       try {
@@ -75,6 +66,24 @@ export class EntityReducerFactory {
         state :
         { ...state, ...{ [entityName]: newCollection } };
     };
+  }
+
+  /**
+   * Get the registered EntityCollectionReducer<T> for this entity type or create one and register it.
+   * @param entityName Name of the entity type for this reducer
+   */
+  getOrCreateReducer<T>(entityName: string): EntityCollectionReducer<T> {
+    let def: EntityDefinition;
+    let reducer: EntityCollectionReducer<T> = this.entityCollectionReducers[entityName];
+
+    if (!reducer) {
+      def = this.entityDefinitionService.getDefinition(entityName);
+      reducer = this.entityCollectionReducerFactory.create(
+        entityName, def.entityAdapter, def.selectId);
+      reducer = this.registerReducer<T>(entityName, reducer);
+      this.entityCollectionReducers[entityName] = reducer;
+    }
+    return reducer;
   }
 
   /**

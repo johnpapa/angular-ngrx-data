@@ -11,11 +11,11 @@ import {
 
 import { EntityDataService, PersistenceResultHandler } from '../dataservices';
 
-const persistOps: EntityOp[] = [
+export const persistOps: EntityOp[] = [
   EntityOp.QUERY_ALL,
   EntityOp.QUERY_BY_KEY,
   EntityOp.QUERY_MANY,
-  EntityOp.SAVE_ADD,
+  EntityOp.SAVE_ADD_ONE,
   EntityOp.SAVE_DELETE_ONE,
   EntityOp.SAVE_UPDATE_ONE,
   EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
@@ -65,7 +65,7 @@ export class EntityEffects {
         return service.getWithQuery(action.payload);
       }
       case EntityOp.SAVE_ADD_ONE_OPTIMISTIC:
-      case EntityOp.SAVE_ADD: {
+      case EntityOp.SAVE_ADD_ONE: {
         return service.add(action.payload);
       }
       case EntityOp.SAVE_DELETE_ONE_OPTIMISTIC:

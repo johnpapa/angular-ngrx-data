@@ -101,7 +101,7 @@ export function commandDispatchTest(
         const hero: Hero = {id: 42, name: 'test'};
         dispatcher.add(hero); // pessimistic by default
 
-        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD);
+        expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_ONE);
         expect(dispatchedAction().payload).toBe(hero);
       });
 

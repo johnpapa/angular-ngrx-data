@@ -27,9 +27,9 @@ describe('EntityActionFactory', () => {
   it('should create EntityAction from another EntityAction', () => {
     const hero: Hero = {id: 42, name: 'Francis' };
     const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
-    const action = factory.create(action1, EntityOp.SAVE_ADD)
+    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE)
     expect(action.entityName).toBe('Hero');
-    expect(action.op).toBe(EntityOp.SAVE_ADD);
+    expect(action.op).toBe(EntityOp.SAVE_ADD_ONE);
     // Forward's the payload to the new action.
     expect(action.payload).toBe(hero);
   });
@@ -37,9 +37,9 @@ describe('EntityActionFactory', () => {
   it('can suppress the payload when create EntityAction from another EntityAction', () => {
     const hero: Hero = {id: 42, name: 'Francis' };
     const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
-    const action = factory.create(action1, EntityOp.SAVE_ADD, undefined)
+    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE, undefined)
     expect(action.entityName).toBe('Hero');
-    expect(action.op).toBe(EntityOp.SAVE_ADD);
+    expect(action.op).toBe(EntityOp.SAVE_ADD_ONE);
     expect(action.payload).toBeUndefined();
   });
 

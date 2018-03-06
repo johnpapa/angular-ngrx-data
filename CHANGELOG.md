@@ -4,6 +4,14 @@ The ngrx-data library has its own [CHANGELOG.md](lib/CHANGELOG.md) and versionin
 Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
+
+<a name="0.2.5"></a>
+# 0.2.4 (2018-03-05)
+
+Add HeroesComponent tests to illustrate how one might write test components. Experimental. 
+
+Requires Alpha.11
+
 <a name="0.2.4"></a>
 # 0.2.4 (2018-02-26)
 

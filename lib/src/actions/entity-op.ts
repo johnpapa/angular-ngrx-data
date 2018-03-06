@@ -22,9 +22,9 @@ export enum EntityOp {
   QUERY_BY_KEY_SUCCESS = 'ngrx-data/query-by-id/success',
   QUERY_BY_KEY_ERROR = 'ngrx-data/query-by-id/error',
 
-  SAVE_ADD = 'ngrx-data/save/add-one',
-  SAVE_ADD_ERROR = 'ngrx-data/save/add-one/error',
-  SAVE_ADD_SUCCESS = 'ngrx-data/save/add-one/success',
+  SAVE_ADD_ONE = 'ngrx-data/save/add-one',
+  SAVE_ADD_ONE_ERROR = 'ngrx-data/save/add-one/error',
+  SAVE_ADD_ONE_SUCCESS = 'ngrx-data/save/add-one/success',
 
   SAVE_DELETE_ONE = 'ngrx-data/save/delete-one',
   SAVE_DELETE_ONE_SUCCESS = 'ngrx-data/save/delete-one/success',

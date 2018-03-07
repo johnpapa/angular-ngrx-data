@@ -7,7 +7,7 @@ export interface EntityAction<P = any> extends Action {
   readonly type: string;
   readonly entityName: string;
   readonly op: EntityOp;
-  readonly payload?: any;
+  readonly payload?: P;
   // The only mutable property because
   // it's the only way to stop downstream action processing
   error?: Error;

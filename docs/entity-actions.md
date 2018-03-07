@@ -2,28 +2,62 @@
 
 The [`EntityService`](entity-service.md) dispatches an `EntityAction` to the _ngrx store_ when you call one of its commands to query or update entities in a cached collection.
 
-### _Actions_
+### _Action_ and _EntityAction_
 
 A vanilla
-[_ngrx `Action`_](https://github.com/ngrx/platform/blob/master/docs/store/actions.md)
-has a _type_ and an optional _payload_.
+[_ngrx `Action`_](https://github.com/ngrx/platform/blob/master/docs/store/actions.md) is a message. 
+The message describes an operation that can change state in the _store_.
 
-The _type_ is a string that uniquely identifies the action.
-The _payload_ carries the data necessary to process the action.
-The store sends actions to an _ngrx reducer_ which recognizes the action, extracts the payload, and performs some operation on some state in the store.
+The _action_'s `type` identifies the operation.
+It's optional `payload` carries the message data necessary to perform the operation.
 
-### _EntityActions_
 An [`EntityAction`](../lib/src/actions/entity-action.ts) is a super-set of the _ngrx `Action`_.
-It has two additional properties:
+It has additional properties that guide _ngrx-data_'s handling of the action.  Here's the full interface.
+
+```
+export interface EntityAction<P = any> extends Action {
+  readonly type: string;
+  readonly entityName: string;
+  readonly op: EntityOp;
+  readonly payload?: P;
+  error?: Error;
+}
+```
+
+* `type` - action name, typically generated from the `entityName` and the `op`
 * `entityName` - the name of the entity type
 * `op` - the name of an entity operation
+* `payload?` - the message data for the action.
+* `error?` - an unexpected action processing error.
 
-The `op` name is member of the 
-[`EntityOp` enumeration](../lib/src/actions/entity-op.ts).
-Each `EntityOp` corresponds to one of (roughly) _twenty-six_ operations
+
+The `type` is the only property required by _ngrx_. It is a string that uniquely identifies the action among the set of all the types of actions that can be dispatched to the store.
+
+_Ngrx-data_ doesn't care about the `type`. It pays attention to the `entityName` and `op` properties.
+
+The `entityName` is the name of the entity type. 
+It identifies the _entity collection_ in the _ngrx-data_ cache to which this action applies. 
+This name corresponds to [_ngrx-data metadata_](entity-metadata.md) for that collection.
+An entity interface or class name, such as `'Hero'`, is a typical `entityName`.
+
+The `op` identifies the operation to perform on the _entity collection_. _Ngrx-data_ recognizes names in the [`EntityOp` enumeration](../lib/src/actions/entity-op.ts).
+Each of these `EntityOp` names corresponds to one of almost _forty_ operations
 that the _ngrx-data_ library can perform.
 
-The `EntityActionFactory.create()` method creates an `Action` instance 
+The `payload` is conceptually the body of the message.
+Its type and content should fit the requirements of the operation to be performed.
+
+The `error` property indicates that something went wrong while processing the action. [See more below](#action-error).
+
+
+## Creating an _EntityAction_
+
+You can create an `EntityAction` by hand if you wish.
+The _ngrx-data_ library considers _any action_ with an `entityName` and  `op` properties to be `EntityAction`s.
+
+The `EntityActionFactory.create()` method helps you create consistently well-formed `EntityActions`.
+
+It creates an `Action` instance 
 whose `type` is a string composed from the `entityName`
 and the `op`.
 
@@ -46,7 +80,7 @@ to produce the `Action.type` string.
 >Because _ngrx-data_ ignores the `type`, you can replace `formatActionType()` with your own method if you prefer a different format
 or provide and inject your own `EntityActionFactory`.
 
-### Where are the _EntityActions_?
+## Where are the _EntityActions_?
 
 In an _ngrx-data_ app, the _ngrx-data_ library creates and dispatches _EntityActions_ for you.
 
@@ -79,3 +113,23 @@ That's a lot of code to write, test, and maintain.
 
 With the help of _ngrx-data_, you don't write any of it.
 _Ngrx-data_ creates the _actions_ and the _dispatchers_, _reducers_, and _effects_ that respond to those actions.
+
+
+<a name="action-error"></a>
+## _EntityAction.error_
+
+The presence of an `EntityAction.error` property indicates that something bad happened while processing the action.
+
+An `EntityAction` should be immutable. The `EntityAction.error` property is the _only_ exception and is strictly an internal property of the _ngrx-data_ system.
+You should rarely (if ever) set it yourself.
+
+The primary use case for `error` is to catch reducer exceptions.
+_Ngrx_ stops subscribing to reducers if one of them throws an exception.
+Catching reducer exceptions allows the application to continue operating.
+
+_Ngrx-data_ traps an error thrown by an `EntityCollectionReducer` and sets the `EntityAction.error` property to the caught error object.
+
+The `error` property is important when the errant action is a _persistence action_ (such as `SAVE_ADD_ONE`).
+The `EntityEffects` will see that such an action has an error and will return the corresponding failure action (`SAVE_ADD_ONE_ERROR`) immediately, without attempting an HTTP request.
+
+>This is the only way we've found to prevent a bad action from getting through the effect and triggering an HTTP request.

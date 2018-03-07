@@ -6,11 +6,12 @@ The _Entity Reducer_ is the _master reducer_ for all entity collections in the s
 
 The library doesn't have a named _entity reducer_ type.
 Rather it relies on the **`EntityReducerFactory.create()`** method to produce that reducer,
-which is an _ngrx_ `ActionReducer<EntityCache, EntityAction`.
+which is an _ngrx_ `ActionReducer<EntityCache, EntityAction>`.
 
 Such a reducer function takes an `EntityCache` state and an `EntityAction` action
-and returns an EntityCache` state.
-The reducer only responds only to `EntityAction`s; 
+and returns an `EntityCache` state.
+
+The reducer responds only to `EntityAction`s; 
 all other kinds of `Action` are ignored and the reducer simply returns the given `state`.
 
 >The reducer filters specifically for the action's `entityType` property.

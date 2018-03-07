@@ -24,22 +24,36 @@ This library is _one_ way to stay on the _ngrx_ path while radically reducing th
 
 ## How it works
 
-With `ngrx-data` you say _as little as possible_ about your entity model
-and let the library do the work.  Let the library perform all the _ngrx_ operations. Let the library make the HTTP calls.
-You focus on the application logic.
+You describe your entity model to _ngrx-data_ in a few lines of metadata and let the library do the rest of the work.
 
-With the `ngrx-data` library you write a minimum of configuration to describe your entity model.
-Then inject an _ngrx-data_ **`EntityService`** into your components. 
+Your component injects an _ngrx-data_ **`EntityService`** and calls one or more of the standard set of command methods for dispatching actions.
 
-The `EntityService` offers a standard set of command methods for issuing HTTP requests and `Observable` _selectors_ that push entity data into your component for processing and display.
+Your component also subscribes to one or more of the service's `Observable` _selectors_ in order to reactively process and display entity state changes produced by those commands.
 
-The _ngrx-data_ library uses conventions to drive a standard set of behaviors that become dispatched _ngrx actions_, intercepted by _ngrx effects_, routed to a RESTy data service that makes the HTTP calls.
+_Ngrx-data_ is really just ngrx under the hood. The data flows in typical ngrx fashion.
+The following diagram illustrates the journey of a persistence action such as `QUERY_ALL` for the `Hero` entity type.
 
-Server responses become new _ngrx actions_ that pass through _ngrx reducers_, where they update the _ngrx store_, triggering the store `Observables` that send values through _ngrx selectors_ to your application components. 
+![flow diagram](images/action-flow.png)
 
-Internally _ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
+1. The view/component calls `EntityService.getAll()`, which dispatches the hero's `GET_ALL` action to the store.
 
-The mechanics are handled for you _inside the library_. **You don't have to write any _ngrx_ code**. Just follow the _ngrx-data usage_ pattern and get on with your life.
+2. The _ngrx-data_ `EntityReducer` reads the `entityName` (`Hero` in this example) and
+forwards the action and existing entity collection state to the `EntityCollectionReducer` for heroes.
+
+3. The collection reducer processes the action and collection state into a new (updated) hero collection.
+
+4. The store updates the _entity cache_ in the state tree with that updated collection.
+
+5. _Ngrx_ observable selectors detect and report the changes (if any) to subscribers in the view.
+
+6. The original `EntityAction` then goes to the `EntityEffects`.
+
+7. The effect selects a _data service_ for that entity type. The data service sends an HTTP request to the server.
+
+8. The effect turns the HTTP response into a new _success_ action with heroes (or an _error_ action if the request failed).
+
+9. _Ngrx effects_ dispatches that action to the store,
+which reiterates steps #2 through #5. 
 
 ## It's still _ngrx_
 

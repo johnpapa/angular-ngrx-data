@@ -49,36 +49,35 @@ Its type and content should fit the requirements of the operation to be performe
 
 The `error` property indicates that something went wrong while processing the action. [See more below](#action-error).
 
+## _EntityAction_ consumers
+
+The _ngrx-data_ library ignores the `Action.type`.
+All _ngrx-data_ library behaviors are determined by the `entityName` and `op` properties alone.
+
+The _ngrx-data_ [`EntityReducer`](../lib/src/reducers/entity-reducer.ts) redirects an action to an `EntityCollectionReducer` based on the `entityName` 
+and that reducer processes the action based on the `op`.
+
+The [`EntityEffects`](../lib/src/effects/entity-effects.ts) intercepts an action if its `op` is among the small set of persistence `EntityAction.op` names.
+The effect picks the right _data service_ for that action's `entityName`, then tells the service to make the appropriate HTTP request and handle the response.
+
 
 ## Creating an _EntityAction_
 
 You can create an `EntityAction` by hand if you wish.
-The _ngrx-data_ library considers _any action_ with an `entityName` and  `op` properties to be `EntityAction`s.
+The _ngrx-data_ library considers _any action_ with an `entityName` and  `op` properties to be an `EntityAction`.
 
-The `EntityActionFactory.create()` method helps you create consistently well-formed `EntityActions`.
+The `EntityActionFactory.create()` method helps you create a consistently well-formed `EntityAction` instance 
+whose `type` is a string composed from the `entityName` and the `op`.
 
-It creates an `Action` instance 
-whose `type` is a string composed from the `entityName`
-and the `op`.
-
-For example, the default generated `Action.type` for the operation that queries the server for all heroes is `[Hero] ngrx-data/query-all`.
-
->Note that **_each entity type has its own _unique_ `Action` for each operation_**, as if you had created them individually by hand.
-
-You _could_ write your own _reducers_ and _effects_ that select and respond to these constructed `Action.type`s.
-
-The _ngrx-data_ library ignores them.
-All library behaviors are determined by the `entityName` and `op` properties alone.
-
-The [`EntityEffects`](../lib/src/effects/entity-effects.ts) decide which `Actions` to intercept based on the `EntityAction.op`.
-
-The [`EntityReducer`](../lib/src/reducers/entity-reducer.ts) redirects the action to an `EntityCollectionReducer` based on the `entityName` and that reducer 
-process the action based on the `op`.
+For example, the default generated `Action.type` for the operation that queries the server for all heroes is `'[Hero] ngrx-data/query-all'`.
 
 >The `EntityActionFactory.create()` method calls the factory's `formatActionType()` method
 to produce the `Action.type` string.
+>
 >Because _ngrx-data_ ignores the `type`, you can replace `formatActionType()` with your own method if you prefer a different format
 or provide and inject your own `EntityActionFactory`.
+
+Note that **_each entity type has its own _unique_ `Action` for each operation_**, as if you had created them individually by hand.
 
 ## Where are the _EntityActions_?
 

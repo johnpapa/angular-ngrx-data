@@ -8,7 +8,33 @@ But customizations are an inevitable necessity.
 The `ngrx-data` library invites you to customize its behavior at many points,
 most of them listed here.
 
-## Provide alternatives
+## Take control of an entity type
+
+One day you decide that a particular entity type needs special treatment.
+You want to take over some or all of the management of that type.
+
+You can do that easily without abandoning _ngrx-data_ for the rest of your entity model.
+
+You can take it over completely simply by removing it from the entity metadata.
+Create your own collection and add it to the store's state-tree as you would in vanilla ngrx. Create your own actions, reducers, selectors and effects.
+As long as your actions don't have an `entityName` or `op` property,
+_ngrx-data_ will ignore them.
+
+Or you can keep the entity type in the _ngrx-data_ system and take over the behaviors that matter to you.
+
+* Create supplemental actions for that type. Give them custom `op` names that suit your purpose.
+
+* Register an alternative `EntityCollectionReducer` for that type with the `EntityReducerFactory`. Your custom reducer can respond to your custom actions and implement the standard operations in its own way.
+
+* Create your own service facade, an alternative to `EntityService`, that dispatches the actions you care about
+and exposes the selectors that your type needs.
+
+* Add additional properties to the collection state with the `EntityMetadata.additionalCollectionState` property. Manage these properties with custom reducer actions and selectors.
+
+* By-pass the `EntityEffects` completely by never dispatching an action with an `op` that it intercepts.
+Create a custom _ngrx/effect_ that handles your custom persistence actions.
+
+## Provide alternative service implementations
 
 The `ngrx-data` library consists of many services that perform small tasks.
 

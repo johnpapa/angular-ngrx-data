@@ -55,7 +55,7 @@ That case processes the action and collection state into a new (updated) hero co
 8. The effect turns the HTTP response into a new _success_ action with heroes (or an _error_ action if the request failed).
 
 9. _Ngrx effects_ dispatches that action to the store,
-which reiterates steps #2 through #5. 
+which reiterates steps #2 through #5 to update the collection with heroes and refresh the view. 
 
 ## It's still _ngrx_
 

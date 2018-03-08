@@ -3,6 +3,7 @@ import { EntityAdapter } from '@ngrx/entity';
 
 import { EntityAction, EntityActionFactory, EntityOp } from '../actions';
 import { EntityCache } from './index';
+import { EntityCacheMerge, EntityCacheSet } from '../actions/entity-cache-actions';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityDefinitionService } from '../entity-metadata';
@@ -25,6 +26,9 @@ const metadata: EntityMetadataMap = {
 describe('EntityReducer', () => {
   // action factory never changes in these tests
   const entityActionFactory = new EntityActionFactory();
+  const createAction:
+    <P = any>(entityName: string, op: EntityOp, payload?: P) =>
+      EntityAction = entityActionFactory.create.bind(entityActionFactory);
 
   let collectionCreator: EntityCollectionCreator;
   let collectionReducerFactory: EntityCollectionReducerFactory;
@@ -48,7 +52,7 @@ describe('EntityReducer', () => {
 
     it('creates a default hero reducer when QUERY_ALL for hero', () => {
       const hero: Hero = { id: 42, name: 'Bobby'};
-      const action = entityActionFactory.create<Hero>('Hero', EntityOp.ADD_ONE, hero);
+      const action = createAction<Hero>('Hero', EntityOp.ADD_ONE, hero);
 
       const state = entityReducer({}, action);
       const collection = state['Hero'];
@@ -88,6 +92,80 @@ describe('EntityReducer', () => {
       const state = entityReducer({}, action);
       const collection = state['Hero'];
       expect(collection.ids.length).toBe(0, 'ADD_ONE should do nothing');
+    });
+  });
+
+  /**
+   * Test the EntityCache-level actions, SET and MERGE, which can
+   * be used to restore the entity cache from a know state such as
+   * re-hydrating from browser storage.
+   * Useful for an offline-capable app.
+   */
+  describe('EntityCache-level actions', () => {
+    const origState: EntityCache = {
+      Hero: {
+        ids: [42],
+        entities: {42: { id: 42, name: 'Goodguy' } },
+        filter: 'xxx',
+        loaded: true,
+        loading: false,
+        originalValues: {}
+      }
+    };
+
+    beforeEach(() => {
+      entityReducer = entityReducerFactory.create();
+    });
+
+    it('can set the cache to a known state', () => {
+      const heroes: Hero[] = [
+        {id: 2, name: 'B'},
+        {id: 1, name: 'A'},
+      ];
+      let action: any = createAction('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
+      let state = entityReducer(origState, action);
+      expect(state).not.toEqual(origState, 'after QUERY_ALL_SUCCESS');
+
+      action = new EntityCacheSet(origState);
+      state = entityReducer(state, action);
+      expect(state).toEqual(origState, 'after SET_ENTITY_CACHE');
+    });
+
+    it('can set merge an EntityCache into the one in the store', () => {
+      //// Arrange: Dispatch changes to heroes and villains ////
+      // Change the heroes
+      const heroes: Hero[] = [
+        {id: 2, name: 'B'},
+        {id: 1, name: 'A'},
+      ];
+      let action: any = createAction('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
+      let state = entityReducer(origState, action);
+
+      // change the villains
+      const villains: Villain[] = [
+        {key: '4', name: 'D'},
+        {key: '3', name: 'C'},
+      ];
+      action = createAction('Villain', EntityOp.QUERY_ALL_SUCCESS, villains);
+      state = entityReducer(state, action);
+
+      ///// Act: "merge" the test cache of villains /////
+      const cacheOfVillains = {
+        Villain: {
+          ids: [84],
+          entities: {'84': { key: '84', name: 'Badguy' } },
+          filter: '',
+          loaded: true,
+          loading: false,
+          originalValues: {}
+        }
+      }
+      action = new EntityCacheMerge(cacheOfVillains);
+      state = entityReducer(state, action);
+
+      //// Assert
+      expect(state.Hero.ids).toEqual([2, 1], 'preserved heroes collection');
+      expect(state.Villain).toEqual(cacheOfVillains.Villain, 'replaced villains from cacheOfVillains');
     });
   });
 

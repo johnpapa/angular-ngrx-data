@@ -3,6 +3,7 @@ import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
+import { EntityActionFactory, EntityOp } from '../actions';
 import { EntityCache, EntityCollection } from '../reducers';
 import { EntityCollectionCreator, createEmptyEntityCollection } from '../reducers';
 import { EntityMetadata, EntityMetadataMap } from '../entity-metadata';
@@ -225,6 +226,18 @@ describe('EntitySelectors$', () => {
       // Important: the selector is returning these values;
       // They are not actually in the store's entity cache collection!
       expect(collection).toBeUndefined( 'no collection until reducer creates it.');
+    });
+
+    it('`entityCache$` should observe the entire entity cache', () => {
+      const entityCacheValues: any = [];
+      factory.entityCache$.subscribe(ec => entityCacheValues.push(ec));
+
+      // prime the store for Hero first use as the EntityReducer would
+      nextCacheState(initializedHeroCache);
+
+      expect(entityCacheValues.length).toEqual(2, 'set the cache twice');
+      expect(entityCacheValues[0]).toEqual({}, 'empty at first');
+      expect(entityCacheValues[1].Hero).toBeDefined('has Hero collection');
     });
   });
 

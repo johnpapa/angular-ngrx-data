@@ -7,6 +7,7 @@ import { IdSelector, Update } from '../utils';
 
 import { EntityAction, EntityOp } from '../actions';
 import { EntityCache } from './entity-cache';
+import { MERGE_ENTITY_CACHE, SET_ENTITY_CACHE } from '../actions/entity-cache-actions';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { ENTITY_COLLECTION_META_REDUCERS } from './constants';
@@ -38,34 +39,50 @@ export class EntityReducerFactory {
   }
 
   /**
-   * Create the ngrx-data entity reducer which delegates to
-   * an EntityCollectionReducer based on the action.entityName.
+   * Create the ngrx-data entity reducer which either responds to entity cache level actions
+   * or (more commonly) delegates to an EntityCollectionReducer based on the action.entityName.
    */
   create(): ActionReducer<EntityCache, EntityAction> {
     return (state: EntityCache = {}, action: EntityAction): EntityCache => {
-      const entityName = action.entityName;
-      if (!entityName || action.error) {
-        return state; // not a valid EntityAction
+      switch (action.type) {
+        case SET_ENTITY_CACHE: {
+          // Completely replace the EntityCache. Be careful!
+          return action.payload;
+        }
+        case MERGE_ENTITY_CACHE: {
+          // Replace collections in the current cache with collections in the payload.
+          // Beware: unsaved changes in the replaced collections are lost
+          return { ...state, ...action.payload };
+        }
       }
 
-      const collection = state[entityName];
-      const reducer = this.getOrCreateReducer(entityName)
-
-      let newCollection: EntityCollection;
-      try {
-        newCollection = collection ?
-          reducer(collection, action) :
-          reducer(this.entityCollectionCreator.create(entityName), action);
-      } catch (error) {
-        // TODO:  Log properly, not to console
-        console.error(action.error);
-        action.error = error;
-      }
-
-      return action.error || collection === newCollection ?
-        state :
-        { ...state, ...{ [entityName]: newCollection } };
+      return this.applyCollectionReducer(state, action);
     };
+  }
+
+  /** Apply reducer for the action's EntityCollection (if the action targets a collection) */
+  private applyCollectionReducer(state: EntityCache = {}, action: EntityAction) {
+    const entityName = action.entityName;
+    if (!entityName || action.error) {
+      return state; // not an EntityAction or an errant one
+    }
+    const collection = state[entityName];
+    const reducer = this.getOrCreateReducer(entityName)
+
+    let newCollection: EntityCollection;
+    try {
+      newCollection = collection ?
+        reducer(collection, action) :
+        reducer(this.entityCollectionCreator.create(entityName), action);
+    } catch (error) {
+      // TODO:  Log properly, not to console
+      console.error(action.error);
+      action.error = error;
+    }
+
+    return action.error || collection === newCollection ?
+      state :
+      { ...state, [entityName]: newCollection };
   }
 
   /**

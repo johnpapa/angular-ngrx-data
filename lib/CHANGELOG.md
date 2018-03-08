@@ -1,12 +1,23 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.13"></a>
+# release 1.0.0-alpha.13 (2018-03-07)
+
+New Features: 
+
+* EntityCache-level actions, `MERGE_ENTITY_CACHE` and `SET_ENTITY_CACHE`, for
+offline and rollback scenarios.
+See "entity-reducer.md".
+
+* `entityCache$` observable selector on `EntityService` and `EntitySelectors$Factory` enable watching of the entire cache.
+
 <a name="1.0.0-alpha.12"></a>
-# release 1.0.0-alpha.12 (2018-03-15
+# release 1.0.0-alpha.12 (2018-03-05)
 
 * EntityEffects.persist is now public, mostly for easier testing
 
 <a name="1.0.0-alpha.11"></a>
-# release 1.0.0-alpha.11 (2018-03-15)
+# release 1.0.0-alpha.11 (2018-03-05)
 
 *Breaking change alert*
 Renamed `EntityOp.SAVE_ADD` to `SAVE_ADD_ONE` for consistency.

@@ -52,6 +52,9 @@ export class EntitySelectors$Factory {
 
   private cacheSelector: Selector<Object, EntityCache>;
 
+  /** Observable of the EntityCache */
+  entityCache$: Store<EntityCache>;
+
   constructor(
     @Inject(ENTITY_CACHE_NAME_TOKEN) cacheName: string,
     private entityCollectionCreator: EntityCollectionCreator,
@@ -59,6 +62,7 @@ export class EntitySelectors$Factory {
   ) {
       // This service applies to the cache in ngrx/store named `cacheName`
       this.cacheSelector = createFeatureSelector<EntityCache>(cacheName);
+      this.entityCache$ = this.store.select(this.cacheSelector);
   }
   /**
    * Creates an entity collection's selectors$ observables for a given EntityCache store.

@@ -2,7 +2,7 @@
 
 The [`EntityService`](entity-service.md) dispatches an `EntityAction` to the _ngrx store_ when you call one of its commands to query or update entities in a cached collection.
 
-### _Action_ and _EntityAction_
+## _Action_ and _EntityAction_
 
 A vanilla
 [_ngrx `Action`_](https://github.com/ngrx/platform/blob/master/docs/store/actions.md) is a message. 
@@ -132,3 +132,17 @@ The `error` property is important when the errant action is a _persistence actio
 The `EntityEffects` will see that such an action has an error and will return the corresponding failure action (`SAVE_ADD_ONE_ERROR`) immediately, without attempting an HTTP request.
 
 >This is the only way we've found to prevent a bad action from getting through the effect and triggering an HTTP request.
+
+<a name="entity-cache-actions"></a>
+## EntityCache-level actions
+
+A few actions target the entity cache as a whole.
+
+`SET_ENTITY_CACHE` replaces the entire cache with the object in the action payload,
+effectively re-initializing the entity cache to a known state.
+
+`MERGE_ENTITY_CACHE` replaces specific entity collections in the current entity cache
+with those collections present in the action payload.
+It leaves the other current collections alone.
+
+Learn about them in the "[EntityReducer](entity-reducer.md#entity-cache-actions)" document.

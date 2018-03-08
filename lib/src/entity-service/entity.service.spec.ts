@@ -53,6 +53,22 @@ describe('EntityService', () => {
       expect(collection.ids).toEqual([1]);
     });
 
+    it('`entityCache$` observes the entire entity cache', () => {
+      const entityCacheValues: any = [];
+      const entityServiceFactory: EntityServiceFactory = TestBed.get(EntityServiceFactory);
+
+      entityServiceFactory.entityCache$.subscribe(ec => entityCacheValues.push(ec));
+
+      // An action that goes through the Hero's EntityCollectionReducer
+      // creates the collection in the store as a side-effect
+      const heroAction = createAction('Hero', EntityOp.SET_FILTER, 'test');
+      store.dispatch(heroAction);
+
+      expect(entityCacheValues.length).toEqual(2, 'set the cache twice');
+      expect(entityCacheValues[0]).toEqual({}, 'empty at first');
+      expect(entityCacheValues[1].Hero).toBeDefined('has Hero collection');
+    });
+
   });
 });
 

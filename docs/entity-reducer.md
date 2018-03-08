@@ -11,13 +11,14 @@ which is an _ngrx_ `ActionReducer<EntityCache, EntityAction>`.
 Such a reducer function takes an `EntityCache` state and an `EntityAction` action
 and returns an `EntityCache` state.
 
-The reducer responds only to `EntityAction`s; 
-all other kinds of `Action` are ignored and the reducer simply returns the given `state`.
+The reducer responds either to an [EntityCache-level action](entity-cache-actions) (rare)
+or to an `EntityAction` targeting an entity collection (the usual case). 
+All other kinds of `Action` are ignored and the reducer simply returns the given `state`.
 
 >The reducer filters specifically for the action's `entityType` property.
 It treats any action with an `entityType` property as an `EntityAction`.
 
-The _entity reducer's_ job is to 
+The _entity reducer's_ primary job is to 
 * extract the `EntityCollection` for the action's entity type from the `state`.
 * create a new, [initialized entity collection](#initialize) if necessary.
 * get or create the `EntityCollectionReducer` for that entity type.
@@ -153,4 +154,33 @@ it wraps that reducer in the _meta-MetaReducer_ before
 adding it to its registry.
 
 All `EntityActions` dispatched to the store pass through this wrapper on their way in and out of the entity-specific reducers.
+
+<a name="entity-cache-actions"></a>
+## EntityCache-level actions
+
+A few actions target the entity cache as a whole.
+
+`SET_ENTITY_CACHE` replaces the entire cache with the object in the action payload,
+effectively re-initializing the entity cache to a known state.
+
+`MERGE_ENTITY_CACHE` replaces specific entity collections in the current entity cache
+with those collections present in the action payload.
+It leaves the other current collections alone.
+
+>See `entity-reducer.spec.ts` for examples of these actions.
+
+These actions might be part of your plan to support offline scenarios or rollback changes to many collections at the same time.
+
+For example, you could subscribe to the `EntityService.entityCache$` selector.
+When the cache changes, you could 
+serialize the cache to browser local storage.
+You might want to _debounce_ for a few seconds to reduce churn.
+
+Later, when relaunching the application, you could dispatch the `SET_ENTITY_CACHE` action to initialize the entity-cache even while disconnected.
+Or you could dispatch the `MERGE_ENTITY_CACHE` to rollback selected collections to a known state as
+in error-recovery or "what-if" scenarios.
+
+>**Important**: `MERGE_ENTITY_CACHE` _replaces_ the currently cached collections with the entity collections in its payload.
+It does not _merge_ the payload collection entities into the existing collections as the name might imply.
+May reconsider and do that in the future.
 

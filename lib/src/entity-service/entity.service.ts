@@ -6,7 +6,7 @@ import { Observable } from 'rxjs/Observable';
 import { Dictionary } from '../utils';
 import { EntityActions } from '../actions';
 import { EntityActionGuard } from '../actions';
-import { EntityCollection } from '../reducers';
+import { EntityCache, EntityCollection } from '../reducers';
 import { QueryParams } from '../dataservices';
 
 import { EntityDefinitionService } from '../entity-metadata';
@@ -309,11 +309,17 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
  */
 @Injectable()
 export class EntityServiceFactory {
+
+  /** Observable of the EntityCache */
+  entityCache$: Store<EntityCache>;
+
   constructor(
     public entityDispatcherFactory: EntityDispatcherFactory,
     public entityDefinitionService: EntityDefinitionService,
     public entitySelectors$Factory: EntitySelectors$Factory
-  ) { }
+  ) {
+    this.entityCache$ = entitySelectors$Factory.entityCache$;
+  }
 
   /**
    * Create an EntityService for an entity type

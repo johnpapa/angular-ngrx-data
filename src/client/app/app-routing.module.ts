@@ -10,7 +10,9 @@ const routes: Routes = [
   {
     path: 'villains',
     loadChildren: 'app/villains/villains.module#VillainsModule'
-  }
+  },
+  { path: '**', redirectTo: 'heroes' } // bad routes redirect to heroes
+
 ];
 
 @NgModule({

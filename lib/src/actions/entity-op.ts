@@ -18,9 +18,9 @@ export enum EntityOp {
   QUERY_MANY_SUCCESS = 'ngrx-data/query-many/success',
   QUERY_MANY_ERROR = 'ngrx-data/query-many/error',
 
-  QUERY_BY_KEY = 'ngrx-data/query-by-id',
-  QUERY_BY_KEY_SUCCESS = 'ngrx-data/query-by-id/success',
-  QUERY_BY_KEY_ERROR = 'ngrx-data/query-by-id/error',
+  QUERY_BY_KEY = 'ngrx-data/query-by-key',
+  QUERY_BY_KEY_SUCCESS = 'ngrx-data/query-by-key/success',
+  QUERY_BY_KEY_ERROR = 'ngrx-data/query-by-key/error',
 
   SAVE_ADD_ONE = 'ngrx-data/save/add-one',
   SAVE_ADD_ONE_ERROR = 'ngrx-data/save/add-one/error',

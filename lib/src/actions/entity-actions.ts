@@ -23,7 +23,8 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
     super();
 
     if (source) {
-      this.source = source;
+      // ONLY look at EntityActions
+      this.source = source.pipe(filter((action: any) => action.op && action.entityName));
     }
   }
 
@@ -90,7 +91,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
   ofOp(...allowedOps: any[]) {
     // string is the runtime type of an EntityOp enum
     const ops: string[] = flattenArgs(allowedOps);
-    return this.where(ea => ea.op && ops.some(op => op === ea.op));
+    return this.where(ea => ops.some(op => op === ea.op));
   }
 
   /**
@@ -107,7 +108,7 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
   ofType(...allowedTypes: string[]): EntityActions;
   ofType(...allowedTypes: any[]): EntityActions {
     const types: string[] = flattenArgs(allowedTypes);
-    return this.where(ea => !!ea.entityName && types.some(type => type === ea.type));
+    return this.where(ea => types.some(type => type === ea.type));
   }
 
   /**

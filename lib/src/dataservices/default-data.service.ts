@@ -5,11 +5,12 @@ import { Observable } from 'rxjs/Observable';
 import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { of } from 'rxjs/observable/of';
 import { pipe } from 'rxjs/util/pipe';
-import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
+import { catchError, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
 import { HttpMethods, QueryParams, RequestData } from './index';
 import { HttpUrlGenerator } from './http-url-generator';
+import { makeResponseDelay } from './make-response-delay';
 
 import { EntityCollectionDataService } from './entity-data.service';
 import { Update } from '../utils';
@@ -69,8 +70,8 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     this.delete404OK = delete404OK;
     this.entityUrl = httpUrlGenerator.entityResource(entityName, root);
     this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root);
-    this.getDelay = getDelay ? delay(getDelay) : noDelay;
-    this.saveDelay = saveDelay ? delay(saveDelay) : noDelay;
+    this.getDelay = getDelay ? makeResponseDelay(getDelay) : noDelay;
+    this.saveDelay = saveDelay ? makeResponseDelay(saveDelay) : noDelay;
     this.timeout = to ? timeout(to) : noDelay;
   }
 

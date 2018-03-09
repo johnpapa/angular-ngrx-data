@@ -1,5 +1,12 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.14"></a>
+# release 1.0.0-alpha.14 (2018-03-09)
+
+* Bug fix: `EntitySelectors$.actions$` now implemented (it wasn't).
+* Bug fix: DefaultDataService adds delay on server errors too (see `makeResponseDelay`).
+* Corrected text of the type constants for the QUERY_BY_KEY actions.
+
 <a name="1.0.0-alpha.13"></a>
 # release 1.0.0-alpha.13 (2018-03-07)
 

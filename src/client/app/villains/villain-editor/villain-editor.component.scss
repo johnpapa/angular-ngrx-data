@@ -1,0 +1,14 @@
+@import '../../../styles/mixin';
+
+.control-panel {
+  @include control-panel-layout;
+}
+.content-container {
+  @include content-container-layout;
+}
+
+.error {
+  color: red;
+  font-size: 200%;
+  margin-left: 20px;
+}

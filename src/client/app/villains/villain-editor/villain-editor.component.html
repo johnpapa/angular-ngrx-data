@@ -1,0 +1,11 @@
+<div class="content-container">
+  <div *ngIf="error$ | async as emsg" class="error">{{emsg}}</div>
+  <div class="detail-container">
+      <mat-spinner *ngIf="loading$ | async; else detail" mode="indeterminate" color="accent"></mat-spinner>
+    <ng-template #detail>
+      <app-villain-detail *ngIf="villain$ | async as villain" [villain]="villain" (unselect)="unselect()"
+        (update)="update($event)">
+      </app-villain-detail>
+    </ng-template>
+  </div>
+</div>

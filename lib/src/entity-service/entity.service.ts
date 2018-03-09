@@ -262,7 +262,6 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
 
   // region Selectors$
   /** Observable of actions related to this entity type. */
-
   actions$: EntityActions;
 
   /** Observable of the collection as a whole */

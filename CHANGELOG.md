@@ -5,6 +5,22 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.7"></a>
+# 0.2.7 (2018-03-09)
+
+Added `VillainEditor` to demonstrate routing to a detail component 
+(e.g., `/villains/21`) which tries to get the entity from cache but, if it can't find it,
+attempts a `EntityService.getByKey()`.
+
+This `VillainEditor` also shows 
+* creating a `villain$` that combines the parameter id observable with the `entityMap$` selector
+so can find the villain for the routed `id`.
+* the `villain$` has the side-effect of dispatching `QUERY_BY_KEY` if no cached villain for that id.
+* creating `error$` to watch for `QUERY_BY_KEY_ERROR` when the request fails (try `/villains/1`)
+* creating a `loading$` observable that combines the `error$` with `$villain`
+
+Depends on alpha.14
+
 <a name="0.2.6"></a>
 # 0.2.6 (2018-03-05)
 

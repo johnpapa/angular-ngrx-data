@@ -58,7 +58,8 @@ export class EntitySelectors$Factory {
   constructor(
     @Inject(ENTITY_CACHE_NAME_TOKEN) cacheName: string,
     private entityCollectionCreator: EntityCollectionCreator,
-    private store: Store<any>
+    private store: Store<any>,
+    private entityActions$: EntityActions
   ) {
       // This service applies to the cache in ngrx/store named `cacheName`
       this.cacheSelector = createFeatureSelector<EntityCache>(cacheName);
@@ -80,7 +81,7 @@ export class EntitySelectors$Factory {
     const cc = createCachedCollectionSelector<T>(entityName, this.cacheSelector, this.entityCollectionCreator);
     const collection$ = this.store.select(cc);
 
-    const selectors$: Partial<EntitySelectors$<T>> = {};
+    const selectors$: S$ = <any> {};
 
     Object.keys(selectors).forEach(
       name => {
@@ -90,9 +91,10 @@ export class EntitySelectors$Factory {
         (<any>selectors$)[name$] = collection$.select((<any>selectors)[name]
       )}
     );
-    (<any>selectors$)['collection$'] = collection$;
+    selectors$.actions$ = this.entityActions$.ofEntityType(entityName);
+    selectors$.collection$ = collection$;
 
-    return selectors$ as S$;
+    return selectors$;
   }
 }
 

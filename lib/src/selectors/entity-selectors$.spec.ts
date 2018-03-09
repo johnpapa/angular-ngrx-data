@@ -1,9 +1,10 @@
-import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
+import { Action, createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
+import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import { EntityActionFactory, EntityOp } from '../actions';
+import { EntityAction, EntityActions, EntityActionFactory, EntityOp } from '../actions';
 import { EntityCache, EntityCollection } from '../reducers';
 import { EntityCollectionCreator, createEmptyEntityCollection } from '../reducers';
 import { EntityMetadata, EntityMetadataMap } from '../entity-metadata';
@@ -120,6 +121,9 @@ describe('EntitySelectors$', () => {
     // Observable of state changes, which these tests simulate
     let state$: BehaviorSubject<{ entityCache: EntityCache }>;
 
+    let actions$: Subject<Action>;
+    let entityActions: EntityActions;
+
     const nextCacheState =
       (cache: EntityCache) => state$.next({ entityCache: cache });
 
@@ -128,9 +132,11 @@ describe('EntitySelectors$', () => {
     beforeEach(() => {
       collectionCreator  = jasmine.createSpyObj('entityCollectionCreator', ['create']);
       collectionCreator.create.and.returnValue(emptyHeroCollection);
+      actions$ = new Subject<Action>();
+      entityActions = new EntityActions(<any> actions$);
       state$ = new BehaviorSubject({ entityCache: emptyCache });
       store = new Store<{ entityCache: EntityCache }>(state$, null, null);
-      factory = new EntitySelectors$Factory('entityCache', collectionCreator, store);
+      factory = new EntitySelectors$Factory('entityCache', collectionCreator, store, entityActions);
 
       // listen for changes to the hero collection
       store.select('entityCache', 'Hero')
@@ -238,6 +244,24 @@ describe('EntitySelectors$', () => {
       expect(entityCacheValues.length).toEqual(2, 'set the cache twice');
       expect(entityCacheValues[0]).toEqual({}, 'empty at first');
       expect(entityCacheValues[1].Hero).toBeDefined('has Hero collection');
+    });
+
+    it('`actions$` emits hero collection EntityActions and no other actions', () => {
+      const actionsReceived: Action[] = [];
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', selectors);
+      const collectionActions$ = selectors$.actions$;
+      collectionActions$.subscribe(action => actionsReceived.push(action));
+
+      const eaFactory = new EntityActionFactory();
+      actions$.next({ type: 'Generic action'});
+      // EntityAction but not for heroes
+      actions$.next(eaFactory.create('Villain', EntityOp.QUERY_ALL));
+      // Hero EntityAction
+      const heroAction = eaFactory.create('Hero', EntityOp.QUERY_ALL);
+      actions$.next(heroAction);
+
+      expect(actionsReceived.length).toBe(1, 'only one hero action');
+      expect(actionsReceived[0]).toBe(heroAction, 'expected hero action');
     });
   });
 

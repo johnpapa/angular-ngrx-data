@@ -2,17 +2,19 @@
 
 ## Zero Ngrx Boilerplate
 
-***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
+> You may never write an action, reducer, selector, effect, or HTTP dataservice again.
+
+> **ngrx-data is still ngrx**!
 
 [_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
-Everyone complains about the amount of boilerplate code you must write and maintain to manage
-[entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
+## What Problems Does ngrx-data solve
+
+There is a signficant amount of boilerplate code you must write and maintain to manage [entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
 
 In standard ngrx, every entity type has a multitude of actions, reducer cases, and selectors that look virtually the same across all entity types.
 
-Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you.
-[Ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it altogether_.
+Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you. [Ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it_.
 
 _Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
 
@@ -26,13 +28,11 @@ You can still add more store properties, actions, reducers, selectors, and effec
 
 ## Why use _ngrx-data_
 
-> If you're following the _redux_ pattern and managing entity data with _ngrx_,
-the **_ngrx-data_ library** can significantly reduce the amount of code you have to write.
+> If you're following the _redux_ pattern and managing entity data with _ngrx_, the **_ngrx-data_ library** can significantly reduce the amount of code you write.
 
 Many applications have substantial _domain models_ with 10s or 100s of entity types.
 
-To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task.
-You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
+To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task. You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
 
 In even a small model, this is a ton of repetitive code to create, maintain, and test.
 
@@ -40,12 +40,9 @@ The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically 
 
 ## How it works
 
-The
-["_Introduction to ngrx-data_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md)
-guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
+The ["_Introduction to ngrx-data_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md) guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
 
-The
-["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
+The ["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
 
 This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
 
@@ -72,39 +69,36 @@ npm install -g @angular/cli
 
 Then follow these steps:
 
-(1) Clone this repository
+1. Clone this repository
 
-```bash
-git clone https://github.com/johnpapa/angular-ngrx-data.git
-cd angular-ngrx-data
-```
+    ```bash
+    git clone https://github.com/johnpapa/angular-ngrx-data.git
+    cd angular-ngrx-data
+    ```
 
-(2) Install the npm packages
+2. Install the npm packages
 
-```bash
-npm install
-```
+    ```bash
+    npm install
+    ```
 
-(3) Build the `ngrx-data` library
+3. Build the `ngrx-data` library
 
-```bash
-npm run build-setup
-```
+    ```bash
+    npm run build-setup
+    ```
 
-(4) Serve the CLI-based demo app
+4. Serve the CLI-based demo app
 
-```bash
-ng serve -o
-```
-
-> Run `npm start` if you have not installed the Angular CLI globally.
+    ```bash
+    ng serve -o
+    ```
 
 ## Run the library tests
 
 The _ngrx-data_ library ships with unit tests to validate functionality and guard against regressions.
 
-These tests also demonstrate features of the library that are not covered in the demo app.
-They're worth reading to discover more advanced techniques.
+These tests also demonstrate features of the library that are not covered in the demo app. They're worth reading to discover more advanced techniques.
 
 Run this CLI command to execute the tests for the library.
 
@@ -112,43 +106,31 @@ Run this CLI command to execute the tests for the library.
 ng test
 ```
 
-> Run `npm test` if you have not installed the Angular CLI globally.
-
-We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls)
-that add to the tests as well as those that fix bugs and documentation.
+We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls) that add to the tests as well as those that fix bugs and documentation.
 
 Be sure to run these tests before submitting a PR for review.
 
 ## Monitor the app with Redux DevTools
 
-The demo app is
-[configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools)
-with the
-[Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).
+The demo app is [configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools) with the [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).
 
-Follow these instructions to
-[install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension)
-and learn how to use them.
+Follow these instructions to [install them in your browser](https://github.com/zalmoxisus/redux-devtools-extension) and learn how to use them.
 
 ## Debug the library in browser dev tools
 
-When running _tests_, open the browser dev tools, go to the "Sources" tab,
-and look for the library files by name.
+When running _tests_, open the browser dev tools, go to the "Sources" tab, and look for the library files by name.
 
 > In chrome, type [Command-P] and letters of the file name.
 
-When _running the app_ (e.g., with `ng serve`),
-the browser dev tools give you TWO choices for a given TypeScript source file, both claiming to be from `.ts`.
+When _running the app_ (e.g., with `ng serve`), the browser dev tools give you TWO choices for a given TypeScript source file, both claiming to be from `.ts`.
 
-The one you want for library and app files ends in `/lib/src/file-name.ts` and
-`/src/client/app/path/file-name.ts` respectively.
+The one you want for library and app files ends in `/lib/src/file-name.ts` and `/src/client/app/path/file-name.ts` respectively.
 
 > Hope to solve the _two file_ problem.
 
 ## Build the app against the npm package
 
-The demo app is setup to build and run against the version of the library in
-`dist/ngrx-data`.
+The demo app is setup to build and run against the version of the library in `dist/ngrx-data`.
 
 That's convenient when you're evolving the library code and
 re-building as you go with `npm run build-lib` or `npm run build-setup`.
@@ -201,8 +183,7 @@ The `src/server` folder has code for a local node web api server, configured for
 
 ## Bad/surplus _npm scripts_
 
-We know there are a great many npm script commands in `package.json`,
-many (most?) of which don't work.
+We know there are a great many npm script commands in `package.json`, many (most?) of which don't work.
 
 They're on our list for future cleanup.
 Please don't create issues for them

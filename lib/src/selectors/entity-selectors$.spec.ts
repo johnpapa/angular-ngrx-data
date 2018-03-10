@@ -249,8 +249,8 @@ describe('EntitySelectors$', () => {
     it('`actions$` emits hero collection EntityActions and no other actions', () => {
       const actionsReceived: Action[] = [];
       const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', selectors);
-      const collectionActions$ = selectors$.actions$;
-      collectionActions$.subscribe(action => actionsReceived.push(action));
+      const entityActions$ = selectors$.entityActions$;
+      entityActions$.subscribe(action => actionsReceived.push(action));
 
       const eaFactory = new EntityActionFactory();
       actions$.next({ type: 'Generic action'});

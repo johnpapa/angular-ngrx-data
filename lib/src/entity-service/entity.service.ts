@@ -47,7 +47,7 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
 
     const selectors$ = factory.entitySelectors$Factory.create<T, S$>(entityName, def.selectors);
     this.selectors$ = selectors$;
-    this.actions$ = selectors$.actions$;
+    this.entityActions$ = selectors$.entityActions$;
     this.collection$ = selectors$.collection$;
     this.count$ = this.selectors$.count$;
     this.entities$ = this.selectors$.entities$;
@@ -262,7 +262,7 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
 
   // region Selectors$
   /** Observable of actions related to this entity type. */
-  actions$: EntityActions;
+  entityActions$: EntityActions;
 
   /** Observable of the collection as a whole */
   collection$: Observable<EntityCollection<T>> | Store<EntityCollection<T>>;

@@ -14,7 +14,7 @@ import { EntityCache, EntityCollection, EntityCollectionCreator, ENTITY_CACHE_NA
  */
 export interface EntitySelectors$<T> {
   /** Observable of actions related to this entity type. */
-  actions$: EntityActions;
+  entityActions$: EntityActions;
 
   /** Observable of the collection as a whole */
   collection$: Observable<EntityCollection> | Store<EntityCollection>;
@@ -91,7 +91,7 @@ export class EntitySelectors$Factory {
         (<any>selectors$)[name$] = collection$.select((<any>selectors)[name]
       )}
     );
-    selectors$.actions$ = this.entityActions$.ofEntityType(entityName);
+    selectors$.entityActions$ = this.entityActions$.ofEntityType(entityName);
     selectors$.collection$ = collection$;
 
     return selectors$;

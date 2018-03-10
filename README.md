@@ -4,8 +4,7 @@
 
 ***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
 
-[_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the 
-[redux](https://redux.js.org) pattern.
+[_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
 Everyone complains about the amount of boilerplate code you must write and maintain to manage
 [entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
@@ -25,7 +24,7 @@ Every entity has its own actions. Every operation takes its unique journey throu
 
 You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
 
-## Why use _ngrx-data_?
+## Why use _ngrx-data_
 
 > If you're following the _redux_ pattern and managing entity data with _ngrx_,
 the **_ngrx-data_ library** can significantly reduce the amount of code you have to write.
@@ -48,7 +47,7 @@ guide describes how ngrx-data works and demonstrates the minimal steps needed to
 The
 ["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
 
-This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_. 
+This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
 
 ## Explore this repository
 
@@ -62,7 +61,7 @@ The key folders in this repo are:
 * src/client ---> the demo app source
 * src/server ---> a node server for remote data access
 
-<a name="install-and-run"></a>
+### install and run
 
 The demo app is based on the Angular CLI.
 You may want to install the CLI globally if you have not already done so.
@@ -138,7 +137,7 @@ and look for the library files by name.
 
 > In chrome, type [Command-P] and letters of the file name.
 
-When _running the app_ (e.g., with `ng serve`), 
+When _running the app_ (e.g., with `ng serve`),
 the browser dev tools give you TWO choices for a given TypeScript source file, both claiming to be from `.ts`.
 
 The one you want for library and app files ends in `/lib/src/file-name.ts` and
@@ -159,23 +158,22 @@ Obviously the package deployed in `node_modules` would not.
 
 If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
-1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code)
-   looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
-  ```bash
-    "paths": {
-      "ngrx-data": ["../lib/src"]
-    },
-  ```
+    ```bash
+      "paths": {
+        "ngrx-data": ["../lib/src"]
+      },
+    ```
 
 2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
    Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
 
-Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
+3. Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
 
-```bash
-npm install ngrx-data --no-save --no-lock
-```
+    ```bash
+    npm install ngrx-data --no-save --no-lock
+    ```
 
 > **Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
 
@@ -197,9 +195,9 @@ You must first set up a database and launch a web api server that talks to it.
 
 The `src/server` folder has code for a local node web api server, configured for the demo app.
 
->TODO: 
-> * Explain how to build and run the server.
-> * Explain how to build and serve the mongo db
+>TODO:
+> Explain how to build and run the server.
+> Explain how to build and serve the mongo db
 
 ## Bad/surplus _npm scripts_
 
@@ -209,7 +207,7 @@ many (most?) of which don't work.
 They're on our list for future cleanup.
 Please don't create issues for them
 (although PRs that fix them are welcome).
-<!-- 
+<!--
 
 >TODO: Fix the broken server-oriented commands in package.json
 

@@ -2,7 +2,9 @@
 
 ## Zero Ngrx Boilerplate
 
-***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
+> You may never write an action, reducer, selector, effect, or HTTP dataservice again.
+>
+> **ngrx-data is still NgRx**!
 
 [_Ngrx_](faq.md#ngrx) helps Angular applications manage shared state in a "reactive" style, following the [redux](faq.md#redux) pattern.
 
@@ -36,7 +38,8 @@ Learn about _ngrx-data_.
 
 This page and other guide pages are markdown pages in the repository `docs` folder.
 
-* [Introduction](introduction.md) 
+* [Quick Start](quickstartw.md)
+* [Introduction](introduction.md)
 * [Entity Metadata](entity-metadata.md)
 * [Entity Collection](entity-collection.md)
 * [Entity Service](entity-service.md)

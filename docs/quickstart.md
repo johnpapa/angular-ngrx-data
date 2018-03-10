@@ -1,5 +1,7 @@
 # QuickStart
 
+This quick start begins with a working angular app that has CRUD operations for heroes and villain entities. This app uses traditional services and techniques to get and save the heroes and villains. In this quick start you will add NgRx and ngrx-data to the app.
+
 ## Step 1 - get the sample app
 
 ```bash

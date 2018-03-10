@@ -40,9 +40,9 @@ The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically 
 
 ## How it works
 
-The ["_Introduction to ngrx-data_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/introduction.md) guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
+The ["_Introduction to ngrx-data_"](/docs/introduction.md) guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
 
-The ["_Overview_"](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/README.md) page links to more in-depth documentation.
+The ["_Overview_"](/docs/README.md) page links to more in-depth documentation.
 
 This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
 
@@ -60,8 +60,7 @@ The key folders in this repo are:
 
 ### install and run
 
-The demo app is based on the Angular CLI.
-You may want to install the CLI globally if you have not already done so.
+The demo app is based on the Angular CLI. You may want to install the CLI globally if you have not already done so.
 
 ```bash
 npm install -g @angular/cli

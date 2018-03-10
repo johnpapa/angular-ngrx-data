@@ -3,7 +3,7 @@
 ## Zero Ngrx Boilerplate
 
 > You may never write an action, reducer, selector, effect, or HTTP dataservice again.
-
+>
 > **ngrx-data is still ngrx**!
 
 [_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.

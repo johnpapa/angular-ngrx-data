@@ -2,25 +2,14 @@
 
 ## Zero Ngrx Boilerplate
 
-***You may never write an action, reducer, selector, effect, or HTTP dataservice again.***
+**_You may never write an action, reducer, selector, effect, or HTTP dataservice again._**
 
-The _ngrx-data_ library makes it easier to write an Angular application that manages [entity](faq.md#entity) data with 
+The _ngrx-data_ library makes it easier to write an Angular application that manages [entity](faq.md#entity) data with
 [ngrx](faq.md#ngrx) in a "reactive" style, following the [redux](faq.md#redux) pattern.
 
->See the [FAQ](faq.md) for definitions and discussion of terms in this overview.
+> See the [FAQ](faq.md) for definitions and discussion of terms in this overview.
 >
->Return to the [overview](README.md) page for a list of documentation topics.
-
-## Why use it?
-
-Many applications have substantial "domain models" with 10s or 100s of entity types. 
-Instances of these entity types are created, retrieved, updated, and deleted (CRUD).
-
-If you've tried to manage your entity data with _ngrx_, you've discovered that you have to write a lot of code for each entity type. 
-For each type, you've written _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods. 
-This is a ton of repetitive code to write, maintain, and test.
-
-This library is _one_ way to stay on the _ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _ngrx_.
+> Return to the [overview](README.md) page for a list of documentation topics.
 
 ## How it works
 
@@ -31,47 +20,46 @@ Your component injects an _ngrx-data_ **`EntityService`** and calls one or more 
 Your component also subscribes to one or more of the service's `Observable` _selectors_ in order to reactively process and display entity state changes produced by those commands.
 
 _Ngrx-data_ is really just ngrx under the hood. The data flows in typical ngrx fashion.
-The following diagram illustrates the journey of a persistence `EntityAction` 
+The following diagram illustrates the journey of a persistence `EntityAction`
 such as `QUERY_ALL` for the `Hero` entity type.
 
 ![flow diagram](images/action-flow.png)
 
 1. The view/component calls [`EntityService.getAll()`](entity-service.md), which dispatches the hero's `QUERY_ALL` [EntityAction](entity-actions.md) to the store.
 
-2. The _ngrx-data_ [EntityReducer](entity-reducer.md) reads the action's `entityName` property (`Hero` in this example) and
-forwards the action and existing entity collection state to the `EntityCollectionReducer` for heroes.
+2. NgRx kicks into gear ...
 
-3. The collection reducer picks a switch-case based on the action's `op` (operation) property.
-That case processes the action and collection state into a new (updated) hero collection.
+    1. The _ngrx-data_ [EntityReducer](entity-reducer.md) reads the action's `entityName` property (`Hero` in this example) and forwards the action and existing entity collection state to the `EntityCollectionReducer` for heroes.
 
-4. The store updates the _entity cache_ in the state tree with that updated collection.
+    1. The collection reducer picks a switch-case based on the action's `op` (operation) property. That case processes the action and collection state into a new (updated) hero collection.
 
-5. _Ngrx_ observable selectors detect and report the changes (if any) to subscribers in the view.
+    1. The store updates the _entity cache_ in the state tree with that updated collection.
 
-6. The original `EntityAction` then goes to the [EntityEffects](entity-effects.md).
+    1. _Ngrx_ observable selectors detect and report the changes (if any) to subscribers in the view.
 
-7. The effect selects an [EntityDataService](entity-dataservice.md) for that entity type. The data service sends an HTTP request to the server.
+3. The original `EntityAction` then goes to the [EntityEffects](entity-effects.md).
 
-8. The effect turns the HTTP response into a new _success_ action with heroes (or an _error_ action if the request failed).
+4. The effect selects an [EntityDataService](entity-dataservice.md) for that entity type. The data service sends an HTTP request to the server.
 
-9. _Ngrx effects_ dispatches that action to the store,
-which reiterates steps #2 through #5 to update the collection with heroes and refresh the view. 
+5. The effect turns the HTTP response into a new _success_ action with heroes (or an _error_ action if the request failed).
+
+6. _Ngrx effects_ ispatches that action to the store, which reiterates step #2 to update the collection with heroes and refresh the view.
 
 ## It's still _ngrx_
 
-This is a _library for ngrx_, not an ngrx alternative.
+> This is a _library for ngrx_, not an ngrx alternative.
 
 Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
 
 You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
 
-You can **see the _ngrx machinery_ at work** with the _redux developer tools_. You can listen to the flow of actions directly. You can **_intercept and override anything_** ... but you only have to intervene where you want to add custom logic. 
+You can **see the _ngrx machinery_ at work** with the _redux developer tools_. You can listen to the flow of actions directly. You can **_intercept and override anything_** ... but you only have to intervene where you want to add custom logic.
 
 ### Show me
 
 This repository comes with a demo app for editing _Heroes_ and _Villains_ in the `src/client/app/` folder.
 
->Instructions to install and run it are in the repository [README](../README.md#install-and-run).
+> Instructions to install and run it are in the repository [README](../README.md#install-and-run).
 
 Here's a _slightly reduced_ extract from that demo to illustrate the essential mechanics of configuring and using _ngrx-data_.
 
@@ -84,9 +72,9 @@ You begin with a description of the entity model in a few lines of metadata.
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
     sortComparer: sortByName, // optional
-    filterFn: nameFilter      // optional
+    filterFn: nameFilter // optional
   },
-  
+
   Villain: {
     filterFn: nameAndSayingFilter // optional
   }
@@ -141,7 +129,7 @@ export class HeroesComponent implements OnInit {
   heroService: EntityService<Hero>;
 
   constructor(entityServiceFactory: EntityServiceFactory) {
-    this.heroService = entityServiceFactory.create<Hero>('Hero');
+    this.heroService = entityServiceFactory.create < Hero > 'Hero';
     this.heroes$ = this.heroService.entities$;
   }
 
@@ -166,6 +154,7 @@ export class HeroesComponent implements OnInit {
   }
 }
 ```
+
 The component template displays the `heroes$` _observable_
 by subscribing to it with the Angular `AsyncPipe`.
 
@@ -174,7 +163,7 @@ by subscribing to it with the Angular `AsyncPipe`.
 
 <div *ngIf="heroes$ | async as heroes">
   ...
-  <app-hero-list 
+  <app-hero-list
     [heroes]="heroes"
     (deleted)="deleteHero($event)">
   </app-hero-list>

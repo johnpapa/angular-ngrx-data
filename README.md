@@ -4,9 +4,9 @@
 
 > You may never write an action, reducer, selector, effect, or HTTP dataservice again.
 >
-> **ngrx-data is still ngrx**!
+> **ngrx-data is still NgRx**!
 
-[_Ngrx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
+[_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
 ## What Problems Does ngrx-data solve
 
@@ -14,11 +14,11 @@ There is a signficant amount of boilerplate code you must write and maintain to 
 
 In standard ngrx, every entity type has a multitude of actions, reducer cases, and selectors that look virtually the same across all entity types.
 
-Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you. [Ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it_.
+Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you. [ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it_.
 
-_Ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
+_ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
 
-## It's still _ngrx_
+## It's still _NgRx_
 
 This is a _library for ngrx_, not an ngrx alternative.
 

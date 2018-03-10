@@ -8,6 +8,8 @@
 
 [_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
+> Tyry it! See the [quickstart.md](docs/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
+
 ## What Problems Does ngrx-data solve
 
 There is a signficant amount of boilerplate code you must write and maintain to manage [entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
@@ -68,26 +70,26 @@ npm install -g @angular/cli
 
 Then follow these steps:
 
-1. Clone this repository
+1.  Clone this repository
 
     ```bash
     git clone https://github.com/johnpapa/angular-ngrx-data.git
     cd angular-ngrx-data
     ```
 
-2. Install the npm packages
+2.  Install the npm packages
 
     ```bash
     npm install
     ```
 
-3. Build the `ngrx-data` library
+3.  Build the `ngrx-data` library
 
     ```bash
     npm run build-setup
     ```
 
-4. Serve the CLI-based demo app
+4.  Serve the CLI-based demo app
 
     ```bash
     ng serve -o
@@ -139,7 +141,7 @@ Obviously the package deployed in `node_modules` would not.
 
 If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
-1. **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+1.  **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
     ```bash
       "paths": {
@@ -147,10 +149,10 @@ If you want to see how the demo app runs against the published package, you'll h
       },
     ```
 
-2. **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
-   Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
+2.  **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
+    Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
 
-3. Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
+3.  Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
 
     ```bash
     npm install ngrx-data --no-save --no-lock
@@ -176,7 +178,7 @@ You must first set up a database and launch a web api server that talks to it.
 
 The `src/server` folder has code for a local node web api server, configured for the demo app.
 
->TODO:
+> TODO:
 > Explain how to build and run the server.
 > Explain how to build and serve the mongo db
 
@@ -187,6 +189,7 @@ We know there are a great many npm script commands in `package.json`, many (most
 They're on our list for future cleanup.
 Please don't create issues for them
 (although PRs that fix them are welcome).
+
 <!--
 
 >TODO: Fix the broken server-oriented commands in package.json

@@ -46,7 +46,7 @@ The ["_Introduction to ngrx-data_"](/docs/introduction.md) guide describes how n
 
 The ["_Overview_"](/docs/README.md) page links to more in-depth documentation.
 
-The ["_QuickStart_"](docs/quickstart.md)] page contains help in reating your ifst NgRx data app.
+The ["_QuickStart_"](docs/quickstart.md) page contains help in starting your first NgRx data app.
 
 This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
 
@@ -62,7 +62,7 @@ The key folders in this repo are:
 * src/client ---> the demo app source
 * src/server ---> a node server for remote data access
 
-### install and run
+### Install and run
 
 The demo app is based on the Angular CLI. You may want to install the CLI globally if you have not already done so.
 

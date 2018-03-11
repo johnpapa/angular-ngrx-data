@@ -48,7 +48,7 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
       shareReplay(1)
     );
 
-    this.error$ = this.villainsService.entityActions$.ofOp(EntityOp.QUERY_BY_KEY_ERROR)
+    this.error$ = this.villainsService.errors$.ofOp(EntityOp.QUERY_BY_KEY_ERROR)
     .pipe(
       map(errorAction => errorAction.payload.error.message),
       startWith(''), // prime it for loading$

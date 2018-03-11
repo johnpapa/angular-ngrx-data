@@ -5,7 +5,7 @@ import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 
 import { Dictionary } from '../utils';
-import { EntityActions } from '../actions';
+import { EntityActions, OP_ERROR } from '../actions';
 import { EntitySelectors } from './entity-selectors';
 import { EntityCache, EntityCollection, EntityCollectionCreator, ENTITY_CACHE_NAME_TOKEN } from '../reducers';
 
@@ -13,9 +13,6 @@ import { EntityCache, EntityCollection, EntityCollectionCreator, ENTITY_CACHE_NA
  * The selector observable functions for entity collection members.
  */
 export interface EntitySelectors$<T> {
-  /** Observable of actions related to this entity type. */
-  entityActions$: EntityActions;
-
   /** Observable of the collection as a whole */
   collection$: Observable<EntityCollection> | Store<EntityCollection>;
 
@@ -25,8 +22,14 @@ export interface EntitySelectors$<T> {
   /** Observable of all entities in the cached collection. */
   entities$: Observable<T[]> | Store<T[]>;
 
+  /** Observable of actions related to this entity type. */
+  entityActions$: EntityActions;
+  
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+
+  /** Observable of error actions related to this entity type. */
+  errors$: EntityActions;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
   filter$: Observable<string> | Store<string>;
@@ -92,6 +95,7 @@ export class EntitySelectors$Factory {
       )}
     );
     selectors$.entityActions$ = this.entityActions$.ofEntityType(entityName);
+    selectors$.errors$ = selectors$.entityActions$.where(ea => ea.op.endsWith(OP_ERROR));
     selectors$.collection$ = collection$;
 
     return selectors$;

@@ -1,5 +1,9 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.16"></a>
+# release 1.0.0-alpha.16 (2018-03-10)
+
+* Feature: EntitySelectors$.errors$ makes it easier to subscribe to entity action errors in a component.
 
 <a name="1.0.0-alpha.15"></a>
 # release 1.0.0-alpha.15 (2018-03-09)

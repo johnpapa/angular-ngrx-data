@@ -47,11 +47,12 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
 
     const selectors$ = factory.entitySelectors$Factory.create<T, S$>(entityName, def.selectors);
     this.selectors$ = selectors$;
-    this.entityActions$ = selectors$.entityActions$;
     this.collection$ = selectors$.collection$;
     this.count$ = this.selectors$.count$;
     this.entities$ = this.selectors$.entities$;
+    this.entityActions$ = selectors$.entityActions$;
     this.entityMap$ = this.selectors$.entityMap$;
+    this.errors$ = selectors$.errors$;
     this.filter$ = this.selectors$.filter$;
     this.filteredEntities$ = this.selectors$.filteredEntities$;
     this.keys$ = this.selectors$.keys$;
@@ -261,9 +262,6 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
   // endregion Dispatch commands
 
   // region Selectors$
-  /** Observable of actions related to this entity type. */
-  entityActions$: EntityActions;
-
   /** Observable of the collection as a whole */
   collection$: Observable<EntityCollection<T>> | Store<EntityCollection<T>>;
 
@@ -273,8 +271,14 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
   /** Observable of all entities in the cached collection. */
   entities$: Observable<T[]> | Store<T[]>;
 
+  /** Observable of actions related to this entity type. */
+  entityActions$: EntityActions;
+
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+
+  /** Observable of error actions related to this entity type. */
+  errors$: EntityActions;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
   filter$: Observable<string> | Store<string>;

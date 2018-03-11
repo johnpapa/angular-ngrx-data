@@ -263,6 +263,26 @@ describe('EntitySelectors$', () => {
       expect(actionsReceived.length).toBe(1, 'only one hero action');
       expect(actionsReceived[0]).toBe(heroAction, 'expected hero action');
     });
+
+
+    it('`errors$` emits hero collection EntityAction errors and no other actions', () => {
+      const actionsReceived: Action[] = [];
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', selectors);
+      const errors$ = selectors$.errors$;
+      errors$.subscribe(action => actionsReceived.push(action));
+
+      const eaFactory = new EntityActionFactory();
+      actions$.next({ type: 'Generic action'});
+      // EntityAction error but not for heroes
+      actions$.next(eaFactory.create('Villain', EntityOp.QUERY_ALL_ERROR));
+      // Hero EntityAction (but not an error)
+      actions$.next(eaFactory.create('Hero', EntityOp.QUERY_ALL));
+      // Hero EntityAction Error
+      const heroErrorAction = eaFactory.create('Hero', EntityOp.QUERY_ALL_ERROR);
+      actions$.next(heroErrorAction);
+      expect(actionsReceived.length).toBe(1, 'only one hero action');
+      expect(actionsReceived[0]).toBe(heroErrorAction, 'expected error hero action');
+    });
   });
 
 });

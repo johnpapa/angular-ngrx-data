@@ -43,7 +43,7 @@
     "@ngrx/effects": "^5.1.0",
     "@ngrx/entity": "^5.1.0",
     "@ngrx/store": "^5.1.0",
-    "angular-in-memory-web-api": "^0.5.3",
+    "angular-in-memory-web-api": "^0.5.4",
     "body-parser": "^1.18.2",
     "core-js": "^2.4.1",
     "dotenv": "^4.0.0",

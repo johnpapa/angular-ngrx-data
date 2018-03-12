@@ -38,7 +38,7 @@ Learn about _ngrx-data_.
 
 This page and other guide pages are markdown pages in the repository `docs` folder.
 
-* [Quick Start](https://github.com/ngrx-data-lab/quickstart.md)
+* [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md)
 * [Introduction](introduction.md)
 * [Entity Metadata](entity-metadata.md)
 * [Entity Collection](entity-collection.md)

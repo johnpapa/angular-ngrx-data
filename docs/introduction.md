@@ -43,7 +43,7 @@ such as `QUERY_ALL` for the `Hero` entity type.
 
 5. The effect turns the HTTP response into a new _success_ action with heroes (or an _error_ action if the request failed).
 
-6. _Ngrx effects_ ispatches that action to the store, which reiterates step #2 to update the collection with heroes and refresh the view.
+6. _Ngrx effects_ Dispatches that action to the store, which reiterates step #2 to update the collection with heroes and refresh the view.
 
 ## It's still _ngrx_
 

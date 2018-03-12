@@ -5,7 +5,7 @@ import { Observable } from 'rxjs/Observable';
 import { Subscription } from 'rxjs/Subscription';
 
 import { FilterObserver } from '../../shared/filter';
-import { Villain } from '../../core';
+import { MasterDetailCommands, Villain } from '../../core';
 import { VillainsService } from '../villains.service';
 
 @Component({
@@ -14,8 +14,8 @@ import { VillainsService } from '../villains.service';
   styleUrls: ['./villains.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainsComponent implements OnInit, OnDestroy {
-  addingVillain = false;
+export class VillainsComponent implements MasterDetailCommands<Villain>, OnInit, OnDestroy {
+  commands = this;
   selectedVillain: Villain = null;
   subscription: Subscription;
 
@@ -37,28 +37,29 @@ export class VillainsComponent implements OnInit, OnDestroy {
     this.subscription.unsubscribe();
   }
 
-  clear() {
-    this.addingVillain = false;
+  close() {
     this.selectedVillain = null;
-  }
-
-  deleteVillain(villain: Villain) {
-    this.unselect();
-    this.villainsService.delete(villain.id);
   }
 
   enableAddMode() {
-    this.addingVillain = true;
-    this.selectedVillain = null;
+    this.selectedVillain = <any> {};
   }
 
   getVillains() {
     this.villainsService.getAll();
-    this.unselect();
+    this.close();
   }
 
-  onSelect(villain: Villain) {
-    this.addingVillain = false;
+  add(villain: Villain) {
+    this.villainsService.add(villain);
+  }
+
+  delete(villain: Villain) {
+    this.close();
+    this.villainsService.delete(villain.id);
+  }
+
+  select(villain: Villain) {
     this.selectedVillain = villain;
   }
 
@@ -66,12 +67,4 @@ export class VillainsComponent implements OnInit, OnDestroy {
     this.villainsService.update(villain);
   }
 
-  add(villain: Villain) {
-    this.villainsService.add(villain);
-  }
-
-  unselect() {
-    this.addingVillain = false;
-    this.selectedVillain = null;
-  }
 }

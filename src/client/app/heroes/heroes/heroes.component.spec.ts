@@ -104,7 +104,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
         testStore.dispatch(success);
       });
 
-      component.deleteHero(initialHeroes[1]); // 'B'
+      component.delete(initialHeroes[1]); // 'B'
 
       component.filteredHeroes$.subscribe(heroes => {
         subscriptionCalled = true;

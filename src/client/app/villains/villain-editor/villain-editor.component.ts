@@ -16,7 +16,7 @@ import { VillainsService } from '../villains.service';
   styleUrls: ['./villain-editor.component.scss']
 })
 export class VillainEditorComponent implements OnInit, OnDestroy {
-
+  commands = this;
   destroy$ = new Subject();
   error$: Observable<string>;
   loading$: Observable<boolean>;
@@ -71,7 +71,7 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
     this.villainsService.update(villain);
   }
 
-  unselect() {
+  close() {
     this.router.navigate(['/villains']);
   }
 

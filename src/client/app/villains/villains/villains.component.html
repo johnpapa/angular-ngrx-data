@@ -1,7 +1,7 @@
 <div class="control-panel">
   <div class="button-panel">
     <button mat-raised-button color="primary" type="button" (click)="getVillains()" matTooltip="Refresh the villains">Refresh</button>
-    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingVillain && !selectedVillain"
+    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!selectedVillain"
       matTooltip="Add a new villain">Add</button>
   </div>
   <app-filter [filterObserver]="filterObserver" filterPlaceholder="Filter by each villain's name and saying"
@@ -12,13 +12,12 @@
     <div *ngIf="filteredVillains$ | async as villains">
       <mat-spinner *ngIf="loading$ | async;else villainList" mode="indeterminate" color="accent"></mat-spinner>
       <ng-template #villainList>
-        <app-villain-list [villains]="villains" [selectedVillain]="selectedVillain" (deleted)="deleteVillain($event)" (selected)="onSelect($event)"></app-villain-list>
+        <app-villain-list [villains]="villains" [selectedVillain]="selectedVillain" [commands]="commands"></app-villain-list>
       </ng-template>
     </div>
   </div>
   <div class="detail-container">
-    <app-villain-detail *ngIf="selectedVillain || addingVillain" [villain]="selectedVillain" (unselect)="unselect()" (add)="add($event)"
-      (update)="update($event)">
+    <app-villain-detail *ngIf="selectedVillain" [villain]="selectedVillain" [commands]="commands">
     </app-villain-detail>
   </div>
 </div>

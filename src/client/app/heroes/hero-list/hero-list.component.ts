@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
-import { Hero } from '../../core';
+import { Hero, MasterDetailCommands } from '../../core';
 
 @Component({
   selector: 'app-hero-list',
@@ -11,18 +11,17 @@ import { Hero } from '../../core';
 export class HeroListComponent {
   @Input() heroes: Hero[];
   @Input() selectedHero: Hero;
-  @Output() deleted = new EventEmitter<Hero>();
-  @Output() selected = new EventEmitter<Hero>();
+  @Input() commands: MasterDetailCommands<Hero>;
 
   byId(hero: Hero) {
     return hero.id;
   }
 
   onSelect(hero: Hero) {
-    this.selected.emit(hero);
+    this.commands.select(hero);
   }
 
   deleteHero(hero: Hero) {
-    this.deleted.emit(hero);
+    this.commands.delete(hero);
   }
 }

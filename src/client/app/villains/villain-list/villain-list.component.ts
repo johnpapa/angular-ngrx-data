@@ -1,6 +1,6 @@
-import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 
-import { Villain } from '../../core';
+import { Villain, MasterDetailCommands } from '../../core';
 
 @Component({
   selector: 'app-villain-list',
@@ -11,18 +11,17 @@ import { Villain } from '../../core';
 export class VillainListComponent {
   @Input() villains: Villain[];
   @Input() selectedVillain: Villain;
-  @Output() deleted = new EventEmitter<Villain>();
-  @Output() selected = new EventEmitter<Villain>();
+  @Input() commands: MasterDetailCommands<Villain>;
 
   byId(villain: Villain) {
     return villain.id;
   }
 
   onSelect(villain: Villain) {
-    this.selected.emit(villain);
+    this.commands.select(villain);
   }
 
   deleteVillain(villain: Villain) {
-    this.deleted.emit(villain);
+    this.commands.delete(villain);
   }
 }

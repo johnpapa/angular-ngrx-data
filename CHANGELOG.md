@@ -5,6 +5,10 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.8"></a>
+# 0.2.8 (2018-03-12)
+* Update app to align with app in ngrx-data-lab (much cleaner)
+
 <a name="0.2.7"></a>
 # 0.2.7 (2018-03-09)
 

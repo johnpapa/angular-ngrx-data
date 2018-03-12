@@ -8,7 +8,7 @@
 
 [_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
-> Try it! See the [QuickStart](docs/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
+> Try it! See the [Quick Start](https://github.com/ngrx-data-lab/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
 
 ## What Problems Does ngrx-data solve
 
@@ -46,7 +46,7 @@ The ["_Introduction to ngrx-data_"](/docs/introduction.md) guide describes how n
 
 The ["_Overview_"](/docs/README.md) page links to more in-depth documentation.
 
-The ["_QuickStart_"](docs/quickstart.md) page contains help in starting your first NgRx data app.
+The [Quick Start](https://github.com/ngrx-data-lab/quickstart.md) page contains help in starting your first NgRx data app.
 
 This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
 

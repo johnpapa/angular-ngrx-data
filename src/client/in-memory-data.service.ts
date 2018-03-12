@@ -14,6 +14,7 @@ interface Db {
 export class InMemoryDataService {
   /** True if in-mem service is intercepting; all requests pass thru when false. */
   active = true;
+  maxId = 0;
 
   /** In-memory database data */
   db: Db = {};
@@ -34,6 +35,16 @@ export class InMemoryDataService {
       this.active = !!body.active;
     }
     return this.db;
+  }
+
+  /**
+   * Simulate generating new Id on the server
+   * All collections in this db have numeric ids.
+   * Seed grows by highest id seen in any of the collections.
+   */
+  genId(collection: {id: number}[], collectionName: string) {
+    this.maxId = 1 + collection.reduce((prev, cur) => Math.max(prev, cur.id || 0), this.maxId);
+    return this.maxId;
   }
 
   /**

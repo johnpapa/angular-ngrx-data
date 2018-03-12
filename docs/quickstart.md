@@ -82,16 +82,14 @@ Next we create the entity store for ngrx-data and tell the Angular CLI to import
 ng g m store/entity-store --flat -m store/app-store
 ```
 
-We must import and configure ngrx-data into our entity store. We'll start by using all defaults, which is why the `DefaultDataServiceConfig` is an empty object literal. We'll pass the entity metadata that we previously creaed into ngrx-data.
+We must import and configure ngrx-data into our entity store. We'll pass the entity metadata that we previously created into ngrx-data.
 
 Replace the code in the `entity-store.modules.ts` with the following code.
 
 ```typescript
 import { NgModule } from '@angular/core';
-import { DefaultDataServiceConfig, NgrxDataModule } from 'ngrx-data';
+import { NgrxDataModule } from 'ngrx-data';
 import { pluralNames, entityMetadata } from './entity-metadata';
-
-const defaultDataServiceConfig: DefaultDataServiceConfig = {};
 
 @NgModule({
   imports: [
@@ -99,9 +97,6 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {};
       entityMetadata: entityMetadata,
       pluralNames: pluralNames
     })
-  ],
-  providers: [
-    { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }
   ]
 })
 export class EntityStoreModule {}
@@ -145,31 +140,7 @@ export class VillainService extends EntityServiceBase<Villain> {
 
 ## Step 7 - Refactor the container components to use NgRx
 
-Our heroes container component handles all interactions with the our data via `hero.service.ts`. We'll need to refactor the heroes container component to use ngrx and ngrx-data.
-
-> The hero list and hero detail components are **presenter** components. They do not interact with the hero service nor will they interact with our store. The presenter components are given a hero or heroes to present, by a container component. The presenter components communicate to the container component when a hero should be saved, and the container component takes it from there.
-
-Replace the contents of the constructor in `heroes.component.ts` with the following code.
-
-```typescript
-  constructor(public heroesService: HeroService) {
-    this.heroes$ = this.heroesService.entities$;
-    this.loading$ = this.heroesService.loading$;
-  }
-```
-
-## Step 8 - Now refactor the Villains container component to use NgRx
-
-Replace the contents of the constructor in `villains.component.ts` with the following code.
-
-```typescript
-  constructor(public villainsService: VillainService) {
-    this.villains$ = this.villainsService.entities$;
-    this.loading$ = this.villainsService.loading$;
-  }
-```
-
-## Step 9 - Run it
+## Step 8 - Run it
 
 Run the app!
 

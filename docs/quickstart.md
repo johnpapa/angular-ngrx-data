@@ -2,10 +2,23 @@
 
 This quick start begins with a working angular app that has CRUD operations for heroes and villain entities. This app uses traditional services and techniques to get and save the heroes and villains. In this quick start you will add NgRx and ngrx-data to the app.
 
+> What are we doing? Great question! We're going to start with a reactive Angular app and add ngrx to it, using the ngrx-data library.
+
+## Nutshell
+
+Here are the steps to add ngrx-data to your reactive angular app, in a nutshell:
+
+1. Open your reactive Angular app
+2. npm install the NgRx libraries
+3. Create the NgRx store
+4. Tell the store about your entities
+5. Refactor the data services to use NgRx
+6. Run it!
+
 ## Step 1 - get the sample app
 
 ```bash
-git clone ngrx-data-lab toh
+git clone https://github.com/johnpapa/ngrx-data-lab.git
 cd ngrx-data-lab
 npm install
 ```
@@ -47,49 +60,30 @@ import { environment } from '../../environments/environment';
 export class AppStoreModule {}
 ```
 
-## Step 4 - Create custom metadata for the entities
+## Step 4 - Define the entites for our store
 
-We need to tell ngrx-data about our entities. We create an `EntityMetadataMap` and any custom pluralization of our entities. EXecute the following command to create a `entity-metadata.ts` file in our `store` folder.
+We have a root store for NgRx named `app-store.modules.ts`.  NgRx allows us to create features, and our ngrx-data entity cache is a feature. Next we create the entity store for ngrx-data and tell the Angular CLI to import it into our app-store module.
 
 ```bash
-ng g cl store/entity-metadata
+ng g m store/entity-store --flat -m store/app-store
 ```
 
-We create a constant of type `EntityMetadataMap` and define a set of properties, one for each entity name. We also define how to pluralize our entities, for those not simply needing an 's' appended to them (e.g. Hero --> Heroes).
+We need to tell ngrx-data about our entities. We create an `EntityMetadataMap` and any custom pluralization of our entities. We create a constant of type `EntityMetadataMap` and define a set of properties, one for each entity name. We also define how to pluralize our entities, for those not simply needing an 's' appended to them (e.g. Hero --> Heroes).
 
-> We have two entities: Hero and Villain. As you might imagine,we add one line of code for every additional entity. That's it!
+> We have two entities: Hero and Villain. As you might imagine, we add one line of code for every additional entity. That's it!
 
-Replace the contents of the file with the following code.
+Replace the code in the `entity-store.modules.ts` with the following code.
 
 ```typescript
-import { EntityMetadataMap } from 'ngrx-data';
+import { NgModule } from '@angular/core';
+import { EntityMetadataMap, NgrxDataModule } from 'ngrx-data';
 
 export const entityMetadata: EntityMetadataMap = {
   Hero: {},
   Villain: {}
 };
 
-export const pluralNames = {
-  Hero: 'Heroes'
-};
-```
-
-## Step 5 - Create the Entity store and define the entities
-
-Next we create the entity store for ngrx-data and tell the Angular CLI to import it into our app-store module.
-
-```bash
-ng g m store/entity-store --flat -m store/app-store
-```
-
-We must import and configure ngrx-data into our entity store. We'll pass the entity metadata that we previously created into ngrx-data.
-
-Replace the code in the `entity-store.modules.ts` with the following code.
-
-```typescript
-import { NgModule } from '@angular/core';
-import { NgrxDataModule } from 'ngrx-data';
-import { pluralNames, entityMetadata } from './entity-metadata';
+export const pluralNames = { Hero: 'Heroes' };
 
 @NgModule({
   imports: [
@@ -102,7 +96,7 @@ import { pluralNames, entityMetadata } from './entity-metadata';
 export class EntityStoreModule {}
 ```
 
-## Step 6 - Simplify the Hero and Villain data services
+## Step 5 - Simplify the Hero and Villain data services
 
 Our application gets heroes and villains via Http from `hero.service.ts` and `villain.service.ts`, respectively. ngrx-data handles getting and saving our data (e.g. CRUD techniques) for us, if we ask it to.
 
@@ -138,9 +132,11 @@ export class VillainService extends EntityServiceBase<Villain> {
 }
 ```
 
-## Step 7 - Refactor the container components to use NgRx
+## Step 6 - Remove unused service
 
-## Step 8 - Run it
+You may be wondering what happened to `reactive-data.service.ts`. It is no longer needed since our app is using ngrx-data! So we can remove this file from our app and remove the reference to it in `core/index.ts`.
+
+## Step 7 - Run it
 
 Run the app!
 

@@ -143,184 +143,30 @@ export class VillainService extends EntityServiceBase<Villain> {
 }
 ```
 
-## Step 7 - Refactor the Heroes container component to use NgRx
+## Step 7 - Refactor the container components to use NgRx
 
-Our heroes container component handles all interactions with the our hero data via `hero.service.ts`. We'll need to refactor the heroes container component to use ngrx and ngrx-data.
+Our heroes container component handles all interactions with the our data via `hero.service.ts`. We'll need to refactor the heroes container component to use ngrx and ngrx-data.
 
 > The hero list and hero detail components are **presenter** components. They do not interact with the hero service nor will they interact with our store. The presenter components are given a hero or heroes to present, by a container component. The presenter components communicate to the container component when a hero should be saved, and the container component takes it from there.
 
-We'll refactor our container components to use RxJs Observables and interact with the ngrx store.
-
-Replace the contents of `heroes.component.ts` with the following code.
+Replace the contents of the constructor in `heroes.component.ts` with the following code.
 
 ```typescript
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { Hero } from '../../core';
-import { HeroService } from '../hero.service';
-
-@Component({
-  selector: 'app-heroes',
-  templateUrl: './heroes.component.html',
-  styleUrls: ['./heroes.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class HeroesComponent implements OnInit {
-  addingHero = false;
-  selectedHero: Hero;
-
-  heroes$: Observable<Hero[]>;
-  loading$: Observable<boolean>;
-
   constructor(public heroesService: HeroService) {
     this.heroes$ = this.heroesService.entities$;
     this.loading$ = this.heroesService.loading$;
   }
-
-  ngOnInit() {
-    this.getHeroes();
-  }
-
-  clear() {
-    this.addingHero = false;
-    this.selectedHero = null;
-  }
-
-  deleteHero(hero: Hero) {
-    this.unselect();
-    this.heroesService.delete(hero.id);
-  }
-
-  enableAddMode() {
-    this.addingHero = true;
-    this.selectedHero = null;
-  }
-
-  getHeroes() {
-    this.heroesService.getAll();
-    this.unselect();
-  }
-
-  onSelect(hero: Hero) {
-    this.addingHero = false;
-    this.selectedHero = hero;
-  }
-
-  update(hero: Hero) {
-    this.heroesService.update(hero);
-  }
-
-  add(hero: Hero) {
-    this.heroesService.add(hero);
-  }
-
-  unselect() {
-    this.addingHero = false;
-    this.selectedHero = null;
-  }
-}
-```
-
-Now let's update the HTML template to use the `heroes$` and `loading$` observables with the async pipe.
-
-Locate the `*ngIf="heroes"` in the template and refactor it to use the observable and the async pipe, as shown below
-
-```html
-  <div *ngIf="heroes$ | async as heroes">
-```
-
-Locate the `*ngIf="loading"` in the template and refactor it to use the observable and the async pipe, as shown below
-
-```html
-  <mat-spinner *ngIf="loading$ | async;else heroList" mode="indeterminate" color="accent"></mat-spinner>
 ```
 
 ## Step 8 - Now refactor the Villains container component to use NgRx
 
-Replace the contents of `villains.component.ts` with the following code.
+Replace the contents of the constructor in `villains.component.ts` with the following code.
 
 ```typescript
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-
-import { Observable } from 'rxjs/Observable';
-
-import { Villain } from '../../core';
-import { VillainService } from '../villain.service';
-
-@Component({
-  selector: 'app-villains',
-  templateUrl: './villains.component.html',
-  styleUrls: ['./villains.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class VillainsComponent implements OnInit {
-  addingVillain = false;
-  selectedVillain: Villain;
-
-  villains$: Observable<Villain[]>;
-  loading$: Observable<boolean>;
-
   constructor(public villainsService: VillainService) {
     this.villains$ = this.villainsService.entities$;
     this.loading$ = this.villainsService.loading$;
   }
-
-  ngOnInit() {
-    this.getVillains();
-  }
-
-  clear() {
-    this.addingVillain = false;
-    this.selectedVillain = null;
-  }
-
-  deleteVillain(villain: Villain) {
-    this.unselect();
-    this.villainsService.delete(villain.id);
-  }
-
-  enableAddMode() {
-    this.addingVillain = true;
-    this.selectedVillain = null;
-  }
-
-  getVillains() {
-    this.villainsService.getAll();
-    this.unselect();
-  }
-
-  onSelect(villain: Villain) {
-    this.addingVillain = false;
-    this.selectedVillain = villain;
-  }
-
-  update(villain: Villain) {
-    this.villainsService.update(villain);
-  }
-
-  add(villain: Villain) {
-    this.villainsService.add(villain);
-  }
-
-  unselect() {
-    this.addingVillain = false;
-    this.selectedVillain = null;
-  }
-}
-```
-
-Now let's update the HTML template to use the `villains$` and `loading$` observables with the async pipe.
-
-Locate the `*ngIf="villains"` in the template and refactor it to use the observable and the async pipe, as shown below
-
-```html
-  <div *ngIf="heroes$ | async as villains">
-```
-
-Locate the `*ngIf="loading"` in the template and refactor it to use the observable and the async pipe, as shown below
-
-```html
-  <mat-spinner *ngIf="loading$ | async;else villainList" mode="indeterminate" color="accent"></mat-spinner>
 ```
 
 ## Step 9 - Run it

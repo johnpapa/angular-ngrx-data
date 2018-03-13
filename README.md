@@ -8,7 +8,7 @@
 
 [_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
-> See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app. Try it on [StackBlitz](https://ngrx-data-lab.stackblitz.io/).
+> See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app. Try it on [StackBlitz](https://stackblitz.com/edit/ngrx-data-lab).
 
 ## What problems does ngrx-data solve
 

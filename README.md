@@ -2,65 +2,169 @@
 
 ## Zero Ngrx Boilerplate
 
-> You may never write an action, reducer, selector, effect, or HTTP dataservice again.
->
-> **ngrx-data is still NgRx**!
+**You may never write an action, reducer, selector, effect, or HTTP dataservice again.**
 
 [_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
-> Try it! See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
+But to use it properly requires _both_ a deep understanding of redux/ngrx _and_ a lot of _boilerplate code_.
 
-## What Problems Does ngrx-data solve
+_Ngrx-data_ is an _ngrx_ extension that offers a gentle introduction to _ngrx/redux_ without the boilerplate.
 
-There is a signficant amount of boilerplate code you must write and maintain to manage [entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
+> **Try it!** See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
 
-In standard ngrx, every entity type has a multitude of actions, reducer cases, and selectors that look virtually the same across all entity types.
+<a id="why"></a>
+## Why use _ngrx-data_?
 
-Several libraries offer to _reduce_ the boilerplate. Some will _generate_ it for you. [ngrx-data](https://github.com/johnpapa/angular-ngrx-data) _eliminates it_.
+Many applications have substantial _domain models_ with 10s or 100s of [entity types](docs/faq.md/#entity)
+such as _Customer_, _Order_, _LineItem_, _Product_, and _User_.
 
-_ngrx-data_ stores entities by type in distinct collections in an entity cache within the ngrx state tree. To fetch and modify entity data, it dynamically generates the corresponding ngrx actions, reducers, selectors and effects as you need them.
-
-## It's still _NgRx_
-
-This is a _library for ngrx_, not an ngrx alternative.
-
-Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
-
-You can still add more store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
-
-## Why use _ngrx-data_
-
-> If you're following the _redux_ pattern and managing entity data with _ngrx_, the **_ngrx-data_ library** can significantly reduce the amount of code you write.
-
-Many applications have substantial _domain models_ with 10s or 100s of entity types.
-
-To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task. You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
+In plain _ngrx_, to create, retrieve, update, and delete (CRUD) data for every entity type is an overwhelming task. You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
 
 In even a small model, this is a ton of repetitive code to create, maintain, and test.
 
 The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _ngrx_.
 
-## How it works
+## It's still _NgRx_
 
-The ["_Introduction to ngrx-data_"](/docs/introduction.md) guide describes how ngrx-data works and demonstrates the minimal steps needed to write an ngrx-data application.
+**This is a _library for ngrx_, not an ngrx alternative.**
 
-The ["_Overview_"](/docs/README.md) page links to more in-depth documentation.
+It's easy to combine standard ngrx with ngrx-data.
+It's easy to take control when you need it and hand control back to ngrx-data when you're done.
 
-The [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) page contains help in starting your first NgRx data app.
+Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
 
-This README page describes the contents of the _ngrx-data_ github repository and explains how to install _ngrx-data_.
+You can add custom store properties, actions, reducers, selectors, and effects. You can override any ngrx-data behavior for an individual entity type or for all entities.
+You can make your own calls to the server and update the cached entity collections with the results using ngrx-data _cache-only_ actions.
 
+You can see the _ngrx machinery_ at work with the [_redux developer tools_](#redux-dev-tools). You can listen to the flow of actions directly. You can _intercept and override anything_ ... but you only have to intervene where you want to add custom logic.
+
+### Show me
+
+For a hands-on experience, try the [QuickStart](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md)).
+In this section, we summarize the key points.
+
+The _ngrx-data_ repository includes a demo app for editing _Heroes_ and _Villains_ in the `src/client/app/` folder.
+The following _reduced_ extract from that demo illustrates the essential mechanics of configuring and using _ngrx-data_.
+
+You begin with a description of the entity model in a few lines of metadata.
+
+```javascript
+// Metadata for the entity model
+export const entityMetadata: EntityMetadataMap = {
+  Hero: { },
+  Villain: { }
+};
+
+// Help ngrx-data pluralize entity type names
+// because the plural of "Hero" is not "Heros"
+export const pluralNames = {
+  Hero: 'Heroes' // the plural of Hero
+};
+```
+
+You register the metadata and plurals with the `ngrx-data` module.
+
+```javascript
+@NgModule({
+  imports: [
+    NgrxDataModule.forRoot({
+      entityMetadata: entityMetadata,
+      pluralNames: pluralNames
+    })
+  ]
+})
+export class EntityStoreModule {}
+```
+
+Create a `HeroService` to talk to _ngrx_data_.
+
+```javascript
+import { Injectable } from '@angular/core';
+import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
+import { Hero } from '../core';
+
+@Injectable()
+export class HeroService extends EntityServiceBase<Hero> {
+  constructor(entityServiceFactory: EntityServiceFactory) {
+    super('Hero', entityServiceFactory);
+  }
+}
+```
+
+The `HeroesComponent` injects the `HeroService` and calls it to read and save _Hero_ entity data
+in a reactive, immutable style, _without reference to any of the ngrx artifacts_.
+
+```javascript
+import { HeroService } from './hero-service';
+import { Hero } from '../../core';
+
+@Component({
+  selector: 'app-heroes',
+  templateUrl: './heroes.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class HeroesComponent implements OnInit {
+  heroes$: Observable<Hero[]>;
+
+  constructor(private heroService: HeroService) {
+    this.heroes$ = heroService.entities$;
+  }
+
+  ngOnInit() {
+    this.getHeroes();
+  }
+
+  getHeroes() {
+    this.heroService.getAll();
+  }
+
+  addHero(hero: Hero) {
+    this.heroService.add(hero);
+  }
+
+  deleteHero(hero: Hero) {
+    this.heroService.delete(hero.id);
+  }
+
+  updateHero(hero: Hero) {
+    this.heroService.update(hero);
+  }
+}
+```
+
+## QuickStart
+
+Try the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) to experience NgRx and ngrx-data in your app.
+
+<a id="explore"></a>
 ## Explore this repository
 
 This repository contains the _ngrx-data_ source code and a
 demonstration application (the "demo app") that exercises many of the library features.
 
-The key folders in this repo are:
+The key folders in this repository are:
 
 * docs --> the docs for the library and the demo
 * lib ---> the ngrx-data library source code that we publish to npm
 * src/client ---> the demo app source
 * src/server ---> a node server for remote data access
+
+<a id="docs-list"></a>
+### Learn more in the docs
+
+* [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md)
+* [Architecture](docs/architecture.md)
+* [Entity Metadata](docs/entity-metadata.md)
+* [Entity Collection](docs/entity-collection.md)
+* [Entity Service](docs/entity-service.md)
+* [Entity DataService](docs/entity-dataservice.md)
+* [Entity Actions](docs/entity-actions.md)
+* [Entity Reducer](docs/entity-reducer.md)
+* [Entity Change Tracker](docs/entity-change-tracker.md)
+* [Extension Points](docs/extension-points.md)
+* [Limitations](docs/limitations.md)
+* [FAQ: Frequently Asked Questions](docs/faq.md)
+
 
 ### Install and run
 
@@ -113,6 +217,7 @@ We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls) that add t
 
 Be sure to run these tests before submitting a PR for review.
 
+<a id="redux-dev-tools"></a>
 ## Monitor the app with Redux DevTools
 
 The demo app is [configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools) with the [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).

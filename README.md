@@ -1,18 +1,18 @@
 # Angular ngrx-data
 
-## Zero Ngrx Boilerplate
+## Zero NgRx Boilerplate
 
 > You may never write an action, reducer, selector, effect, or HTTP dataservice again.
 >
-> **ngrx-data is still NgRx**!
+> **ngrx-data is still [NgRx](https://github.com/ngrx/platform/blob/master/README.md)**!
 
 [_NgRx_](https://github.com/ngrx/platform/blob/master/README.md) helps Angular applications manage shared state in a "reactive" style, following the [redux](https://redux.js.org) pattern.
 
-> Try it! See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
+> See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app. Try it on [StackBlitz](https://ngrx-data-lab.stackblitz.io/).
 
-## What Problems Does ngrx-data solve
+## What problems does ngrx-data solve
 
-There is a signficant amount of boilerplate code you must write and maintain to manage [entity](https://github.com/johnpapa/angular-ngrx-data/docs/faq.md#entity) data with ngrx.
+There is a signficant amount of boilerplate code you must write and maintain to manage [entity](https://github.com/johnpapa/angular-ngrx-data/blob/master/docs/faq.md#entity) data with ngrx.
 
 In standard ngrx, every entity type has a multitude of actions, reducer cases, and selectors that look virtually the same across all entity types.
 
@@ -22,7 +22,7 @@ _ngrx-data_ stores entities by type in distinct collections in an entity cache w
 
 ## It's still _NgRx_
 
-This is a _library for ngrx_, not an ngrx alternative.
+_ngrx-data_ is a _library for NgRx_, not an NgRx alternative.
 
 Every entity has its own actions. Every operation takes its unique journey through the store, reducers, effects, and selectors. You just let _ngrx-data_ create these for you.
 
@@ -30,15 +30,15 @@ You can still add more store properties, actions, reducers, selectors, and effec
 
 ## Why use _ngrx-data_
 
-> If you're following the _redux_ pattern and managing entity data with _ngrx_, the **_ngrx-data_ library** can significantly reduce the amount of code you write.
+> If you're following the _redux_ pattern and managing entity data with _NgRx_, the **_ngrx-data_ library** can significantly reduce the amount of code you write.
 
 Many applications have substantial _domain models_ with 10s or 100s of entity types.
 
-To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _ngrx_ is an overwhelming task. You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
+To create, retrieve, update, and delete (CRUD) all of these entities with vanilla _NgRx_ is an overwhelming task. You're writing _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ as well as the HTTP GET, PUT, POST, and DELETE methods _for each entity type_.
 
 In even a small model, this is a ton of repetitive code to create, maintain, and test.
 
-The _ngrx-data_ library is _one_ way to stay on the _ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _ngrx_.
+The _ngrx-data_ library is _one_ way to stay on the _@ngrx_ path while radically reducing the "boilerplate" necessary to manage entities with _NgRx_.
 
 ## How it works
 
@@ -53,7 +53,7 @@ This README page describes the contents of the _ngrx-data_ github repository and
 ## Explore this repository
 
 This repository contains the _ngrx-data_ source code and a
-demonstration application (the "demo app") that exercises many of the library features.
+demonstration application (the "[demo app](https://ngrx-data-lab.stackblitz.io)") that exercises many of the library features.
 
 The key folders in this repo are:
 

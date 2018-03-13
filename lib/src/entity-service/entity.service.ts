@@ -3,16 +3,16 @@ import { Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { Dictionary } from '../utils';
-import { EntityActions } from '../actions';
-import { EntityActionGuard } from '../actions';
-import { EntityCache, EntityCollection } from '../reducers';
-import { QueryParams } from '../dataservices';
-
-import { EntityDefinitionService } from '../entity-metadata';
-import { EntityDispatcher, EntityDispatcherFactory } from '../dispatchers';
-import { EntitySelectors$, EntitySelectors$Factory } from '../selectors';
-import { IdSelector, Update } from '../utils';
+import { Dictionary, IdSelector, Update } from '../utils';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityActionGuard } from '../actions/entity-action-guard';
+import { EntityCache } from '../reducers/entity-cache';
+import { EntityCollection } from '../reducers/entity-collection';
+import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
+import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
+import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
+import { EntitySelectors$, EntitySelectors$Factory } from '../selectors/entity-selectors$';
+import { QueryParams } from '../dataservices/interfaces';
 
 /**
  * A dispatcher and selector$ facade for managing

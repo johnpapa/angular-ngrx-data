@@ -1,9 +1,10 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
+export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('ngrx-data/Plural Names');
+
 export abstract class Pluralizer {
   abstract pluralize(name: string): string;
 }
-export const PLURAL_NAMES_TOKEN = new InjectionToken<{ [name: string]: string }>('ngrx-data/Plural Names');
 
 @Injectable()
 export class DefaultPluralizer {

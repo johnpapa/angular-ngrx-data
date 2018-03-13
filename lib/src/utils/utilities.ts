@@ -1,4 +1,4 @@
-import { IdSelector, Update } from '../utils';
+import { IdSelector, Update } from './ngrx-entity-models';
 
 /**
  * Default function that returns the entity's primary key (pkey).

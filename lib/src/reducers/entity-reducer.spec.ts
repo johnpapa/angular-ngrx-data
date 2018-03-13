@@ -2,7 +2,7 @@ import { Action, ActionReducer, MetaReducer } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
 import { EntityAction, EntityActionFactory, EntityOp } from '../actions';
-import { EntityCache } from './index';
+import { EntityCache } from './entity-cache';
 import { EntityCacheMerge, EntityCacheSet } from '../actions/entity-cache-actions';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';

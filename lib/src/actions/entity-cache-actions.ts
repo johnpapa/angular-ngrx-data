@@ -1,7 +1,6 @@
 /*
  * Actions dedicated to the EntityCache as a whole
  */
-
 import { Action } from '@ngrx/store';
 
 import { EntityCache } from '../reducers/entity-cache';

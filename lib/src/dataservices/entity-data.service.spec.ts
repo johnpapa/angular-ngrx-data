@@ -17,7 +17,7 @@ import { HttpUrlGenerator } from './http-url-generator';
 
 import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService } from './entity-data.service';
-import {  QueryParams } from './index';
+import {  QueryParams } from './interfaces';
 import { Update } from '../utils';
 
 // region Test Helpers

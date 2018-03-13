@@ -8,7 +8,7 @@ import { pipe } from 'rxjs/util/pipe';
 import { catchError, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
-import { HttpMethods, QueryParams, RequestData } from './index';
+import { HttpMethods, QueryParams, RequestData } from './interfaces';
 import { HttpUrlGenerator } from './http-url-generator';
 import { makeResponseDelay } from './make-response-delay';
 

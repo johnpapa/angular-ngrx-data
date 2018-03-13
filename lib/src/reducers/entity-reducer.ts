@@ -5,15 +5,16 @@ import { Action, ActionReducer, compose, MetaReducer } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 import { IdSelector, Update } from '../utils';
 
-import { EntityAction, EntityOp } from '../actions';
+import { EntityAction } from '../actions/entity-action';
+import { EntityOp } from '../actions/entity-op';
 import { EntityCache } from './entity-cache';
 import { MERGE_ENTITY_CACHE, SET_ENTITY_CACHE } from '../actions/entity-cache-actions';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { ENTITY_COLLECTION_META_REDUCERS } from './constants';
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection.reducer';
-import { EntityDefinition } from '../entity-metadata';
-import { EntityDefinitionService } from '../entity-metadata';
+import { EntityDefinition } from '../entity-metadata/entity-definition';
+import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 
 export interface EntityCollectionReducers {
   [entity: string]: EntityCollectionReducer<any>;

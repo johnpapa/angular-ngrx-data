@@ -5,9 +5,13 @@ import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/st
 import { Observable } from 'rxjs/Observable';
 
 import { Dictionary } from '../utils';
-import { EntityActions, OP_ERROR } from '../actions';
+import { EntityActions } from '../actions/entity-actions';
+import { OP_ERROR } from '../actions/entity-op';
 import { EntitySelectors } from './entity-selectors';
-import { EntityCache, EntityCollection, EntityCollectionCreator, ENTITY_CACHE_NAME_TOKEN } from '../reducers';
+import { EntityCache  } from '../reducers/entity-cache';
+import { ENTITY_CACHE_NAME_TOKEN } from '../reducers/constants';
+import { EntityCollection  } from '../reducers/entity-collection';
+import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 
 /**
  * The selector observable functions for entity collection members.
@@ -24,7 +28,7 @@ export interface EntitySelectors$<T> {
 
   /** Observable of actions related to this entity type. */
   entityActions$: EntityActions;
-  
+
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 

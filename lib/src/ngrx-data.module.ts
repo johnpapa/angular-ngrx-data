@@ -2,40 +2,38 @@ import { ModuleWithProviders, NgModule, InjectionToken } from '@angular/core';
 import { ActionReducer, MetaReducer, StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 
-import { EntityAction, EntityActionFactory, EntityActions } from './actions';
+import { EntityAction, EntityActionFactory } from './actions/entity-action';
+import { EntityActions } from './actions/entity-actions';
 
+import { DefaultDataServiceFactory } from './dataservices/default-data.service';
+import { EntityDataService } from './dataservices/entity-data.service';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from './dataservices/persistence-result-handler.service';
+
+import { HttpUrlGenerator, DefaultHttpUrlGenerator } from './dataservices/http-url-generator';
+
+import { EntityDispatcherFactory } from './dispatchers/entity-dispatcher-factory';
+
+import { EntityDefinitionService } from './entity-metadata/entity-definition.service';
+import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata/entity-metadata';
+
+import { EntityEffects } from './effects/entity-effects';
+import { EntityServiceFactory } from './entity-service/entity.service';
+
+import { EntityCache } from './reducers/entity-cache';
+import { EntityCollection } from './reducers/entity-collection';
+import { EntityCollectionCreator } from './reducers/entity-collection-creator';
+import { EntityCollectionReducerFactory } from './reducers/entity-collection.reducer';
+import { createEntityReducer, EntityReducerFactory } from './reducers/entity-reducer';
 import {
-  DefaultDataServiceFactory, EntityDataService,
-  HttpUrlGenerator, DefaultHttpUrlGenerator,
-  PersistenceResultHandler, DefaultPersistenceResultHandler
-} from './dataservices';
-
-import { EntityDispatcherFactory } from './dispatchers';
-
-import {
-  EntityDefinitionService,
-  EntityMetadataMap,
-  ENTITY_METADATA_TOKEN
-} from './entity-metadata';
-
-import { EntityEffects } from './effects';
-import { EntityServiceFactory } from './entity-service';
-
-import {
-  createEntityReducer,
-  EntityCache,
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
-  EntityCollection,
-  EntityCollectionCreator,
   ENTITY_COLLECTION_META_REDUCERS,
-  EntityCollectionReducerFactory,
-  EntityReducerFactory,
   ENTITY_REDUCER_TOKEN
-} from './reducers';
+} from './reducers/constants';
 
-import { EntitySelectors, EntitySelectors$Factory } from './selectors';
-import { Pluralizer, DefaultPluralizer, PLURAL_NAMES_TOKEN } from './utils';
+import { EntitySelectors } from './selectors/entity-selectors';
+import { EntitySelectors$Factory } from './selectors/entity-selectors$';
+import { Pluralizer, DefaultPluralizer, PLURAL_NAMES_TOKEN } from './utils/pluralizer';
 
 export const entityEffects: any[] = [EntityEffects];
 
@@ -72,9 +70,12 @@ export interface NgrxDataModuleConfig {
 // tslint:disable-next-line:class-name
 export class _NgrxDataModuleWithoutEffects {}
 
+/**
+ * Ngrx-data main module
+ * Configure with `forRoot`
+ */
 @NgModule({
   imports: [
-    StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN),
     _NgrxDataModuleWithoutEffects,
     EffectsModule.forFeature(entityEffects)
   ],

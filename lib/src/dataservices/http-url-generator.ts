@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Pluralizer } from '../utils';
+import { Pluralizer } from '../utils/pluralizer';
 
 /**
  * Generate the base part of an HTTP URL for

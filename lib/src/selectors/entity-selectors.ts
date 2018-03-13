@@ -2,10 +2,10 @@ import { createSelector, Selector } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityCollection } from '../reducers';
-import { EntityFilterFn } from '../entity-metadata';
-import { EntityMetadata } from '../entity-metadata';
 import { Dictionary } from '../utils';
+import { EntityCollection } from '../reducers/entity-collection';
+import { EntityFilterFn } from '../entity-metadata/entity-filters';
+import { EntityMetadata } from '../entity-metadata/entity-metadata';
 
 /**
  * The selector functions for entity collection members.

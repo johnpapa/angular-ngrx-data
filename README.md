@@ -76,7 +76,7 @@ You register the metadata and plurals with the `ngrx-data` module.
 export class EntityStoreModule {}
 ```
 
-Create a `HeroService` to talk to _ngrx_data_.
+Create a `HeroService` to talk to _ngrx-data_.
 
 ```javascript
 import { Injectable } from '@angular/core';

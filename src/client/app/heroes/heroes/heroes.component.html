@@ -1,7 +1,7 @@
 <div class="control-panel">
   <div class="button-panel">
     <button mat-raised-button color="primary" type="button" (click)="getHeroes()" matTooltip="Refresh the heroes">Refresh</button>
-    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!addingHero && !selectedHero" matTooltip="Add a new hero">Add</button>
+    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!selectedHero" matTooltip="Add a new hero">Add</button>
   </div>
   <app-filter [filterObserver]="filterObserver" filterPlaceholder="Filter by each hero's name"
     class="filter-panel"></app-filter>
@@ -11,12 +11,12 @@
     <div *ngIf="filteredHeroes$ | async as heroes">
       <mat-spinner *ngIf="loading$ | async;else heroList" mode="indeterminate" color="accent"></mat-spinner>
       <ng-template #heroList>
-        <app-hero-list [heroes]="heroes" [selectedHero]="selectedHero" (deleted)="deleteHero($event)" (selected)="onSelect($event)"></app-hero-list>
+        <app-hero-list [heroes]="heroes" [selectedHero]="selectedHero" [commands]="commands"></app-hero-list>
       </ng-template>
     </div>
   </div>
   <div class="detail-container">
-    <app-hero-detail *ngIf="selectedHero || addingHero" [hero]="selectedHero" (unselect)="unselect()" (add)="add($event)" (update)="update($event)">
+    <app-hero-detail *ngIf="selectedHero" [hero]="selectedHero" [commands]="commands">
     </app-hero-detail>
   </div>
 </div>

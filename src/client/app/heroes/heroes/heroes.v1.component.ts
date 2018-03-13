@@ -5,7 +5,7 @@ import { EntityService, EntityServiceFactory } from 'ngrx-data';
 import { Observable } from 'rxjs/Observable';
 
 import { FilterObserver } from '../../shared/filter';
-import { Hero } from '../../core';
+import { Hero, MasterDetailCommands } from '../../core';
 
 // Simpler version;
 // How it could be if the app didn't toggle between local and remote API endpoints
@@ -17,8 +17,8 @@ import { Hero } from '../../core';
   styleUrls: ['./heroes.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroesV1Component implements OnInit {
-  addingHero = false;
+export class HeroesV1Component implements MasterDetailCommands<Hero>, OnInit {
+  commands = this;
   selectedHero: Hero;
 
   filterObserver: FilterObserver;
@@ -42,41 +42,34 @@ export class HeroesV1Component implements OnInit {
     this.getHeroes();
   }
 
-  clear() {
-    this.addingHero = false;
+  close() {
     this.selectedHero = null;
-  }
-
-  deleteHero(hero: Hero) {
-    this.unselect();
-    this.heroesService.delete(hero);
   }
 
   enableAddMode() {
-    this.addingHero = true;
-    this.selectedHero = null;
+    this.selectedHero = <any> {};
   }
 
   getHeroes() {
     this.heroesService.getAll();
-    this.unselect();
-  }
-
-  onSelect(hero: Hero) {
-    this.addingHero = false;
-    this.selectedHero = hero;
-  }
-
-  update(hero: Hero) {
-    this.heroesService.update(hero);
+    this.close();
   }
 
   add(hero: Hero) {
     this.heroesService.add(hero);
   }
 
-  unselect() {
-    this.addingHero = false;
-    this.selectedHero = null;
+  delete(hero: Hero) {
+    this.close();
+    this.heroesService.delete(hero);
+  }
+
+
+  select(hero: Hero) {
+    this.selectedHero = hero;
+  }
+
+  update(hero: Hero) {
+    this.heroesService.update(hero);
   }
 }

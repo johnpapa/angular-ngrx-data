@@ -2,16 +2,15 @@ import {
   Component,
   Input,
   ElementRef,
-  EventEmitter,
   OnChanges,
-  Output,
   ViewChild,
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
 
-import { Villain } from '../../core';
-import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+import { MasterDetailCommands, Villain } from '../../core';
 
 @Component({
   selector: 'app-villain-detail',
@@ -21,9 +20,7 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 })
 export class VillainDetailComponent implements OnChanges {
   @Input() villain: Villain;
-  @Output() unselect = new EventEmitter<string>();
-  @Output() add = new EventEmitter<Villain>();
-  @Output() update = new EventEmitter<Villain>();
+  @Input() commands: MasterDetailCommands<Villain>;
 
   @ViewChild('name') nameElement: ElementRef;
 
@@ -39,42 +36,30 @@ export class VillainDetailComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.setFocus();
     if (this.villain && this.villain.id) {
-      this.addMode = false;
       this.form.patchValue(this.villain);
+      this.addMode = false;
     } else {
+      this.form.reset();
       this.addMode = true;
     }
   }
 
-  addVillain(form: FormGroup) {
-    const { value, valid, touched } = form;
-    if (touched && valid) {
-      this.add.emit({ ...this.villain, ...value });
-    }
-    this.clear();
+  close() {
+    this.commands.close();
   }
 
-  clear() {
-    this.unselect.emit();
-  }
-
-  saveVillain(form: FormGroup) {
-    if (this.addMode) {
-      this.addVillain(form);
-    } else {
-      this.updateVillain(form);
+  saveVillain() {
+    const { dirty, valid, value } = this.form;
+    if (dirty && valid) {
+      const newVillain = { ...this.villain, ...value };
+      this.addMode
+        ? this.commands.add(newVillain)
+        : this.commands.update(newVillain);
     }
+    this.close();
   }
 
   setFocus() {
     this.nameElement.nativeElement.focus();
-  }
-
-  updateVillain(form: FormGroup) {
-    const { value, valid, touched } = form;
-    if (touched && valid) {
-      this.update.emit({ ...this.villain, ...value });
-    }
-    this.clear();
   }
 }

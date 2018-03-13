@@ -2,16 +2,15 @@ import {
   Component,
   Input,
   ElementRef,
-  EventEmitter,
   OnChanges,
-  Output,
   ViewChild,
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
 
-import { Hero } from '../../core';
-import { FormBuilder, Validators, FormGroup } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+
+import { Hero, MasterDetailCommands } from '../../core';
 
 @Component({
   selector: 'app-hero-detail',
@@ -21,14 +20,11 @@ import { FormBuilder, Validators, FormGroup } from '@angular/forms';
 })
 export class HeroDetailComponent implements OnChanges {
   @Input() hero: Hero;
-  @Output() unselect = new EventEmitter<string>();
-  @Output() add = new EventEmitter<Hero>();
-  @Output() update = new EventEmitter<Hero>();
+  @Input() commands: MasterDetailCommands<Hero>;
 
   @ViewChild('name') nameElement: ElementRef;
 
   addMode = false;
-
   form = this.fb.group({
     id: [],
     name: ['', Validators.required],
@@ -40,42 +36,30 @@ export class HeroDetailComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.setFocus();
     if (this.hero && this.hero.id) {
-      this.addMode = false;
       this.form.patchValue(this.hero);
+      this.addMode = false;
     } else {
+      this.form.reset();
       this.addMode = true;
     }
   }
 
-  addHero(form: FormGroup) {
-    const { value, valid, touched } = form;
-    if (touched && valid) {
-      this.add.emit({ ...this.hero, ...value });
-    }
-    this.clear();
+  close() {
+    this.commands.close();
   }
 
-  clear() {
-    this.unselect.emit();
-  }
-
-  saveHero(form: FormGroup) {
-    if (this.addMode) {
-      this.addHero(form);
-    } else {
-      this.updateHero(form);
+  saveHero() {
+    const { dirty, valid, value } = this.form;
+    if (dirty && valid) {
+      const newHero = { ...this.hero, ...value };
+      this.addMode
+        ? this.commands.add(newHero)
+        : this.commands.update(newHero);
     }
+    this.close();
   }
 
   setFocus() {
     this.nameElement.nativeElement.focus();
-  }
-
-  updateHero(form: FormGroup) {
-    const { value, valid, touched } = form;
-    if (touched && valid) {
-      this.update.emit({ ...this.hero, ...value });
-    }
-    this.clear();
   }
 }

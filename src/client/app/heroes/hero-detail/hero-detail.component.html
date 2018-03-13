@@ -3,7 +3,7 @@
     <mat-card-title>Hero Details</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <form [formGroup]="form">
+    <form [formGroup]="form" (ngSubmit)="saveHero()">
       <div class="editfields">
         <div [hidden]="addMode">
           <mat-form-field>
@@ -21,8 +21,9 @@
           </mat-form-field>
         </div>
       </div>
-      <button mat-raised-button color="accent" type="button" (click)="clear()" matTooltip="Cancel all changes">Cancel</button>
-      <button mat-raised-button color="primary" type="button" (click)="saveHero(form)" matTooltip="Save all changes">Save</button>
+      <button mat-raised-button color="accent" type="button" (click)="close()" matTooltip="Cancel all changes">Cancel</button>
+      <button mat-raised-button color="primary" type="submit"
+        [disabled]="form.pristine || form.invalid" matTooltip="Save all changes">Save</button>
     </form>
   </mat-card-content>
 </mat-card>

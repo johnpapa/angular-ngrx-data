@@ -128,7 +128,7 @@ describe('HeroesComponent (mock effects)', () => {
 
       let subscriptionCalled = false;
 
-      component.deleteHero(initialHeroes[1]); // 'B'
+      component.delete(initialHeroes[1]); // 'B'
 
       const success = createHeroAction(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
 

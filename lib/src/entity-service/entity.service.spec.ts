@@ -6,7 +6,7 @@ import { Subject } from 'rxjs/Subject';
 
 import { EntityAction, EntityActions, EntityActionFactory, EntityOp } from '../actions';
 import { EntityCache, EntityCollection } from '../reducers';
-import { ENTITY_METADATA_TOKEN } from '../entity-metadata';
+import { ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
 import { EntityService, EntityServiceFactory } from './entity.service';
 
 import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module'

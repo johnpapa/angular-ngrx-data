@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
-import { EntityAction, EntityActionGuard, EntityActionFactory, EntityOp } from '../actions';
-import { QueryParams } from '../dataservices';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActionGuard } from '../actions/entity-action-guard';
+import { EntityOp } from '../actions/entity-op';
+import { QueryParams } from '../dataservices/interfaces';
 import { EntityCommands } from './entity-commands';
-import { EntityCache } from '../reducers';
+import { EntityCache } from '../reducers/entity-cache';
 import { EntityDispatcher, EntityDispatcherBase, EntityDispatcherOptions } from './entity-dispatcher';
 import { defaultSelectId, IdSelector, Update, toUpdateFactory } from '../utils';
 

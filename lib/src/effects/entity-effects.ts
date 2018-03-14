@@ -5,11 +5,12 @@ import { Effect } from '@ngrx/effects';
 import { Observable } from 'rxjs/Observable';
 import { concatMap, catchError, map } from 'rxjs/operators';
 
-import {
-  EntityAction, EntityActionFactory, EntityActions, EntityOp
-} from '../actions';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityOp } from '../actions/entity-op';
 
-import { EntityDataService, PersistenceResultHandler } from '../dataservices';
+import { EntityDataService } from '../dataservices/entity-data.service';
+import { PersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 
 export const persistOps: EntityOp[] = [
   EntityOp.QUERY_ALL,

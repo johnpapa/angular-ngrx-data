@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 
 import { Observable } from 'rxjs/Observable';
 
-import { EntityAction } from '../actions';
+import { EntityAction } from '../actions/entity-action';
 import { DefaultDataServiceFactory } from './default-data.service';
 import { HttpUrlGenerator } from './http-url-generator';
-import { QueryParams } from './index';
+import { QueryParams } from './interfaces';
 import { Update } from '../utils';
 
 

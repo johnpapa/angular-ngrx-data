@@ -1,5 +1,11 @@
 # Angular ngrx-data library ChangeLog
 
+
+<a name="1.0.0-alpha.17"></a>
+# release 1.0.0-alpha.17 (2018-03-13)
+
+Remove circular refs within the library that caused `ng build --prod` to fail.
+
 <a name="1.0.0-alpha.16"></a>
 # release 1.0.0-alpha.16 (2018-03-10)
 

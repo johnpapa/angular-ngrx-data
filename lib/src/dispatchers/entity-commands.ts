@@ -1,4 +1,4 @@
-import { QueryParams } from '../dataservices/index';
+import { QueryParams } from '../dataservices/interfaces';
 
 /*** Commands that update the remote server ***/
 export interface EntityServerCommands<T> {

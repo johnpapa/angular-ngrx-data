@@ -8,7 +8,7 @@ import { ToastService } from '../core/toast.service';
 export class NgrxDataToastService {
   constructor(actions$: EntityActions, toast: ToastService) {
     actions$
-      .where(ea => ea.op.includes(OP_SUCCESS) || ea.op.includes(OP_ERROR))
+      .where(ea => ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR))
       // this service never dies so no need to unsubscribe
       .subscribe(action =>
         toast.openSnackBar(`${action.entityName} action`, action.op)

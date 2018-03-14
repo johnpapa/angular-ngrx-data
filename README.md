@@ -10,7 +10,7 @@ But to use it properly requires _both_ a deep understanding of redux/ngrx _and_ 
 
 _Ngrx-data_ is an _ngrx_ extension that offers a gentle introduction to _ngrx/redux_ without the boilerplate.
 
-> **Try it!** See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) for instructions on adding NgRx and ngrx-data to your app.
+> **Try it!** See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/readme.md) for instructions on adding NgRx and ngrx-data to your app.
 
 <a id="why"></a>
 ## Why use _ngrx-data_?
@@ -134,7 +134,7 @@ export class HeroesComponent implements OnInit {
 
 ## QuickStart
 
-Try the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md) to experience NgRx and ngrx-data in your app.
+Try the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/readme.md) to experience NgRx and ngrx-data in your app.
 
 <a id="explore"></a>
 ## Explore this repository
@@ -152,7 +152,7 @@ The key folders in this repository are:
 <a id="docs-list"></a>
 ### Learn more in the docs
 
-* [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/quickstart.md)
+* [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/readme.md)
 * [Architecture](docs/architecture.md)
 * [Entity Metadata](docs/entity-metadata.md)
 * [Entity Collection](docs/entity-collection.md)

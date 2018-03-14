@@ -77,7 +77,7 @@ export class EntityReducerFactory {
         reducer(this.entityCollectionCreator.create(entityName), action);
     } catch (error) {
       // TODO:  Log properly, not to console
-      console.error(action.error);
+      console.error(error);
       action.error = error;
     }
 

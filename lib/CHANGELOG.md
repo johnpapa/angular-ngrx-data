@@ -1,5 +1,9 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-alpha.18"></a>
+# release 1.0.0-alpha.18 (2018-03-14)
+
+Fix error-logging bug in `EntityReducerFactory` (thanks Colin).
 
 <a name="1.0.0-alpha.17"></a>
 # release 1.0.0-alpha.17 (2018-03-13)

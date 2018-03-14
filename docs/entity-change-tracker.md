@@ -40,7 +40,7 @@ sees an HTTP save error.
 
 ### ChangeTracker _MetaReducers_ 
 
-The _ngrx_data_ library has optional [_MetaReducers_](entity-reducer.md#collection-meta-reducers)
+The _ngrx-data_ library has optional [_MetaReducers_](entity-reducer.md#collection-meta-reducers)
 that can track the entity state before an optimistic save and revert the entity
 to it state when last queried or successfully saved.
 

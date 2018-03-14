@@ -1,5 +1,5 @@
-import { EntityAction } from '../actions';
-import { RequestData } from './index';
+import { EntityAction } from '../actions/entity-action';
+import { RequestData } from './interfaces';
 
 export class DataServiceError {
   readonly message: string;

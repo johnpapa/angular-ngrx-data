@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 
 import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
-import { IdSelector, Update } from '../utils';
 
-import { EntityAction, EntityOp } from '../actions';
-import { EntityActionGuard } from '../actions';
+import { defaultSelectId, IdSelector, toUpdateFactory, Update } from '../utils';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionGuard } from '../actions/entity-action-guard';
+import { EntityOp } from '../actions/entity-op';
+
 import { EntityChangeTracker } from './entity-change-tracker';
 import { EntityCollection } from './entity-collection';
-import { defaultSelectId, toUpdateFactory } from '../utils';
 
 export type EntityCollectionReducer<T = any> = (
   collection: EntityCollection<T>,

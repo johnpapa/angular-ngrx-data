@@ -1,5 +1,5 @@
 import { InjectionToken } from '@angular/core';
-import { EntityDispatcherOptions } from '../dispatchers';
+import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
 import { EntityFilterFn } from './entity-filters';
 import { IdSelector, Comparer } from '../utils';
 

@@ -30,6 +30,7 @@ import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';
 import { EntityStoreModule } from '../../store/entity-store.module';
+import { NgrxDataToastService } from '../../store/ngrx-data-toast.service';
 import { Hero } from '../../core';
 import { HeroesComponent } from './heroes.component';
 import { HeroesService } from '../heroes.service';
@@ -172,6 +173,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
         HeroesComponent, // When testing class-only
         HeroesService,
         { provide: HttpClient, useValue: null },
+        { provide: NgrxDataToastService, useValue: null}
       ]
     });
 

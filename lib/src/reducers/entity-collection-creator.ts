@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 
 import { EntityCollection } from './entity-collection';
-import { EntityDefinitionService } from '../entity-metadata';
+import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 
 @Injectable()
 export class EntityCollectionCreator {

@@ -4,7 +4,7 @@ import { EntityAdapter } from '@ngrx/entity';
 import { EntityAction, EntityActionFactory, EntityOp } from '../actions';
 import { EntityCollection } from './entity-collection';
 
-import { EntityCache } from './index';
+import { EntityCache } from './entity-cache';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityDefinitionService } from '../entity-metadata';
 import { EntityMetadataMap } from '../entity-metadata';

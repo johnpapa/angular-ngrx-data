@@ -12,12 +12,14 @@
         </div>
         <div>
           <mat-form-field>
-            <input matInput formControlName="name" placeholder="name" #name>
+            <input matInput formControlName="name" placeholder="name" #name
+              (keyup.esc)="close()" (keyup.enter)="saveHero()">
           </mat-form-field>
         </div>
         <div>
           <mat-form-field>
-            <textarea matInput formControlName="saying" placeholder="saying" #name (keyup.enter)="saveHero(form)"></textarea>
+            <textarea matInput formControlName="saying" placeholder="saying" #saying
+            (keyup.esc)="close()" (keyup.enter)="saveHero()"></textarea>
           </mat-form-field>
         </div>
       </div>

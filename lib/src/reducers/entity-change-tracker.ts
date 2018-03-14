@@ -1,8 +1,7 @@
 import { EntityAdapter, EntityState } from '@ngrx/entity';
 
-import { defaultSelectId } from '../utils';
+import { defaultSelectId, IdSelector, Update } from '../utils';
 import { EntityCollection } from './entity-collection';
-import { IdSelector, Update } from '../utils';
 
 // Methods needed by EntityChangeTracker to mutate the collection
 // The minimum subset of the @ngrx/entity EntityAdapter methods.

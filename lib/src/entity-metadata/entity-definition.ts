@@ -1,10 +1,9 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
 import { createEntitySelectors, EntitySelectors } from '../selectors/entity-selectors';
-import { defaultSelectId } from '../utils';
-import { Dictionary, IdSelector, Update } from '../utils';
-import { EntityCollection } from '../reducers';
-import { EntityDispatcherOptions } from '../dispatchers';
+import { defaultSelectId, Dictionary, IdSelector, Update } from '../utils';
+import { EntityCollection } from '../reducers/entity-collection';
+import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
 import { EntityFilterFn } from './entity-filters';
 import { EntityMetadata } from './entity-metadata';
 

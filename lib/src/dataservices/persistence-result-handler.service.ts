@@ -5,9 +5,8 @@ import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 
 import { DataServiceError, EntityActionDataServiceError } from './data-service-error';
-import {
-  EntityAction, EntityActionFactory, EntityOp, OP_ERROR, OP_SUCCESS
-} from '../actions';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
 
 /**
  * Handling of responses from persistence operation

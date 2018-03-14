@@ -10,7 +10,6 @@ import { EntityAction } from './entity-action';
 import { EntityOp } from './entity-op';
 import { flattenArgs } from '../utils';
 
-
 /**
  * Observable of entity actions dispatched to the store.
  * EntityAction-oriented filter operators for ease-of-use.

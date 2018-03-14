@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs/Observable';
-import { EntityAction, EntityActions, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
+import { EntityActions, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
 import { ToastService } from '../core/toast.service';
 
 /** Report ngrx-data success/error actions as toast messages **/

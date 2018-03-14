@@ -2,7 +2,8 @@ import { NgModule } from '@angular/core';
 
 import { DefaultDataServiceConfig, NgrxDataModule } from 'ngrx-data';
 
-import { pluralNames, entityMetadata } from './entity-metadata';
+import { entityMetadata, pluralNames } from './entity-metadata';
+import { NgrxDataToastService } from './ngrx-data-toast.service';
 
 const defaultDataServiceConfig: DefaultDataServiceConfig = {
   root: 'api',    // root path to web api
@@ -21,7 +22,11 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
     })
   ],
   providers: [
+    NgrxDataToastService,
     { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }
   ]
 })
-export class EntityStoreModule {}
+export class EntityStoreModule {
+    // Inject NgrxDataToastService to start it listening
+    constructor( toastService: NgrxDataToastService) { }
+}

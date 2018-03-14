@@ -6,7 +6,6 @@ import { storeFreeze } from 'ngrx-store-freeze';
 
 import { appConfigReducers, appConfigServices } from './app-config';
 import { EntityStoreModule } from './entity-store.module';
-import { NgrxDataToastService } from './ngrx-data-toast.service';
 
 import { environment } from '../../environments/environment';
 
@@ -21,11 +20,7 @@ export const metaReducers: MetaReducer<any>[] = environment.production ? [] : []
     environment.production ? [] : StoreDevtoolsModule.instrument()
   ],
   providers: [
-    appConfigServices,
-    NgrxDataToastService
+    appConfigServices
   ]
 })
-export class AppStoreModule {
-  // Inject NgrxDataToastService to start it listening
-  constructor( toastService: NgrxDataToastService) { }
-}
+export class AppStoreModule { }

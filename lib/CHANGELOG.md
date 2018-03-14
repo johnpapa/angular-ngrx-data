@@ -1,5 +1,13 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.1"></a>
+# release 1.0.0-beta.1 (2018-03-14)
+
+WAHOO! We're in beta!
+
+
+<hr>
+
 <a name="1.0.0-alpha.18"></a>
 # release 1.0.0-alpha.18 (2018-03-14)
 

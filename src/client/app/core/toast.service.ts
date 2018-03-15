@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material';
+import { isE2E } from './e2e-check';
 
 @Injectable()
 export class ToastService {
-  isE2E = false;
-
   constructor(public snackBar: MatSnackBar) {
-    if (window.location.search.includes('e2e')) {
+    if (isE2E) {
       this.openSnackBar = (message: string, action: string) => {
         console.log(`${message} - ${action}`);
       };

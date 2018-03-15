@@ -1,0 +1,15 @@
+{
+  "extends": "./src/tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "target": "es5",
+    "paths": {
+      "ngrx-data": ["lib/src"]
+    },
+    "lib": [
+      "es2017",
+      "dom"
+    ]
+  },
+  "exclude": ["server"]
+}

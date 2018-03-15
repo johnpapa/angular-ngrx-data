@@ -248,18 +248,21 @@ Obviously the package deployed in `node_modules` would not.
 
 If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
 
-1.  **_Remove_** the following from `src/tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+
+1.  **_Remove_** the following from root `tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 
     ```bash
       "paths": {
-        "ngrx-data": ["../lib/src"]
+        "ngrx-data": ["lib/src"]
       },
     ```
 
-2.  **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
+2.  **_Remove_** _that same setting_ from the `src/` config at `src/tsconfig.json`.
+
+3.  **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
     Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
 
-3.  Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
+4.  Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
 
     ```bash
     npm install ngrx-data --no-save --no-lock

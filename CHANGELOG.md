@@ -5,6 +5,14 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.9"></a>
+# 0.2.9 (2018-03-14)
+* Added the e2e tests from ngrx-data-lab
+* Modified sample to support fast behavior under e2e
+* Added a root level tsconfig.json so IDE understands the e2e tests.
+
+None of these changes should break anything or interfere with creating the library package.
+
 <a name="0.2.8"></a>
 # 0.2.8 (2018-03-12)
 * Update app to align with app in ngrx-data-lab (much cleaner)

@@ -4,17 +4,15 @@ import { isE2E } from './e2e-check';
 
 @Injectable()
 export class ToastService {
-  constructor(public snackBar: MatSnackBar) {
-    if (isE2E) {
-      this.openSnackBar = (message: string, action: string) => {
-        console.log(`${message} - ${action}`);
-      };
-    }
-  }
+  constructor(public snackBar: MatSnackBar) { }
 
   openSnackBar(message: string, action: string) {
-    this.snackBar.open(message, action, {
-      duration: 2000
-    });
+    if (isE2E) {
+      console.log(`${message} - ${action}`);
+    } else {
+      this.snackBar.open(message, action, {
+        duration: 2000
+      });
+    }
   }
 }

@@ -3,7 +3,7 @@ import { Element } from '@angular/compiler';
 
 by.addLocator(
   'formControlName',
-  (value, opt_parentElement, opt_rootSelector) => {
+  (value: string, opt_parentElement: HTMLElement, opt_rootSelector: HTMLElement) => {
     const using = opt_parentElement || document;
 
     return using.querySelectorAll(`[formControlName="${value}"]`);
@@ -12,11 +12,11 @@ by.addLocator(
 
 export class AppPage {
   navigateToHeroes() {
-    return browser.get('/heroes/?e2e');
+    return browser.get('/heroes?e2e');
   }
 
   navigateToVillains() {
-    return browser.get('/villains/?e2e');
+    return browser.get('/villains?e2e');
   }
 
   async deleteFirstListItem() {
@@ -44,7 +44,7 @@ export class AppPage {
     return this.getDetailFormElement('name').getAttribute('value');
   }
 
-  getDetailFormElement(elName) {
+  getDetailFormElement(elName: string) {
     return this.getDetail().element(by.formControlName(elName));
   }
 
@@ -60,13 +60,13 @@ export class AppPage {
     return element.all(by.css('mat-card-content li'));
   }
 
-  getFirstElementFromList(elName) {
+  getFirstElementFromList(elName: string) {
     return this.getListItems()
       .first()
       .element(by.css(`div.${elName}`));
   }
 
-  getElementFromListByClass(className, value) {
+  getElementFromListByClass(className: string, value: string) {
     return element(by.cssContainingText(`.${className}`, value));
   }
 

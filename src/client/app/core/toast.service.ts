@@ -3,7 +3,15 @@ import { MatSnackBar } from '@angular/material';
 
 @Injectable()
 export class ToastService {
-  constructor(public snackBar: MatSnackBar) {}
+  isE2E = false;
+
+  constructor(public snackBar: MatSnackBar) {
+    if (window.location.search.includes('e2e')) {
+      this.openSnackBar = (message: string, action: string) => {
+        console.log(`${message} - ${action}`);
+      };
+    }
+  }
 
   openSnackBar(message: string, action: string) {
     this.snackBar.open(message, action, {

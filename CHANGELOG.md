@@ -5,6 +5,11 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.10"></a>
+# 0.2.10 (2018-03-15)
+
+* Update ngPackagr from -rc to v.2.2
+
 <a name="0.2.9"></a>
 # 0.2.9 (2018-03-14)
 * Added the e2e tests from ngrx-data-lab

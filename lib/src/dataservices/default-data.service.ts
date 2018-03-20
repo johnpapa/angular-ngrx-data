@@ -9,7 +9,7 @@ import { catchError, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
 import { HttpMethods, QueryParams, RequestData } from './interfaces';
-import { HttpUrlGenerator } from './http-url-generator';
+import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 import { makeResponseDelay } from './make-response-delay';
 
 import { EntityCollectionDataService } from './entity-data.service';
@@ -25,6 +25,11 @@ export const noDelay = <K>(source: Observable<K>) => source;
 export abstract class DefaultDataServiceConfig {
   /** root path of the web api (default: 'api') */
   root?: string;
+  /**
+   * Known entity HttpResourceUrls.
+   * HttpUrlGenerator will create these URLs for entity types not listed here.
+   */
+  entityHttpResourceUrls?: EntityHttpResourceUrls;
   /** Is a DELETE 404 really OK? (default: true) */
   delete404OK?: boolean;
   /** Simulate GET latency in a demo (default: 0) */
@@ -197,12 +202,17 @@ export class DefaultDataServiceFactory {
   constructor(
     protected http: HttpClient,
     protected httpUrlGenerator: HttpUrlGenerator,
-    @Optional() protected config: DefaultDataServiceConfig,
+    @Optional() protected config?: DefaultDataServiceConfig,
   ) {
     config = config || {};
+    httpUrlGenerator.registerHttpResourceUrls(config.entityHttpResourceUrls);
   }
 
-  create<T>(entityName: string) {
+  /**
+   * Create a default {EntityCollectionDataService} for the given entity type
+   * @param entityName {string} Name of the entity type for this data service
+   */
+  create<T>(entityName: string): EntityCollectionDataService<T> {
     return new DefaultDataService<T>(entityName, this.http, this.httpUrlGenerator, this.config);
   }
 }

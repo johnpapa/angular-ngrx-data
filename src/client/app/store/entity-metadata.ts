@@ -16,6 +16,7 @@ export const entityMetadata: EntityMetadataMap = {
 };
 
 export const pluralNames = {
+  // Not needed for data access when set Hero's HttpResourceUrls; see `entity-store.module.ts`.
   // Case matters. Match the case of the entity name.
   Hero: 'Heroes'
 };

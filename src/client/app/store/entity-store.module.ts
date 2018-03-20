@@ -1,13 +1,24 @@
 import { NgModule } from '@angular/core';
 
-import { DefaultDataServiceConfig, NgrxDataModule } from 'ngrx-data';
+import { DefaultDataServiceConfig, EntityHttpResourceUrls,  NgrxDataModule } from 'ngrx-data';
 
-import { entityMetadata, pluralNames } from './entity-metadata';
+import { entityMetadata } from './entity-metadata';
 import { NgrxDataToastService } from './ngrx-data-toast.service';
 import { isE2E } from '../core';
 
 const defaultDataServiceConfig: DefaultDataServiceConfig = {
-  root: 'api',    // root path to web api
+  root: 'api', // default root path to the server's web api
+
+  // Optionally specify resource URLS for HTTP calls
+  entityHttpResourceUrls: {
+    // Case matters. Match the case of the entity name.
+    Hero: {
+      // You must specify the root as part of the resource URL.
+      entityResourceUrl: 'api/hero',
+      collectionResourceUrl: 'api/heroes'
+    }
+  },
+
   timeout: 3000, // request timeout
 
   // Simulate latency for demo
@@ -18,8 +29,7 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
 @NgModule({
   imports: [
     NgrxDataModule.forRoot({
-      entityMetadata: entityMetadata,
-      pluralNames: pluralNames
+      entityMetadata: entityMetadata
     })
   ],
   providers: [

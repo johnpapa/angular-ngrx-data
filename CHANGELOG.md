@@ -5,6 +5,11 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.2.11"></a>
+# 0.2.11 (2018-03-19)
+
+* demonstrates HttpResourceUrls setting in config (new in beta.2)
+
 <a name="0.2.10"></a>
 # 0.2.10 (2018-03-15)
 

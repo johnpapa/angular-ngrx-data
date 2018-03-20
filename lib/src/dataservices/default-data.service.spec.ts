@@ -3,25 +3,17 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 
-import { DefaultDataService } from './default-data.service';
+import { of } from 'rxjs/observable/of';
+
+import { DefaultDataService, DefaultDataServiceFactory, DefaultDataServiceConfig } from './default-data.service';
 import { DataServiceError } from './data-service-error';
-import { HttpUrlGenerator } from './http-url-generator';
+import { DefaultHttpUrlGenerator, EntityHttpResourceUrls, HttpUrlGenerator } from './http-url-generator';
 import { Update } from '../utils';
 
 class Hero {
   id: number;
   name: string;
   version?: number;
-}
-
-/** Test version always returns canned Hero resource base URLs  */
-class TestHttpUrlGenerator implements HttpUrlGenerator {
-  entityResource(entityName: string, root: string): string {
-    return 'api/hero/';
-  }
-  collectionResource(entityName: string, root: string): string {
-    return 'api/heroes/';
-  }
 }
 
 ////////  Tests  /////////////
@@ -31,7 +23,7 @@ describe('DefaultDataService', () => {
   let httpTestingController: HttpTestingController;
   const heroUrl = 'api/hero/';
   const heroesUrl = 'api/heroes/';
-  const httpUrlGenerator = new TestHttpUrlGenerator();
+  let httpUrlGenerator: HttpUrlGenerator;
   let service: DefaultDataService<Hero>;
 
   //// HttpClient testing boilerplate
@@ -41,6 +33,14 @@ describe('DefaultDataService', () => {
     });
     httpClient = TestBed.get(HttpClient);
     httpTestingController = TestBed.get(HttpTestingController);
+
+    httpUrlGenerator = new DefaultHttpUrlGenerator(null);
+    httpUrlGenerator.registerHttpResourceUrls(
+      {Hero: {
+        entityResourceUrl: heroUrl,
+        collectionResourceUrl: heroesUrl
+      }}
+    );
 
     service = new DefaultDataService('Hero', httpClient, httpUrlGenerator);
   });
@@ -425,4 +425,68 @@ describe('DefaultDataService', () => {
       );
     });
   });
+});
+
+describe('DefaultDataServiceFactory', () => {
+
+  const heroUrl = 'api/hero';
+  const heroesUrl = 'api/heroes';
+
+  let http: any;
+  let httpUrlGenerator: HttpUrlGenerator;
+
+  beforeEach(() => {
+    httpUrlGenerator = new DefaultHttpUrlGenerator(null);
+    httpUrlGenerator.registerHttpResourceUrls(
+      {Hero: {
+        entityResourceUrl: heroUrl,
+        collectionResourceUrl: heroesUrl
+      }}
+    );
+    http = jasmine.createSpyObj('HttpClient', ['get', 'delete', 'post', 'put']);
+    http.get.and.returnValue(of([]));
+
+  });
+
+  describe('(no config)', () => {
+    it('can create factory', () => {
+      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator);
+      const heroDS = factory.create<Hero>('Hero');
+      expect(heroDS.name).toBe('Hero DefaultDataService');
+    });
+
+    it('should produce hero data service that gets all heroes with expected URL', () => {
+      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator);
+      const heroDS = factory.create<Hero>('Hero');
+      heroDS.getAll();
+      expect(http.get).toHaveBeenCalledWith('api/heroes', undefined);
+    });
+  });
+
+  describe('(with config)', () => {
+    it('can create factory', () => {
+      const config: DefaultDataServiceConfig = { root: 'api' };
+      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator, config);
+      const heroDS = factory.create<Hero>('Hero');
+      expect(heroDS.name).toBe('Hero DefaultDataService');
+    });
+
+    it('should produce hero data service that gets heroes with config\'s hero HttpResourceUrls', () => {
+      const newHeroesUrl = 'some/other/api/heroes';
+      const config: DefaultDataServiceConfig = {
+        root: 'api',
+        entityHttpResourceUrls: {
+          Hero: {
+            entityResourceUrl: heroUrl,
+            collectionResourceUrl: newHeroesUrl
+          }
+        }
+      };
+      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator, config);
+      const heroDS = factory.create<Hero>('Hero');
+      heroDS.getAll();
+      expect(http.get).toHaveBeenCalledWith(newHeroesUrl, undefined);
+    });
+  });
+
 });

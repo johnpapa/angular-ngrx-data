@@ -1,4 +1,1 @@
-# ignore all files
-*
-# but not files in src/
-!src/
+# all files you wish to ignore here

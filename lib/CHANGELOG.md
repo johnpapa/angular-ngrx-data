@@ -1,5 +1,43 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.2"></a>
+# release 1.0.0-beta.2 (2018-03-19)
+
+Feature: add ability to preset entity `HttpResourceUrls` that are used by the `DefaultDataService`
+(via `HttpUrlGenerator`) to construct the URLs for HTTP operations.
+
+Extends `DefaultDataServiceConfig` so you can specify them.
+
+For example, instead of setting the `PluralNames` for `Hero` you could fully specify the
+singular and plural resource URLS in the `DefaultDataServiceConfig` like this:
+
+```javascript
+// store/entity-metadata.ts
+
+// Not needed for data access when set Hero's HttpResourceUrls
+// export const pluralNames = {
+//   // Case matters. Match the case of the entity name.
+//   Hero: 'Heroes'
+// };
+
+// entity-store.module.ts
+
+const defaultDataServiceConfig: DefaultDataServiceConfig = {
+  root: 'api', // default root path to the server's web api
+
+  // Optionally specify resource URLS for HTTP calls
+  entityHttpResourceUrls: {
+    // Case matters. Match the case of the entity name.
+    Hero: {
+      // You must specify the root as part of the resource URL.
+      entityResourceUrl: 'api/hero',
+      collectionResourceUrl: 'api/heroes'
+    }
+  },
+  ...
+}
+```
+
 <a name="1.0.0-beta.1"></a>
 # release 1.0.0-beta.1 (2018-03-14)
 

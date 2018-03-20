@@ -13,7 +13,7 @@ import {
 } from '../entity-metadata';
 
 import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
-import { HttpUrlGenerator } from './http-url-generator';
+import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 
 import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService } from './entity-data.service';
@@ -81,6 +81,8 @@ class TestHttpUrlGenerator implements HttpUrlGenerator {
   }
   collectionResource(entityName: string, root: string): string {
     return 'api/heroes/';
+  }
+  registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void {
   }
 }
 

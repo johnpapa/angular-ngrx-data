@@ -1,5 +1,34 @@
-import { Injectable } from '@angular/core';
+import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Pluralizer } from '../utils/pluralizer';
+
+/**
+ * Known resource URLS for specific entity types.
+ * Each entity's resource URLS are endpoints that
+ * target single entity and multi-entity HTTP operations.
+ * Used by the `DefaultHttpUrlGenerator`.
+ */
+export abstract class EntityHttpResourceUrls {
+  [entityName: string]: HttpResourceUrls;
+}
+
+/**
+ * Resource URLS for HTTP operations that target single entity
+ * and multi-entity endpoints.
+ */
+export interface HttpResourceUrls {
+   /**
+     * The URL path for a single entity endpoint, e.g, `some-api-root/hero`
+     * such as you'd use to add a hero.
+     * Example: `httpClient.post<Hero>('some-api-root/hero', addedHero)`
+    */
+   entityResourceUrl: string;
+   /**
+    * The URL path for a multiple-entity endpoint, e.g, `some-api-root/heroes`
+    * such as you'd use when getting all heroes.
+    * Example: `httpClient.get<Hero[]>('some-api-root/heroes')`
+   */
+   collectionResourceUrl: string;
+}
 
 /**
  * Generate the base part of an HTTP URL for
@@ -17,20 +46,73 @@ export abstract class HttpUrlGenerator {
    * e.g., the base URL to get all heroes
    */
   abstract collectionResource(entityName: string, root: string): string;
+
+  /**
+   * Register known single-entity and collection resource URLs for HTTP calls
+   * @param entityHttpResourceUrls {EntityHttpResourceUrls} resource urls for specific entity type names
+   */
+  abstract registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void
 }
 
 @Injectable()
 export class DefaultHttpUrlGenerator implements HttpUrlGenerator {
+
+  /**
+   * Known single-entity and collection resource URLs for HTTP calls.
+   * Generator methods returns these resource URLs for a given entity type name.
+   * If the resources for an entity type name are not know, it generates
+   * and caches a resource name for future use
+   */
+  protected knownHttpResourceUrls: EntityHttpResourceUrls = {};
+
   constructor(private pluralizer: Pluralizer) { }
 
-  entityResource(entityName: string, root: string): string {
-    root = normalizeRoot(root);
-    return `${root}/${entityName}/`.toLowerCase();
+  /**
+   * Get or generate the entity and collection resource URLs for the given entity type name
+   * @param entityName {string} Name of the entity type, e.g, 'Hero'
+   * @param root {string} Root path to the resource, e.g., 'some-api`
+   */
+  protected getResourceUrls(entityName: string, root: string): HttpResourceUrls {
+    let resourceUrls = this.knownHttpResourceUrls[entityName];
+    if (!resourceUrls) {
+      const nRoot = normalizeRoot(root);
+      resourceUrls = {
+        entityResourceUrl:
+          `${nRoot}/${entityName}/`.toLowerCase(),
+        collectionResourceUrl:
+          `${nRoot}/${this.pluralizer.pluralize(entityName)}/`.toLowerCase()
+      };
+      this.registerHttpResourceUrls({[entityName]: resourceUrls});
+    }
+    return resourceUrls;
   }
+
+  /**
+   * Create the path to a single entity resource
+   * @param entityName {string} Name of the entity type, e.g, 'Hero'
+   * @param root {string} Root path to the resource, e.g., 'some-api`
+   * @returns complete path to resource, e.g, 'some-api/hero'
+   */
+  entityResource(entityName: string, root: string): string {
+    return this.getResourceUrls(entityName, root).entityResourceUrl;
+  }
+
+  /**
+   * Create the path to a multiple entity (collection) resource
+   * @param entityName {string} Name of the entity type, e.g, 'Hero'
+   * @param root {string} Root path to the resource, e.g., 'some-api`
+   * @returns complete path to resource, e.g, 'some-api/heroes'
+   */
   collectionResource(entityName: string, root: string): string {
-    root = normalizeRoot(root);
-    const entitiesName = this.pluralizer.pluralize(entityName);
-    return `${root}/${entitiesName}/`.toLowerCase();
+    return this.getResourceUrls(entityName, root).collectionResourceUrl;
+  }
+
+  /**
+   * Register known single-entity and collection resource URLs for HTTP calls
+   * @param entityHttpResourceUrls {EntityHttpResourceUrls} resource urls for specific entity type names
+   */
+  registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void {
+    this.knownHttpResourceUrls = { ...this.knownHttpResourceUrls, ...(entityHttpResourceUrls || {}) };
   }
 }
 

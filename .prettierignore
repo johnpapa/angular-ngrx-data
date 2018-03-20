@@ -1,0 +1,4 @@
+# ignore all files
+*
+# but not files in src/
+!src/

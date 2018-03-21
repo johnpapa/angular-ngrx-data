@@ -1,5 +1,7 @@
 # Angular ngrx-data
 
+[![prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
+
 ## Zero Ngrx Boilerplate
 
 **You may never write an action, reducer, selector, effect, or HTTP dataservice again.**
@@ -13,6 +15,7 @@ _Ngrx-data_ is an _ngrx_ extension that offers a gentle introduction to _ngrx/re
 > **Try it!** See the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md) for instructions on adding NgRx and ngrx-data to your app.
 
 <a id="why"></a>
+
 ## Why use _ngrx-data_?
 
 Many applications have substantial _domain models_ with 10s or 100s of [entity types](docs/faq.md/#entity)
@@ -51,8 +54,8 @@ You begin with a description of the entity model in a few lines of metadata.
 ```javascript
 // Metadata for the entity model
 export const entityMetadata: EntityMetadataMap = {
-  Hero: { },
-  Villain: { }
+  Hero: {},
+  Villain: {}
 };
 
 // Help ngrx-data pluralize entity type names
@@ -137,6 +140,7 @@ export class HeroesComponent implements OnInit {
 Try the [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md) to experience NgRx and ngrx-data in your app.
 
 <a id="explore"></a>
+
 ## Explore this repository
 
 This repository contains the _ngrx-data_ source code and a
@@ -150,6 +154,7 @@ The key folders in this repository are:
 * src/server ---> a node server for remote data access
 
 <a id="docs-list"></a>
+
 ### Learn more in the docs
 
 * [Quick Start](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md)
@@ -164,7 +169,6 @@ The key folders in this repository are:
 * [Extension Points](docs/extension-points.md)
 * [Limitations](docs/limitations.md)
 * [FAQ: Frequently Asked Questions](docs/faq.md)
-
 
 ### Install and run
 
@@ -218,6 +222,7 @@ We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls) that add t
 Be sure to run these tests before submitting a PR for review.
 
 <a id="redux-dev-tools"></a>
+
 ## Monitor the app with Redux DevTools
 
 The demo app is [configured for monitoring](https://github.com/ngrx/platform/tree/master/docs/store-devtools) with the [Redux DevTools](https://github.com/zalmoxisus/redux-devtools-extension).
@@ -247,7 +252,6 @@ The version in `dist/ngrx-data` will reflect your latest changes.
 Obviously the package deployed in `node_modules` would not.
 
 If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
-
 
 1.  **_Remove_** the following from root `tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
 

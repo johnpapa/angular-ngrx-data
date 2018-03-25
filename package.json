@@ -1,6 +1,6 @@
 {
   "name": "angular-ngrx-data",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -9,7 +9,8 @@
     "build-prod": "ng build --prod --build-optimizer",
     "build-lib": "ng-packagr -p lib",
     "build-all": "rm -rf dist && npm run build-setup && npm run build-prod",
-    "build-setup": "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock",
+    "build-setup":
+      "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock",
     "build-publish": "npm run build-lib && npm publish dist/ngrx-data",
     "sme": "./node_modules/.bin/source-map-explorer",
     "gen-stats": "ng build --prod --stats-json",
@@ -18,12 +19,16 @@
     "lint": "ng lint",
     "e2e": "ng e2e",
     "docker-up": "docker-compose up -d --build",
-    "docker-up-debug": "docker-compose -f docker-compose.debug.yml up -d --build",
+    "docker-up-debug":
+      "docker-compose -f docker-compose.debug.yml up -d --build",
     "docker-down": "docker-compose down",
-    "dev": "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
+    "dev":
+      "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
     "start-server": "node ./src/server/index.js",
-    "debug": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
-    "serve-dist": "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect dist/index.js",
+    "debug":
+      "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
+    "serve-dist":
+      "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect dist/index.js",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect",
     "precommit": "pretty-quick --staged"

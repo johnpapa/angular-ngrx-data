@@ -16,18 +16,20 @@ export abstract class EntityHttpResourceUrls {
  * and multi-entity endpoints.
  */
 export interface HttpResourceUrls {
-   /**
-     * The URL path for a single entity endpoint, e.g, `some-api-root/hero`
-     * such as you'd use to add a hero.
-     * Example: `httpClient.post<Hero>('some-api-root/hero', addedHero)`
-    */
-   entityResourceUrl: string;
-   /**
-    * The URL path for a multiple-entity endpoint, e.g, `some-api-root/heroes`
-    * such as you'd use when getting all heroes.
-    * Example: `httpClient.get<Hero[]>('some-api-root/heroes')`
+  /**
+   * The URL path for a single entity endpoint, e.g, `some-api-root/hero/`
+   * such as you'd use to add a hero.
+   * Example: `httpClient.post<Hero>('some-api-root/hero/', addedHero)`.
+   * Note trailing slash (/).
    */
-   collectionResourceUrl: string;
+  entityResourceUrl: string;
+  /**
+   * The URL path for a multiple-entity endpoint, e.g, `some-api-root/heroes/`
+   * such as you'd use when getting all heroes.
+   * Example: `httpClient.get<Hero[]>('some-api-root/heroes/')`
+   * Note trailing slash (/).
+   */
+  collectionResourceUrl: string;
 }
 
 /**
@@ -51,12 +53,13 @@ export abstract class HttpUrlGenerator {
    * Register known single-entity and collection resource URLs for HTTP calls
    * @param entityHttpResourceUrls {EntityHttpResourceUrls} resource urls for specific entity type names
    */
-  abstract registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void
+  abstract registerHttpResourceUrls(
+    entityHttpResourceUrls: EntityHttpResourceUrls
+  ): void;
 }
 
 @Injectable()
 export class DefaultHttpUrlGenerator implements HttpUrlGenerator {
-
   /**
    * Known single-entity and collection resource URLs for HTTP calls.
    * Generator methods returns these resource URLs for a given entity type name.
@@ -65,24 +68,27 @@ export class DefaultHttpUrlGenerator implements HttpUrlGenerator {
    */
   protected knownHttpResourceUrls: EntityHttpResourceUrls = {};
 
-  constructor(private pluralizer: Pluralizer) { }
+  constructor(private pluralizer: Pluralizer) {}
 
   /**
    * Get or generate the entity and collection resource URLs for the given entity type name
    * @param entityName {string} Name of the entity type, e.g, 'Hero'
    * @param root {string} Root path to the resource, e.g., 'some-api`
    */
-  protected getResourceUrls(entityName: string, root: string): HttpResourceUrls {
+  protected getResourceUrls(
+    entityName: string,
+    root: string
+  ): HttpResourceUrls {
     let resourceUrls = this.knownHttpResourceUrls[entityName];
     if (!resourceUrls) {
       const nRoot = normalizeRoot(root);
       resourceUrls = {
-        entityResourceUrl:
-          `${nRoot}/${entityName}/`.toLowerCase(),
-        collectionResourceUrl:
-          `${nRoot}/${this.pluralizer.pluralize(entityName)}/`.toLowerCase()
+        entityResourceUrl: `${nRoot}/${entityName}/`.toLowerCase(),
+        collectionResourceUrl: `${nRoot}/${this.pluralizer.pluralize(
+          entityName
+        )}/`.toLowerCase()
       };
-      this.registerHttpResourceUrls({[entityName]: resourceUrls});
+      this.registerHttpResourceUrls({ [entityName]: resourceUrls });
     }
     return resourceUrls;
   }
@@ -110,9 +116,16 @@ export class DefaultHttpUrlGenerator implements HttpUrlGenerator {
   /**
    * Register known single-entity and collection resource URLs for HTTP calls
    * @param entityHttpResourceUrls {EntityHttpResourceUrls} resource urls for specific entity type names
+   * Well-formed resource urls end in a '/';
+   * Note: this method does not ensure that resource urls are well-formed.
    */
-  registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void {
-    this.knownHttpResourceUrls = { ...this.knownHttpResourceUrls, ...(entityHttpResourceUrls || {}) };
+  registerHttpResourceUrls(
+    entityHttpResourceUrls: EntityHttpResourceUrls
+  ): void {
+    this.knownHttpResourceUrls = {
+      ...this.knownHttpResourceUrls,
+      ...(entityHttpResourceUrls || {})
+    };
   }
 }
 

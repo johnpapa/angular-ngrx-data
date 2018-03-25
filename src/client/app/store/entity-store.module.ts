@@ -1,6 +1,10 @@
 import { NgModule } from '@angular/core';
 
-import { DefaultDataServiceConfig, EntityHttpResourceUrls,  NgrxDataModule } from 'ngrx-data';
+import {
+  DefaultDataServiceConfig,
+  EntityHttpResourceUrls,
+  NgrxDataModule
+} from 'ngrx-data';
 
 import { entityMetadata } from './entity-metadata';
 import { NgrxDataToastService } from './ngrx-data-toast.service';
@@ -14,8 +18,8 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
     // Case matters. Match the case of the entity name.
     Hero: {
       // You must specify the root as part of the resource URL.
-      entityResourceUrl: 'api/hero',
-      collectionResourceUrl: 'api/heroes'
+      entityResourceUrl: 'api/hero/',
+      collectionResourceUrl: 'api/heroes/'
     }
   },
 
@@ -23,7 +27,7 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
 
   // Simulate latency for demo
   getDelay: isE2E ? 0 : 500,
-  saveDelay: isE2E ? 0 : 800,
+  saveDelay: isE2E ? 0 : 800
 };
 
 @NgModule({
@@ -38,6 +42,6 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
   ]
 })
 export class EntityStoreModule {
-    // Inject NgrxDataToastService to start it listening
-    constructor( toastService: NgrxDataToastService) { }
+  // Inject NgrxDataToastService to start it listening
+  constructor(toastService: NgrxDataToastService) {}
 }

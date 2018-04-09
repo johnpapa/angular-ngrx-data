@@ -2,7 +2,7 @@
 export const OP_SUCCESS = '/success';
 
 /** "Error" suffix appended to EntityOps that have failed.*/
-export const OP_ERROR = '/error'
+export const OP_ERROR = '/error';
 
 // Ensure that these suffix values and the EntityOp suffixes match
 // Cannot do that programmatically.
@@ -59,4 +59,6 @@ export enum EntityOp {
   UPSERT_ONE = 'ngrx-data/upsert-one',
 
   SET_FILTER = 'ngrx-data/set-filter',
+  SET_LOADED = 'ngrx-data/set-loaded',
+  SET_LOADING = 'ngrx-data/set-loading'
 }

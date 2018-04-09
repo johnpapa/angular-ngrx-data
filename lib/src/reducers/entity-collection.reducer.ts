@@ -16,18 +16,15 @@ export type EntityCollectionReducer<T = any> = (
   action: EntityAction
 ) => EntityCollection<T>;
 
-
 /** Create a default reducer for a specific entity collection */
 @Injectable()
 export class EntityCollectionReducerFactory {
-
   /** Create a default reducer for a collection of entities of T */
   create<T = any>(
     entityName: string,
     adapter: EntityAdapter<T>,
     selectId?: IdSelector<T>
   ): EntityCollectionReducer<T> {
-
     /** Extract the primary key (id); default to `id` */
     selectId = selectId || defaultSelectId;
 
@@ -45,7 +42,10 @@ export class EntityCollectionReducerFactory {
      * TODO: consider using for all cache updates.
      */
     const entityChangeTracker = new EntityChangeTracker<T>(
-      entityName, adapter, selectId);
+      entityName,
+      adapter,
+      selectId
+    );
 
     const guard = new EntityActionGuard(entityName, selectId);
 
@@ -55,13 +55,14 @@ export class EntityCollectionReducerFactory {
       action: EntityAction
     ): EntityCollection<T> {
       switch (action.op) {
-
         // Only the query ops set loading flag.
         // Assume query results always come from server and do not need to be guarded.
         case EntityOp.QUERY_ALL:
         case EntityOp.QUERY_BY_KEY:
         case EntityOp.QUERY_MANY: {
-          return collection.loading ? collection : { ...collection, loading: true };
+          return collection.loading
+            ? collection
+            : { ...collection, loading: true };
         }
 
         case EntityOp.QUERY_ALL_SUCCESS: {
@@ -75,12 +76,14 @@ export class EntityCollectionReducerFactory {
 
         case EntityOp.QUERY_BY_KEY_SUCCESS: {
           const upsert = action.payload && toUpdate(action.payload);
-          return upsert == null ?
-            collection.loading ? { ...collection, loading: false } : collection :
-            {
-              ...adapter.upsertOne(upsert, collection),
-              loading: false
-            };
+          return upsert == null
+            ? collection.loading
+              ? { ...collection, loading: false }
+              : collection
+            : {
+                ...adapter.upsertOne(upsert, collection),
+                loading: false
+              };
         }
 
         case EntityOp.QUERY_MANY_SUCCESS: {
@@ -88,13 +91,15 @@ export class EntityCollectionReducerFactory {
           return {
             ...adapter.upsertMany(upserts, collection),
             loading: false
-          }
+          };
         }
 
         case EntityOp.QUERY_ALL_ERROR:
         case EntityOp.QUERY_BY_KEY_ERROR:
         case EntityOp.QUERY_MANY_ERROR: {
-          return collection.loading ? { ...collection, loading: false } : collection;
+          return collection.loading
+            ? { ...collection, loading: false }
+            : collection;
         }
 
         // Do nothing on save errors.
@@ -179,9 +184,9 @@ export class EntityCollectionReducerFactory {
           const result = action.payload || {};
           // A data service like `DefaultDataService<T>` will add `unchanged:true`
           // if the server responded without data, meaning there is nothing to update.
-          return (result.unchanged) ?
-            collection :
-            adapter.upsertOne(action.payload, collection);
+          return result.unchanged
+            ? collection
+            : adapter.upsertOne(action.payload, collection);
         }
 
         ///// Cache-only operations /////
@@ -233,19 +238,27 @@ export class EntityCollectionReducerFactory {
         }
 
         case EntityOp.UPSERT_MANY: {
-          // payload must be an array of `Updates<T>`, not entities
+          // <v6: payload must be an array of `Updates<T>`, not entities
           guard.mustBeUpdates(action.payload, action.op);
           return adapter.upsertMany(action.payload, collection);
         }
 
         case EntityOp.UPSERT_ONE: {
-          // payload must be an `Update<T>`, not an entity
+          // <v6: payload must be an `Update<T>`, not an entity
           guard.mustBeUpdates([action.payload], action.op, true);
           return adapter.upsertOne(action.payload, collection);
         }
 
         case EntityOp.SET_FILTER: {
           return { ...collection, filter: action.payload };
+        }
+
+        case EntityOp.SET_LOADED: {
+          return { ...collection, loaded: action.payload };
+        }
+
+        case EntityOp.SET_LOADING: {
+          return { ...collection, loading: action.payload };
         }
 
         default: {

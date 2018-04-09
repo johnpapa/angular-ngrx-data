@@ -1,5 +1,12 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.4"></a>
+
+# 1.0.0-beta.4 (2018-04-09)
+
+* Feature: add SET_LOADED and SET_LOADING entity ops
+* RequestData.options is now optional
+
 <a name="1.0.0-beta.3"></a>
 
 # 1.0.0-beta.3 (2018-03-24)

@@ -207,14 +207,20 @@ Then follow these steps:
 
 ## Run the library tests
 
-The _ngrx-data_ library ships with unit tests to validate functionality and guard against regressions.
+The _ngrx-data_ library ships with unit and E2E (end-to-end) tests to validate functionality and guard against regressions.
 
 These tests also demonstrate features of the library that are not covered in the demo app. They're worth reading to discover more advanced techniques.
 
-Run this CLI command to execute the tests for the library.
+Run this CLI command to execute the **unit tests** for the library.
 
 ```bash
 ng test
+```
+
+Run the sample app **E2E (end-to-end) tests**.
+
+```bash
+npm run e2e
 ```
 
 We welcome [PRs](https://github.com/johnpapa/angular-ngrx-data/pulls) that add to the tests as well as those that fix bugs and documentation.

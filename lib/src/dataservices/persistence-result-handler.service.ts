@@ -37,7 +37,7 @@ export class DefaultPersistenceResultHandler implements PersistenceResultHandler
 
   /** Handle error result of persistence operation on an EntityAction */
   handleError(action: EntityAction | EntityAction):
-    (error: DataServiceError) => Observable<EntityAction<EntityActionDataServiceError>> {
+    (error: DataServiceError | Error) => Observable<EntityAction<EntityActionDataServiceError>> {
 
     const errorOp = <EntityOp>(action.op + OP_ERROR);
     return (error: DataServiceError | Error) => {

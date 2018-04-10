@@ -3,6 +3,7 @@ import { Action } from '@ngrx/store';
 import { Effect } from '@ngrx/effects';
 
 import { Observable } from 'rxjs/Observable';
+import { of } from 'rxjs/observable/of';
 import { concatMap, catchError, map } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
@@ -26,11 +27,12 @@ export const persistOps: EntityOp[] = [
 
 @Injectable()
 export class EntityEffects {
-
   @Effect()
   // Concurrent persistence requests considered unsafe.
   // `concatMap` ensures each request must complete-or-fail before making the next request.
-  persist$: Observable<Action> = this.actions$.ofOp(persistOps).pipe(concatMap(action => this.persist(action)));
+  persist$: Observable<Action> = this.actions$
+    .ofOp(persistOps)
+    .pipe(concatMap(action => this.persist(action)));
 
   constructor(
     private actions$: EntityActions,
@@ -46,15 +48,15 @@ export class EntityEffects {
    */
   persist(action: EntityAction): Observable<Action> {
     if (action.error) {
-      return this.resultHandler.handleError(action)(action.error);
+      return this.handleError$(action)(action.error);
     }
     try {
       return this.callDataService(action).pipe(
         map(this.resultHandler.handleSuccess(action)),
-        catchError(this.resultHandler.handleError(action))
+        catchError(this.handleError$(action))
       );
     } catch (err) {
-      return this.resultHandler.handleError(action)(err);
+      return this.handleError$(action)(err);
     }
   }
 
@@ -83,9 +85,20 @@ export class EntityEffects {
         return service.update(action.payload);
       }
       default: {
-        throw new Error(`Persistence action "${action.op}" is not implemented.`);
+        throw new Error(
+          `Persistence action "${action.op}" is not implemented.`
+        );
       }
     }
   }
-}
 
+  /**
+   * Handle error result of persistence operation on an EntityAction,
+   * returning observable of error action
+   */
+  private handleError$(
+    action: EntityAction | EntityAction
+  ): (error: Error) => Observable<EntityAction> {
+    return (error: Error) => of(this.resultHandler.handleError(action)(error));
+  }
+}

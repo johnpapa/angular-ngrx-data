@@ -4,7 +4,10 @@ import { Action } from '@ngrx/store';
 import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 
-import { DataServiceError, EntityActionDataServiceError } from './data-service-error';
+import {
+  DataServiceError,
+  EntityActionDataServiceError
+} from './data-service-error';
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
 
@@ -16,8 +19,11 @@ export abstract class PersistenceResultHandler {
   abstract handleSuccess(action: EntityAction): (data: any) => Action;
 
   /** Handle error result of persistence operation for an action */
-  abstract handleError(action: EntityAction):
-  (error: DataServiceError | Error) => Observable<Action>
+  abstract handleError(
+    action: EntityAction
+  ): (
+    error: DataServiceError | Error
+  ) => EntityAction<EntityActionDataServiceError>;
 }
 
 /**
@@ -25,7 +31,8 @@ export abstract class PersistenceResultHandler {
  * specifically an EntityDataService
  */
 @Injectable()
-export class DefaultPersistenceResultHandler implements PersistenceResultHandler {
+export class DefaultPersistenceResultHandler
+  implements PersistenceResultHandler {
   constructor(private entityActionFactory: EntityActionFactory) {}
 
   /** Handle successful result of persistence operation on an EntityAction */
@@ -36,21 +43,23 @@ export class DefaultPersistenceResultHandler implements PersistenceResultHandler
   }
 
   /** Handle error result of persistence operation on an EntityAction */
-  handleError(action: EntityAction | EntityAction):
-    (error: DataServiceError) => Observable<EntityAction<EntityActionDataServiceError>> {
-
+  handleError(
+    action: EntityAction | EntityAction
+  ): (
+    error: DataServiceError | Error
+  ) => EntityAction<EntityActionDataServiceError> {
     const errorOp = <EntityOp>(action.op + OP_ERROR);
     return (error: DataServiceError | Error) => {
       if (error instanceof Error) {
         error = new DataServiceError(error, null);
       }
-      return of(
-        this.entityActionFactory.create<EntityActionDataServiceError>(
-          action as EntityAction,
-          errorOp,
-          { originalAction: action as EntityAction, error }
-        )
-      );
+      const errorAction = this.entityActionFactory.create<
+        EntityActionDataServiceError
+      >(action as EntityAction, errorOp, {
+        error,
+        originalAction: action as EntityAction
+      });
+      return errorAction;
     };
   }
 }

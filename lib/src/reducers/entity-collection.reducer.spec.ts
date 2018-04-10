@@ -431,7 +431,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it("can update existing entity' key in collection", () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };

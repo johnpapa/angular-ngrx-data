@@ -1,5 +1,24 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.5"></a>
+
+# 1.0.0-beta.5 (2018-04-10)
+
+**Breaking change (small)**
+
+The `PersistenceResultHandler.handleError()` method result changed from a function returning an `Observable<EntityAction>`
+to a function returning an `EntityAction<EntityActionDataServiceError>`.
+This should affect very few people.
+
+The change makes `handleError()` consistent with `handleSuccess()` which returned an `EntityAction` rather than an `Observable<EntityAction>`.
+The motivation was to make it easier to write by-pass `EntityEffects` with your own HTTP calls
+and still use the `EntityAction<EntityActionDataServiceError>` for result and error handling
+that is the same as that in `EntityEffects`.
+
+`EntityEffects` refactored to consume the revised `handleError()`.
+
+Also refactored the `EntityCollectionReducer` to be a little smarter when setting flags.
+
 <a name="1.0.0-beta.4"></a>
 
 # 1.0.0-beta.4 (2018-04-09)

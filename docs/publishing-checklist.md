@@ -7,7 +7,9 @@ Here is our checklist.
 
 1.  Run `ng lint`. Should be clean.
 
-1.  Run `ng test`. All tests should pass.
+1.  Run `ng test`. All unit tests should pass.
+
+1.  Run `npm run e2e`. All e2e tests should pass.
 
 1.  Bump the npm package version number in `lib/package.json`.
 

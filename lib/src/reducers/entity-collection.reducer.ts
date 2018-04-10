@@ -239,26 +239,37 @@ export class EntityCollectionReducerFactory {
 
         case EntityOp.UPSERT_MANY: {
           // <v6: payload must be an array of `Updates<T>`, not entities
+          // v6+: payload must be a T
           guard.mustBeUpdates(action.payload, action.op);
           return adapter.upsertMany(action.payload, collection);
         }
 
         case EntityOp.UPSERT_ONE: {
           // <v6: payload must be an `Update<T>`, not an entity
+          // v6+: payload must be a T
           guard.mustBeUpdates([action.payload], action.op, true);
           return adapter.upsertOne(action.payload, collection);
         }
 
         case EntityOp.SET_FILTER: {
-          return { ...collection, filter: action.payload };
+          const filter = action.payload;
+          return collection.filter === filter
+            ? collection
+            : { ...collection, filter };
         }
 
         case EntityOp.SET_LOADED: {
-          return { ...collection, loaded: action.payload };
+          const loaded = action.payload;
+          return collection.loaded === loaded
+            ? collection
+            : { ...collection, loaded };
         }
 
         case EntityOp.SET_LOADING: {
-          return { ...collection, loading: action.payload };
+          const loading = action.payload;
+          return collection.loading === loading
+            ? collection
+            : { ...collection, loading };
         }
 
         default: {

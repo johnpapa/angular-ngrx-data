@@ -15,12 +15,15 @@ import { Action, StoreModule, Store } from '@ngrx/store';
 import { Actions, EffectsModule } from '@ngrx/effects';
 
 import {
-  EntityAction, EntityActionFactory, EntityCache, EntityOp,
+  EntityAction,
+  EntityActionFactory,
+  EntityCache,
+  EntityOp,
   EntityEffects,
   EntityCollectionReducer,
   EntityReducerFactory,
   EntityService,
-  persistOps,
+  persistOps
 } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
@@ -48,20 +51,19 @@ describe('HeroesComponent (mock HeroesService)', () => {
   let heroesService: HeroesService;
   let testStore: Store<EntityCache>;
 
-  let entityActionFactory: EntityActionFactory
+  let entityActionFactory: EntityActionFactory;
   /** Create Hero entity actions as ngrx-data will do it */
   function createHeroAction(op: EntityOp, payload?: any) {
     return entityActionFactory.create('Hero', op, payload);
   }
 
   const initialHeroes = [
-    {id: 1, name: 'A', saying: 'A says'},
-    {id: 3, name: 'B', saying: 'B says'},
-    {id: 2, name: 'C', saying: 'C says'},
+    { id: 1, name: 'A', saying: 'A says' },
+    { id: 3, name: 'B', saying: 'B says' },
+    { id: 2, name: 'C', saying: 'C says' }
   ];
 
   describe('class-only', () => {
-
     beforeEach(heroesComponentCoreSetup);
 
     beforeEach(() => {
@@ -77,7 +79,9 @@ describe('HeroesComponent (mock HeroesService)', () => {
         expect(heroes.length).toBe(initialHeroes.length);
       });
 
-      component.loading$.pipe(first()).subscribe(loading => expect(loading).toBe(false, 'loading after'));
+      component.loading$
+        .pipe(first())
+        .subscribe(loading => expect(loading).toBe(false, 'loading after'));
 
       expect(subscriptionCalled).toBe(true, 'should have gotten heroes');
     });
@@ -100,11 +104,6 @@ describe('HeroesComponent (mock HeroesService)', () => {
     it('should delete a hero', () => {
       let subscriptionCalled = false;
 
-      spyOn(heroesService, 'add').and.callFake(() => {
-        const success = createHeroAction(EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
-        testStore.dispatch(success);
-      });
-
       component.delete(initialHeroes[1]); // 'B'
 
       component.filteredHeroes$.subscribe(heroes => {
@@ -118,14 +117,21 @@ describe('HeroesComponent (mock HeroesService)', () => {
     it('should add a hero', () => {
       let subscriptionCalled = false;
 
-      const testHero: Hero = {id: undefined, name: 'Test', saying: 'Say test'}
+      const testHero: Hero = {
+        id: undefined,
+        name: 'Test',
+        saying: 'Say test'
+      };
 
       spyOn(heroesService, 'add').and.callFake(() => {
-        const success = createHeroAction(EntityOp.SAVE_ADD_ONE_SUCCESS, { ...testHero, id: 42 });
+        const success = createHeroAction(EntityOp.SAVE_ADD_ONE_SUCCESS, {
+          ...testHero,
+          id: 42
+        });
         testStore.dispatch(success);
       });
 
-      component.add(testHero)
+      component.add(testHero);
 
       component.filteredHeroes$.subscribe(heroes => {
         subscriptionCalled = true;
@@ -137,7 +143,6 @@ describe('HeroesComponent (mock HeroesService)', () => {
   });
 
   describe('class+template', () => {
-
     let fixture: ComponentFixture<HeroesComponent>;
     let view: HTMLElement;
 
@@ -157,7 +162,6 @@ describe('HeroesComponent (mock HeroesService)', () => {
       const itemEls = view.querySelectorAll('ul.heroes li');
       expect(itemEls.length).toBe(initialHeroes.length);
     });
-
   });
 
   // region helpers
@@ -173,7 +177,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
         HeroesComponent, // When testing class-only
         HeroesService,
         { provide: HttpClient, useValue: null },
-        { provide: NgrxDataToastService, useValue: null}
+        { provide: NgrxDataToastService, useValue: null }
       ]
     });
 
@@ -186,7 +190,10 @@ describe('HeroesComponent (mock HeroesService)', () => {
 
     heroesService = TestBed.get(HeroesService);
     spyOn(heroesService, 'getAll').and.callFake(() => {
-      const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
+      const getAllSuccessAction = createHeroAction(
+        EntityOp.QUERY_ALL_SUCCESS,
+        initialHeroes
+      );
       testStore.dispatch(getAllSuccessAction);
     });
 
@@ -197,15 +204,14 @@ describe('HeroesComponent (mock HeroesService)', () => {
   // Not needed when testing class-only
   function heroesComponentDeclarationsSetup() {
     TestBed.configureTestingModule({
-      imports: [
-        ReactiveFormsModule
-      ],
+      imports: [ReactiveFormsModule],
       declarations: [
         FilterComponent,
         HeroesComponent,
-        HeroListComponent, HeroDetailComponent,
+        HeroListComponent,
+        HeroDetailComponent
       ],
-      schemas: [ CUSTOM_ELEMENTS_SCHEMA ] // ignore Angular Material elements
+      schemas: [CUSTOM_ELEMENTS_SCHEMA] // ignore Angular Material elements
     });
   }
 

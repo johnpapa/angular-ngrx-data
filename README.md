@@ -43,7 +43,7 @@ You can see the _ngrx machinery_ at work with the [_redux developer tools_](#red
 
 ### Show me
 
-For a hands-on experience, try the [QuickStart](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md)).
+For a hands-on experience, try the [QuickStart](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md).
 In this section, we summarize the key points.
 
 The _ngrx-data_ repository includes a demo app for editing _Heroes_ and _Villains_ in the `src/client/app/` folder.

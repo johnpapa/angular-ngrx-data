@@ -1,5 +1,12 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.6"></a>
+
+# 1.0.0-beta.6 (2018-04-12)
+
+* refactor `DefaultDataService` to not use `pipe` static (gone in v6).
+  Simplified it and deleted (internal) `make-response-delay.ts` in the process.
+
 <a name="1.0.0-beta.5"></a>
 
 # 1.0.0-beta.5 (2018-04-10)

@@ -30,8 +30,8 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
 
-    this.villain$ = this.route.params.pipe(
-      map(params => params['id']),
+    this.villain$ = this.route.paramMap.pipe(
+      map(paramMap => paramMap.get('id')),
       combineLatest(
         this.villainsService.entityMap$,
         (id, entityMap) => {

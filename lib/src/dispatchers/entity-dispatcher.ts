@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActionGuard } from '../actions/entity-action-guard';
@@ -24,41 +24,65 @@ export interface EntityDispatcherOptions {
  */
 export interface EntityDispatcher<T> extends EntityCommands<T> {
   /** Name of the entity type */
-  entityName: string;
+  readonly entityName: string;
 
   /**
    * Utility class with methods to validate EntityAction payloads.
    */
-  guard: EntityActionGuard<T>;
+  readonly guard: EntityActionGuard<T>;
 
   /** Returns the primary key (id) of this entity */
-  selectId: IdSelector<T>;
+  readonly selectId: IdSelector<T>;
+
+  /** Returns the store, scoped to the EntityCache */
+  readonly store: Store<EntityCache>;
+
+  /**
+   * Create an {EntityAction} for this entity type.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  createEntityAction(op: EntityOp, payload?: any): EntityAction;
+
+  /**
+   * Dispatch action to the store.
+   * @param action the Action
+   */
+  dispatch(action: Action): void;
+
+  /**
+   * Create an {EntityAction} for this entity type and dispatch it to the store.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  dispatch(op: EntityOp, payload?: any): void;
+
+  /**
+   * Convert an entity (or partial entity) into the `Update<T>` object
+   * `update...` and `upsert...` methods take `Update<T>` args
+   */
+  toUpdate(entity: Partial<T>): Update<T>;
+}
+
+export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
+  /**
+   * Utility class with methods to validate EntityAction payloads.
+   */
+  guard: EntityActionGuard<T>;
 
   /**
    * Convert an entity (or partial entity) into the `Update<T>` object
    * `update...` and `upsert...` methods take `Update<T>` args
    */
   toUpdate: (entity: Partial<T>) => Update<T>;
-}
-
-export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
-
-  /**
-   * Utility class with methods to validate EntityAction payloads.
-   */
-  guard: EntityActionGuard<T>;
-
-  /**
-   * Convert an entity (or partial entity) into the `Update<T>` object
-   * `update...` and `upsert...` methods take `Update<T>` args
-   */
-  toUpdate: (entity: Partial<T>) => Update<T>
 
   constructor(
     /** Name of the entity type for which entities are dispatched */
     public entityName: string,
-    private entityActionFactory: EntityActionFactory,
-    private store: Store<EntityCache>,
+    /** Creates an {EntityAction} */
+    public entityActionFactory: EntityActionFactory,
+    /** The store, scoped to the EntityCache */
+    public store: Store<EntityCache>,
     /** Returns the primary key (id) of this entity */
     public selectId: IdSelector<T> = defaultSelectId,
     /**
@@ -71,8 +95,37 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     this.toUpdate = toUpdateFactory<T>(selectId);
   }
 
-  private dispatch(op: EntityOp, payload?: any): void {
-    this.store.dispatch(this.entityActionFactory.create(this.entityName, op, payload));
+  /**
+   * Create an {EntityAction} for this entity type.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  createEntityAction(op: EntityOp, payload?: any): EntityAction {
+    return this.entityActionFactory.create<T>(this.entityName, op, payload);
+  }
+  /**
+   * Dispatch {EntityAction} to the store.
+   * @param action the EntityAction
+   */
+  dispatch(action: Action): void;
+
+  /**
+   * Create an {EntityAction} for this entity type and dispatch it to the store.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  dispatch(op: EntityOp, payload?: any): void;
+  dispatch(opOrAction: EntityOp | Action, payload?: any) {
+    if (typeof opOrAction === 'string') {
+      this._dispatch(opOrAction, payload);
+    } else {
+      this.store.dispatch(opOrAction);
+    }
+  }
+
+  // mono-morphic version for internal use
+  private _dispatch(op: EntityOp, payload?: any): void {
+    this.store.dispatch(this.createEntityAction(op, payload));
   }
 
   /**
@@ -81,12 +134,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Ignored by cache-add if the entity is already in cache.
    */
   add(entity: T, isOptimistic?: boolean): void {
-    isOptimistic = isOptimistic != null ? isOptimistic : this.options.optimisticAdd;
-    const op = isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD_ONE;
+    isOptimistic =
+      isOptimistic != null ? isOptimistic : this.options.optimisticAdd;
+    const op = isOptimistic
+      ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC
+      : EntityOp.SAVE_ADD_ONE;
     if (isOptimistic) {
       this.guard.mustBeEntities([entity], op, true);
     }
-    this.dispatch(op, entity);
+    this._dispatch(op, entity);
   }
 
   /**
@@ -95,7 +151,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not restore to cache if the delete fails.
    * @param entity The entity to remove
    */
-  delete(entity: T, isOptimistic?: boolean): void
+  delete(entity: T, isOptimistic?: boolean): void;
 
   /**
    * Removes entity from the cache by key (if it is in the cache)
@@ -103,13 +159,16 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not restore to cache if the delete fails.
    * @param key The primary key of the entity to remove
    */
-  delete(key: number | string, isOptimistic?: boolean ): void
+  delete(key: number | string, isOptimistic?: boolean): void;
   delete(arg: (number | string) | T, isOptimistic?: boolean): void {
-    const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticDelete) ?
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC : EntityOp.SAVE_DELETE_ONE;
+    const op = (isOptimistic != null
+    ? isOptimistic
+    : this.options.optimisticDelete)
+      ? EntityOp.SAVE_DELETE_ONE_OPTIMISTIC
+      : EntityOp.SAVE_DELETE_ONE;
     const key = this.getKey(arg);
     this.guard.mustBeIds([key], op, true);
-    this.dispatch(op, key);
+    this._dispatch(op, key);
   }
 
   /**
@@ -149,10 +208,13 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    const op = (isOptimistic != null  ? isOptimistic : this.options.optimisticUpdate) ?
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC : EntityOp.SAVE_UPDATE_ONE;
+    const op = (isOptimistic != null
+    ? isOptimistic
+    : this.options.optimisticUpdate)
+      ? EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC
+      : EntityOp.SAVE_UPDATE_ONE;
     this.guard.mustBeUpdates([update], op, true);
-    this.dispatch(op, update);
+    this._dispatch(op, update);
   }
 
   /*** Cache-only operations that do not update remote storage ***/
@@ -199,16 +261,16 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not delete that entity from remote storage.
    * @param entity The entity to remove
    */
-  removeOneFromCache(entity: T): void
+  removeOneFromCache(entity: T): void;
 
   /**
    * Remove an entity directly from the cache.
    * Does not delete that entity from remote storage.
    * @param key The primary key of the entity to remove
    */
-  removeOneFromCache(key: number | string ): void
-  removeOneFromCache(arg: (number | string) | T ): void {
-    this.dispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
+  removeOneFromCache(key: number | string): void;
+  removeOneFromCache(arg: (number | string) | T): void {
+    this._dispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
   }
 
   /**
@@ -216,20 +278,24 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not delete these entities from remote storage.
    * @param entity The entities to remove
    */
-  removeManyFromCache(entities: T[]): void
+  removeManyFromCache(entities: T[]): void;
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
    * @param keys The primary keys of the entities to remove
    */
-  removeManyFromCache(keys: (number | string)[]): void
-  removeManyFromCache(args: ((number | string)[] | T[])): void {
-    if (!args || args.length === 0) { return; }
-    const keys = (typeof args[0] === 'object') ?
-      // if array[0] is a key, assume they're all keys
-      (<T[]> args).map(arg => this.getKey(arg)) : args;
-    this.dispatch(EntityOp.REMOVE_MANY, keys);
+  removeManyFromCache(keys: (number | string)[]): void;
+  removeManyFromCache(args: (number | string)[] | T[]): void {
+    if (!args || args.length === 0) {
+      return;
+    }
+    const keys =
+      typeof args[0] === 'object'
+        ? // if array[0] is a key, assume they're all keys
+          (<T[]>args).map(arg => this.getKey(arg))
+        : args;
+    this._dispatch(EntityOp.REMOVE_MANY, keys);
   }
 
   /**
@@ -243,7 +309,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    this.dispatch(EntityOp.UPDATE_ONE, update);
+    this._dispatch(EntityOp.UPDATE_ONE, update);
   }
 
   /**
@@ -254,9 +320,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * such partial entities patch their cached counterparts.
    */
   updateManyInCache(entities: Partial<T>[]): void {
-    if (!entities || entities.length === 0) { return; }
+    if (!entities || entities.length === 0) {
+      return;
+    }
     const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this.dispatch(EntityOp.UPDATE_MANY, updates);
+    this._dispatch(EntityOp.UPDATE_MANY, updates);
   }
 
   /**
@@ -275,9 +343,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not save to remote storage.
    */
   upsertManyInCache(entities: Partial<T>[]): void {
-    if (!entities || entities.length === 0) { return; }
+    if (!entities || entities.length === 0) {
+      return;
+    }
     const upserts: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this.dispatch(EntityOp.UPSERT_MANY, upserts);
+    this._dispatch(EntityOp.UPSERT_MANY, upserts);
   }
 
   /**
@@ -288,8 +358,18 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     this.dispatch(EntityOp.SET_FILTER, pattern);
   }
 
+  /** Set the loaded flag */
+  setLoaded(isLoaded: boolean): void {
+    this.dispatch(EntityOp.SET_LOADED, !!isLoaded);
+  }
+
+  /** Set the loading flag */
+  setLoading(isLoading: boolean): void {
+    this.dispatch(EntityOp.SET_LOADED, !!isLoading);
+  }
+
   /** Get key from entity (unless arg is already a key) */
-  private getKey(arg: number | string | T ) {
+  private getKey(arg: number | string | T) {
     return typeof arg === 'object' ? this.selectId(arg) : arg;
   }
 }

@@ -5,7 +5,14 @@ import { EntityOp } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
-import { combineLatest, map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
+import {
+  combineLatest,
+  delay,
+  map,
+  shareReplay,
+  startWith,
+  takeUntil
+} from 'rxjs/operators';
 
 import { Villain } from '../../core';
 import { VillainsService } from '../villains.service';
@@ -26,40 +33,36 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
     private villainsService: VillainsService,
     private route: ActivatedRoute,
     private router: Router
-  ) { }
+  ) {}
 
   ngOnInit() {
-
-    this.villain$ = this.route.params.pipe(
-      map(params => params['id']),
-      combineLatest(
-        this.villainsService.entityMap$,
-        (id, entityMap) => {
-          // look for it by key in the cached collection
-          const villain = entityMap[id] ;
-          if (!villain) {
-            // not in cache; dispatch request to get it
-            this.villainsService.getByKey(id);
-          }
-          return villain;
+    this.villain$ = this.route.paramMap.pipe(
+      map(paramMap => paramMap.get('id')),
+      combineLatest(this.villainsService.entityMap$, (id, entityMap) => {
+        // look for it by key in the cached collection
+        const villain = entityMap[id];
+        if (!villain) {
+          // not in cache; dispatch request to get it
+          this.villainsService.getByKey(id);
         }
-      ),
+        return villain;
+      }),
       takeUntil(this.destroy$), // must be just before shareReplay
       shareReplay(1)
     );
 
-    this.error$ = this.villainsService.errors$.ofOp(EntityOp.QUERY_BY_KEY_ERROR)
-    .pipe(
-      map(errorAction => errorAction.payload.error.message),
-      startWith(''), // prime it for loading$
-      takeUntil(this.destroy$)
-    );
+    this.error$ = this.villainsService.errors$
+      .ofOp(EntityOp.QUERY_BY_KEY_ERROR)
+      .pipe(
+        map(errorAction => errorAction.payload.error.message),
+        // delay guards against `ExpressionChangedAfterItHasBeenCheckedError`
+        delay(1),
+        // startWith(''), // prime it for loading$
+        takeUntil(this.destroy$)
+      );
 
     this.loading$ = this.error$.pipe(
-      combineLatest(
-        this.villain$,
-        (errorMsg, villain) => !villain && !errorMsg
-      )
+      combineLatest(this.villain$, (errorMsg, villain) => !villain && !errorMsg)
     );
   }
 
@@ -74,5 +77,4 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
   close() {
     this.router.navigate(['/villains']);
   }
-
 }

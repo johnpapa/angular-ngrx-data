@@ -1,13 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
+import {
+  HttpClientTestingModule,
+  HttpTestingController
+} from '@angular/common/http/testing';
 
 import { of } from 'rxjs/observable/of';
 
-import { DefaultDataService, DefaultDataServiceFactory, DefaultDataServiceConfig } from './default-data.service';
+import {
+  DefaultDataService,
+  DefaultDataServiceFactory,
+  DefaultDataServiceConfig
+} from './default-data.service';
 import { DataServiceError } from './data-service-error';
-import { DefaultHttpUrlGenerator, EntityHttpResourceUrls, HttpUrlGenerator } from './http-url-generator';
+import {
+  DefaultHttpUrlGenerator,
+  EntityHttpResourceUrls,
+  HttpUrlGenerator
+} from './http-url-generator';
 import { Update } from '../utils';
 
 class Hero {
@@ -18,7 +29,6 @@ class Hero {
 
 ////////  Tests  /////////////
 describe('DefaultDataService', () => {
-
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
   const heroUrl = 'api/hero/';
@@ -29,18 +39,18 @@ describe('DefaultDataService', () => {
   //// HttpClient testing boilerplate
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ HttpClientTestingModule ],
+      imports: [HttpClientTestingModule]
     });
     httpClient = TestBed.get(HttpClient);
     httpTestingController = TestBed.get(HttpTestingController);
 
     httpUrlGenerator = new DefaultHttpUrlGenerator(null);
-    httpUrlGenerator.registerHttpResourceUrls(
-      {Hero: {
+    httpUrlGenerator.registerHttpResourceUrls({
+      Hero: {
         entityResourceUrl: heroUrl,
         collectionResourceUrl: heroesUrl
-      }}
-    );
+      }
+    });
 
     service = new DefaultDataService('Hero', httpClient, httpUrlGenerator);
   });
@@ -52,7 +62,6 @@ describe('DefaultDataService', () => {
   ///////////////////
 
   describe('property inspection', () => {
-
     // Test wrapper exposes protected properties
     class TestService<T> extends DefaultDataService<T> {
       properties = {
@@ -61,7 +70,7 @@ describe('DefaultDataService', () => {
         getDelay: this.getDelay,
         saveDelay: this.saveDelay,
         timeout: this.timeout
-      }
+      };
     }
 
     // tslint:disable-next-line:no-shadowed-variable
@@ -89,18 +98,20 @@ describe('DefaultDataService', () => {
     let expectedHeroes: Hero[];
 
     beforeEach(() => {
-      expectedHeroes = [
-        { id: 1, name: 'A' },
-        { id: 2, name: 'B' },
-       ] as Hero[];
+      expectedHeroes = [{ id: 1, name: 'A' }, { id: 2, name: 'B' }] as Hero[];
     });
 
     it('should return expected heroes (called once)', () => {
-
-      service.getAll().subscribe(
-        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
-        fail
-      );
+      service
+        .getAll()
+        .subscribe(
+          heroes =>
+            expect(heroes).toEqual(
+              expectedHeroes,
+              'should return expected heroes'
+            ),
+          fail
+        );
 
       // HeroService should have made one request to GET heroes from expected URL
       const req = httpTestingController.expectOne(heroesUrl);
@@ -111,43 +122,52 @@ describe('DefaultDataService', () => {
     });
 
     it('should be OK returning no heroes', () => {
-
-      service.getAll().subscribe(
-        heroes => expect(heroes.length).toEqual(0, 'should have empty heroes array'),
-        fail
-      );
+      service
+        .getAll()
+        .subscribe(
+          heroes =>
+            expect(heroes.length).toEqual(0, 'should have empty heroes array'),
+          fail
+        );
 
       const req = httpTestingController.expectOne(heroesUrl);
       req.flush([]); // Respond with no heroes
     });
 
     it('should return expected heroes (called multiple times)', () => {
-
       service.getAll().subscribe();
       service.getAll().subscribe();
-      service.getAll().subscribe(
-        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
-        fail
-      );
+      service
+        .getAll()
+        .subscribe(
+          heroes =>
+            expect(heroes).toEqual(
+              expectedHeroes,
+              'should return expected heroes'
+            ),
+          fail
+        );
 
       const requests = httpTestingController.match(heroesUrl);
       expect(requests.length).toEqual(3, 'calls to getAll()');
 
       // Respond to each request with different mock hero results
       requests[0].flush([]);
-      requests[1].flush([{id: 1, name: 'bob'}]);
+      requests[1].flush([{ id: 1, name: 'bob' }]);
       requests[2].flush(expectedHeroes);
     });
 
     it('should turn 404 into Observable<DataServiceError>', () => {
-
       const msg = 'deliberate 404 error';
 
       service.getAll().subscribe(
         heroes => fail('getAll succeeded when expected it to fail with a 404'),
         err => {
           expect(err).toBeDefined('request should have failed');
-          expect(err instanceof DataServiceError).toBe(true, 'is DataServiceError');
+          expect(err instanceof DataServiceError).toBe(
+            true,
+            'is DataServiceError'
+          );
           expect(err.error.status).toEqual(404, 'has 404 status');
           expect(err.message).toEqual(msg, 'has expected error message');
         }
@@ -170,17 +190,19 @@ describe('DefaultDataService', () => {
   });
 
   describe('#getById', () => {
-
     let expectedHero: Hero;
     const heroUrlId1 = heroUrl + '1';
 
     it('should return expected hero when id is found', () => {
       expectedHero = { id: 1, name: 'A' };
 
-      service.getById(1).subscribe(
-        hero => expect(hero).toEqual(expectedHero, 'should return expected hero'),
-        fail
-      );
+      service
+        .getById(1)
+        .subscribe(
+          hero =>
+            expect(hero).toEqual(expectedHero, 'should return expected hero'),
+          fail
+        );
 
       // One request to GET hero from expected URL
       const req = httpTestingController.expectOne(heroUrlId1);
@@ -190,7 +212,6 @@ describe('DefaultDataService', () => {
     });
 
     it('should turn 404 when id not found', () => {
-
       service.getById(1).subscribe(
         heroes => fail('getById succeeded when expected it to fail with a 404'),
         err => {
@@ -199,7 +220,7 @@ describe('DefaultDataService', () => {
       );
 
       const req = httpTestingController.expectOne(heroUrlId1);
-      const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
+      const errorEvent = new ErrorEvent('so sad', { message: 'boom!' });
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
     });
 
@@ -217,18 +238,20 @@ describe('DefaultDataService', () => {
     let expectedHeroes: Hero[];
 
     beforeEach(() => {
-      expectedHeroes = [
-        { id: 1, name: 'BA' },
-        { id: 2, name: 'BB' },
-       ] as Hero[];
-
+      expectedHeroes = [{ id: 1, name: 'BA' }, { id: 2, name: 'BB' }] as Hero[];
     });
 
     it('should return expected selected heroes w/ object params', () => {
-      service.getWithQuery({name: 'B'}).subscribe(
-        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
-        fail
-      );
+      service
+        .getWithQuery({ name: 'B' })
+        .subscribe(
+          heroes =>
+            expect(heroes).toEqual(
+              expectedHeroes,
+              'should return expected heroes'
+            ),
+          fail
+        );
 
       // HeroService should have made one request to GET heroes
       // from expected URL with query params
@@ -240,10 +263,16 @@ describe('DefaultDataService', () => {
     });
 
     it('should return expected selected heroes w/ string params', () => {
-      service.getWithQuery('name=B').subscribe(
-        heroes => expect(heroes).toEqual(expectedHeroes, 'should return expected heroes'),
-        fail
-      );
+      service
+        .getWithQuery('name=B')
+        .subscribe(
+          heroes =>
+            expect(heroes).toEqual(
+              expectedHeroes,
+              'should return expected heroes'
+            ),
+          fail
+        );
 
       // HeroService should have made one request to GET heroes
       // from expected URL with query params
@@ -255,25 +284,30 @@ describe('DefaultDataService', () => {
     });
 
     it('should be OK returning no heroes', () => {
-
-      service.getWithQuery({name: 'B'}).subscribe(
-        heroes => expect(heroes.length).toEqual(0, 'should have empty heroes array'),
-        fail
-      );
+      service
+        .getWithQuery({ name: 'B' })
+        .subscribe(
+          heroes =>
+            expect(heroes.length).toEqual(0, 'should have empty heroes array'),
+          fail
+        );
 
       const req = httpTestingController.expectOne(heroesUrl + '?name=B');
       req.flush([]); // Respond with no heroes
     });
 
     it('should turn 404 into Observable<DataServiceError>', () => {
-
       const msg = 'deliberate 404 error';
 
-      service.getWithQuery({name: 'B'}).subscribe(
-        heroes => fail('getWithQuery succeeded when expected it to fail with a 404'),
+      service.getWithQuery({ name: 'B' }).subscribe(
+        heroes =>
+          fail('getWithQuery succeeded when expected it to fail with a 404'),
         err => {
           expect(err).toBeDefined('request should have failed');
-          expect(err instanceof DataServiceError).toBe(true, 'is DataServiceError');
+          expect(err instanceof DataServiceError).toBe(
+            true,
+            'is DataServiceError'
+          );
           expect(err.error.status).toEqual(404, 'has 404 status');
           expect(err.message).toEqual(msg, 'has expected error message');
         }
@@ -291,16 +325,20 @@ describe('DefaultDataService', () => {
     let expectedHero: Hero;
 
     it('should return expected hero with id', () => {
-      expectedHero = {id: 42, name: 'A' };
+      expectedHero = { id: 42, name: 'A' };
 
-      service.add({ name: 'A' } as Hero).subscribe(
-        hero => expect(hero).toEqual(expectedHero, 'should return expected hero'),
-        fail
-      );
+      service
+        .add({ name: 'A' } as Hero)
+        .subscribe(
+          hero =>
+            expect(hero).toEqual(expectedHero, 'should return expected hero'),
+          fail
+        );
 
       // One request to POST hero from expected URL
       const req = httpTestingController.expectOne(
-        r => r.method === 'POST' && r.url === heroUrl);
+        r => r.method === 'POST' && r.url === heroUrl
+      );
 
       // Respond with the expected hero
       req.flush(expectedHero);
@@ -320,28 +358,34 @@ describe('DefaultDataService', () => {
     const heroUrlId1 = heroUrl + '1';
 
     it('should delete by hero id', () => {
-      service.delete(1).subscribe(
-        result => expect(result).toEqual({}, 'should return nothing'),
-        fail
-      );
+      service
+        .delete(1)
+        .subscribe(
+          result => expect(result).toEqual({}, 'should return nothing'),
+          fail
+        );
 
-     // One request to DELETE hero from expected URL
-     const req = httpTestingController.expectOne(
-        r => r.method === 'DELETE' && r.url === heroUrlId1);
+      // One request to DELETE hero from expected URL
+      const req = httpTestingController.expectOne(
+        r => r.method === 'DELETE' && r.url === heroUrlId1
+      );
 
       // Respond with empty nonsense object
       req.flush({});
     });
 
     it('should return successfully when id not found and delete404OK is true (default)', () => {
-      service.delete(1).subscribe(
-        result => expect(result).toEqual({}, 'should return nothing'),
-        fail
-      );
+      service
+        .delete(1)
+        .subscribe(
+          result => expect(result).toEqual({}, 'should return nothing'),
+          fail
+        );
 
-     // One request to DELETE hero from expected URL
-     const req = httpTestingController.expectOne(
-        r => r.method === 'DELETE' && r.url === heroUrlId1);
+      // One request to DELETE hero from expected URL
+      const req = httpTestingController.expectOne(
+        r => r.method === 'DELETE' && r.url === heroUrlId1
+      );
 
       // Respond with empty nonsense object
       req.flush({});
@@ -359,7 +403,7 @@ describe('DefaultDataService', () => {
       );
 
       const req = httpTestingController.expectOne(heroUrlId1);
-      const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
+      const errorEvent = new ErrorEvent('so sad', { message: 'boom!' });
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
     });
 
@@ -389,21 +433,27 @@ describe('DefaultDataService', () => {
       // Service must return an Update<T>
       const expectedUpdate: Update<Hero> = { id: 1, changes: expectedHero };
 
-      service.update(updateArg).subscribe(
-        updated => expect(updated).toEqual(expectedUpdate, 'should return expected hero update'),
-        fail
-      );
+      service
+        .update(updateArg)
+        .subscribe(
+          updated =>
+            expect(updated).toEqual(
+              expectedUpdate,
+              'should return expected hero update'
+            ),
+          fail
+        );
 
       // One request to PUT hero from expected URL
       const req = httpTestingController.expectOne(
-        r => r.method === 'PUT' && r.url === heroUrlId1);
+        r => r.method === 'PUT' && r.url === heroUrlId1
+      );
 
       // Respond with the expected hero
       req.flush(expectedHero);
     });
 
     it('should return 404 when id not found', () => {
-
       service.update({ id: 1, changes: { id: 1, name: 'B' } }).subscribe(
         update => fail('update succeeded when expected it to fail with a 404'),
         err => {
@@ -412,7 +462,7 @@ describe('DefaultDataService', () => {
       );
 
       const req = httpTestingController.expectOne(heroUrlId1);
-      const errorEvent = new ErrorEvent('so sad', { message: 'boom!'});
+      const errorEvent = new ErrorEvent('so sad', { message: 'boom!' });
       req.error(errorEvent, { status: 404, statusText: 'Not Found' });
     });
 
@@ -428,7 +478,6 @@ describe('DefaultDataService', () => {
 });
 
 describe('DefaultDataServiceFactory', () => {
-
   const heroUrl = 'api/hero';
   const heroesUrl = 'api/heroes';
 
@@ -437,15 +486,14 @@ describe('DefaultDataServiceFactory', () => {
 
   beforeEach(() => {
     httpUrlGenerator = new DefaultHttpUrlGenerator(null);
-    httpUrlGenerator.registerHttpResourceUrls(
-      {Hero: {
+    httpUrlGenerator.registerHttpResourceUrls({
+      Hero: {
         entityResourceUrl: heroUrl,
         collectionResourceUrl: heroesUrl
-      }}
-    );
+      }
+    });
     http = jasmine.createSpyObj('HttpClient', ['get', 'delete', 'post', 'put']);
     http.get.and.returnValue(of([]));
-
   });
 
   describe('(no config)', () => {
@@ -466,12 +514,16 @@ describe('DefaultDataServiceFactory', () => {
   describe('(with config)', () => {
     it('can create factory', () => {
       const config: DefaultDataServiceConfig = { root: 'api' };
-      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator, config);
+      const factory = new DefaultDataServiceFactory(
+        http,
+        httpUrlGenerator,
+        config
+      );
       const heroDS = factory.create<Hero>('Hero');
       expect(heroDS.name).toBe('Hero DefaultDataService');
     });
 
-    it('should produce hero data service that gets heroes with config\'s hero HttpResourceUrls', () => {
+    it("should produce hero data service that gets heroes with config's hero HttpResourceUrls", () => {
       const newHeroesUrl = 'some/other/api/heroes';
       const config: DefaultDataServiceConfig = {
         root: 'api',
@@ -482,11 +534,14 @@ describe('DefaultDataServiceFactory', () => {
           }
         }
       };
-      const factory = new DefaultDataServiceFactory(http, httpUrlGenerator, config);
+      const factory = new DefaultDataServiceFactory(
+        http,
+        httpUrlGenerator,
+        config
+      );
       const heroDS = factory.create<Hero>('Hero');
       heroDS.getAll();
       expect(http.get).toHaveBeenCalledWith(newHeroesUrl, undefined);
     });
   });
-
 });

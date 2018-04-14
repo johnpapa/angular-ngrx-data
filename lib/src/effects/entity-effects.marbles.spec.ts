@@ -5,7 +5,11 @@ import { cold, hot } from 'jasmine-marbles';
 import { Observable } from 'rxjs/Observable';
 
 import {
-  EntityAction, EntityActionFactory, EntityActions, EntityOp, OP_ERROR
+  EntityAction,
+  EntityActionFactory,
+  EntityActions,
+  EntityOp,
+  OP_ERROR
 } from '../actions';
 
 import {
@@ -14,12 +18,13 @@ import {
   EntityActionDataServiceError,
   EntityDataService,
   HttpMethods,
-  PersistenceResultHandler, DefaultPersistenceResultHandler
+  PersistenceResultHandler,
+  DefaultPersistenceResultHandler
 } from '../dataservices';
 
 import { EntityEffects } from './entity-effects';
 
-import { Update } from '../utils';
+import { Logger, Update } from '../utils';
 
 export class TestEntityActions extends EntityActions {
   set stream(source: Observable<any>) {
@@ -36,8 +41,10 @@ export class TestEntityDataService {
   dataServiceSpy: any;
 
   constructor() {
-    this.dataServiceSpy = jasmine.createSpyObj('EntityCollectionDataService<Hero>',
-    ['add', 'delete', 'getAll', 'getById', 'getWithQuery', 'update']);
+    this.dataServiceSpy = jasmine.createSpyObj(
+      'EntityCollectionDataService<Hero>',
+      ['add', 'delete', 'getAll', 'getById', 'getWithQuery', 'update']
+    );
   }
 
   getService() {
@@ -61,16 +68,23 @@ describe('EntityEffects (marble testing)', () => {
   let entityActionFactory: EntityActionFactory;
   let testEntityDataService: TestEntityDataService;
   let actions$: TestEntityActions;
+  let logger: Logger;
 
   beforeEach(() => {
+    logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
+
     TestBed.configureTestingModule({
       providers: [
         EntityEffects,
         EntityActionFactory,
         { provide: EntityActions, useFactory: getActions },
         { provide: EntityDataService, useFactory: getDataService },
-        { provide: PersistenceResultHandler, useClass: DefaultPersistenceResultHandler }
-      ],
+        { provide: Logger, useValue: logger },
+        {
+          provide: PersistenceResultHandler,
+          useClass: DefaultPersistenceResultHandler
+        }
+      ]
     });
     entityActionFactory = TestBed.get(EntityActionFactory);
     effects = TestBed.get(EntityEffects);
@@ -84,7 +98,11 @@ describe('EntityEffects (marble testing)', () => {
     const heroes = [hero1, hero2];
 
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
-    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_ALL_SUCCESS,
+      heroes
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -98,7 +116,7 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a QUERY_ALL_ERROR when service fails', () => {
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'GET', httpError)
+    const completion = makeEntityErrorCompletion(action, 'GET', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -111,8 +129,15 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
-    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY_SUCCESS);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_BY_KEY,
+      42
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_BY_KEY_SUCCESS
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -124,9 +149,13 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_BY_KEY_ERROR when service fails', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_BY_KEY,
+      42
+    );
     const httpError = { error: new Error('Entity not found'), status: 404 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
+    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -142,8 +171,14 @@ describe('EntityEffects (marble testing)', () => {
     const hero2 = { id: 2, name: 'BB' } as Hero;
     const heroes = [hero1, hero2];
 
-    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {name: 'B'});
-    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {
+      name: 'B'
+    });
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_MANY_SUCCESS,
+      heroes
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -155,9 +190,13 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a QUERY_MANY_ERROR when service fails', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {name: 'B'});
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {
+      name: 'B'
+    });
     const httpError = { error: new Error('Resource not found'), status: 404 };
-    const completion = makeEntityErrorCompletion(action, 'GET', httpError, {name: 'B'})
+    const completion = makeEntityErrorCompletion(action, 'GET', httpError, {
+      name: 'B'
+    });
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -172,8 +211,16 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE,
+      hero
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE_SUCCESS,
+      hero
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -186,9 +233,13 @@ describe('EntityEffects (marble testing)', () => {
 
   it('should return a SAVE_ADD_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE,
+      hero
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -200,8 +251,15 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_SUCCESS on success', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE,
+      42
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE_SUCCESS
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -213,9 +271,13 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ERROR when service fails', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE,
+      42
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
+    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -227,10 +289,18 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_UPDATE_SUCCESS with the hero on success', () => {
-    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE,
+      update
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE_SUCCESS,
+      update
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -242,10 +312,14 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_UPDATE_ERROR when service fails', () => {
-    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
+    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE,
+      update
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -259,8 +333,16 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_ADD_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC, hero);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS, hero);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
+      hero
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS,
+      hero
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -273,9 +355,13 @@ describe('EntityEffects (marble testing)', () => {
 
   it('should return a SAVE_ADD_ONE_OPTIMISTIC_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC, hero);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
+      hero
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -287,8 +373,15 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS on success', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC, 42);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
+      42
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -300,9 +393,13 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ONE_OPTIMISTIC_ERROR when service fails', () => {
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC, 42);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
+      42
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError)
+    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -314,10 +411,18 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
-    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
+    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
 
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC, update);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS, update);
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
+      update
+    );
+    const completion = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS,
+      update
+    );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
@@ -329,10 +434,14 @@ describe('EntityEffects (marble testing)', () => {
   });
 
   it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_ERROR when service fails', () => {
-    const update = { id: 1, changes: {id: 1, name: 'A' }} as Update<Hero>;
-    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC, update);
+    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
+      update
+    );
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError)
+    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
     actions$.stream = hot('-a---', { a: action });
@@ -363,8 +472,8 @@ function makeEntityErrorCompletion(
   /** Http error from the web api */
   httpError?: any,
   /** Options sent with the request */
-  options?: any) {
-
+  options?: any
+) {
   let url = 'api/heroes';
 
   // Error from the web api
@@ -377,9 +486,12 @@ function makeEntityErrorCompletion(
   // Error produced by the EntityDataService
   const error = new DataServiceError(httpError, { method, url, options });
 
-  const errOp = <EntityOp> (originalAction.op + OP_ERROR);
+  const errOp = <EntityOp>(originalAction.op + OP_ERROR);
 
   // Entity Error Action
   const eaFactory = new EntityActionFactory();
-  return eaFactory.create<EntityActionDataServiceError>('Hero', errOp, {originalAction, error});
+  return eaFactory.create<EntityActionDataServiceError>('Hero', errOp, {
+    originalAction,
+    error
+  });
 }

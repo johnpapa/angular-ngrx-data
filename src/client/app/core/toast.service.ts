@@ -4,15 +4,18 @@ import { isE2E } from './e2e-check';
 
 @Injectable()
 export class ToastService {
-  constructor(public snackBar: MatSnackBar) { }
+  constructor(public snackBar: MatSnackBar) {}
 
   openSnackBar(message: string, action: string) {
     if (isE2E) {
       console.log(`${message} - ${action}`);
     } else {
-      this.snackBar.open(message, action, {
-        duration: 2000
-      });
+      // setTimeout guards against `ExpressionChangedAfterItHasBeenCheckedError`
+      setTimeout(() => {
+        this.snackBar.open(message, action, {
+          duration: 2000
+        });
+      }, 0);
     }
   }
 }

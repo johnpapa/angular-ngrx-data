@@ -12,19 +12,22 @@ import {
   ENTITY_METADATA_TOKEN
 } from '../entity-metadata';
 
-import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
+import {
+  DefaultDataService,
+  DefaultDataServiceFactory
+} from './default-data.service';
 import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 
 import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService } from './entity-data.service';
-import {  QueryParams } from './interfaces';
+import { QueryParams } from './interfaces';
 import { Update } from '../utils';
 
 // region Test Helpers
 ///// Test Helpers /////
 
 export class CustomDataService {
-  name: string
+  name: string;
   constructor(name: string) {
     this.name = name + ' CustomDataService';
   }
@@ -32,24 +35,39 @@ export class CustomDataService {
 
 export class Bazinga {
   id: number;
-  wow: string
+  wow: string;
 }
 
-export class BazingaDataService implements EntityCollectionDataService<Bazinga> {
+export class BazingaDataService
+  implements EntityCollectionDataService<Bazinga> {
   name: string;
 
   // TestBed bug requires `@Optional` even though http is always provided.
   constructor(@Optional() private http: HttpClient) {
-    if (!http) { throw new Error('Where is HttpClient?'); }
+    if (!http) {
+      throw new Error('Where is HttpClient?');
+    }
     this.name = 'Bazinga custom data service';
   }
 
-  add(entity: Bazinga): Observable<Bazinga> { return this.bazinga(); }
-  delete(id: any): Observable<null> { return this.bazinga(); }
-  getAll(): Observable<Bazinga[]> { return this.bazinga(); }
-  getById(id: any): Observable<Bazinga> { return this.bazinga(); }
-  getWithQuery(params: string | QueryParams): Observable<Bazinga[]>  { return this.bazinga(); }
-  update(update: Update<Bazinga>): Observable<Update<Bazinga>> { return this.bazinga(); }
+  add(entity: Bazinga): Observable<Bazinga> {
+    return this.bazinga();
+  }
+  delete(id: any): Observable<null> {
+    return this.bazinga();
+  }
+  getAll(): Observable<Bazinga[]> {
+    return this.bazinga();
+  }
+  getById(id: any): Observable<Bazinga> {
+    return this.bazinga();
+  }
+  getWithQuery(params: string | QueryParams): Observable<Bazinga[]> {
+    return this.bazinga();
+  }
+  update(update: Update<Bazinga>): Observable<Update<Bazinga>> {
+    return this.bazinga();
+  }
 
   private bazinga(): any {
     bazingaFail();
@@ -58,14 +76,13 @@ export class BazingaDataService implements EntityCollectionDataService<Bazinga> 
 }
 
 @NgModule({
-  providers: [
-    BazingaDataService
-  ]
+  providers: [BazingaDataService]
 })
 export class CustomDataServiceModule {
   constructor(
     entityDataService: EntityDataService,
-    bazingaService: BazingaDataService) {
+    bazingaService: BazingaDataService
+  ) {
     entityDataService.registerService('Bazinga', bazingaService);
   }
 }
@@ -82,8 +99,9 @@ class TestHttpUrlGenerator implements HttpUrlGenerator {
   collectionResource(entityName: string, root: string): string {
     return 'api/heroes/';
   }
-  registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void {
-  }
+  registerHttpResourceUrls(
+    entityHttpResourceUrls: EntityHttpResourceUrls
+  ): void {}
 }
 
 // endregion
@@ -95,7 +113,7 @@ describe('EntityDataService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [ CustomDataServiceModule ],
+      imports: [CustomDataServiceModule],
       providers: [
         DefaultDataServiceFactory,
         EntityDataService,
@@ -104,23 +122,22 @@ describe('EntityDataService', () => {
       ]
     });
     entityDataService = TestBed.get(EntityDataService);
-  })
+  });
 
   describe('#getService', () => {
-
     it('can create a data service for "Hero" entity', () => {
       const service = entityDataService.getService('Hero');
-      expect (service).toBeDefined();
+      expect(service).toBeDefined();
     });
 
     it('can data service is a DefaultDataService by default', () => {
       const service = entityDataService.getService('Hero');
-      expect (service instanceof DefaultDataService).toBe(true);
+      expect(service instanceof DefaultDataService).toBe(true);
     });
 
     it('gets the same service every time you ask for it', () => {
       const service1 = entityDataService.getService('Hero');
-      const service2  = entityDataService.getService('Hero');
+      const service2 = entityDataService.getService('Hero');
       expect(service1).toBe(service2);
     });
   });
@@ -130,7 +147,7 @@ describe('EntityDataService', () => {
       const customService: any = new CustomDataService('Hero');
       entityDataService.registerService('Hero', customService);
 
-      const service = entityDataService.getService('Hero')
+      const service = entityDataService.getService('Hero');
       expect(service).toBe(customService);
     });
 
@@ -142,23 +159,21 @@ describe('EntityDataService', () => {
         Villain: customVillainService
       });
 
-      let service = entityDataService.getService('Hero')
+      let service = entityDataService.getService('Hero');
       expect(service).toBe(customHeroService, 'custom Hero data service');
-      expect (service.name).toBe('Hero CustomDataService');
+      expect(service.name).toBe('Hero CustomDataService');
 
-      service = entityDataService.getService('Villain')
+      service = entityDataService.getService('Villain');
       expect(service).toBe(customVillainService, 'custom Villain data service');
 
       // Other services are still DefaultDataServices
       service = entityDataService.getService('Foo');
-      expect (service.name).toBe('Foo DefaultDataService');
+      expect(service.name).toBe('Foo DefaultDataService');
     });
 
     it('can register a custom service using a module import', () => {
       const service = entityDataService.getService('Bazinga');
       expect(service instanceof BazingaDataService).toBe(true);
-    })
-
+    });
   });
 });
-

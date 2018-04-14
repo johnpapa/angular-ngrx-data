@@ -1,24 +1,31 @@
 import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
 import { Dictionary, IdSelector, Update } from '../utils';
+import { EntityAction } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
+import { EntityOp } from '../actions/entity-op';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
-import { EntitySelectors$, EntitySelectors$Factory } from '../selectors/entity-selectors$';
+import {
+  EntitySelectors$,
+  EntitySelectors$Factory
+} from '../selectors/entity-selectors$';
 import { QueryParams } from '../dataservices/interfaces';
 
 /**
  * A dispatcher and selector$ facade for managing
  * a cached collection of T entities in the ngrx store.
  */
-export interface EntityService<T> extends EntityDispatcher<T>, EntitySelectors$<T> {
+export interface EntityService<T>
+  extends EntityDispatcher<T>,
+    EntitySelectors$<T> {
   /** All selectors$ (observables of entity collection properties) */
   selectors$: EntitySelectors$<T>;
 }
@@ -31,21 +38,28 @@ export interface EntityService<T> extends EntityDispatcher<T>, EntitySelectors$<
  * @param entityServiceFactory A creator of an EntityService<T> which here serves
  * as a source of supporting services for creating an EntityService<T> instance.
  */
-export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> implements EntityService<T> {
+export class EntityServiceBase<
+  T,
+  S$ extends EntitySelectors$<T> = EntitySelectors$<T>
+> implements EntityService<T> {
   private dispatcher: EntityDispatcher<T>;
 
-  constructor(
-    public entityName: string,
-    factory: EntityServiceFactory
-  ) {
+  constructor(public entityName: string, factory: EntityServiceFactory) {
     this.entityName = entityName = entityName.trim();
     const def = factory.entityDefinitionService.getDefinition<T>(entityName);
-    this.dispatcher = factory.entityDispatcherFactory.create<T>(entityName, def.selectId, def.entityDispatcherOptions);
+    this.dispatcher = factory.entityDispatcherFactory.create<T>(
+      entityName,
+      def.selectId,
+      def.entityDispatcherOptions
+    );
     this.guard = this.dispatcher.guard;
     this.selectId = this.dispatcher.selectId;
     this.toUpdate = this.dispatcher.toUpdate;
 
-    const selectors$ = factory.entitySelectors$Factory.create<T, S$>(entityName, def.selectors);
+    const selectors$ = factory.entitySelectors$Factory.create<T, S$>(
+      entityName,
+      def.selectors
+    );
     this.selectors$ = selectors$;
     this.collection$ = selectors$.collection$;
     this.count$ = this.selectors$.count$;
@@ -62,6 +76,35 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
   }
 
   /**
+   * Create an {EntityAction} for this entity type.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  createEntityAction(op: EntityOp, payload?: any): EntityAction<T> {
+    return this.dispatcher.createEntityAction(op, payload);
+  }
+
+  /**
+   * Dispatch action to the store.
+   * @param action the EntityAction
+   */
+  dispatch(action: Action): void;
+
+  /**
+   * Create an {EntityAction} for this entity type and dispatch it to the store.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  dispatch(op: EntityOp, payload?: any): void;
+  dispatch(opOrAction: any, payload?: any): void {
+    this.dispatcher.dispatch(opOrAction);
+  }
+
+  get store() {
+    return this.dispatcher.store;
+  }
+
+  /**
    * Utility class with methods to validate EntityAction payloads.
    */
   guard: EntityActionGuard<T>;
@@ -73,7 +116,7 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
    * Convert an entity (or partial entity) into the `Update<T>` object
    * `update...` and `upsert...` methods take `Update<T>` args
    */
-  toUpdate: (entity: Partial<T>) => Update<T>
+  toUpdate: (entity: Partial<T>) => Update<T>;
 
   // region Dispatch commands
 
@@ -92,7 +135,7 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
    * Does not restore to cache if the delete fails.
    * @param entity The entity to remove
    */
-  delete(entity: T, isOptimistic?: boolean): void
+  delete(entity: T, isOptimistic?: boolean): void;
 
   /**
    * Removes entity from the cache by key (if it is in the cache)
@@ -100,7 +143,7 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
    * Does not restore to cache if the delete fails.
    * @param key The primary key of the entity to remove
    */
-  delete(key: number | string, isOptimistic?: boolean ): void
+  delete(key: number | string, isOptimistic?: boolean): void;
   delete(arg: (number | string) | T, isOptimistic?: boolean): void {
     this.dispatcher.delete(arg as any, isOptimistic);
   }
@@ -180,15 +223,15 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
    * Does not delete that entity from remote storage.
    * @param entity The entity to remove
    */
-  removeOneFromCache(entity: T): void
+  removeOneFromCache(entity: T): void;
 
   /**
    * Remove an entity directly from the cache.
    * Does not delete that entity from remote storage.
    * @param key The primary key of the entity to remove
    */
-  removeOneFromCache(key: number | string ): void
-  removeOneFromCache(arg: (number | string) | T ): void {
+  removeOneFromCache(key: number | string): void;
+  removeOneFromCache(arg: (number | string) | T): void {
     this.dispatcher.removeOneFromCache(arg as any);
   }
 
@@ -197,15 +240,15 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
    * Does not delete these entities from remote storage.
    * @param entity The entities to remove
    */
-  removeManyFromCache(entities: T[]): void
+  removeManyFromCache(entities: T[]): void;
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
    * @param keys The primary keys of the entities to remove
    */
-  removeManyFromCache(keys: (number | string)[]): void
-  removeManyFromCache(args: ((number | string)[] | T[])): void {
+  removeManyFromCache(keys: (number | string)[]): void;
+  removeManyFromCache(args: (number | string)[] | T[]): void {
     this.dispatcher.removeManyFromCache(args as any[]);
   }
 
@@ -259,6 +302,16 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
     this.dispatcher.setFilter(pattern);
   }
 
+  /** Set the loaded flag */
+  setLoaded(isLoaded: boolean): void {
+    this.dispatcher.setLoaded(!!isLoaded);
+  }
+
+  /** Set the loading flag */
+  setLoading(isLoading: boolean): void {
+    this.dispatcher.setLoading(!!isLoading);
+  }
+
   // endregion Dispatch commands
 
   // region Selectors$
@@ -305,14 +358,12 @@ export class EntityServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelecto
 }
 // tslint:enable:member-ordering
 
-
 /**
  * Creates EntityService instances for
  * a cached collection of T entities in the ngrx store.
  */
 @Injectable()
 export class EntityServiceFactory {
-
   /** Observable of the EntityCache */
   entityCache$: Store<EntityCache>;
 
@@ -328,7 +379,9 @@ export class EntityServiceFactory {
    * Create an EntityService for an entity type
    * @param entityName - name of the entity type
    */
-  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string): EntityService<T> {
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
+    entityName: string
+  ): EntityService<T> {
     entityName = entityName.trim();
     const service = new EntityServiceBase<T, S$>(entityName, this);
     return service;

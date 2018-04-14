@@ -1,5 +1,17 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.7"></a>
+
+# 1.0.0-beta.7 (2018-04-13)
+
+* feature: add missing dispatcher members for new actions from beta.4
+* feature: add members to EntityService
+* feature: add Logger, DefaultLogger and replace libraries `console` calls with it so that developer
+  can handle/suppress libraries logging activity..
+* refactor: `DataServiceError` no longer logs itself. Other services that create this error
+  may call the new logger with the error
+* tests: repair a few
+
 <a name="1.0.0-beta.6"></a>
 
 # 1.0.0-beta.6 (2018-04-12)

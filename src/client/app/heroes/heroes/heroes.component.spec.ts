@@ -29,6 +29,7 @@ import {
 import { Observable } from 'rxjs/Observable';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
+import { of } from 'rxjs/observable/of';
 import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';
@@ -104,6 +105,10 @@ describe('HeroesComponent (mock HeroesService)', () => {
     it('should delete a hero', () => {
       let subscriptionCalled = false;
 
+      // Delete calls through effect to HttpClient; fake http.delete response
+      const deleteSpy: jasmine.Spy = TestBed.get(HttpClient).delete;
+      deleteSpy.and.returnValue(of(null));
+
       component.delete(initialHeroes[1]); // 'B'
 
       component.filteredHeroes$.subscribe(heroes => {
@@ -166,6 +171,19 @@ describe('HeroesComponent (mock HeroesService)', () => {
 
   // region helpers
   function heroesComponentCoreSetup() {
+    const testHttp = jasmine.createSpyObj('HttpClient', [
+      'delete',
+      'get',
+      'put',
+      'post'
+    ]);
+    // tslint:disable:quotemark
+    testHttp.delete.and.throwError("TEST FAIL! Shouldn't call http.delete");
+    testHttp.get.and.throwError("TEST FAIL! Shouldn't call http.get");
+    testHttp.post.and.throwError("TEST FAIL! Shouldn't call http.post");
+    testHttp.put.and.throwError("TEST FAIL! Shouldn't call http.put");
+    // tslint:enable:quotemark
+
     TestBed.configureTestingModule({
       imports: [
         StoreModule.forRoot({}),
@@ -176,7 +194,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
         AppSelectors,
         HeroesComponent, // When testing class-only
         HeroesService,
-        { provide: HttpClient, useValue: null },
+        { provide: HttpClient, useValue: testHttp },
         { provide: NgrxDataToastService, useValue: null }
       ]
     });

@@ -2,7 +2,6 @@ import { QueryParams } from '../dataservices/interfaces';
 
 /*** Commands that update the remote server ***/
 export interface EntityServerCommands<T> {
-
   /**
    * Save a new entity to remote storage.
    * Does not add to cache until save succeeds.
@@ -24,7 +23,7 @@ export interface EntityServerCommands<T> {
    * Does not restore to cache if the delete fails.
    * @param entity The entity to remove
    */
-  delete(entity: T, isOptimistic?: boolean): void
+  delete(entity: T, isOptimistic?: boolean): void;
 
   /**
    * Query remote storage for all entities and
@@ -44,7 +43,7 @@ export interface EntityServerCommands<T> {
    * with either a query parameter map or an HTTP URL query string.
    * and merge the results into the cached collection.
    */
-  getWithQuery(queryParams: QueryParams | string): void
+  getWithQuery(queryParams: QueryParams | string): void;
 
   /**
    * Save the updated entity (or partial entity) to remote storage.
@@ -86,28 +85,28 @@ export interface EntityCacheCommands<T> {
    * Does not delete that entity from remote storage.
    * @param entity The entity to remove
    */
-  removeOneFromCache(entity: T): void
+  removeOneFromCache(entity: T): void;
 
   /**
    * Remove an entity directly from the cache.
    * Does not delete that entity from remote storage.
    * @param key The primary key of the entity to remove
    */
-  removeOneFromCache(key: number | string): void
+  removeOneFromCache(key: number | string): void;
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
    * @param entity The entities to remove
    */
-  removeManyFromCache(entities: T[]): void
+  removeManyFromCache(entities: T[]): void;
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
    * @param keys The primary keys of the entities to remove
    */
-  removeManyFromCache(keys: (number | string)[]): void
+  removeManyFromCache(keys: (number | string)[]): void;
 
   /**
    * Update a cached entity directly.
@@ -148,13 +147,21 @@ export interface EntityCacheCommands<T> {
    * when using the `filteredEntities` selector.
    */
   setFilter(pattern: any): void;
+
+  /** Set the loaded flag */
+  setLoaded(isLoaded: boolean): void;
+
+  /** Set the loading flag */
+  setLoading(isLoading: boolean): void;
 }
 
 /**
  * Interface for ngrx-data entity commands that
  * dispatch entity actions to the ngrx store.
  */
-export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> { }
+export interface EntityCommands<T>
+  extends EntityServerCommands<T>,
+    EntityCacheCommands<T> {}
 
 // TypeScript bug: have to export something real in JavaScript
 export const __dummy__: any = undefined;

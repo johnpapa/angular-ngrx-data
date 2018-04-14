@@ -51,6 +51,8 @@ import {
   PLURAL_NAMES_TOKEN
 } from './utils/pluralizer';
 
+import { Logger, DefaultLogger } from './utils/logger';
+
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
   entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[];
@@ -77,7 +79,8 @@ export interface NgrxDataModuleConfig {
       provide: ENTITY_REDUCER_TOKEN,
       deps: [EntityReducerFactory],
       useFactory: createEntityReducer
-    }
+    },
+    { provide: Logger, useClass: DefaultLogger }
   ]
 })
 // tslint:disable-next-line:class-name

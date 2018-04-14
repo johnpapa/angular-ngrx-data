@@ -8,8 +8,7 @@ import { EntityCache } from './entity-cache';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityDefinitionService } from '../entity-metadata';
 import { EntityMetadataMap } from '../entity-metadata';
-import { Update } from '../utils';
-import { toUpdateFactory } from '../utils';
+import { Logger, toUpdateFactory, Update } from '../utils';
 
 import {
   EntityCollectionReducer,
@@ -55,16 +54,19 @@ describe('EntityCollectionReducer', () => {
 
   let initialHeroes: Hero[];
   let initialCache: EntityCache;
+  let logger: Logger;
 
   beforeEach(() => {
     const eds = new EntityDefinitionService([metadata]);
     const collectionCreator = new EntityCollectionCreator(eds);
     const collectionReducerFactory = new EntityCollectionReducerFactory();
+    logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
 
     entityReducerFactory = new EntityReducerFactory(
       eds,
       collectionCreator,
-      collectionReducerFactory
+      collectionReducerFactory,
+      logger
     );
 
     entityReducer = entityReducerFactory.create();
@@ -514,7 +516,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity' key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };
@@ -558,7 +560,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };
@@ -606,7 +608,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };
@@ -717,7 +719,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const heroes: Hero[] = [{ id: 42, name: 'Super' }];
       const updates = [{ id: 2, changes: heroes[0] }];
@@ -769,7 +771,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };
@@ -834,7 +836,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[13].power).toBe('Strong', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const heroes: Hero[] = [{ id: 42, name: 'Super' }];
       const updates = [{ id: 2, changes: heroes[0] }];
@@ -877,7 +879,7 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].power).toBe('Fast', 'power');
     });
 
-    it("can update existing entity's key in collection", () => {
+    it('can update existing entity key in collection', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };

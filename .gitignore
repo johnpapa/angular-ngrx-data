@@ -73,6 +73,7 @@ docker-compose.local.yml
 /dist
 /tmp
 /out-tsc
+/.ng_build
 
 # IDEs and editors
 /.idea

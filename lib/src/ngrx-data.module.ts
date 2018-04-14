@@ -31,7 +31,11 @@ import { EntityServiceFactory } from './entity-service/entity.service';
 import { EntityCache } from './reducers/entity-cache';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
-import { EntityCollectionReducerFactory } from './reducers/entity-collection.reducer';
+import {
+  EntityCollectionReducerFactory,
+  EntityCollectionReducerMethodsFactory
+} from './reducers/entity-collection.reducer';
+import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
 import {
   createEntityReducer,
   EntityReducerFactory
@@ -74,6 +78,10 @@ export interface NgrxDataModuleConfig {
     EntityReducerFactory,
     EntitySelectors$Factory,
     EntityServiceFactory,
+    {
+      provide: EntityCollectionReducerMethodsFactory,
+      useClass: DefaultEntityCollectionReducerMethodsFactory
+    },
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
     {
       provide: ENTITY_REDUCER_TOKEN,

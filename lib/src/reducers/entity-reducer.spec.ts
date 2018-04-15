@@ -9,6 +9,8 @@ import {
 } from '../actions/entity-cache-actions';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
+import { DefaultEntityCollectionReducerMethodsFactory } from './default-entity-collection-reducer-methods';
+
 import { EntityDefinitionService } from '../entity-metadata';
 import { EntityMetadataMap } from '../entity-metadata';
 import { Logger, Update } from '../utils';
@@ -63,11 +65,15 @@ describe('EntityReducer', () => {
   beforeEach(() => {
     eds = new EntityDefinitionService([metadata]);
     collectionCreator = new EntityCollectionCreator(eds);
-    collectionReducerFactory = new EntityCollectionReducerFactory();
+    const collectionReducerMethodsFactory = new DefaultEntityCollectionReducerMethodsFactory(
+      eds
+    );
+    collectionReducerFactory = new EntityCollectionReducerFactory(
+      collectionReducerMethodsFactory
+    );
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
 
     entityReducerFactory = new EntityReducerFactory(
-      eds,
       collectionCreator,
       collectionReducerFactory,
       logger
@@ -308,7 +314,6 @@ describe('EntityReducer', () => {
       const metaReducers = [metaReducerA, metaReducerB];
 
       entityReducerFactory = new EntityReducerFactory(
-        eds,
         collectionCreator,
         collectionReducerFactory,
         logger,

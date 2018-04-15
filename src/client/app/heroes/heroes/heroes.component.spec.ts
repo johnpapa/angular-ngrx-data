@@ -18,12 +18,7 @@ import {
   EntityAction,
   EntityActionFactory,
   EntityCache,
-  EntityOp,
-  EntityEffects,
-  EntityCollectionReducer,
-  EntityReducerFactory,
-  EntityService,
-  persistOps
+  EntityOp
 } from 'ngrx-data';
 
 import { Observable } from 'rxjs/Observable';

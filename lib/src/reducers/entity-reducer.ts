@@ -2,11 +2,7 @@ import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
 import { Action, ActionReducer, compose, MetaReducer } from '@ngrx/store';
 
-import { EntityAdapter } from '@ngrx/entity';
-import { IdSelector, Update } from '../utils';
-
 import { EntityAction } from '../actions/entity-action';
-import { EntityOp } from '../actions/entity-op';
 import { EntityCache } from './entity-cache';
 import {
   MERGE_ENTITY_CACHE,
@@ -19,8 +15,6 @@ import {
   EntityCollectionReducer,
   EntityCollectionReducerFactory
 } from './entity-collection.reducer';
-import { EntityDefinition } from '../entity-metadata/entity-definition';
-import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { Logger } from '../utils/logger';
 
 export interface EntityCollectionReducers {
@@ -38,7 +32,6 @@ export class EntityReducerFactory {
   >;
 
   constructor(
-    private entityDefinitionService: EntityDefinitionService,
     private entityCollectionCreator: EntityCollectionCreator,
     private entityCollectionReducerFactory: EntityCollectionReducerFactory,
     private logger: Logger,
@@ -106,18 +99,12 @@ export class EntityReducerFactory {
    * @param entityName Name of the entity type for this reducer
    */
   getOrCreateReducer<T>(entityName: string): EntityCollectionReducer<T> {
-    let def: EntityDefinition;
     let reducer: EntityCollectionReducer<T> = this.entityCollectionReducers[
       entityName
     ];
 
     if (!reducer) {
-      def = this.entityDefinitionService.getDefinition(entityName);
-      reducer = this.entityCollectionReducerFactory.create(
-        entityName,
-        def.entityAdapter,
-        def.selectId
-      );
+      reducer = this.entityCollectionReducerFactory.create<T>(entityName);
       reducer = this.registerReducer<T>(entityName, reducer);
       this.entityCollectionReducers[entityName] = reducer;
     }

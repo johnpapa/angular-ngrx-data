@@ -1,5 +1,28 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.8"></a>
+
+# 1.0.0-beta.8 (2018-04-14)
+
+* refactor: EntityCollectionReducer rewritten to delegate to `EntityCollectionReducerMethods`.
+
+#### _EntityCollectionReducerMethods_
+
+This makes it much easier to customize the reducer methods.
+Formerly they were hidden within the `switch()`, which meant you had to effectively replace the
+entire collection reducer if you wanted to change the behavior of a single action.
+
+The default collection reducer methods are in the `DefaultEntityCollectionReducerMethods`.
+This produces a map of `EntityOps` to entity collection reducer methods.
+These methods rely on the `DefaultEntityCollectionReducerMethods` class properties
+that you can override.
+Alternatively, you can replace any of them by name with your own method.
+You could also add new "operations" and reducer methods to meet your custom needs.
+
+You'll probably make such changes within a replacement implementation of the
+`EntityCollectionReducerMethodsFactory`, an abstract class with _one_ simple method,
+that is the injection token for a class that produces `EntityCollectionReducerMethods`.
+
 <a name="1.0.0-beta.7"></a>
 
 # 1.0.0-beta.7 (2018-04-13)

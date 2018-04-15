@@ -20,18 +20,19 @@ export class EntityActionFactory {
     op?: EntityOp,
     payload?: P,
     error?: Error
-  ) {
+  ): EntityAction<P> {
     let entityName: string;
 
     if (typeof nameOrAction === 'string') {
       if (nameOrAction == null) {
-        throw new Error('Missing entity name for new action')
-      };
+        throw new Error('Missing entity name for new action');
+      }
       if (op == null) {
         throw new Error('Missing EntityOp for new action');
       }
       entityName = nameOrAction.trim();
-    } else { // is an EntityAction
+    } else {
+      // is an EntityAction
       entityName = nameOrAction.entityName;
       op = op || nameOrAction.op;
       if (arguments.length < 3) {
@@ -39,9 +40,9 @@ export class EntityActionFactory {
       }
     }
     const type = this.formatActionType(op, entityName);
-    return error ?
-      { type, entityName, op, payload, error } :
-      { type, entityName, op, payload };
+    return error
+      ? { type, entityName, op, payload, error }
+      : { type, entityName, op, payload };
   }
 
   formatActionType(op: string, entityName: string) {

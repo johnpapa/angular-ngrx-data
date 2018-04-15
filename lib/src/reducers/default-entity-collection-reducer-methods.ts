@@ -44,7 +44,7 @@ export class DefaultEntityCollectionReducerMethodsFactory
  */
 export class DefaultEntityCollectionReducerMethods<T> {
   protected adapter: EntityAdapter<T>;
-  protected guard: EntityActionGuard<T>;
+  protected guard: EntityActionGuard;
 
   /** Extract the primary key (id); default to `id` */
   selectId: IdSelector<T>;
@@ -78,7 +78,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
       );
     }
 
-    this.guard = new EntityActionGuard<T>(entityName, this.selectId);
+    this.guard = new EntityActionGuard(this.selectId);
     this.toUpdate = toUpdateFactory(this.selectId);
   }
 
@@ -205,7 +205,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T>
   ) {
     // Ensure the server generated the primary key if the client didn't send one.
-    this.guard.mustBeEntities([action.payload], action.op, true);
+    this.guard.mustBeEntity(action);
     return this.adapter.addOne(action.payload, collection);
   }
 
@@ -217,7 +217,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T>
   ): EntityCollection<T> {
     // Ensure the server generated the primary key if the client didn't send one.
-    this.guard.mustBeEntities([action.payload], action.op, true);
+    this.guard.mustBeEntity(action);
     return this.adapter.addOne(action.payload, collection);
   }
 
@@ -231,7 +231,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T>
   ): EntityCollection<T> {
-    this.guard.mustBeEntities([action.payload], action.op, true);
+    this.guard.mustBeEntity(action);
     const update = this.toUpdate(action.payload);
     return this.adapter.updateOne(update, collection);
   }
@@ -269,7 +269,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
-    this.guard.mustBeUpdates([action.payload], action.op, true);
+    this.guard.mustBeUpdate(action);
     return collection;
   }
 
@@ -289,7 +289,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
-    this.guard.mustBeUpdates([action.payload], action.op, true);
+    this.guard.mustBeUpdate(action);
     return this.adapter.upsertOne(action.payload, collection);
   }
 
@@ -316,7 +316,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T[]>
   ): EntityCollection<T> {
-    this.guard.mustBeEntities(action.payload, action.op);
+    this.guard.mustBeEntities(action);
     return this.adapter.addAll(action.payload, collection);
   }
 
@@ -324,7 +324,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T[]>
   ): EntityCollection<T> {
-    this.guard.mustBeEntities(action.payload, action.op);
+    this.guard.mustBeEntities(action);
     return this.adapter.addMany(action.payload, collection);
   }
 
@@ -332,7 +332,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T>
   ): EntityCollection<T> {
-    this.guard.mustBeEntities([action.payload], action.op, true);
+    this.guard.mustBeEntity(action);
     return this.adapter.addOne(action.payload, collection);
   }
 
@@ -369,7 +369,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<Update<T>[]>
   ): EntityCollection<T> {
     // payload must be an array of `Updates<T>`, not entities
-    this.guard.mustBeUpdates(action.payload, action.op);
+    this.guard.mustBeUpdates(action);
     return this.adapter.updateMany(action.payload, collection);
   }
 
@@ -378,7 +378,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
     // payload must be an `Update<T>`, not an entity
-    this.guard.mustBeUpdates([action.payload], action.op, true);
+    this.guard.mustBeUpdate(action);
     return this.adapter.updateOne(action.payload, collection);
   }
 
@@ -388,7 +388,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
   ): EntityCollection<T> {
     // <v6: payload must be an array of `Updates<T>`, not entities
     // v6+: payload must be a T
-    this.guard.mustBeUpdates(action.payload, action.op);
+    this.guard.mustBeUpdates(action);
     return this.adapter.upsertMany(action.payload, collection);
   }
 
@@ -398,7 +398,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
   ): EntityCollection<T> {
     // <v6: payload must be an `Update<T>`, not an entity
     // v6+: payload must be a T
-    this.guard.mustBeUpdates([action.payload], action.op, true);
+    this.guard.mustBeUpdate(action);
     return this.adapter.upsertOne(action.payload, collection);
   }
 

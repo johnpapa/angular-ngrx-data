@@ -1,5 +1,20 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.9"></a>
+
+# 1.0.0-beta.9 (2018-04-14)
+
+* refactor: Specified return type for `EntityActionFactory.create<P>`(`EntityAction<P>`);
+
+* fix: `EntityDispatcher` must create actions with `EntityActionFactory` and only then run guard logic.
+  This allows the developer to create an `EntityActionFactory` that can "correct" the payload
+  before the guard passes judgement on it.
+
+* break: `EntityDispatcher.dispatch` only takes an `EntityAction`.
+  Call `EntityDispatcher.createAndDispatch` if you want to create the action and immediately dispatch it.
+
+* break: `EntityActionGuard` completely overhauled. Will break the few who call it directly.
+
 <a name="1.0.0-beta.8"></a>
 
 # 1.0.0-beta.8 (2018-04-14)

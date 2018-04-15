@@ -369,9 +369,7 @@ describe('EntityCollectionReducer', () => {
       const action = createTestAction(<any>hero);
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
-      expect(action.error.message).toMatch(
-        /payload is not an entity with a valid key/
-      );
+      expect(action.error.message).toMatch(/missing or invalid entity key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -407,9 +405,7 @@ describe('EntityCollectionReducer', () => {
       const action = createTestAction(<any>hero);
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
-      expect(action.error.message).toMatch(
-        /payload is not an entity with a valid key/
-      );
+      expect(action.error.message).toMatch(/missing or invalid entity key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -469,9 +465,7 @@ describe('EntityCollectionReducer', () => {
       const action = createTestAction(<any>hero);
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
-      expect(action.error.message).toMatch(
-        /payload is not an entity with a valid key/
-      );
+      expect(action.error.message).toMatch(/missing or invalid entity key/);
     });
 
     // because the hero was already added to the collection by SAVE_ADD_ONE_OPTIMISTIC
@@ -661,9 +655,7 @@ describe('EntityCollectionReducer', () => {
       const action = createTestAction(<any>hero);
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
-      expect(action.error.message).toMatch(
-        /payload is not an entity with a valid key/
-      );
+      expect(action.error.message).toMatch(/missing or invalid entity key/);
     });
 
     it('should NOT update an existing entity in collection', () => {
@@ -760,9 +752,7 @@ describe('EntityCollectionReducer', () => {
       const action = createTestAction(<any>hero);
       const state = entityReducer(initialCache, action);
       expect(state).toBe(initialCache);
-      expect(action.error.message).toMatch(
-        /payload is not an Update<Hero> with a valid id/
-      );
+      expect(action.error.message).toMatch(/missing or invalid entity key/);
     });
 
     it('should update existing entity in collection', () => {

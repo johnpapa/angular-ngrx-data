@@ -29,7 +29,7 @@ export interface EntityDispatcher<T> extends EntityCommands<T> {
   /**
    * Utility class with methods to validate EntityAction payloads.
    */
-  readonly guard: EntityActionGuard<T>;
+  readonly guard: EntityActionGuard;
 
   /** Returns the primary key (id) of this entity */
   readonly selectId: IdSelector<T>;
@@ -45,17 +45,18 @@ export interface EntityDispatcher<T> extends EntityCommands<T> {
   createEntityAction(op: EntityOp, payload?: any): EntityAction;
 
   /**
+   * Create an {EntityAction} for this entity type and
+   * dispatch it immediately to the store.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  createAndDispatch(op: EntityOp, payload?: any): void;
+
+  /**
    * Dispatch action to the store.
    * @param action the Action
    */
   dispatch(action: Action): void;
-
-  /**
-   * Create an {EntityAction} for this entity type and dispatch it to the store.
-   * @param op {EntityOp} the entity operation
-   * @param payload the action payload
-   */
-  dispatch(op: EntityOp, payload?: any): void;
 
   /**
    * Convert an entity (or partial entity) into the `Update<T>` object
@@ -68,7 +69,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /**
    * Utility class with methods to validate EntityAction payloads.
    */
-  guard: EntityActionGuard<T>;
+  guard: EntityActionGuard;
 
   /**
    * Convert an entity (or partial entity) into the `Update<T>` object
@@ -91,7 +92,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
      */
     public options: EntityDispatcherOptions
   ) {
-    this.guard = new EntityActionGuard<T>(entityName, selectId);
+    this.guard = new EntityActionGuard(selectId);
     this.toUpdate = toUpdateFactory<T>(selectId);
   }
 
@@ -103,29 +104,24 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   createEntityAction(op: EntityOp, payload?: any): EntityAction {
     return this.entityActionFactory.create<T>(this.entityName, op, payload);
   }
+
+  /**
+   * Create an {EntityAction} for this entity type and
+   * dispatch it immediately to the store.
+   * @param op {EntityOp} the entity operation
+   * @param payload the action payload
+   */
+  createAndDispatch(op: EntityOp, payload?: any): void {
+    const action = this.createEntityAction(op, payload);
+    this.dispatch(action);
+  }
+
   /**
    * Dispatch {EntityAction} to the store.
    * @param action the EntityAction
    */
-  dispatch(action: Action): void;
-
-  /**
-   * Create an {EntityAction} for this entity type and dispatch it to the store.
-   * @param op {EntityOp} the entity operation
-   * @param payload the action payload
-   */
-  dispatch(op: EntityOp, payload?: any): void;
-  dispatch(opOrAction: EntityOp | Action, payload?: any) {
-    if (typeof opOrAction === 'string') {
-      this._dispatch(opOrAction, payload);
-    } else {
-      this.store.dispatch(opOrAction);
-    }
-  }
-
-  // mono-morphic version for internal use
-  private _dispatch(op: EntityOp, payload?: any): void {
-    this.store.dispatch(this.createEntityAction(op, payload));
+  dispatch(action: Action): void {
+    this.store.dispatch(action);
   }
 
   /**
@@ -139,10 +135,12 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     const op = isOptimistic
       ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC
       : EntityOp.SAVE_ADD_ONE;
+
+    const action = this.createEntityAction(op, entity);
     if (isOptimistic) {
-      this.guard.mustBeEntities([entity], op, true);
+      this.guard.mustBeEntity(action);
     }
-    this._dispatch(op, entity);
+    this.dispatch(action);
   }
 
   /**
@@ -167,8 +165,9 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       ? EntityOp.SAVE_DELETE_ONE_OPTIMISTIC
       : EntityOp.SAVE_DELETE_ONE;
     const key = this.getKey(arg);
-    this.guard.mustBeIds([key], op, true);
-    this._dispatch(op, key);
+    const action = this.createEntityAction(op, key);
+    this.guard.mustBeKey(action);
+    this.dispatch(action);
   }
 
   /**
@@ -176,7 +175,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * completely replace the cached collection with the queried entities.
    */
   getAll(): void {
-    this.dispatch(EntityOp.QUERY_ALL);
+    this.createAndDispatch(EntityOp.QUERY_ALL);
   }
 
   /**
@@ -185,7 +184,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * merge it into the cached collection.
    */
   getByKey(key: any): void {
-    this.dispatch(EntityOp.QUERY_BY_KEY, key);
+    this.createAndDispatch(EntityOp.QUERY_BY_KEY, key);
   }
 
   /**
@@ -194,7 +193,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * and merge the results into the cached collection.
    */
   getWithQuery(queryParams: QueryParams | string): void {
-    this.dispatch(EntityOp.QUERY_MANY, queryParams);
+    this.createAndDispatch(EntityOp.QUERY_MANY, queryParams);
   }
 
   /**
@@ -213,8 +212,10 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     : this.options.optimisticUpdate)
       ? EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC
       : EntityOp.SAVE_UPDATE_ONE;
-    this.guard.mustBeUpdates([update], op, true);
-    this._dispatch(op, update);
+
+    const action = this.createEntityAction(op, update);
+    this.guard.mustBeUpdate(action);
+    this.dispatch(action);
   }
 
   /*** Cache-only operations that do not update remote storage ***/
@@ -230,7 +231,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not save to remote storage.
    */
   addAllToCache(entities: T[]): void {
-    this.dispatch(EntityOp.ADD_ALL, entities);
+    this.createAndDispatch(EntityOp.ADD_ALL, entities);
   }
 
   /**
@@ -239,7 +240,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Ignored if an entity with the same primary key is already in cache.
    */
   addOneToCache(entity: T): void {
-    this.dispatch(EntityOp.ADD_ONE, entity);
+    this.createAndDispatch(EntityOp.ADD_ONE, entity);
   }
 
   /**
@@ -248,12 +249,12 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Entities with primary keys already in cache are ignored.
    */
   addManyToCache(entities: T[]): void {
-    this.dispatch(EntityOp.ADD_MANY, entities);
+    this.createAndDispatch(EntityOp.ADD_MANY, entities);
   }
 
   /** Clear the cached entity collection */
   clearCache(): void {
-    this.dispatch(EntityOp.REMOVE_ALL);
+    this.createAndDispatch(EntityOp.REMOVE_ALL);
   }
 
   /**
@@ -270,7 +271,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    */
   removeOneFromCache(key: number | string): void;
   removeOneFromCache(arg: (number | string) | T): void {
-    this._dispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
+    this.createAndDispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
   }
 
   /**
@@ -295,7 +296,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
         ? // if array[0] is a key, assume they're all keys
           (<T[]>args).map(arg => this.getKey(arg))
         : args;
-    this._dispatch(EntityOp.REMOVE_MANY, keys);
+    this.createAndDispatch(EntityOp.REMOVE_MANY, keys);
   }
 
   /**
@@ -309,7 +310,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    this._dispatch(EntityOp.UPDATE_ONE, update);
+    this.createAndDispatch(EntityOp.UPDATE_ONE, update);
   }
 
   /**
@@ -324,7 +325,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       return;
     }
     const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this._dispatch(EntityOp.UPDATE_MANY, updates);
+    this.createAndDispatch(EntityOp.UPDATE_MANY, updates);
   }
 
   /**
@@ -335,7 +336,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    */
   upsertOneInCache(entity: Partial<T>): void {
     const upsert: Update<T> = this.toUpdate(entity);
-    this.dispatch(EntityOp.UPSERT_ONE, upsert);
+    this.createAndDispatch(EntityOp.UPSERT_ONE, upsert);
   }
 
   /**
@@ -347,7 +348,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       return;
     }
     const upserts: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this._dispatch(EntityOp.UPSERT_MANY, upserts);
+    this.createAndDispatch(EntityOp.UPSERT_MANY, upserts);
   }
 
   /**
@@ -355,17 +356,17 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * when using the `filteredEntities` selector.
    */
   setFilter(pattern: any): void {
-    this.dispatch(EntityOp.SET_FILTER, pattern);
+    this.createAndDispatch(EntityOp.SET_FILTER, pattern);
   }
 
   /** Set the loaded flag */
   setLoaded(isLoaded: boolean): void {
-    this.dispatch(EntityOp.SET_LOADED, !!isLoaded);
+    this.createAndDispatch(EntityOp.SET_LOADED, !!isLoaded);
   }
 
   /** Set the loading flag */
   setLoading(isLoading: boolean): void {
-    this.dispatch(EntityOp.SET_LOADED, !!isLoading);
+    this.createAndDispatch(EntityOp.SET_LOADED, !!isLoading);
   }
 
   /** Get key from entity (unless arg is already a key) */

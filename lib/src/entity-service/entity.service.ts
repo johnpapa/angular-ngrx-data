@@ -85,19 +85,21 @@ export class EntityServiceBase<
   }
 
   /**
-   * Dispatch action to the store.
-   * @param action the EntityAction
-   */
-  dispatch(action: Action): void;
-
-  /**
-   * Create an {EntityAction} for this entity type and dispatch it to the store.
+   * Create an {EntityAction} for this entity type and
+   * dispatch it immediately to the store.
    * @param op {EntityOp} the entity operation
    * @param payload the action payload
    */
-  dispatch(op: EntityOp, payload?: any): void;
-  dispatch(opOrAction: any, payload?: any): void {
-    this.dispatcher.dispatch(opOrAction);
+  createAndDispatch(op: EntityOp, payload?: any): void {
+    this.dispatcher.createAndDispatch(op, payload);
+  }
+
+  /**
+   * Dispatch action to the store.
+   * @param action the EntityAction
+   */
+  dispatch(action: Action): void {
+    this.dispatcher.dispatch(action);
   }
 
   get store() {
@@ -107,7 +109,7 @@ export class EntityServiceBase<
   /**
    * Utility class with methods to validate EntityAction payloads.
    */
-  guard: EntityActionGuard<T>;
+  guard: EntityActionGuard;
 
   /** Returns the primary key (id) of this entity */
   selectId: IdSelector<T>;

@@ -1,6 +1,11 @@
 import { Inject, Injectable } from '@angular/core';
 
-import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
+import {
+  createFeatureSelector,
+  createSelector,
+  Selector,
+  Store
+} from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
@@ -8,9 +13,9 @@ import { Dictionary } from '../utils';
 import { EntityActions } from '../actions/entity-actions';
 import { OP_ERROR } from '../actions/entity-op';
 import { EntitySelectors } from './entity-selectors';
-import { EntityCache  } from '../reducers/entity-cache';
+import { EntityCache } from '../reducers/entity-cache';
 import { ENTITY_CACHE_NAME_TOKEN } from '../reducers/constants';
-import { EntityCollection  } from '../reducers/entity-collection';
+import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 
 /**
@@ -56,8 +61,7 @@ export interface EntitySelectors$<T> {
 
 @Injectable()
 export class EntitySelectors$Factory {
-
-  private cacheSelector: Selector<Object, EntityCache>;
+  cacheSelector: Selector<Object, EntityCache>;
 
   /** Observable of the EntityCache */
   entityCache$: Store<EntityCache>;
@@ -68,41 +72,58 @@ export class EntitySelectors$Factory {
     private store: Store<any>,
     private entityActions$: EntityActions
   ) {
-      // This service applies to the cache in ngrx/store named `cacheName`
-      this.cacheSelector = createFeatureSelector<EntityCache>(cacheName);
-      this.entityCache$ = this.store.select(this.cacheSelector);
+    // This service applies to the cache in ngrx/store named `cacheName`
+    this.cacheSelector = createFeatureSelector<EntityCache>(cacheName);
+    this.entityCache$ = this.store.select(this.cacheSelector);
   }
+
   /**
    * Creates an entity collection's selectors$ observables for a given EntityCache store.
    * `selectors$` are observable selectors of the cached entity collection.
    * @param entityName - is also the name of the collection.
    * @param selectors - selector functions for this collection.
    **/
-  create<
-    T,
-    S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-    >(
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
     entityName: string,
     selectors: EntitySelectors<T>
   ): S$ {
-    const cc = createCachedCollectionSelector<T>(entityName, this.cacheSelector, this.entityCollectionCreator);
-    const collection$ = this.store.select(cc);
+    const collectionSelector = this.createCollectionSelector<T>(entityName);
+    const collection$ = this.store.select(collectionSelector);
 
-    const selectors$: S$ = <any> {};
+    const selectors$: S$ = <any>{};
 
-    Object.keys(selectors).forEach(
-      name => {
-        // strip 'select' prefix from the selector fn name and append `$`
-        // Ex: 'selectEntities' => 'entities$'
-        const name$ = name[6].toLowerCase() + name.substr(7) + '$';
-        (<any>selectors$)[name$] = collection$.select((<any>selectors)[name]
-      )}
-    );
+    Object.keys(selectors).forEach(name => {
+      // strip 'select' prefix from the selector fn name and append `$`
+      // Ex: 'selectEntities' => 'entities$'
+      const name$ = name[6].toLowerCase() + name.substr(7) + '$';
+      const selector = createSelector(
+        collectionSelector,
+        (<any>selectors)[name]
+      );
+      (<any>selectors$)[name$] = this.store.select(selector);
+    });
     selectors$.entityActions$ = this.entityActions$.ofEntityType(entityName);
-    selectors$.errors$ = selectors$.entityActions$.where(ea => ea.op.endsWith(OP_ERROR));
+    selectors$.errors$ = selectors$.entityActions$.where(ea =>
+      ea.op.endsWith(OP_ERROR)
+    );
     selectors$.collection$ = collection$;
 
     return selectors$;
+  }
+
+  /**
+   * Create the NgRx selector from the store root to the collection
+   * @param entityName the name of the collection
+   */
+  createCollectionSelector<
+    T = any,
+    C extends EntityCollection<T> = EntityCollection<T>
+  >(entityName: string) {
+    return createCachedCollectionSelector<T, C>(
+      entityName,
+      this.cacheSelector,
+      this.entityCollectionCreator
+    );
   }
 }
 
@@ -114,12 +135,16 @@ export class EntitySelectors$Factory {
  * if the collection is undefined when the selector is invoked
  * (as happens with time-travel debugging).
  */
-export function createCachedCollectionSelector<T, C extends EntityCollection<T> = EntityCollection<T>> (
+export function createCachedCollectionSelector<
+  T,
+  C extends EntityCollection<T> = EntityCollection<T>
+>(
   collectionName: string,
   cacheSelector: Selector<Object, EntityCache>,
   entityCollectionCreator: EntityCollectionCreator
 ): Selector<Object, C> {
   const getCollection = (cache: EntityCache = {}) =>
-    <C> (cache[collectionName] || entityCollectionCreator.create<T>(collectionName));
+    <C>(cache[collectionName] ||
+      entityCollectionCreator.create<T>(collectionName));
   return createSelector(cacheSelector, getCollection);
 }

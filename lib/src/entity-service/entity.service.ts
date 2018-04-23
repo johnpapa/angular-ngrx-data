@@ -13,12 +13,14 @@ import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
+import { EntitySelectors } from '../selectors/entity-selectors';
 import {
   EntitySelectors$,
   EntitySelectors$Factory
 } from '../selectors/entity-selectors$';
 import { QueryParams } from '../dataservices/interfaces';
 
+// tslint:disable:member-ordering
 /**
  * A dispatcher and selector$ facade for managing
  * a cached collection of T entities in the ngrx store.
@@ -26,9 +28,18 @@ import { QueryParams } from '../dataservices/interfaces';
 export interface EntityService<T>
   extends EntityDispatcher<T>,
     EntitySelectors$<T> {
-  /** All selectors$ (observables of entity collection properties) */
+  /** Create an EntityAction for this collection */
+  createEntityAction(op: EntityOp, payload?: any): EntityAction<T>;
+  /** Dispatch an action to the NgRx Store */
+  dispatch(action: Action): void;
+  /** All selector functions of the entity collection */
+  selectors: EntitySelectors<T>;
+  /** All selectors$ (observables of the selectors of entity collection properties) */
   selectors$: EntitySelectors$<T>;
+  /** The Ngrx Store for the EntityCache */
+  readonly store: Store<EntityCache>;
 }
+// tslint:enable:member-ordering
 
 // tslint:disable:member-ordering
 /**
@@ -42,6 +53,7 @@ export class EntityServiceBase<
   T,
   S$ extends EntitySelectors$<T> = EntitySelectors$<T>
 > implements EntityService<T> {
+  selectors: EntitySelectors<T>;
   private dispatcher: EntityDispatcher<T>;
 
   constructor(public entityName: string, factory: EntityServiceFactory) {
@@ -56,6 +68,7 @@ export class EntityServiceBase<
     this.selectId = this.dispatcher.selectId;
     this.toUpdate = this.dispatcher.toUpdate;
 
+    this.selectors = def.selectors;
     const selectors$ = factory.entitySelectors$Factory.create<T, S$>(
       entityName,
       def.selectors
@@ -102,6 +115,7 @@ export class EntityServiceBase<
     this.dispatcher.dispatch(action);
   }
 
+  /** The NgRx Store for the {EntityCache} */
   get store() {
     return this.dispatcher.store;
   }

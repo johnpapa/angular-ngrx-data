@@ -1,5 +1,15 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.10"></a>
+
+# 1.0.0-beta.10 (2018-04-22)
+
+Writing and testing related-entity selectors
+
+* feature: expose `selectors` in `EntityService<T>` and in `EntityServiceBase<T>`.
+* feature: add `entitySelectors$Factory.createCollectionSelector`
+* feature: `related-entity-selectors.spec.ts` demonstrates usage.
+
 <a name="1.0.0-beta.9"></a>
 
 # 1.0.0-beta.9 (2018-04-14)

@@ -11,10 +11,10 @@ import { EntityMetadata } from '../entity-metadata/entity-metadata';
  * The selector functions for entity collection members.
  */
 export interface EntitySelectors<T> {
-    /** Count of entities in the cached collection. */
+  /** Count of entities in the cached collection. */
   selectCount: Selector<EntityCollection<T>, number>;
 
-   /** All entities in the cached collection. */
+  /** All entities in the cached collection. */
   selectEntities: Selector<EntityCollection<T>, T[]>;
 
   /** Map of entity keys to entities */
@@ -43,9 +43,9 @@ export interface EntitySelectors<T> {
  * @param filterFn - the collection's {EntityFilterFn}.
  */
 export function createEntitySelectors<
-  T, S extends EntitySelectors<T> = EntitySelectors<T>>(
-  metadata: EntityMetadata<T>
-): S {
+  T,
+  S extends EntitySelectors<T> = EntitySelectors<T>
+>(metadata: EntityMetadata<T>): S {
   // Mostly copied from `@ngrx/entity/state_selectors.ts`
   const selectKeys = (c: EntityCollection<T>) => c.ids;
   const selectEntityMap = (c: EntityCollection<T>) => c.entities;
@@ -53,7 +53,8 @@ export function createEntitySelectors<
   const selectEntities = createSelector(
     selectKeys,
     selectEntityMap,
-    (keys: any[], entities: Dictionary<T>): any => keys.map(key => entities[key] as T)
+    (keys: (number | string)[], entities: Dictionary<T>): T[] =>
+      keys.map(key => entities[key] as T)
   );
 
   const selectCount = createSelector(selectKeys, keys => keys.length);
@@ -63,8 +64,10 @@ export function createEntitySelectors<
 
   const filterFn = metadata.filterFn;
   const selectFilteredEntities = filterFn
-    ? createSelector(selectEntities, selectFilter, (entities: T[], pattern: any): T[] =>
-        filterFn(entities, pattern)
+    ? createSelector(
+        selectEntities,
+        selectFilter,
+        (entities: T[], pattern: any): T[] => filterFn(entities, pattern)
       )
     : selectEntities;
 
@@ -75,20 +78,22 @@ export function createEntitySelectors<
   // Create selectors for each `additionalCollectionState` property.
   const extra = metadata.additionalCollectionState || {};
   const extraSelectors: { [name: string]: Selector<any, any> } = {};
-  Object.keys(extra).forEach(k =>
-    extraSelectors['select' + k[0].toUpperCase() + k.slice(1)] =
-      (c: any) => c[k]);
+  Object.keys(extra).forEach(
+    k =>
+      (extraSelectors['select' + k[0].toUpperCase() + k.slice(1)] = (c: any) =>
+        c[k])
+  );
 
-  return <S> <any> {
-    selectKeys,
-    selectEntityMap,
-    selectEntities,
+  return <S>(<any>{
     selectCount,
+    selectEntities,
+    selectEntityMap,
     selectFilter,
     selectFilteredEntities,
+    selectKeys,
     selectLoaded,
     selectLoading,
     selectOriginalValues,
     ...extraSelectors
-  };
+  });
 }

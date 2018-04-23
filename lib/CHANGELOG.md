@@ -4,11 +4,15 @@
 
 # 1.0.0-beta.10 (2018-04-22)
 
-Writing and testing related-entity selectors
+Writing and testing related-entity selectors.
+
+The **`related-entity-selectors.spec.ts`** demonstrates usage.
 
 * feature: expose `selectors` in `EntityService<T>` and in `EntityServiceBase<T>`.
 * feature: add `entitySelectors$Factory.createCollectionSelector`
-* feature: `related-entity-selectors.spec.ts` demonstrates usage.
+* feature: `EntityServiceFactory` now an abstract interface-class, implemented with `DefaultEntityServiceFactory`.
+* break: shuffled methods and pruned members that shouldn't be exposed.
+* break: certain create functions are now members of factories.
 
 <a name="1.0.0-beta.9"></a>
 

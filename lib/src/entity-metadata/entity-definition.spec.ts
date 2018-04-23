@@ -1,18 +1,18 @@
 import { EntityMetadata } from './entity-metadata';
 import { EntityFilterFn } from './entity-filters';
 import { IdSelector, Comparer } from '../utils';
-import { createEntitySelectors, EntitySelectors } from '../selectors';
+import { EntitySelectors } from '../selectors';
 
 import { createEntityDefinition } from './entity-definition';
 
 interface Hero {
-  id: number,
-  name: string
+  id: number;
+  name: string;
 }
 
 interface NonIdClass {
   key: string;
-  something: any
+  something: any;
 }
 
 const sorter = <T>(a: T, b: T) => 'foo';
@@ -28,14 +28,12 @@ const HERO_METADATA: EntityMetadata<Hero> = {
 };
 
 describe('EntityDefinition', () => {
-
   let heroMetadata: EntityMetadata<Hero>;
 
   describe('#createEntityDefinition', () => {
-
     beforeEach(() => {
       heroMetadata = { ...HERO_METADATA };
-    })
+    });
 
     it('generates expected `initialState`', () => {
       const def = createEntityDefinition(heroMetadata);
@@ -47,15 +45,18 @@ describe('EntityDefinition', () => {
         loaded: false,
         loading: false,
         originalValues: {}
-      })
+      });
     });
 
     it('generates expected `initialState` when `additionalCollectionState`', () => {
       // extend Hero collection metadata with more collection state
-      const metadata = { ...heroMetadata, additionalCollectionState: { foo: 'foo'} };
+      const metadata = {
+        ...heroMetadata,
+        additionalCollectionState: { foo: 'foo' }
+      };
       const def = createEntityDefinition(metadata);
       const initialState = def.initialState;
-      expect(initialState).toEqual(<any> {
+      expect(initialState).toEqual(<any>{
         ids: [],
         entities: {},
         filter: '',
@@ -63,19 +64,21 @@ describe('EntityDefinition', () => {
         loading: false,
         originalValues: {},
         foo: 'foo'
-      })
+      });
     });
 
     it('creates default `selectId` on the definition when no metadata.selectId', () => {
       const def = createEntityDefinition(heroMetadata);
-      expect(def.selectId({id: 42})).toBe(42);
+      expect(def.selectId({ id: 42 })).toBe(42);
     });
 
     it('creates expected `selectId` on the definition when  metadata.selectId exists', () => {
-      const metadata: EntityMetadata =
-        ({ entityName: 'NonIdClass', selectId: selectIdForNonId });
+      const metadata: EntityMetadata = {
+        entityName: 'NonIdClass',
+        selectId: selectIdForNonId
+      };
       const def = createEntityDefinition(metadata);
-      expect(def.selectId({key: 'foo'})).toBe('foo');
+      expect(def.selectId({ key: 'foo' })).toBe('foo');
     });
 
     it('sets `sortComparer` to false if not in metadata', () => {
@@ -90,27 +93,18 @@ describe('EntityDefinition', () => {
     });
 
     it('passes `metadata.entityDispatchOptions` thru', () => {
-      const options =  {
+      const options = {
         optimisticAdd: false,
-        optimisticUpdate: false,
+        optimisticUpdate: false
       };
       heroMetadata.entityDispatcherOptions = options;
       const def = createEntityDefinition(heroMetadata);
       expect(def.entityDispatcherOptions).toBe(options);
     });
 
-    it('creates expected selectors', () => {
-      const def = createEntityDefinition(heroMetadata);
-      const expectedSelectors = createEntitySelectors(def.metadata);
-      expect(Object.keys(def.selectors)).toEqual(
-        Object.keys(expectedSelectors));
-    });
-
     it('throws error if missing `entityName`', () => {
-      const metadata: EntityMetadata = <any> {};
+      const metadata: EntityMetadata = <any>{};
       expect(() => createEntityDefinition(metadata)).toThrowError(/entityName/);
     });
-
-  })
-
+  });
 });

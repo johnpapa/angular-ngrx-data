@@ -26,29 +26,27 @@ import {
   ENTITY_METADATA_TOKEN
 } from '../entity-metadata/entity-metadata';
 
-import { EntitySelectors$Factory } from '../selectors/entity-selectors$';
+import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 
 import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module';
 
 import { Dictionary, Update } from '../utils/ngrx-entity-models';
 
 const entityMetadataMap: EntityMetadataMap = {
+  Battle: {},
   Hero: {},
   HeroPowerMap: {},
-  Power: {},
+  Power: {
+    sortComparer: sortByName
+  },
   Sidekick: {}
 };
 
 describe('Related-entity Selectors', () => {
   // #region setup
   let eaFactory: EntityActionFactory;
-  let entitySelectors$Factory: EntitySelectors$Factory;
+  let entitySelectorsFactory: EntitySelectorsFactory;
   let store: Store<EntityCache>;
-
-  let selectHeroCollection: Selector<Object, EntityCollection<Hero>>;
-  let selectHeroMap: Selector<Object, Dictionary<Hero>>;
-  let selectSidekickCollection: Selector<Object, EntityCollection<Sidekick>>;
-  let selectSidekickMap: Selector<Object, Dictionary<Hero>>;
 
   beforeEach(() => {
     TestBed.configureTestingModule({
@@ -66,41 +64,40 @@ describe('Related-entity Selectors', () => {
 
     store = TestBed.get(Store);
     eaFactory = TestBed.get(EntityActionFactory);
-    entitySelectors$Factory = TestBed.get(EntitySelectors$Factory);
+    entitySelectorsFactory = TestBed.get(EntitySelectorsFactory);
     initializeCache(eaFactory, store);
-    setCollectionSelectors();
   });
-
-  /** Collection selectors. Used within related-entity selectors */
-  function setCollectionSelectors() {
-    selectHeroCollection = entitySelectors$Factory.createCollectionSelector<
-      Hero
-    >('Hero');
-
-    selectHeroMap = createSelector(
-      selectHeroCollection,
-      collection => collection.entities
-    );
-
-    selectSidekickCollection = entitySelectors$Factory.createCollectionSelector<
-      Sidekick
-    >('Sidekick');
-
-    selectSidekickMap = createSelector(
-      selectSidekickCollection,
-      collection => collection.entities
-    );
-  }
 
   // #endregion setup
 
-  describe('hero sidekick', () => {
-    function createHeroSidekickSelector$(heroId: number): Observable<Sidekick> {
-      const selectSideKick = createSelector(
+  describe('hero -> sidekick (1-1)', () => {
+    function setCollectionSelectors() {
+      const heroSelectors = entitySelectorsFactory.create<Hero>({
+        entityName: 'Hero'
+      });
+      const selectHeroMap = heroSelectors.selectEntityMap;
+
+      const sidekickSelectors = entitySelectorsFactory.create<Sidekick>({
+        entityName: 'Sidekick'
+      });
+      const selectSidekickMap = sidekickSelectors.selectEntityMap;
+
+      return {
         selectHeroMap,
+        selectSidekickMap
+      };
+    }
+
+    function createHeroSidekickSelector$(heroId: number): Observable<Sidekick> {
+      const { selectHeroMap, selectSidekickMap } = setCollectionSelectors();
+      const selectHero = createSelector(
+        selectHeroMap,
+        heroes => heroes[heroId]
+      );
+      const selectSideKick = createSelector(
+        selectHero,
         selectSidekickMap,
-        (heroes, sidekicks) => {
-          const hero = heroes[heroId];
+        (hero, sidekicks) => {
           const sidekickId = hero && hero.sidekickFk;
           return sidekicks[sidekickId];
         }
@@ -108,7 +105,9 @@ describe('Related-entity Selectors', () => {
       return store.select(selectSideKick);
     }
 
-    it('can get Alpha Hero sidekick', (done: DoneFn) => {
+    // Note: async done() callback ensures test passes only if subscribe(successCallback()) called.
+
+    it('should get Alpha Hero sidekick', (done: DoneFn) => {
       createHeroSidekickSelector$(1).subscribe(sk => {
         expect(sk.name).toBe('Bob');
         done();
@@ -151,6 +150,37 @@ describe('Related-entity Selectors', () => {
       store.dispatch(action);
     });
 
+    it('changing a different hero should NOT trigger first hero selector', (done: DoneFn) => {
+      let count = 0;
+
+      createHeroSidekickSelector$(1).subscribe(sk => {
+        count += 1;
+        expect(count).toEqual(1, 'should only callback for Hero #1 once');
+      });
+
+      // update a different hero's sidekick from fk=2 (Sally) to fk=1 (Bob)
+      createHeroSidekickSelector$(2)
+        .pipe(skip(1))
+        .subscribe(sk => {
+          expect(sk.name).toBe('Bob');
+          done();
+        });
+
+      const action = eaFactory.create<Update<Hero>>(
+        'Hero',
+        EntityOp.UPDATE_ONE,
+        { id: 2, changes: { id: 2, sidekickFk: 1 } } // Bob
+      );
+      store.dispatch(action);
+    });
+
+    it('should get undefined sidekick if hero not found', (done: DoneFn) => {
+      createHeroSidekickSelector$(1234).subscribe(sk => {
+        expect(sk).toBeUndefined();
+        done();
+      });
+    });
+
     it('should get undefined sidekick from Gamma because it has no sidekickFk', (done: DoneFn) => {
       createHeroSidekickSelector$(3).subscribe(sk => {
         expect(sk).toBeUndefined();
@@ -188,6 +218,188 @@ describe('Related-entity Selectors', () => {
       store.dispatch(action);
     });
   });
+
+  describe('hero -> battles (1-m)', () => {
+    function setCollectionSelectors() {
+      const heroSelectors = entitySelectorsFactory.create<Hero>({
+        entityName: 'Hero'
+      });
+      const selectHeroMap = heroSelectors.selectEntityMap;
+
+      const battleSelectors = entitySelectorsFactory.create<Battle>({
+        entityName: 'Battle'
+      });
+      const selectBattleEntities = battleSelectors.selectEntities;
+
+      const selectHeroBattleMap = createSelector(
+        selectBattleEntities,
+        battles =>
+          battles.reduce(
+            (acc, battle) => {
+              const hid = battle.heroFk;
+              if (hid) {
+                const hbs = acc[hid];
+                acc[hid] = hbs ? hbs.concat(battle) : [battle];
+              }
+              return acc;
+            },
+            {} as { [heroId: number]: Battle[] }
+          )
+      );
+
+      return {
+        selectHeroMap,
+        selectHeroBattleMap
+      };
+    }
+
+    function createHeroBattlesSelector$(heroId: number): Observable<Battle[]> {
+      const { selectHeroMap, selectHeroBattleMap } = setCollectionSelectors();
+
+      const selectHero = createSelector(
+        selectHeroMap,
+        heroes => heroes[heroId]
+      );
+
+      const selectHeroBattles = createSelector(
+        selectHero,
+        selectHeroBattleMap,
+        (hero, heroBattleMap) => {
+          const hid = hero && hero.id;
+          return heroBattleMap[hid] || [];
+        }
+      );
+      return store.select(selectHeroBattles);
+    }
+
+    // TODO: more tests
+    // Note: async done() callback ensures test passes only if subscribe(successCallback()) called.
+
+    it('should get Alpha Hero battles', (done: DoneFn) => {
+      createHeroBattlesSelector$(1).subscribe(battles => {
+        expect(battles.length).toBe(3, 'Alpha should have 3 battles');
+        done();
+      });
+    });
+
+    it('Gamma Hero should have no battles', (done: DoneFn) => {
+      createHeroBattlesSelector$(3).subscribe(battles => {
+        expect(battles.length).toBe(0, 'Gamma should have no battles');
+        done();
+      });
+    });
+  });
+
+  describe('hero -> heropower <- power (m-m)', () => {
+    function setCollectionSelectors() {
+      const heroSelectors = entitySelectorsFactory.create<Hero>({
+        entityName: 'Hero'
+      });
+      const selectHeroMap = heroSelectors.selectEntityMap;
+
+      const powerSelectors = entitySelectorsFactory.create<Power>({
+        entityName: 'Power'
+      });
+      const selectPowerMap = powerSelectors.selectEntityMap;
+
+      const heroPowerMapSelectors = entitySelectorsFactory.create<HeroPowerMap>(
+        {
+          entityName: 'HeroPowerMap'
+        }
+      );
+      const selectHeroPowerMapEntities = heroPowerMapSelectors.selectEntities;
+
+      const selectHeroPowerIds = createSelector(
+        selectHeroPowerMapEntities,
+        hpMaps =>
+          hpMaps.reduce(
+            (acc, hpMap) => {
+              const hid = hpMap.heroFk;
+              if (hid) {
+                const hbs = acc[hid];
+                acc[hid] = hbs ? hbs.concat(hpMap.powerFk) : [hpMap.powerFk];
+              }
+              return acc;
+            },
+            {} as { [heroId: number]: number[] }
+          )
+      );
+
+      return {
+        selectHeroMap,
+        selectHeroPowerIds,
+        selectPowerMap
+      };
+    }
+
+    function createHeroPowersSelector$(heroId: number): Observable<Power[]> {
+      const {
+        selectHeroMap,
+        selectHeroPowerIds,
+        selectPowerMap
+      } = setCollectionSelectors();
+
+      const selectHero = createSelector(
+        selectHeroMap,
+        heroes => heroes[heroId]
+      );
+
+      const selectHeroPowers = createSelector(
+        selectHero,
+        selectHeroPowerIds,
+        selectPowerMap,
+        (hero, heroPowerIds, powerMap) => {
+          const hid = hero && hero.id;
+          const pids = heroPowerIds[hid] || [];
+          const powers = pids.map(id => powerMap[id]).filter(power => power);
+          return powers;
+        }
+      );
+      return store.select(selectHeroPowers);
+    }
+
+    // TODO: more tests
+    // Note: async done() callback ensures test passes only if subscribe(successCallback()) called.
+
+    it('should get Alpha Hero powers', (done: DoneFn) => {
+      createHeroPowersSelector$(1).subscribe(powers => {
+        expect(powers.length).toBe(3, 'Alpha should have 3 powers');
+        done();
+      });
+    });
+
+    it('should get Beta Hero power', (done: DoneFn) => {
+      createHeroPowersSelector$(2).subscribe(powers => {
+        expect(powers.length).toBe(1, 'Beta should have 1 power');
+        expect(powers[0].name).toBe('Invisibility');
+        done();
+      });
+    });
+
+    it('Beta Hero should have no powers after delete', (done: DoneFn) => {
+      createHeroPowersSelector$(2)
+        .pipe(skip(1))
+        .subscribe(powers => {
+          expect(powers.length).toBe(0, 'Beta should have no powers');
+          done();
+        });
+
+      // delete Beta's one power via the HeroPowerMap
+      const action: EntityAction = eaFactory.create<number>(
+        'HeroPowerMap',
+        EntityOp.REMOVE_ONE,
+        96
+      );
+      store.dispatch(action);
+    });
+
+    it('Gamma Hero should have no powers', (done: DoneFn) => {
+      createHeroPowersSelector$(3).subscribe(powers => {
+        expect(powers.length).toBe(0, 'Gamma should have no powers');
+        done();
+      });
+    });
+  });
 });
 
 // #region Test support
@@ -197,6 +409,13 @@ interface Hero {
   name: string;
   saying?: string;
   sidekickFk?: number;
+}
+
+interface Battle {
+  id: number;
+  name: string;
+  heroFk: number;
+  won: boolean;
 }
 
 interface HeroPowerMap {
@@ -215,6 +434,11 @@ interface Sidekick {
   name: string;
 }
 
+/** Sort Comparer to sort the entity collection by its name property */
+export function sortByName(a: { name: string }, b: { name: string }): number {
+  return a.name.localeCompare(b.name);
+}
+
 function initializeCache(
   eaFactory: EntityActionFactory,
   store: Store<EntityCache>
@@ -231,6 +455,14 @@ function initializeCache(
     { id: 1, name: 'Alpha', sidekickFk: 1 },
     { id: 2, name: 'Beta', sidekickFk: 2 },
     { id: 3, name: 'Gamma' } // no sidekick
+  ]);
+  store.dispatch(action);
+
+  action = eaFactory.create<Battle[]>('Battle', EntityOp.ADD_ALL, [
+    { id: 100, heroFk: 1, name: 'Plains of Yon', won: true },
+    { id: 200, heroFk: 1, name: 'Yippee-kai-eh', won: false },
+    { id: 300, heroFk: 1, name: 'Yada Yada', won: true },
+    { id: 400, heroFk: 2, name: 'Tally-hoo', won: true }
   ]);
   store.dispatch(action);
 

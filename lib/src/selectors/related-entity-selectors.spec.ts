@@ -151,11 +151,10 @@ describe('Related-entity Selectors', () => {
     });
 
     it('changing a different hero should NOT trigger first hero selector', (done: DoneFn) => {
-      let count = 0;
+      let alphaCount = 0;
 
       createHeroSidekickSelector$(1).subscribe(sk => {
-        count += 1;
-        expect(count).toEqual(1, 'should only callback for Hero #1 once');
+        alphaCount += 1;
       });
 
       // update a different hero's sidekick from fk=2 (Sally) to fk=1 (Bob)
@@ -163,6 +162,10 @@ describe('Related-entity Selectors', () => {
         .pipe(skip(1))
         .subscribe(sk => {
           expect(sk.name).toBe('Bob');
+          expect(alphaCount).toEqual(
+            1,
+            'should only callback for Hero #1 once'
+          );
           done();
         });
 
@@ -239,7 +242,11 @@ describe('Related-entity Selectors', () => {
               const hid = battle.heroFk;
               if (hid) {
                 const hbs = acc[hid];
-                acc[hid] = hbs ? hbs.concat(battle) : [battle];
+                if (hbs) {
+                  hbs.push(battle);
+                } else {
+                  acc[hid] = [battle];
+                }
               }
               return acc;
             },
@@ -282,6 +289,24 @@ describe('Related-entity Selectors', () => {
       });
     });
 
+    it('should get Alpha Hero battles again after updating one of its battles', (done: DoneFn) => {
+      // Skip the initial sidekick and check the one after update
+      createHeroBattlesSelector$(1)
+        .pipe(skip(1))
+        .subscribe(battles => {
+          expect(battles[0].name).toBe('Scalliwag');
+          done();
+        });
+
+      // update the first of the related battles
+      const action = eaFactory.create<Update<Battle>>(
+        'Battle',
+        EntityOp.UPDATE_ONE,
+        { id: 100, changes: { id: 100, name: 'Scalliwag' } }
+      );
+      store.dispatch(action);
+    });
+
     it('Gamma Hero should have no battles', (done: DoneFn) => {
       createHeroBattlesSelector$(3).subscribe(battles => {
         expect(battles.length).toBe(0, 'Gamma should have no battles');
@@ -316,8 +341,12 @@ describe('Related-entity Selectors', () => {
             (acc, hpMap) => {
               const hid = hpMap.heroFk;
               if (hid) {
-                const hbs = acc[hid];
-                acc[hid] = hbs ? hbs.concat(hpMap.powerFk) : [hpMap.powerFk];
+                const hpIds = acc[hid];
+                if (hpIds) {
+                  hpIds.push(hpMap.powerFk);
+                } else {
+                  acc[hid] = [hpMap.powerFk];
+                }
               }
               return acc;
             },

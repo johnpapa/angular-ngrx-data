@@ -10,25 +10,14 @@ import { EntityOp } from '../actions/entity-op';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection } from '../reducers/entity-collection';
-import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
-import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
+import { EntitySelectors } from '../selectors/entity-selectors';
+import { EntitySelectors$ } from '../selectors/entity-selectors$';
 import {
-  EntitySelectors$,
-  EntitySelectors$Factory
-} from '../selectors/entity-selectors$';
+  EntityService,
+  EntityServiceFactory
+} from './entity-service-interfaces';
 import { QueryParams } from '../dataservices/interfaces';
-
-/**
- * A dispatcher and selector$ facade for managing
- * a cached collection of T entities in the ngrx store.
- */
-export interface EntityService<T>
-  extends EntityDispatcher<T>,
-    EntitySelectors$<T> {
-  /** All selectors$ (observables of entity collection properties) */
-  selectors$: EntitySelectors$<T>;
-}
 
 // tslint:disable:member-ordering
 /**
@@ -42,37 +31,47 @@ export class EntityServiceBase<
   T,
   S$ extends EntitySelectors$<T> = EntitySelectors$<T>
 > implements EntityService<T> {
-  private dispatcher: EntityDispatcher<T>;
+  /** Dispatch entity actions for this entity collection */
+  readonly dispatcher: EntityDispatcher<T>;
 
-  constructor(public entityName: string, factory: EntityServiceFactory) {
-    this.entityName = entityName = entityName.trim();
-    const def = factory.entityDefinitionService.getDefinition<T>(entityName);
-    this.dispatcher = factory.entityDispatcherFactory.create<T>(
-      entityName,
-      def.selectId,
-      def.entityDispatcherOptions
-    );
-    this.guard = this.dispatcher.guard;
-    this.selectId = this.dispatcher.selectId;
-    this.toUpdate = this.dispatcher.toUpdate;
+  /** All selectors of entity collection properties */
+  readonly selectors: EntitySelectors<T>;
 
-    const selectors$ = factory.entitySelectors$Factory.create<T, S$>(
-      entityName,
-      def.selectors
-    );
+  /** All selectors$ (observables of entity collection properties) */
+  readonly selectors$: S$;
+
+  constructor(
+    public readonly entityName: string,
+    entityServiceFactory: EntityServiceFactory
+  ) {
+    entityName = entityName.trim();
+    const {
+      dispatcher,
+      selectors,
+      selectors$
+    } = entityServiceFactory.getEntityServiceElements<T, S$>(entityName);
+
+    this.entityName = entityName;
+    this.dispatcher = dispatcher;
+    this.guard = dispatcher.guard;
+    this.selectId = dispatcher.selectId;
+    this.toUpdate = dispatcher.toUpdate;
+
+    this.selectors = selectors;
     this.selectors$ = selectors$;
     this.collection$ = selectors$.collection$;
-    this.count$ = this.selectors$.count$;
-    this.entities$ = this.selectors$.entities$;
+    this.count$ = selectors$.count$;
+    this.entities$ = selectors$.entities$;
     this.entityActions$ = selectors$.entityActions$;
-    this.entityMap$ = this.selectors$.entityMap$;
+    this.entityCache$ = selectors$.entityCache$;
+    this.entityMap$ = selectors$.entityMap$;
     this.errors$ = selectors$.errors$;
-    this.filter$ = this.selectors$.filter$;
-    this.filteredEntities$ = this.selectors$.filteredEntities$;
-    this.keys$ = this.selectors$.keys$;
-    this.loaded$ = this.selectors$.loaded$;
-    this.loading$ = this.selectors$.loading$;
-    this.originalValues$ = this.selectors$.originalValues$;
+    this.filter$ = selectors$.filter$;
+    this.filteredEntities$ = selectors$.filteredEntities$;
+    this.keys$ = selectors$.keys$;
+    this.loaded$ = selectors$.loaded$;
+    this.loading$ = selectors$.loading$;
+    this.originalValues$ = selectors$.originalValues$;
   }
 
   /**
@@ -102,6 +101,7 @@ export class EntityServiceBase<
     this.dispatcher.dispatch(action);
   }
 
+  /** The NgRx Store for the {EntityCache} */
   get store() {
     return this.dispatcher.store;
   }
@@ -329,6 +329,9 @@ export class EntityServiceBase<
   /** Observable of actions related to this entity type. */
   entityActions$: EntityActions;
 
+  /** Observable of error actions related to this entity type. */
+  entityCache$: Observable<EntityCache> | Store<EntityCache>;
+
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
@@ -353,39 +356,5 @@ export class EntityServiceBase<
   /** Original entity values for entities with unsaved changes */
   originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
-  /** All selectors$ (observables of entity collection properties) */
-  selectors$: S$;
-
   // endregion Selectors$
-}
-// tslint:enable:member-ordering
-
-/**
- * Creates EntityService instances for
- * a cached collection of T entities in the ngrx store.
- */
-@Injectable()
-export class EntityServiceFactory {
-  /** Observable of the EntityCache */
-  entityCache$: Store<EntityCache>;
-
-  constructor(
-    public entityDispatcherFactory: EntityDispatcherFactory,
-    public entityDefinitionService: EntityDefinitionService,
-    public entitySelectors$Factory: EntitySelectors$Factory
-  ) {
-    this.entityCache$ = entitySelectors$Factory.entityCache$;
-  }
-
-  /**
-   * Create an EntityService for an entity type
-   * @param entityName - name of the entity type
-   */
-  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
-    entityName: string
-  ): EntityService<T> {
-    entityName = entityName.trim();
-    const service = new EntityServiceBase<T, S$>(entityName, this);
-    return service;
-  }
 }

@@ -1,125 +1,115 @@
 import { Inject, Injectable } from '@angular/core';
 
-import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
+import {
+  createFeatureSelector,
+  createSelector,
+  Selector,
+  Store
+} from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { Dictionary } from '../utils';
+import { Dictionary } from '../utils/ngrx-entity-models';
+import { EntityAction } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
 import { OP_ERROR } from '../actions/entity-op';
 import { EntitySelectors } from './entity-selectors';
-import { EntityCache  } from '../reducers/entity-cache';
+import { EntityCache } from '../reducers/entity-cache';
 import { ENTITY_CACHE_NAME_TOKEN } from '../reducers/constants';
-import { EntityCollection  } from '../reducers/entity-collection';
+import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
+import { EntitySelectorsFactory } from './entity-selectors';
 
 /**
  * The selector observable functions for entity collection members.
  */
 export interface EntitySelectors$<T> {
+  /** Name of the entity collection for these selectors$ */
+  readonly entityName: string;
+
   /** Observable of the collection as a whole */
-  collection$: Observable<EntityCollection> | Store<EntityCollection>;
+  readonly collection$: Observable<EntityCollection> | Store<EntityCollection>;
 
   /** Observable of count of entities in the cached collection. */
-  count$: Observable<number> | Store<number>;
+  readonly count$: Observable<number> | Store<number>;
 
   /** Observable of all entities in the cached collection. */
-  entities$: Observable<T[]> | Store<T[]>;
+  readonly entities$: Observable<T[]> | Store<T[]>;
 
   /** Observable of actions related to this entity type. */
-  entityActions$: EntityActions;
+  readonly entityActions$: EntityActions;
+
+  /** Observable of the entire entity cache */
+  readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
 
   /** Observable of the map of entity keys to entities */
-  entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  readonly entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
   /** Observable of error actions related to this entity type. */
-  errors$: EntityActions;
+  readonly errors$: EntityActions;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
-  filter$: Observable<string> | Store<string>;
+  readonly filter$: Observable<string> | Store<string>;
 
   /** Observable of entities in the cached collection that pass the filter function */
-  filteredEntities$: Observable<T[]> | Store<T[]>;
+  readonly filteredEntities$: Observable<T[]> | Store<T[]>;
 
   /** Observable of the keys of the cached collection, in the collection's native sort order */
-  keys$: Observable<string[] | number[]> | Store<string[] | number[]>;
+  readonly keys$: Observable<string[] | number[]> | Store<string[] | number[]>;
 
   /** Observable true when the collection has been loaded */
-  loaded$: Observable<boolean> | Store<boolean>;
+  readonly loaded$: Observable<boolean> | Store<boolean>;
 
   /** Observable true when a multi-entity query command is in progress. */
-  loading$: Observable<boolean> | Store<boolean>;
+  readonly loading$: Observable<boolean> | Store<boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  readonly originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 }
 
 @Injectable()
 export class EntitySelectors$Factory {
-
-  private cacheSelector: Selector<Object, EntityCache>;
+  selectCache: Selector<Object, EntityCache>;
 
   /** Observable of the EntityCache */
   entityCache$: Store<EntityCache>;
 
   constructor(
-    @Inject(ENTITY_CACHE_NAME_TOKEN) cacheName: string,
-    private entityCollectionCreator: EntityCollectionCreator,
+    private entitySelectorsFactory: EntitySelectorsFactory,
     private store: Store<any>,
     private entityActions$: EntityActions
   ) {
-      // This service applies to the cache in ngrx/store named `cacheName`
-      this.cacheSelector = createFeatureSelector<EntityCache>(cacheName);
-      this.entityCache$ = this.store.select(this.cacheSelector);
+    // This service applies to the cache in ngrx/store named `cacheName`
+    this.selectCache = entitySelectorsFactory.selectEntityCache;
+    this.entityCache$ = this.store.select(this.selectCache);
   }
+
   /**
-   * Creates an entity collection's selectors$ observables for a given EntityCache store.
+   * Creates an entity collection's selectors$ observables for this factory's store.
    * `selectors$` are observable selectors of the cached entity collection.
    * @param entityName - is also the name of the collection.
    * @param selectors - selector functions for this collection.
    **/
-  create<
-    T,
-    S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-    >(
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
     entityName: string,
-    selectors: EntitySelectors<T>
+    selectors?: EntitySelectors<T>
   ): S$ {
-    const cc = createCachedCollectionSelector<T>(entityName, this.cacheSelector, this.entityCollectionCreator);
-    const collection$ = this.store.select(cc);
+    const selectors$: { [prop: string]: any } = {
+      entityName
+    };
 
-    const selectors$: S$ = <any> {};
-
-    Object.keys(selectors).forEach(
-      name => {
+    Object.keys(selectors).forEach(name => {
+      if (name.startsWith('select')) {
         // strip 'select' prefix from the selector fn name and append `$`
         // Ex: 'selectEntities' => 'entities$'
         const name$ = name[6].toLowerCase() + name.substr(7) + '$';
-        (<any>selectors$)[name$] = collection$.select((<any>selectors)[name]
-      )}
-    );
+        selectors$[name$] = this.store.select((<any>selectors)[name]);
+      }
+    });
     selectors$.entityActions$ = this.entityActions$.ofEntityType(entityName);
-    selectors$.errors$ = selectors$.entityActions$.where(ea => ea.op.endsWith(OP_ERROR));
-    selectors$.collection$ = collection$;
-
-    return selectors$;
+    selectors$.errors$ = selectors$.entityActions$.where((ea: EntityAction) =>
+      ea.op.endsWith(OP_ERROR)
+    );
+    return selectors$ as S$;
   }
-}
-
-/**
- * Creates the selector for the path from the EntityCache through the Collection
- * @param collectionName - which is also the entity name
- * @param cacheSelector - selects the EntityCache from the store.
- * @param entityCollectionCreator - can create the initial state of the collection
- * if the collection is undefined when the selector is invoked
- * (as happens with time-travel debugging).
- */
-export function createCachedCollectionSelector<T, C extends EntityCollection<T> = EntityCollection<T>> (
-  collectionName: string,
-  cacheSelector: Selector<Object, EntityCache>,
-  entityCollectionCreator: EntityCollectionCreator
-): Selector<Object, C> {
-  const getCollection = (cache: EntityCache = {}) =>
-    <C> (cache[collectionName] || entityCollectionCreator.create<T>(collectionName));
-  return createSelector(cacheSelector, getCollection);
 }

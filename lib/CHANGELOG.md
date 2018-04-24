@@ -1,5 +1,19 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.10"></a>
+
+# 1.0.0-beta.10 (2018-04-22)
+
+Writing and testing related-entity selectors.
+
+The **`related-entity-selectors.spec.ts`** demonstrates usage.
+
+* feature: expose `selectors` in `EntityService<T>` and in `EntityServiceBase<T>`.
+* feature: add `entitySelectors$Factory.createCollectionSelector`
+* feature: `EntityServiceFactory` now an abstract interface-class, implemented with `DefaultEntityServiceFactory`.
+* break: shuffled methods and pruned members that shouldn't be exposed.
+* break: certain create functions are now members of factories.
+
 <a name="1.0.0-beta.9"></a>
 
 # 1.0.0-beta.9 (2018-04-14)

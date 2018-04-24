@@ -1,6 +1,9 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
-import { createEntitySelectors, EntitySelectors } from '../selectors/entity-selectors';
+import {
+  EntitySelectors,
+  EntitySelectorsFactory
+} from '../selectors/entity-selectors';
 import { defaultSelectId, Dictionary, IdSelector, Update } from '../utils';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
@@ -14,7 +17,6 @@ export interface EntityDefinition<T = any> {
   initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
   selectId: IdSelector<T>;
-  selectors: EntitySelectors<T>;
 }
 
 export function createEntityDefinition<T, S extends object>(
@@ -34,15 +36,13 @@ export function createEntityDefinition<T, S extends object>(
   const entityDispatcherOptions: Partial<EntityDispatcherOptions> =
     metadata.entityDispatcherOptions || {};
 
-  const initialState: EntityCollection<T>  = entityAdapter.getInitialState({
+  const initialState: EntityCollection<T> = entityAdapter.getInitialState({
     filter: '',
     loaded: false,
     loading: false,
     originalValues: {},
-    ...( metadata.additionalCollectionState || {} )
+    ...(metadata.additionalCollectionState || {})
   });
-
-  const selectors = createEntitySelectors(metadata);
 
   return {
     entityName,
@@ -50,7 +50,6 @@ export function createEntityDefinition<T, S extends object>(
     entityDispatcherOptions,
     initialState,
     metadata,
-    selectId,
-    selectors
+    selectId
   };
 }

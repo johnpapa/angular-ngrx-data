@@ -72,14 +72,12 @@ describe('Related-entity Selectors', () => {
 
   describe('hero -> sidekick (1-1)', () => {
     function setCollectionSelectors() {
-      const heroSelectors = entitySelectorsFactory.create<Hero>({
-        entityName: 'Hero'
-      });
+      const heroSelectors = entitySelectorsFactory.create<Hero>('Hero');
       const selectHeroMap = heroSelectors.selectEntityMap;
 
-      const sidekickSelectors = entitySelectorsFactory.create<Sidekick>({
-        entityName: 'Sidekick'
-      });
+      const sidekickSelectors = entitySelectorsFactory.create<Sidekick>(
+        'Sidekick'
+      );
       const selectSidekickMap = sidekickSelectors.selectEntityMap;
 
       return {
@@ -224,14 +222,10 @@ describe('Related-entity Selectors', () => {
 
   describe('hero -> battles (1-m)', () => {
     function setCollectionSelectors() {
-      const heroSelectors = entitySelectorsFactory.create<Hero>({
-        entityName: 'Hero'
-      });
+      const heroSelectors = entitySelectorsFactory.create<Hero>('Hero');
       const selectHeroMap = heroSelectors.selectEntityMap;
 
-      const battleSelectors = entitySelectorsFactory.create<Battle>({
-        entityName: 'Battle'
-      });
+      const battleSelectors = entitySelectorsFactory.create<Battle>('Battle');
       const selectBattleEntities = battleSelectors.selectEntities;
 
       const selectHeroBattleMap = createSelector(
@@ -317,20 +311,14 @@ describe('Related-entity Selectors', () => {
 
   describe('hero -> heropower <- power (m-m)', () => {
     function setCollectionSelectors() {
-      const heroSelectors = entitySelectorsFactory.create<Hero>({
-        entityName: 'Hero'
-      });
+      const heroSelectors = entitySelectorsFactory.create<Hero>('Hero');
       const selectHeroMap = heroSelectors.selectEntityMap;
 
-      const powerSelectors = entitySelectorsFactory.create<Power>({
-        entityName: 'Power'
-      });
+      const powerSelectors = entitySelectorsFactory.create<Power>('Power');
       const selectPowerMap = powerSelectors.selectEntityMap;
 
       const heroPowerMapSelectors = entitySelectorsFactory.create<HeroPowerMap>(
-        {
-          entityName: 'HeroPowerMap'
-        }
+        'HeroPowerMap'
       );
       const selectHeroPowerMapEntities = heroPowerMapSelectors.selectEntities;
 

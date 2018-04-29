@@ -1,5 +1,15 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.11"></a>
+
+# 1.0.0-beta.11 (2018-04-29)
+
+Add EntitySelectorFactory method overloads to simplify related-entity selector creation.
+Clarify return types on EntitySelector interfaces
+Add `EntityCacheSelector` which can be injected
+Minor _break_ in signature of `EntitySelectorFactory$` constructor to use `EntityCacheSelector`
+instead of `EntitySelectorFactory`
+
 <a name="1.0.0-beta.10"></a>
 
 # 1.0.0-beta.10 (2018-04-22)

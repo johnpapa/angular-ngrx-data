@@ -13,9 +13,12 @@ import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
 import { OP_ERROR } from '../actions/entity-op';
+import {
+  ENTITY_CACHE_SELECTOR_TOKEN,
+  EntityCacheSelector
+} from './entity-cache-selector';
 import { EntitySelectors } from './entity-selectors';
 import { EntityCache } from '../reducers/entity-cache';
-import { ENTITY_CACHE_NAME_TOKEN } from '../reducers/constants';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntitySelectorsFactory } from './entity-selectors';
@@ -69,19 +72,17 @@ export interface EntitySelectors$<T> {
 
 @Injectable()
 export class EntitySelectors$Factory {
-  selectCache: Selector<Object, EntityCache>;
-
   /** Observable of the EntityCache */
   entityCache$: Store<EntityCache>;
 
   constructor(
-    private entitySelectorsFactory: EntitySelectorsFactory,
     private store: Store<any>,
-    private entityActions$: EntityActions
+    private entityActions$: EntityActions,
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
+    private selectEntityCache: EntityCacheSelector
   ) {
     // This service applies to the cache in ngrx/store named `cacheName`
-    this.selectCache = entitySelectorsFactory.selectEntityCache;
-    this.entityCache$ = this.store.select(this.selectCache);
+    this.entityCache$ = this.store.select(this.selectEntityCache);
   }
 
   /**

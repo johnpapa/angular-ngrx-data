@@ -1,4 +1,4 @@
-import { Action, createSelector, Selector, Store } from '@ngrx/store';
+import { Action, createSelector, MemoizedSelector, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
@@ -17,6 +17,11 @@ import {
 } from '../reducers';
 import { EntityMetadata, EntityMetadataMap } from '../entity-metadata';
 import { PropsFilterFnFactory } from '../entity-metadata';
+import {
+  ENTITY_CACHE_SELECTOR_TOKEN,
+  EntityCacheSelector,
+  createEntityCacheSelector
+} from './entity-cache-selector';
 import { EntitySelectors, EntitySelectorsFactory } from './entity-selectors';
 import { EntitySelectors$, EntitySelectors$Factory } from './entity-selectors$';
 
@@ -87,7 +92,6 @@ describe('EntitySelectors$', () => {
       ]);
       collectionCreator.create.and.returnValue(emptyHeroCollection);
       const entitySelectorsFactory = new EntitySelectorsFactory(
-        ENTITY_CACHE_NAME,
         collectionCreator
       );
       heroCollectionSelectors = entitySelectorsFactory.create<
@@ -97,9 +101,9 @@ describe('EntitySelectors$', () => {
 
       // EntitySelectorFactory
       factory = new EntitySelectors$Factory(
-        entitySelectorsFactory,
         store,
-        entityActions
+        entityActions,
+        createEntityCacheSelector(ENTITY_CACHE_NAME)
       );
 
       // listen for changes to the hero collection
@@ -300,8 +304,8 @@ interface HeroCollection extends EntityCollection<Hero> {
 
 /** HeroSelectors identifies the extra selectors for the extra collection properties */
 interface HeroSelectors extends EntitySelectors<Hero> {
-  selectFoo: Selector<Object, string>;
-  selectBar: Selector<Object, number>;
+  selectFoo: MemoizedSelector<Object, string>;
+  selectBar: MemoizedSelector<Object, number>;
 }
 
 /** HeroSelectors identifies the extra selectors for the extra collection properties */

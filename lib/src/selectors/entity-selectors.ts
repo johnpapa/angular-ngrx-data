@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 
 // Prod build requires `MemoizedSelector even though not used.
 import { MemoizedSelector } from '@ngrx/store';
@@ -8,7 +8,12 @@ import { Observable } from 'rxjs/Observable';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityCache } from '../reducers/entity-cache';
-import { ENTITY_CACHE_NAME_TOKEN } from '../reducers/constants';
+import {
+  ENTITY_CACHE_SELECTOR_TOKEN,
+  EntityCacheSelector,
+  createEntityCacheSelector
+} from './entity-cache-selector';
+import { ENTITY_CACHE_NAME } from '../reducers/constants';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntityFilterFn } from '../entity-metadata/entity-filters';
@@ -29,25 +34,25 @@ export interface CollectionSelectors<T> {
   readonly selectEntities: Selector<EntityCollection<T>, T[]>;
 
   /** Map of entity keys to entities */
-  readonly selectEntityMap: (c: EntityCollection<T>) => Dictionary<T>;
+  readonly selectEntityMap: Selector<EntityCollection<T>, Dictionary<T>>;
 
   /** Filter pattern applied by the entity collection's filter function */
-  readonly selectFilter: (c: EntityCollection<T>) => string;
+  readonly selectFilter: Selector<EntityCollection<T>, string>;
 
   /** Entities in the cached collection that pass the filter function */
   readonly selectFilteredEntities: Selector<EntityCollection<T>, T[]>;
 
   /** Keys of the cached collection, in the collection's native sort order */
-  readonly selectKeys: (c: EntityCollection<T>) => string[] | number[];
+  readonly selectKeys: Selector<EntityCollection<T>, string[] | number[]>;
 
   /** True when the collection has been fully loaded. */
-  readonly selectLoaded: (c: EntityCollection<T>) => boolean;
+  readonly selectLoaded: Selector<EntityCollection<T>, boolean>;
 
   /** True when a multi-entity query command is in progress. */
-  readonly selectLoading: (c: EntityCollection<T>) => boolean;
+  readonly selectLoading: Selector<EntityCollection<T>, boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  readonly selectOriginalValues: (c: EntityCollection<T>) => Dictionary<T>;
+  readonly selectOriginalValues: Selector<EntityCollection<T>, Dictionary<T>>;
 }
 
 /**
@@ -56,58 +61,62 @@ export interface CollectionSelectors<T> {
  * Contrast with {CollectionSelectors}.
  */
 export interface EntitySelectors<T> {
-  readonly [name: string]: Selector<EntityCollection<T>, any> | string;
-
   /** Name of the entity collection for these selectors */
   readonly entityName: string;
 
+  readonly [name: string]: MemoizedSelector<EntityCollection<T>, any> | string;
+
   /** The cached EntityCollection itself */
-  readonly selectCollection: Selector<Object, EntityCollection<T>>;
+  readonly selectCollection: MemoizedSelector<Object, EntityCollection<T>>;
 
   /** Count of entities in the cached collection. */
-  readonly selectCount: Selector<Object, number>;
+  readonly selectCount: MemoizedSelector<Object, number>;
 
   /** All entities in the cached collection. */
-  readonly selectEntities: Selector<Object, T[]>;
+  readonly selectEntities: MemoizedSelector<Object, T[]>;
 
   /** The EntityCache */
-  readonly selectEntityCache: Selector<Object, EntityCache>;
+  readonly selectEntityCache: MemoizedSelector<Object, EntityCache>;
 
   /** Map of entity keys to entities */
-  readonly selectEntityMap: Selector<Object, Dictionary<T>>;
+  readonly selectEntityMap: MemoizedSelector<Object, Dictionary<T>>;
 
   /** Filter pattern applied by the entity collection's filter function */
-  readonly selectFilter: Selector<Object, string>;
+  readonly selectFilter: MemoizedSelector<Object, string>;
 
   /** Entities in the cached collection that pass the filter function */
-  readonly selectFilteredEntities: Selector<Object, T[]>;
+  readonly selectFilteredEntities: MemoizedSelector<Object, T[]>;
 
   /** Keys of the cached collection, in the collection's native sort order */
-  readonly selectKeys: Selector<Object, string[] | number[]>;
+  readonly selectKeys: MemoizedSelector<Object, string[] | number[]>;
 
   /** True when the collection has been fully loaded. */
-  readonly selectLoaded: Selector<Object, boolean>;
+  readonly selectLoaded: MemoizedSelector<Object, boolean>;
 
   /** True when a multi-entity query command is in progress. */
-  readonly selectLoading: Selector<Object, boolean>;
+  readonly selectLoading: MemoizedSelector<Object, boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  readonly selectOriginalValues: Selector<Object, Dictionary<T>>;
+  readonly selectOriginalValues: MemoizedSelector<Object, Dictionary<T>>;
 }
 
 @Injectable()
 export class EntitySelectorsFactory {
-  selectEntityCache: Selector<Object, EntityCache>;
-
   constructor(
-    @Inject(ENTITY_CACHE_NAME_TOKEN) cacheName: string,
-    private entityCollectionCreator: EntityCollectionCreator
+    @Optional() private entityCollectionCreator?: EntityCollectionCreator,
+    @Optional()
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
+    private selectEntityCache?: EntityCacheSelector
   ) {
-    this.selectEntityCache = createFeatureSelector<EntityCache>(cacheName);
+    this.entityCollectionCreator =
+      entityCollectionCreator || new EntityCollectionCreator();
+    this.selectEntityCache =
+      selectEntityCache || createEntityCacheSelector(ENTITY_CACHE_NAME);
   }
 
   /**
-   * Create the NgRx selector from the store root to the named collection
+   * Create the NgRx selector from the store root to the named collection,
+   * e.g. from Object to Heroes.
    * @param entityName the name of the collection
    */
   createCollectionSelector<
@@ -120,18 +129,43 @@ export class EntitySelectorsFactory {
     return createSelector(this.selectEntityCache, getCollection);
   }
 
+  /////// createCollectionSelectors //////////
+
+  // Based on @ngrx/entity/state_selectors.ts
+
+  // createCollectionSelectors(metadata) overload
   /**
-   * Creates the ngrx/entity selectors or selector functions for an entity collection.
-   *
-   * Based on `@ngrx/entity/state_selectors.ts`
-   *
+   * Creates entity collection selectors from metadata.
    * @param metadata - EntityMetadata for the collection.
    * May be partial but much have `entityName`.
    */
   createCollectionSelectors<
     T,
     S extends CollectionSelectors<T> = CollectionSelectors<T>
-  >(metadata: Partial<EntityMetadata<T>>): S {
+  >(metadata: EntityMetadata<T>): S;
+
+  // createCollectionSelectors(entityName) overload
+  /**
+   * Creates default entity collection selectors for an entity type.
+   * Use the metadata overload for additional collection selectors.
+   * @param entityName - name of the entity type
+   */
+  createCollectionSelectors<
+  // tslint:disable-next-line:unified-signatures
+  // tslint:disable-next-line:unified-signatures
+    T,
+    S extends CollectionSelectors<T> = CollectionSelectors<T>
+  >(entityName: string): S;
+
+  // createCollectionSelectors implementation
+  createCollectionSelectors<
+    T,
+    S extends CollectionSelectors<T> = CollectionSelectors<T>
+  >(metadataOrName: EntityMetadata<T> | string): S {
+    const metadata =
+      typeof metadataOrName === 'string'
+        ? { entityName: metadataOrName }
+        : metadataOrName;
     const selectKeys = (c: EntityCollection<T>) => c.ids;
     const selectEntityMap = (c: EntityCollection<T>) => c.entities;
 
@@ -189,20 +223,49 @@ export class EntitySelectorsFactory {
     } as S;
   }
 
+  /////// create //////////
+
+  // create(metadata) overload
   /**
-   * Creates the ngrx/entity selectors or selector functions for an entity collection
-   * that an {EntitySelectors$Factory} turns into selectors$.
-   *
-   * Based on `@ngrx/entity/state_selectors.ts`
-   * Differs in that these selectors select from the NgRx store root,
-   * through the collection, to the collection members.
+   * Creates the store-rooted selectors for an entity collection.
+   * {EntitySelectors$Factory} turns them into selectors$.
    *
    * @param metadata - EntityMetadata for the collection.
    * May be partial but much have `entityName`.
+   *
+   * Based on ngrx/entity/state_selectors.ts
+   * Differs in that these selectors select from the NgRx store root,
+   * through the collection, to the collection members.
    */
   create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
-    metadata: Partial<EntityMetadata<T>>
+    metadata: EntityMetadata<T>
+  ): S;
+
+  // create(entityName) overload
+  /**
+   * Creates the default store-rooted selectors for an entity collection.
+   * {EntitySelectors$Factory} turns them into selectors$.
+   * Use the metadata overload for additional collection selectors.
+   *
+   * @param entityName - name of the entity type.
+   *
+   * Based on ngrx/entity/state_selectors.ts
+   * Differs in that these selectors select from the NgRx store root,
+   * through the collection, to the collection members.
+   */
+  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
+    // tslint:disable-next-line:unified-signatures
+    entityName: string
+  ): S;
+
+  // createCollectionSelectors implementation
+  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
+    metadataOrName: EntityMetadata<T> | string
   ): S {
+    const metadata =
+      typeof metadataOrName === 'string'
+        ? { entityName: metadataOrName }
+        : metadataOrName;
     const entityName = metadata.entityName;
     const selectCollection: Selector<
       Object,

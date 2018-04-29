@@ -1,4 +1,4 @@
-import { Selector } from '@ngrx/store';
+import { MemoizedSelector } from '@ngrx/store';
 
 import { EntityCache } from '../reducers/entity-cache';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
@@ -34,10 +34,7 @@ describe('EntitySelectors', () => {
     collectionCreator = jasmine.createSpyObj('entityCollectionCreator', [
       'create'
     ]);
-    entitySelectorsFactory = new EntitySelectorsFactory(
-      ENTITY_CACHE_NAME,
-      collectionCreator
-    );
+    entitySelectorsFactory = new EntitySelectorsFactory(collectionCreator);
   });
 
   describe('#createCollectionSelector', () => {
@@ -93,32 +90,84 @@ describe('EntitySelectors', () => {
   });
 
   describe('#createEntitySelectors', () => {
-    it('should have expected Hero selectors (a super-set of EntitySelectors)', () => {
-      const collection = <HeroCollection>(<any>{
-        ids: [42],
-        entities: { 42: { id: 42, name: 'A' } },
+    let heroCollection: HeroCollection;
+    let heroEntities: Hero[];
+
+    beforeEach(() => {
+      heroEntities = [{ id: 42, name: 'A' }, { id: 48, name: 'B' }];
+
+      heroCollection = <HeroCollection>(<any>{
+        ids: [42, 48],
+        entities: {
+          42: heroEntities[0],
+          48: heroEntities[1]
+        },
         filter: 'B',
         foo: 'Foo'
       });
-      const store = { entityCache: { Hero: collection } };
+    });
+
+    it('should have expected Hero selectors (a super-set of EntitySelectors)', () => {
+      const store = { entityCache: { Hero: heroCollection } };
 
       const selectors = entitySelectorsFactory.create<Hero, HeroSelectors>(
         heroMetadata
       );
 
-      expect(selectors.selectEntities).toBeDefined('selectAll');
+      expect(selectors.selectEntities).toBeDefined('selectEntities');
       expect(selectors.selectEntities(store)).toEqual(
-        [{ id: 42, name: 'A' }],
-        'try selectAll'
+        heroEntities,
+        'selectEntities'
       );
 
       expect(selectors.selectFilteredEntities(store)).toEqual(
-        [],
-        'no matching heroes'
+        heroEntities.filter(h => h.name === 'B'),
+        'filtered B heroes'
       );
 
-      expect(selectors.selectFoo).toBeDefined('selectFoo');
-      expect(selectors.selectFoo(store)).toBe('Foo', 'try selectFoo');
+      expect(selectors.selectFoo).toBeDefined('selectFoo exists');
+      expect(selectors.selectFoo(store)).toBe('Foo', 'execute `selectFoo`');
+    });
+
+    it('should have all Hero when create EntitySelectorFactory directly', () => {
+      const store = { entityCache: { Hero: heroCollection } };
+
+      // Create EntitySelectorFactory directly rather than injecting it!
+      // Works ONLY if have not changed the name of the EntityCache.
+      // In this case, where also not supplying the EntityCollectionCreator
+      // selector for additional collection properties might fail,
+      // but doesn't in this test because the additional Foo property is in the store.
+
+      const eaFactory = new EntitySelectorsFactory();
+      const selectors = eaFactory.create<Hero, HeroSelectors>(heroMetadata);
+
+      expect(selectors.selectEntities).toBeDefined('selectEntities');
+      expect(selectors.selectEntities(store)).toEqual(
+        heroEntities,
+        'selectEntities'
+      );
+
+      expect(selectors.selectFilteredEntities(store)).toEqual(
+        heroEntities.filter(h => h.name === 'B'),
+        'filtered B heroes'
+      );
+
+      expect(selectors.selectFoo).toBeDefined('selectFoo exists');
+      expect(selectors.selectFoo(store)).toBe('Foo', 'execute `selectFoo`');
+    });
+
+    it('should create default selectors (no filter, no extras) when create with "Hero" instead of hero metadata', () => {
+      const store = { entityCache: { Hero: heroCollection } };
+
+      // const selectors = entitySelectorsFactory.create<Hero, HeroSelectors>('Hero');
+      // There won't be extra selectors so type selectors for Hero collection only
+      const selectors = entitySelectorsFactory.create<Hero>('Hero');
+      expect(selectors.selectEntities).toBeDefined('selectEntities');
+      expect(selectors.selectFoo).not.toBeDefined('selectFoo should not exist');
+      expect(selectors.selectFilteredEntities(store)).toEqual(
+        heroEntities,
+        'filtered same as all hero entities'
+      );
     });
 
     it('should have expected Villain selectors', () => {
@@ -170,8 +219,8 @@ interface HeroCollection extends EntityCollection<Hero> {
 
 /** HeroSelectors identifies the extra selectors for the extra collection properties */
 interface HeroSelectors extends EntitySelectors<Hero> {
-  selectFoo: Selector<Object, string>;
-  selectBar: Selector<Object, number>;
+  selectFoo: MemoizedSelector<Object, string>;
+  selectBar: MemoizedSelector<Object, number>;
 }
 
 /// Villain

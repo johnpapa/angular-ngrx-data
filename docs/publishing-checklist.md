@@ -13,7 +13,7 @@ Here is our checklist.
 
 1.  Bump the npm package version number in `lib/package.json`.
 
-1.  Run `npm run build-publish`. This command builds the library one more time before publishing to npm.
+1.  Run `npm run build-publish`. This command builds the library one more time and then publishes to npm.
 
 > The publish step will fail if you aren't authorized to publish.
 >

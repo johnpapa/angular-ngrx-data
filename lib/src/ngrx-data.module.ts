@@ -30,6 +30,7 @@ import { EntityServiceFactory } from './entity-service/entity-service-interfaces
 import { DefaultEntityServiceFactory } from './entity-service/default-entity-service-factory';
 
 import { EntityCache } from './reducers/entity-cache';
+import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
 import {
@@ -73,6 +74,7 @@ export interface NgrxDataModuleConfig {
   imports: [StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN)],
   providers: [
     EntityActionFactory,
+    entityCacheSelectorProvider,
     EntityCollectionCreator,
     EntityCollectionReducerFactory,
     EntityDefinitionService,
@@ -84,6 +86,9 @@ export interface NgrxDataModuleConfig {
       provide: EntityCollectionReducerMethodsFactory,
       useClass: DefaultEntityCollectionReducerMethodsFactory
     },
+    // Developer cannot replace cache name this way. Too late.
+    // TODO: find a way to delay `StoreModule.forFeature()` until cache name is known.
+    // That solution will also enable ability to initialize the cache.
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
     {
       provide: ENTITY_REDUCER_TOKEN,

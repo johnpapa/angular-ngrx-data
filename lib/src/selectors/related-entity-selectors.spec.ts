@@ -7,9 +7,8 @@ import {
   Store
 } from '@ngrx/store';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { skip } from 'rxjs/operators/skip';
+import { Observable, Subject } from 'rxjs';
+import { skip } from 'rxjs/operators';
 
 import { Dictionary, Update } from '../utils/ngrx-entity-models';
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';

@@ -5,9 +5,7 @@ import {
   HttpParams
 } from '@angular/common/http';
 
-import { Observable } from 'rxjs/Observable';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { of } from 'rxjs/observable/of';
+import { Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
@@ -187,7 +185,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
       }
       default: {
         const error = new Error('Unimplemented HTTP method, ' + method);
-        result$ = new ErrorObservable(error);
+        result$ = throwError(error);
       }
     }
     if (this.timeout) {
@@ -203,7 +201,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
         return ok;
       }
       const error = new DataServiceError(err, reqData);
-      return new ErrorObservable(error);
+      return throwError(error);
     };
   }
 

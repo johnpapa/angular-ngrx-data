@@ -6,8 +6,7 @@ import {
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { Observable } from 'rxjs/Observable';
-import { Subscription } from 'rxjs/Subscription';
+import { Observable, Subscription } from 'rxjs';
 
 import { FilterObserver } from '../../shared/filter';
 import { Hero, MasterDetailCommands } from '../../core';

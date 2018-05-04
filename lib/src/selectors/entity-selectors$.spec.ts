@@ -1,8 +1,6 @@
 import { Action, createSelector, MemoizedSelector, Store } from '@ngrx/store';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';

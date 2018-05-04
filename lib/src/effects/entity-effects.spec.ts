@@ -1,9 +1,7 @@
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
 
-import { of } from 'rxjs/observable/of';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of, throwError } from 'rxjs';
 import { delay, first, merge } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
@@ -81,8 +79,8 @@ describe('EntityEffects (normal testing)', () => {
       result => {
         expect(result).toEqual(completion);
       },
-      e => {
-        fail(e);
+      error => {
+        fail(error);
       }
     );
   }
@@ -135,7 +133,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
     expectCompletion(completion);
@@ -171,7 +169,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
 
     expectCompletion(completion);
@@ -209,7 +207,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
     expectCompletion(completion);
@@ -248,7 +246,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
     expectCompletion(completion);
@@ -283,7 +281,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
     expectCompletion(completion);
@@ -322,7 +320,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
     expectCompletion(completion);
@@ -361,7 +359,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
     expectCompletion(completion);
@@ -396,7 +394,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
     expectCompletion(completion);
@@ -435,7 +433,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
     expectCompletion(completion);

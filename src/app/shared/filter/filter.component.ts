@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 
 /** FilterComponent binds to a FilterObserver from parent component */

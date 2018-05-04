@@ -2,7 +2,7 @@
 import { TestBed } from '@angular/core/testing';
 
 import { cold, hot } from 'jasmine-marbles';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';

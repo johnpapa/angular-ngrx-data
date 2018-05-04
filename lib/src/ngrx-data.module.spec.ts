@@ -5,9 +5,8 @@ import { Actions, Effect, EffectsModule } from '@ngrx/effects';
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
 
-import { Observable } from 'rxjs/Observable';
-import { of } from 'rxjs/observable/of';
-import { concatMap, map, skip } from 'rxjs/operators';
+import { Observable, of } from 'rxjs';
+import { map, skip } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from './actions/entity-action';
 import { EntityActions } from './actions/entity-actions';

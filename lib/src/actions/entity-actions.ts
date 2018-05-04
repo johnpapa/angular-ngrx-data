@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
-import { Observable } from 'rxjs/Observable';
-import { Operator } from 'rxjs/Operator';
+import { Observable, Operator } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
 import { EntityAction } from './entity-action';
@@ -31,7 +30,7 @@ export class EntityActions<
     }
   }
 
-  // Can't name it `filter` because of `import 'rxjs/add/operator/filter';` (issue 97).
+  // Can't name it `filter` because exists in `import 'rxjs/operator';` (issue 97).
   // 'where' was an alias for `filter` long ago but no import risk now.
 
   /**

@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { EntityService, EntityServiceFactory } from 'ngrx-data';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { FilterObserver } from '../../shared/filter';
 import { Hero, MasterDetailCommands } from '../../core';

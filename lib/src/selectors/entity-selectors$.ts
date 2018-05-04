@@ -7,7 +7,7 @@ import {
   Store
 } from '@ngrx/store';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';

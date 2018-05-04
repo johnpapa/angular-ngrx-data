@@ -4,7 +4,7 @@ import { Inject, Injectable, Optional } from '@angular/core';
 import { MemoizedSelector } from '@ngrx/store';
 import { createFeatureSelector, createSelector, Selector } from '@ngrx/store';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityCache } from '../reducers/entity-cache';

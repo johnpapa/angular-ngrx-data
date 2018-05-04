@@ -38,9 +38,7 @@ import {
   persistOps
 } from 'ngrx-data';
 
-import { Observable } from 'rxjs/Observable';
-import { BehaviorSubject } from 'rxjs/BehaviorSubject';
-import { Subject } from 'rxjs/Subject';
+import { BehaviorSubject, Observable, Subject } from 'rxjs';
 import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';

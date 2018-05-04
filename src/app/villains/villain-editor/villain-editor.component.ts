@@ -3,8 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { EntityOp } from 'ngrx-data';
 
-import { Observable } from 'rxjs/Observable';
-import { Subject } from 'rxjs/Subject';
+import { Observable, Subject } from 'rxjs';
 import {
   combineLatest,
   delay,

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 
 import { EntityAction } from '../actions/entity-action';
 import { DefaultDataServiceFactory } from './default-data.service';

@@ -2,7 +2,7 @@ import { EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
 import { EntityCollection } from './entity-collection';
 import { createEmptyEntityCollection } from './entity-collection-creator';
-import { IdSelector, Update } from '../utils';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
 
 import { EntityChangeTracker } from './entity-change-tracker';
 
@@ -21,7 +21,6 @@ const adapter: EntityAdapter<Hero> = createEntityAdapter<Hero>({
 });
 
 describe('EntityChangeTracker', () => {
-
   let origCollection: EntityCollection<Hero>;
   let collection: EntityCollection<Hero>;
 
@@ -31,15 +30,14 @@ describe('EntityChangeTracker', () => {
 
     origCollection = createEmptyEntityCollection<Hero>();
     origCollection.entities = {
-      1: {id: 1, name: 'Alice', power: 'Strong'},
-      2: {id: 2, name: 'Gail', power: 'Loud'},
-      7: {id: 7, name: 'Bob', power: 'Swift'},
-    }
+      1: { id: 1, name: 'Alice', power: 'Strong' },
+      2: { id: 2, name: 'Gail', power: 'Loud' },
+      7: { id: 7, name: 'Bob', power: 'Swift' }
+    };
     origCollection.ids = [1, 7, 2];
   });
 
   describe('#addToTracker', () => {
-
     it('should return a new collection after adding an entity', () => {
       collection = tracker.addToTracker(origCollection, [1]);
       expect(collection).not.toBe(origCollection);
@@ -67,8 +65,7 @@ describe('EntityChangeTracker', () => {
       const entity = origCollection.entities[1];
       const update = { id: 2, changes: origCollection.entities[2] };
 
-      collection = tracker.addToTracker(origCollection,
-         [7, entity, update]);
+      collection = tracker.addToTracker(origCollection, [7, entity, update]);
 
       const originals = collection.originalValues;
 
@@ -93,7 +90,10 @@ describe('EntityChangeTracker', () => {
       collection = tracker.addToTracker(origCollection, [1]);
 
       // change the cached hero id:1
-      collection = adapter.updateOne({id: 1, changes: {name: 'xxx'}}, collection);
+      collection = adapter.updateOne(
+        { id: 1, changes: { name: 'xxx' } },
+        collection
+      );
       expect(collection.entities[1].name).toBe('xxx', 'name changed in cache');
 
       // second tracking of id:1 which has changed; should be ignored.
@@ -103,16 +103,17 @@ describe('EntityChangeTracker', () => {
   });
 
   describe('#revert', () => {
-
     it('should revert an added entity', () => {
       // track entities 1 & 7
       collection = tracker.addToTracker(origCollection, [7, 1]);
 
       // Track it BEFORE adding to the collection
-      const entity = { id: 42, name: 'Smokey', power: 'Invisible'};
-      collection = tracker.addToTracker(collection, [entity])
+      const entity = { id: 42, name: 'Smokey', power: 'Invisible' };
+      collection = tracker.addToTracker(collection, [entity]);
       expectIsTracked(42);
-      expect(collection.originalValues[42]).toBeUndefined('id:42 represented by undefined');
+      expect(collection.originalValues[42]).toBeUndefined(
+        'id:42 represented by undefined'
+      );
 
       // Now add id:42
       collection = adapter.addMany([entity], collection);
@@ -130,12 +131,15 @@ describe('EntityChangeTracker', () => {
       collection = tracker.addToTracker(origCollection, [7, 1]);
 
       // Add before track. Probably not what you intended!
-      const entity = { id: 42, name: 'Smokey', power: 'Invisible'};
+      const entity = { id: 42, name: 'Smokey', power: 'Invisible' };
       collection = adapter.addMany([entity], collection);
 
       // Add to tracker AFTER adding to the collection
-      collection = tracker.addToTracker(collection, [entity])
-      expect(collection.originalValues[42]).toBe(entity, 'tracking added entity');
+      collection = tracker.addToTracker(collection, [entity]);
+      expect(collection.originalValues[42]).toBe(
+        entity,
+        'tracking added entity'
+      );
 
       expect(collection.ids).toEqual([1, 7, 2, 42], 'added id:42');
 
@@ -155,7 +159,7 @@ describe('EntityChangeTracker', () => {
 
       // "delete" id:7
       collection = adapter.removeMany([7], collection);
-      expect(collection.ids).toEqual([ 1 , 2], 'removed id:7');
+      expect(collection.ids).toEqual([1, 2], 'removed id:7');
 
       collection = tracker.revert(collection, [7]);
 
@@ -179,7 +183,10 @@ describe('EntityChangeTracker', () => {
       collection = tracker.revert(collection, [7]);
 
       expect(collection.entities[7]).toBe(entity, 'id:7 entity was restored');
-      expect(collection.entities[7].power).toBe(entity.power, 'id:7 has same power');
+      expect(collection.entities[7].power).toBe(
+        entity.power,
+        'id:7 has same power'
+      );
       expectIsNotTracked(7);
       expectIsTracked(1);
     });
@@ -192,16 +199,19 @@ describe('EntityChangeTracker', () => {
       expect(collection.entities[7].power).toBe('test-power', 'updated power');
 
       collection = tracker.revert(collection, [7]);
-      expect(collection.entities[7].power).toBe('test-power', 'did not revert power');
+      expect(collection.entities[7].power).toBe(
+        'test-power',
+        'did not revert power'
+      );
       expectIsNotTracked(7);
     });
 
     it('should revert several entities', () => {
       collection = tracker.addToTracker(origCollection, [1, 2, 7, 42]);
 
-      const entity = { id: 42, name: 'Smokey', power: 'Invisible'};
+      const entity = { id: 42, name: 'Smokey', power: 'Invisible' };
       const entity7 = collection.entities[7];
-      const update = { id: 7, changes: {id: 7, power: 'test-power' } };
+      const update = { id: 7, changes: { id: 7, power: 'test-power' } };
 
       collection = adapter.addMany([entity], collection);
       collection = adapter.removeMany([1, 2], collection);
@@ -213,7 +223,10 @@ describe('EntityChangeTracker', () => {
       // restored deleted id:1 but not id:2; removed added id:42
       expect(collection.ids).toEqual([1, 7]);
       expect(collection.entities[7]).toBe(entity7);
-      expect(Object.keys(collection.originalValues)).toEqual(['2'], 'only id:2 still tracked');
+      expect(Object.keys(collection.originalValues)).toEqual(
+        ['2'],
+        'only id:2 still tracked'
+      );
     });
 
     it('should return original collection when none of the entities are tracked', () => {
@@ -222,15 +235,19 @@ describe('EntityChangeTracker', () => {
     });
 
     it('should return original collection when asked to revert no entities', () => {
-      const trackingCollection = tracker.addToTracker(origCollection, [1, 7, 42]);
+      const trackingCollection = tracker.addToTracker(origCollection, [
+        1,
+        7,
+        42
+      ]);
       collection = tracker.revert(trackingCollection, []);
       expect(collection).toBe(trackingCollection);
-    })
+    });
 
     it('cannot (yet) revert an update that changes the primary key', () => {
       collection = tracker.addToTracker(origCollection, [1]);
       const entity = collection.entities[1];
-      const update = { id: 1, changes: { id: 42, name: 'test-name' }};
+      const update = { id: 1, changes: { id: 42, name: 'test-name' } };
 
       collection = adapter.updateOne(update, collection);
       expect(collection.ids).toEqual([7, 2, 42], 'ids after update');
@@ -240,7 +257,10 @@ describe('EntityChangeTracker', () => {
 
       // Both 1 and 42 are in cache!
       expect(collection.ids).toEqual([1, 7, 2, 42], 'ids improperly restored');
-      expect(collection.ids).not.toEqual([1, 7, 2], 'ids if reverted correctly');
+      expect(collection.ids).not.toEqual(
+        [1, 7, 2],
+        'ids if reverted correctly'
+      );
 
       expectIsNotTracked(1);
       expectIsNotTracked(42);
@@ -251,9 +271,9 @@ describe('EntityChangeTracker', () => {
     it('should revert all tracked entity changes', () => {
       collection = tracker.addToTracker(origCollection, [1, 2, 7, 42]);
 
-      const entity = { id: 42, name: 'Smokey', power: 'Invisible'};
+      const entity = { id: 42, name: 'Smokey', power: 'Invisible' };
       const entity7 = collection.entities[7];
-      const update = { id: 7, changes: {id: 7, power: 'test-power' } };
+      const update = { id: 7, changes: { id: 7, power: 'test-power' } };
 
       collection = adapter.addMany([entity], collection);
       collection = adapter.removeMany([1, 2], collection);
@@ -278,13 +298,17 @@ describe('EntityChangeTracker', () => {
   });
 
   /// test helpers ///
-  function expectIsTracked(id: (number | string)) {
-    expect(collection.originalValues.hasOwnProperty(id))
-      .toBe(true, `hero ${id} is in originalValues`);
+  function expectIsTracked(id: number | string) {
+    expect(collection.originalValues.hasOwnProperty(id)).toBe(
+      true,
+      `hero ${id} is in originalValues`
+    );
   }
 
-  function expectIsNotTracked(id: (number | string)) {
-    expect(collection.originalValues.hasOwnProperty(id))
-      .toBe(false, `hero ${id} is in originalValues`);
+  function expectIsNotTracked(id: number | string) {
+    expect(collection.originalValues.hasOwnProperty(id)).toBe(
+      false,
+      `hero ${id} is in originalValues`
+    );
   }
 });

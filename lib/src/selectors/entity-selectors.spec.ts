@@ -2,12 +2,13 @@ import { MemoizedSelector } from '@ngrx/store';
 
 import { EntityCache } from '../reducers/entity-cache';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
-import { EntityCollection, createEmptyEntityCollection } from '../reducers';
+import { EntityCollection } from '../reducers/entity-collection';
+import { createEmptyEntityCollection } from '../reducers/entity-collection-creator';
 import {
   EntityMetadata,
-  EntityMetadataMap,
-  PropsFilterFnFactory
-} from '../entity-metadata';
+  EntityMetadataMap
+} from '../entity-metadata/entity-metadata';
+import { PropsFilterFnFactory } from '../entity-metadata/entity-filters';
 
 import { EntitySelectors, EntitySelectorsFactory } from './entity-selectors';
 

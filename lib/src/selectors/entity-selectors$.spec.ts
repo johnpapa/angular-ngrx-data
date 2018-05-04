@@ -4,19 +4,22 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 
-import {
-  EntityAction,
-  EntityActions,
-  EntityActionFactory,
-  EntityOp
-} from '../actions';
-import { EntityCache, EntityCollection, ENTITY_CACHE_NAME } from '../reducers';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityOp } from '../actions/entity-op';
+
+import { EntityCache } from '../reducers/entity-cache';
+import { EntityCollection } from '../reducers/entity-collection';
+import { ENTITY_CACHE_NAME } from '../reducers/constants';
 import {
   EntityCollectionCreator,
   createEmptyEntityCollection
-} from '../reducers';
-import { EntityMetadata, EntityMetadataMap } from '../entity-metadata';
-import { PropsFilterFnFactory } from '../entity-metadata';
+} from '../reducers/entity-collection-creator';
+import {
+  EntityMetadata,
+  EntityMetadataMap
+} from '../entity-metadata/entity-metadata';
+import { PropsFilterFnFactory } from '../entity-metadata/entity-filters';
 import {
   ENTITY_CACHE_SELECTOR_TOKEN,
   EntityCacheSelector,

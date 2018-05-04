@@ -1,10 +1,11 @@
-import { defaultSelectId } from '../utils';
-import { EntityAction, EntityActionFactory, EntityOp } from '../actions';
+import { defaultSelectId } from '../utils/utilities';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityOp } from '../actions/entity-op';
 import { EntityDispatcher, EntityDispatcherBase } from './entity-dispatcher';
 import { EntityDispatcherFactory } from './entity-dispatcher-factory';
 import { EntityCommands } from './entity-commands';
 import { EntityDispatcherOptions } from './entity-dispatcher';
-import { Update } from '../utils';
+import { Update } from '../utils/ngrx-entity-models';
 
 class Hero {
   id: number;
@@ -12,11 +13,10 @@ class Hero {
   saying?: string;
 }
 
-const defaultDispatcherOptions =
-  new EntityDispatcherFactory(null, null).defaultDispatcherOptions;
+const defaultDispatcherOptions = new EntityDispatcherFactory(null, null)
+  .defaultDispatcherOptions;
 
 describe('EntityDispatcher', () => {
-
   commandDispatchTest(entityDispatcherTestSetup);
 
   function entityDispatcherTestSetup() {
@@ -25,7 +25,13 @@ describe('EntityDispatcher', () => {
 
     const selectId = defaultSelectId;
     const entityActionFactory = new EntityActionFactory();
-    const dispatcher = new EntityDispatcherBase<Hero>('Hero', entityActionFactory, testStore, selectId, defaultDispatcherOptions)
+    const dispatcher = new EntityDispatcherBase<Hero>(
+      'Hero',
+      entityActionFactory,
+      testStore,
+      selectId,
+      defaultDispatcherOptions
+    );
     return { dispatcher, testStore };
   }
 });
@@ -34,14 +40,13 @@ describe('EntityDispatcher', () => {
 
 /** Test that implementer of EntityCommands dispatches properly */
 export function commandDispatchTest(
-  setup: () => { dispatcher: EntityDispatcher<Hero>, testStore: any}
- ) {
-
+  setup: () => { dispatcher: EntityDispatcher<Hero>; testStore: any }
+) {
   let dispatcher: EntityDispatcher<Hero>;
   let testStore: { dispatch: jasmine.Spy };
 
   function dispatchedAction() {
-    return <EntityAction> testStore.dispatch.calls.argsFor(0)[0];
+    return <EntityAction>testStore.dispatch.calls.argsFor(0)[0];
   }
 
   beforeEach(() => {
@@ -51,17 +56,16 @@ export function commandDispatchTest(
   });
 
   it('#entityName is the expected name of the entity type', () => {
-    expect(dispatcher.entityName).toBe('Hero')
+    expect(dispatcher.entityName).toBe('Hero');
   });
 
   describe('Save actions', () => {
-
     // By default add and update are pessimistic and delete is optimistic.
     // Tests override in the dispatcher method calls as necessary.
 
     describe('(optimistic)', () => {
       it('#add(hero) dispatches SAVE_ADD_ONE_OPTIMISTIC', () => {
-        const hero: Hero = {id: 42, name: 'test'};
+        const hero: Hero = { id: 42, name: 'test' };
         dispatcher.add(hero, /* isOptimistic */ true);
 
         expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_ONE_OPTIMISTIC);
@@ -77,7 +81,7 @@ export function commandDispatchTest(
 
       it('#delete(hero) dispatches SAVE_DELETE_ONE_OPTIMISTIC for the hero.id', () => {
         const id = 42;
-        const hero: Hero = {id, name: 'test'};
+        const hero: Hero = { id, name: 'test' };
 
         dispatcher.delete(hero); // optimistic by default
 
@@ -86,7 +90,7 @@ export function commandDispatchTest(
       });
 
       it('#update(hero) dispatches SAVE_UPDATE_ONE_OPTIMISTIC with an update payload', () => {
-        const hero: Hero = {id: 42, name: 'test'}
+        const hero: Hero = { id: 42, name: 'test' };
         const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
 
         dispatcher.update(hero, /* isOptimistic */ true);
@@ -98,7 +102,7 @@ export function commandDispatchTest(
 
     describe('(pessimistic)', () => {
       it('#add(hero) dispatches SAVE_ADD', () => {
-        const hero: Hero = {id: 42, name: 'test'};
+        const hero: Hero = { id: 42, name: 'test' };
         dispatcher.add(hero); // pessimistic by default
 
         expect(dispatchedAction().op).toBe(EntityOp.SAVE_ADD_ONE);
@@ -114,7 +118,7 @@ export function commandDispatchTest(
 
       it('#delete(hero) dispatches SAVE_DELETE for the hero.id', () => {
         const id = 42;
-        const hero: Hero = {id, name: 'test'};
+        const hero: Hero = { id, name: 'test' };
 
         dispatcher.delete(hero, /* isOptimistic */ false); // optimistic by default
 
@@ -123,7 +127,7 @@ export function commandDispatchTest(
       });
 
       it('#update(hero) dispatches SAVE_UPDATE with an update payload', () => {
-        const hero: Hero = {id: 42, name: 'test'}
+        const hero: Hero = { id: 42, name: 'test' };
         const expectedUpdate: Update<Hero> = { id: 42, changes: hero };
 
         dispatcher.update(hero); // pessimistic by default
@@ -150,11 +154,11 @@ export function commandDispatchTest(
     });
 
     it('#getWithQuery(QueryParams) dispatches QUERY_MANY', () => {
-      dispatcher.getWithQuery({name: 'B'});
+      dispatcher.getWithQuery({ name: 'B' });
 
       expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
       expect(dispatchedAction().entityName).toBe('Hero');
-      expect(dispatchedAction().payload).toEqual({name: 'B'}, 'params')
+      expect(dispatchedAction().payload).toEqual({ name: 'B' }, 'params');
     });
 
     it('#getWithQuery(string) dispatches QUERY_MANY', () => {
@@ -162,7 +166,7 @@ export function commandDispatchTest(
 
       expect(dispatchedAction().op).toBe(EntityOp.QUERY_MANY);
       expect(dispatchedAction().entityName).toBe('Hero');
-      expect(dispatchedAction().payload).toEqual('name=B', 'params')
+      expect(dispatchedAction().payload).toEqual('name=B', 'params');
     });
   });
 
@@ -215,7 +219,7 @@ export function commandDispatchTest(
 
     it('#removeOneFromCache(entity) dispatches REMOVE_ONE', () => {
       const id = 42;
-      const hero: Hero = {id, name: 'test'};
+      const hero: Hero = { id, name: 'test' };
       dispatcher.removeOneFromCache(hero);
 
       expect(dispatchedAction().op).toBe(EntityOp.REMOVE_ONE);

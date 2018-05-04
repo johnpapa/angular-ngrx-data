@@ -1,8 +1,8 @@
 # Angular ngrx-data library ChangeLog
 
-<a name="1.0.0-beta.13"></a>
+<a name="6.0.0-beta.1"></a>
 
-# 1.0.0-beta.13 (COMING SOON)
+# 6.0.0-beta.1 (COMING SOON)
 
 **BREAKING CHANGE: Update to Angular/RxJS/NgRX v6**
 
@@ -10,13 +10,23 @@
 * Converted to Angular v6.0.0
 * Converted to NgRX v6.0.0-beta.1
 
-<a name="1.0.0-beta.12"></a>
+<a name="1.0.0-beta.13"></a>
+
+# 1.0.0-beta.13 (2018-05-04)
+
+<a name="1.0.0-beta.13"></a>
+
+Fix AOT build error (#145) by removing all barrels.
+
+Beta 12 _did not work_. It only seemed to for the one use case (#135).
+Removing all barrels from the top level `lib/src/index.ts` seems to work.
+Removed all barrels everywhere to prevent future trouble.
 
 # 1.0.0-beta.12 (2018-05-04)
 
 ### Utils and Pluralizer
 
-Fix AOT build error (#135) by moving `export * from './utils';` to the top of `/lib/src/index.ts`.
+Fix AOT build error (#135) by moving `export * from './utils';` to the top of `/lib/src/index.ts`. (**Did not work; see Beta 13.**)
 
 These fixes should not break library consumers because they cannot reach into these folders.
 

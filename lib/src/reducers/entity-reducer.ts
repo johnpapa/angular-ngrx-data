@@ -14,7 +14,7 @@ import { ENTITY_COLLECTION_META_REDUCERS } from './constants';
 import {
   EntityCollectionReducer,
   EntityCollectionReducerFactory
-} from './entity-collection.reducer';
+} from './entity-collection-reducer';
 import { Logger } from '../utils/interfaces';
 
 export interface EntityCollectionReducers {

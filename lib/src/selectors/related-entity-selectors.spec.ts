@@ -11,14 +11,13 @@ import { Observable } from 'rxjs/Observable';
 import { Subject } from 'rxjs/Subject';
 import { skip } from 'rxjs/operators/skip';
 
-import {
-  EntityAction,
-  EntityActions,
-  EntityActionFactory,
-  EntityOp
-} from '../actions';
+import { Dictionary, Update } from '../utils/ngrx-entity-models';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityOp } from '../actions/entity-op';
 
-import { EntityCache, EntityCollection } from '../reducers';
+import { EntityCache } from '../reducers/entity-cache';
+import { EntityCollection } from '../reducers/entity-collection';
 
 import {
   EntityMetadata,
@@ -29,8 +28,6 @@ import {
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 
 import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module';
-
-import { Dictionary, Update } from '../utils/ngrx-entity-models';
 
 const entityMetadataMap: EntityMetadataMap = {
   Battle: {},

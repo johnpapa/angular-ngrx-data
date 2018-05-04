@@ -1,26 +1,24 @@
 import { createEntityDefinition } from '../entity-metadata/entity-definition';
-import { EntityDefinition } from '../entity-metadata';
+import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityCollection } from './entity-collection';
-import { EntityDefinitionService } from '../entity-metadata';
+import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityCollectionCreator } from './entity-collection-creator';
-import { EntityMetadata } from '../entity-metadata';
+import { EntityMetadata } from '../entity-metadata/entity-metadata';
 
-  /** HeroMetadata identifies extra collection state properties */
-  const heroMetadata: EntityMetadata<Hero> = {
-    entityName: 'Hero',
-    additionalCollectionState: {
-      foo: 'Foo',
-      bar: 3.14
-    }
-  };
+/** HeroMetadata identifies extra collection state properties */
+const heroMetadata: EntityMetadata<Hero> = {
+  entityName: 'Hero',
+  additionalCollectionState: {
+    foo: 'Foo',
+    bar: 3.14
+  }
+};
 
 describe('EntityCollectionCreator', () => {
-
   let creator: EntityCollectionCreator;
   let eds: EntityDefinitionService;
 
   beforeEach(() => {
-
     eds = new EntityDefinitionService(null);
     const hdef = createEntityDefinition(heroMetadata);
     hdef.initialState.filter = 'super';
@@ -29,7 +27,7 @@ describe('EntityCollectionCreator', () => {
     creator = new EntityCollectionCreator(eds);
   });
 
-  it('should create collection with the definition\s initial state', () => {
+  it('should create collection with the definitions initial state', () => {
     const collection = creator.create<Hero, HeroCollection>('Hero');
     expect(collection.foo).toBe('Foo');
     expect(collection.filter).toBe('super');
@@ -62,4 +60,3 @@ interface HeroCollection extends EntityCollection<Hero> {
   foo: string;
   bar: number;
 }
-

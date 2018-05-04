@@ -1,5 +1,5 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
-import { Pluralizer } from '../utils/pluralizer';
+import { Pluralizer } from '../utils/interfaces';
 
 /**
  * Known resource URLS for specific entity types.

@@ -3,7 +3,8 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
-import { defaultSelectId, toUpdateFactory, IdSelector, Update } from '../utils';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionGuard } from '../actions/entity-action-guard';
@@ -17,27 +18,6 @@ import {
 } from './entity-collection.reducer';
 import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
-
-/**
- * Creates default {EntityCollectionReducerMethods} for a given entity type.
- */
-@Injectable()
-export class DefaultEntityCollectionReducerMethodsFactory
-  implements EntityCollectionReducerMethodsFactory {
-  constructor(protected entityDefinitionService: EntityDefinitionService) {}
-
-  /** Create the  {EntityCollectionReducerMethods} for the named entity type */
-  create<T>(entityName: string): EntityCollectionReducerMethods<T> {
-    const definition = this.entityDefinitionService.getDefinition<T>(
-      entityName
-    );
-    const methodsClass = new DefaultEntityCollectionReducerMethods(
-      entityName,
-      definition
-    );
-    return methodsClass.getMethods();
-  }
-}
 
 /**
  * {EntityCollectionReducerMethods} for a given entity type.
@@ -442,5 +422,26 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>
   ): EntityCollection<T> {
     return collection.loading ? collection : { ...collection, loading: true };
+  }
+}
+
+/**
+ * Creates default {EntityCollectionReducerMethods} for a given entity type.
+ */
+@Injectable()
+export class DefaultEntityCollectionReducerMethodsFactory
+  implements EntityCollectionReducerMethodsFactory {
+  constructor(protected entityDefinitionService: EntityDefinitionService) {}
+
+  /** Create the  {EntityCollectionReducerMethods} for the named entity type */
+  create<T>(entityName: string): EntityCollectionReducerMethods<T> {
+    const definition = this.entityDefinitionService.getDefinition<T>(
+      entityName
+    );
+    const methodsClass = new DefaultEntityCollectionReducerMethods(
+      entityName,
+      definition
+    );
+    return methodsClass.getMethods();
   }
 }

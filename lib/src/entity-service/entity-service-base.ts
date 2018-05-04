@@ -3,7 +3,7 @@ import { Action, Store } from '@ngrx/store';
 
 import { Observable } from 'rxjs/Observable';
 
-import { Dictionary, IdSelector, Update } from '../utils';
+import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
 import { EntityOp } from '../actions/entity-op';

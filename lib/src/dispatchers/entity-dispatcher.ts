@@ -7,7 +7,8 @@ import { EntityOp } from '../actions/entity-op';
 import { QueryParams } from '../dataservices/interfaces';
 import { EntityCommands } from './entity-commands';
 import { EntityCache } from '../reducers/entity-cache';
-import { defaultSelectId, IdSelector, Update, toUpdateFactory } from '../utils';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 
 /**
  * Options controlling EntityDispatcher behavior

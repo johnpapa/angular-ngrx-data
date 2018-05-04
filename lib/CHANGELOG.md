@@ -1,5 +1,29 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="1.0.0-beta.13"></a>
+
+# 1.0.0-beta.13 (COMING SOON)
+
+**BREAKING CHANGE: Update to Angular/RxJS/NgRX v6**
+
+* Converted to RxJS v6.0.1 _without the compat library_
+* Converted to Angular v6.0.0
+* Converted to NgRX v6.0.0-beta.1
+
+<a name="1.0.0-beta.12"></a>
+
+# 1.0.0-beta.12 (2018-05-04)
+
+### Utils and Pluralizer
+
+Fix AOT build error (#135) by moving `export * from './utils';` to the top of `/lib/src/index.ts`.
+
+These fixes should not break library consumers because they cannot reach into these folders.
+
+* More English-capable `DefaultPluralizer`.
+* Refactoring of internal utils files to put the interfaces in their own file
+* Update packages to the last v5 versions.
+
 <a name="1.0.0-beta.11"></a>
 
 # 1.0.0-beta.11 (2018-04-29)

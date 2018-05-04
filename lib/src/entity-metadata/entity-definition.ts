@@ -4,7 +4,8 @@ import {
   EntitySelectors,
   EntitySelectorsFactory
 } from '../selectors/entity-selectors';
-import { defaultSelectId, Dictionary, IdSelector, Update } from '../utils';
+import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
+import { defaultSelectId } from '../utils/utilities';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
 import { EntityFilterFn } from './entity-filters';

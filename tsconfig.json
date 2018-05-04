@@ -4,12 +4,9 @@
     "noImplicitAny": true,
     "target": "es5",
     "paths": {
-      "ngrx-data": ["lib/src"]
+      "ngrx-data": ["dist/ngrx-data"]
     },
-    "lib": [
-      "es2017",
-      "dom"
-    ]
+    "lib": ["es2017", "dom"]
   },
   "exclude": ["server"]
 }

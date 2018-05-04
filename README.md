@@ -247,19 +247,22 @@ The one you want for library and app files ends in `/lib/src/file-name.ts` and `
 
 > Hope to solve the _two file_ problem.
 
-## Build the app against the npm package
+## Build the app against the source
 
-The demo app is setup to build and run against the version of the library in `dist/ngrx-data`.
+The demo app is setup to build and run against the ngPackagr artifacts in `dist/ngrx-data`,
+the same artifacts delivered in the npm package.
 
-That's convenient when you're evolving the library code and
-re-building as you go with `npm run build-lib` or `npm run build-setup`.
+> Re-build the library `npm run build-lib` or `npm run build-setup` or `npm run build-all`
+> to update these artifacts.
 
-The version in `dist/ngrx-data` will reflect your latest changes.
-Obviously the package deployed in `node_modules` would not.
+This approach, while safe, can be inconvenient when you're evolving the library code because
+"Go to definition" takes you to the `d.ts` files in `dist/ngrx-data` rather than
+the source files in `lib/src`.
 
-If you want to see how the demo app runs against the published package, you'll have to make **a few temporary changes** to the TypeScript configuration.
+If you want to "Go to definition" to take you to the source files,
+make the following **\*temporary changes** to the TypeScript configuration.
 
-1.  **_Remove_** the following from root `tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `node_modules/ngrx-data` instead of `src/lib`.
+1.  **_Replace_** the paths target in the root `tsconfig.json` so that the IDE (e.g., VS Code) looks for `ngrx-data` in `src/lib`.
 
     ```bash
       "paths": {
@@ -267,16 +270,10 @@ If you want to see how the demo app runs against the published package, you'll h
       },
     ```
 
-2.  **_Remove_** _that same setting_ from the `src/` config at `src/tsconfig.json`.
+2.  **_Replace_** _that same setting_ in the config at `src/tsconfig.json`.
 
-3.  **_Remove_** _that same setting_ from the `src/client/tsconfig.app.json`.
-    Now `ng build` references `node_modules/ngrx-data` instead of `src/lib` when it builds the demo app.
-
-4.  Now install the `ngrx-data` package _without touching the `package.json`_ as follows:
-
-    ```bash
-    npm install ngrx-data --no-save --no-lock
-    ```
+3.  **_Replace_** _that same setting_ in `src/client/tsconfig.app.json`.
+    Now `ng build` references `src/lib` when it builds the demo app.
 
 > **Remember to _restore the `tsconfig` settings_ when you're done. Do not commit those changes!**
 

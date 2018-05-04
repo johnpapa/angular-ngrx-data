@@ -49,16 +49,13 @@ import {
   ENTITY_REDUCER_TOKEN
 } from './reducers/constants';
 
+import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
+
 import { EntitySelectors } from './selectors/entity-selectors';
 import { EntitySelectorsFactory } from './selectors/entity-selectors';
 import { EntitySelectors$Factory } from './selectors/entity-selectors$';
-import {
-  Pluralizer,
-  DefaultPluralizer,
-  PLURAL_NAMES_TOKEN
-} from './utils/pluralizer';
-
-import { Logger, DefaultLogger } from './utils/logger';
+import { DefaultLogger } from './utils/default-logger';
+import { DefaultPluralizer } from './utils/default-pluralizer';
 
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
@@ -144,7 +141,7 @@ export class NgrxDataModule {
         {
           provide: PLURAL_NAMES_TOKEN,
           multi: true,
-          useValue: config.pluralNames
+          useValue: config.pluralNames ? config.pluralNames : {}
         }
       ]
     };

@@ -1,12 +1,19 @@
 {
-  "extends": "./src/tsconfig.json",
+  "compileOnSave": false,
   "compilerOptions": {
-    "noImplicitAny": true,
-    "target": "es5",
+    "outDir": "./dist/out-tsc",
+    "baseUrl": ".",
     "paths": {
       "ngrx-data": ["dist/ngrx-data"]
     },
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "target": "es5",
+    "typeRoots": ["node_modules/@types"],
     "lib": ["es2017", "dom"]
-  },
-  "exclude": ["server"]
+  }
 }

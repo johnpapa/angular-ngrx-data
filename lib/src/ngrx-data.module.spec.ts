@@ -9,13 +9,10 @@ import { Observable } from 'rxjs/Observable';
 import { of } from 'rxjs/observable/of';
 import { concatMap, map, skip } from 'rxjs/operators';
 
-import {
-  EntityAction,
-  EntityActionFactory,
-  EntityActions,
-  EntityOp,
-  OP_ERROR
-} from './actions';
+import { EntityAction, EntityActionFactory } from './actions/entity-action';
+import { EntityActions } from './actions/entity-actions';
+import { EntityOp, OP_ERROR } from './actions/entity-op';
+
 import { EntityCache } from './reducers/entity-cache';
 import { EntityEffects, persistOps } from './effects/entity-effects';
 import { NgrxDataModule } from './ngrx-data.module';

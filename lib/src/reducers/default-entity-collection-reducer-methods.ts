@@ -15,7 +15,7 @@ import { EntityCollection } from './entity-collection';
 import {
   EntityCollectionReducerMethods,
   EntityCollectionReducerMethodsFactory
-} from './entity-collection.reducer';
+} from './entity-collection-reducer';
 import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 

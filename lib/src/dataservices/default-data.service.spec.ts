@@ -19,7 +19,7 @@ import {
   EntityHttpResourceUrls,
   HttpUrlGenerator
 } from './http-url-generator';
-import { Update } from '../utils';
+import { Update } from '../utils/ngrx-entity-models';
 
 class Hero {
   id: number;

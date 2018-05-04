@@ -6,27 +6,28 @@ import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
 import { Observable } from 'rxjs/Observable';
 import { delay, first, merge } from 'rxjs/operators';
 
-import {
-  EntityAction,
-  EntityActionFactory,
-  EntityActions,
-  EntityOp,
-  OP_ERROR
-} from '../actions';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityOp, OP_ERROR } from '../actions/entity-op';
 
 import {
-  DataServiceError,
   EntityCollectionDataService,
-  EntityDataService,
-  EntityActionDataServiceError,
-  HttpMethods,
+  EntityDataService
+} from '../dataservices/entity-data.service';
+import {
+  DataServiceError,
+  EntityActionDataServiceError
+} from '../dataservices/data-service-error';
+import {
   PersistenceResultHandler,
   DefaultPersistenceResultHandler
-} from '../dataservices';
+} from '../dataservices/persistence-result-handler.service';
+import { HttpMethods } from '../dataservices/interfaces';
 
 import { EntityEffects } from './entity-effects';
 
-import { Logger, Update } from '../utils';
+import { Logger } from '../utils/interfaces';
+import { Update } from '../utils/ngrx-entity-models';
 
 export class TestEntityActions extends EntityActions {
   set stream(source: Observable<any>) {

@@ -4,13 +4,12 @@ import { Action, StoreModule, Store } from '@ngrx/store';
 
 import { Subject } from 'rxjs/Subject';
 
-import {
-  EntityAction,
-  EntityActions,
-  EntityActionFactory,
-  EntityOp
-} from '../actions';
-import { EntityCache, EntityCollection } from '../reducers';
+import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityActions } from '../actions/entity-actions';
+import { EntityOp } from '../actions/entity-op';
+
+import { EntityCache } from '../reducers/entity-cache';
+import { EntityCollection } from '../reducers/entity-collection';
 import { ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
 import {
   EntityService,

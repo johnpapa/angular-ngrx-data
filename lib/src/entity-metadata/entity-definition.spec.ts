@@ -1,7 +1,7 @@
 import { EntityMetadata } from './entity-metadata';
 import { EntityFilterFn } from './entity-filters';
-import { IdSelector, Comparer } from '../utils';
-import { EntitySelectors } from '../selectors';
+import { IdSelector, Comparer } from '../utils/ngrx-entity-models';
+import { EntitySelectors } from '../selectors/entity-selectors';
 
 import { createEntityDefinition } from './entity-definition';
 

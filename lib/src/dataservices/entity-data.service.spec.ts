@@ -6,11 +6,13 @@ import { Observable } from 'rxjs/Observable';
 
 import {
   createEntityDefinition,
-  EntityDefinition,
+  EntityDefinition
+} from '../entity-metadata/entity-definition';
+import {
   EntityMetadata,
   EntityMetadataMap,
   ENTITY_METADATA_TOKEN
-} from '../entity-metadata';
+} from '../entity-metadata/entity-metadata';
 
 import {
   DefaultDataService,
@@ -21,7 +23,7 @@ import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 import { EntityDataService } from './entity-data.service';
 import { EntityCollectionDataService } from './entity-data.service';
 import { QueryParams } from './interfaces';
-import { Update } from '../utils';
+import { Update } from '../utils/ngrx-entity-models';
 
 // region Test Helpers
 ///// Test Helpers /////

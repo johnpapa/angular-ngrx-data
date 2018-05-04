@@ -36,7 +36,7 @@ import { EntityCollectionCreator } from './reducers/entity-collection-creator';
 import {
   EntityCollectionReducerFactory,
   EntityCollectionReducerMethodsFactory
-} from './reducers/entity-collection.reducer';
+} from './reducers/entity-collection-reducer';
 import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
 import {
   createEntityReducer,

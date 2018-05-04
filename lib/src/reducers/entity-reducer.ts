@@ -15,7 +15,7 @@ import {
   EntityCollectionReducer,
   EntityCollectionReducerFactory
 } from './entity-collection.reducer';
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/interfaces';
 
 export interface EntityCollectionReducers {
   [entity: string]: EntityCollectionReducer<any>;

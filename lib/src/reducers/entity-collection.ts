@@ -1,5 +1,5 @@
 import { EntityState } from '@ngrx/entity';
-import { Dictionary } from '../utils';
+import { Dictionary } from '../utils/ngrx-entity-models';
 
 export interface EntityCollection<T = any> extends EntityState<T> {
   /** user's filter pattern */

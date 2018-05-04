@@ -1,6 +1,7 @@
 import { EntityAdapter, EntityState } from '@ngrx/entity';
 
-import { defaultSelectId, IdSelector, Update } from '../utils';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { defaultSelectId } from '../utils/utilities';
 import { EntityCollection } from './entity-collection';
 
 // Methods needed by EntityChangeTracker to mutate the collection
@@ -14,7 +15,8 @@ export class EntityChangeTracker<T> {
   constructor(
     public name: string,
     private mutator: CollectionMutator<T>,
-    private selectId?: IdSelector<T>) {
+    private selectId?: IdSelector<T>
+  ) {
     /** Extract the primary key (id); default to `id` */
     this.selectId = selectId || defaultSelectId;
   }
@@ -25,18 +27,21 @@ export class EntityChangeTracker<T> {
    * @param idsSource  Array of id sources which could be an id,
    * an entity or an entity update
    */
-  addToTracker(collection: EntityCollection<T>,
-    idsSource: (number | string | T | Update<T>)[]): EntityCollection<T> {
+  addToTracker(
+    collection: EntityCollection<T>,
+    idsSource: (number | string | T | Update<T>)[]
+  ): EntityCollection<T> {
     let ids: (number | string)[] = (idsSource || []).map(
-      (source: any) => typeof source === 'object' ?
-        source.id && source.changes ? source.id : this.selectId(source) :
-        source
+      (source: any) =>
+        typeof source === 'object'
+          ? source.id && source.changes ? source.id : this.selectId(source)
+          : source
     );
 
     let originalValues = collection.originalValues;
 
     // add only the ids that aren't currently tracked
-    ids = ids.filter(id => !originalValues.hasOwnProperty(id))
+    ids = ids.filter(id => !originalValues.hasOwnProperty(id));
     if (ids.length === 0) {
       return collection;
     }
@@ -45,7 +50,7 @@ export class EntityChangeTracker<T> {
     originalValues = { ...originalValues }; // clone it
 
     // when entities[id] === undefined, it's a revertable "add"
-    ids.forEach(id => originalValues[id] = entities[id]);
+    ids.forEach(id => (originalValues[id] = entities[id]));
     return { ...collection, originalValues };
   }
 
@@ -55,15 +60,17 @@ export class EntityChangeTracker<T> {
    * @param collection Entity collection with originalValues
    * @param ids Ids of entities whose original values should be removed.
    */
-  removeFromTracker(collection: EntityCollection<T>, ids?: (number | string)[])
-  : EntityCollection<T> {
+  removeFromTracker(
+    collection: EntityCollection<T>,
+    ids?: (number | string)[]
+  ): EntityCollection<T> {
     let originalValues = collection.originalValues;
     ids = (ids || []).filter(id => originalValues.hasOwnProperty(id));
     if (ids.length === 0) {
       return collection;
     }
     originalValues = { ...originalValues }; // clone it
-    ids.forEach(id => delete originalValues[id])
+    ids.forEach(id => delete originalValues[id]);
     return { ...collection, originalValues };
   }
 
@@ -72,9 +79,14 @@ export class EntityChangeTracker<T> {
    * @param collection Source entity collection
    * @param ids Ids of entities to revert to original values
    */
-  revert(collection: EntityCollection<T>, ids: (number|string)[]): EntityCollection<T> {
+  revert(
+    collection: EntityCollection<T>,
+    ids: (number | string)[]
+  ): EntityCollection<T> {
     const newCollection = this._revertCore(collection, ids);
-    return newCollection === collection ? collection : this.removeFromTracker(newCollection, ids);
+    return newCollection === collection
+      ? collection
+      : this.removeFromTracker(newCollection, ids);
   }
 
   /**
@@ -83,11 +95,15 @@ export class EntityChangeTracker<T> {
    */
   revertAll(collection: EntityCollection<T>) {
     const ids = Object.keys(collection.originalValues);
-    return ids.length === 0 ? collection :
-      {...this._revertCore(collection, ids), originalValues: {}};
+    return ids.length === 0
+      ? collection
+      : { ...this._revertCore(collection, ids), originalValues: {} };
   }
 
-  private _revertCore(collection: EntityCollection<T>, ids: (number|string)[]): EntityCollection<T> {
+  private _revertCore(
+    collection: EntityCollection<T>,
+    ids: (number | string)[]
+  ): EntityCollection<T> {
     const originalValues = collection.originalValues;
     ids = (ids || []).filter(id => originalValues.hasOwnProperty(id));
     if (ids.length === 0) {
@@ -99,6 +115,8 @@ export class EntityChangeTracker<T> {
 
     // `falsey` original entity indicates an added entity that should be removed
     const originals = ids.map(id => originalValues[id]).filter(o => !!o);
-    return originals.length === 0 ? collection : this.mutator.addMany(originals, collection);
+    return originals.length === 0
+      ? collection
+      : this.mutator.addMany(originals, collection);
   }
 }

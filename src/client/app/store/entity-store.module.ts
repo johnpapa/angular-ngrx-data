@@ -3,9 +3,12 @@ import { NgModule } from '@angular/core';
 import {
   DefaultDataServiceConfig,
   EntityHttpResourceUrls,
-  NgrxDataModule
+  Logger,
+  NgrxDataModule,
+  Pluralizer
 } from 'ngrx-data';
 
+import { AppPluralizer, AppLogger } from './app-utils';
 import { entityMetadata } from './entity-metadata';
 import { NgrxDataToastService } from './ngrx-data-toast.service';
 import { isE2E } from '../core';
@@ -38,7 +41,9 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
   ],
   providers: [
     NgrxDataToastService,
-    { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }
+    { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig },
+    { provide: Logger, useClass: AppLogger },
+    { provide: Pluralizer, useClass: AppPluralizer }
   ]
 })
 export class EntityStoreModule {

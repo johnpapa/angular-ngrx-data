@@ -4,6 +4,22 @@ The ngrx-data library has its own [CHANGELOG.md](lib/CHANGELOG.md) and versionin
 Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
+<a name="0.2.13"></a>
+
+# 0.2.13 (2018-05-04)
+
+* modified app to provide app-specific Pluralizer and Logger to prove that works.
+  These versions merely inherit from the ngrx-data versions, making no changes.
+
+* ngrx-data paths in all `tsconfig.json` point to `dist/ngrx-data` instead of `lib/src`, on Filipe Silva' recommendation.
+  This means that the app points to the result of the library build, not the library source
+  and `npm run build-all` does a production build against the library output just as an app
+  would build against the installed npm packages.
+
+The downside is that "Go to definition" takes you to the `d.ts` file rather than library source file.
+That's inconvenient. But the benefit is that the routine build process reflects what apps will experience.
+This is the approach followed by the Angular CLI's library support.
+
 <a name="0.2.12"></a>
 
 # 0.2.12 (2018-03-25)

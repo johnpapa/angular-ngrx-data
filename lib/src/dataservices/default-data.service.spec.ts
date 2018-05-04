@@ -523,7 +523,7 @@ describe('DefaultDataServiceFactory', () => {
       expect(heroDS.name).toBe('Hero DefaultDataService');
     });
 
-    it("should produce hero data service that gets heroes with config's hero HttpResourceUrls", () => {
+    it('should produce hero data service that gets heroes via hero HttpResourceUrls', () => {
       const newHeroesUrl = 'some/other/api/heroes';
       const config: DefaultDataServiceConfig = {
         root: 'api',

@@ -10,7 +10,7 @@ import {
 } from './data-service-error';
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
-import { Logger } from '../utils/logger';
+import { Logger } from '../utils/interfaces';
 
 /**
  * Handling of responses from persistence operation

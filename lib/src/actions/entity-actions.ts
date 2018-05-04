@@ -8,7 +8,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 
 import { EntityAction } from './entity-action';
 import { EntityOp } from './entity-op';
-import { flattenArgs } from '../utils';
+import { flattenArgs } from '../utils/utilities';
 
 /**
  * Observable of entity actions dispatched to the store.
@@ -16,14 +16,18 @@ import { flattenArgs } from '../utils';
  * Imitates `Actions.ofType()` in ngrx/entity.
  */
 @Injectable()
-export class EntityActions<V extends EntityAction = EntityAction> extends Observable<V> {
+export class EntityActions<
+  V extends EntityAction = EntityAction
+> extends Observable<V> {
   // Inject the ngrx/effect Actions observable that watches dispatches to the store
   constructor(source?: Actions) {
     super();
 
     if (source) {
       // ONLY look at EntityActions
-      this.source = source.pipe(filter((action: any) => action.op && action.entityName));
+      this.source = source.pipe(
+        filter((action: any) => action.op && action.entityName)
+      );
     }
   }
 
@@ -71,7 +75,9 @@ export class EntityActions<V extends EntityAction = EntityAction> extends Observ
         const name = names[0];
         return this.where(ea => name === ea.entityName);
       default:
-        return this.where(ea => ea.entityName && names.some(n => n === ea.entityName));
+        return this.where(
+          ea => ea.entityName && names.some(n => n === ea.entityName)
+        );
     }
   }
 

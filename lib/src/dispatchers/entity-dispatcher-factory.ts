@@ -7,12 +7,16 @@ import { EntityOp } from '../actions/entity-op';
 import { QueryParams } from '../dataservices/interfaces';
 import { EntityCommands } from './entity-commands';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityDispatcher, EntityDispatcherBase, EntityDispatcherOptions } from './entity-dispatcher';
-import { defaultSelectId, IdSelector, Update, toUpdateFactory } from '../utils';
+import {
+  EntityDispatcher,
+  EntityDispatcherBase,
+  EntityDispatcherOptions
+} from './entity-dispatcher';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 
 @Injectable()
 export class EntityDispatcherFactory {
-
   /**
    * Default dispatcher options.
    * These defaults are the safest values.
@@ -20,7 +24,7 @@ export class EntityDispatcherFactory {
   defaultDispatcherOptions = {
     optimisticAdd: false,
     optimisticDelete: true,
-    optimisticUpdate: false,
+    optimisticUpdate: false
   };
 
   constructor(
@@ -45,8 +49,17 @@ export class EntityDispatcherFactory {
     dispatcherOptions: Partial<EntityDispatcherOptions> = {}
   ): EntityDispatcher<T> {
     // merge w/ dispatcher options with defaults
-    const options: EntityDispatcherOptions =
-      Object.assign({}, this.defaultDispatcherOptions, dispatcherOptions);
-    return new EntityDispatcherBase<T>(entityName, this.entityActionFactory, this.store, selectId, options)}
+    const options: EntityDispatcherOptions = Object.assign(
+      {},
+      this.defaultDispatcherOptions,
+      dispatcherOptions
+    );
+    return new EntityDispatcherBase<T>(
+      entityName,
+      this.entityActionFactory,
+      this.store,
+      selectId,
+      options
+    );
+  }
 }
-

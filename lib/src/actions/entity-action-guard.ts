@@ -1,5 +1,5 @@
 import { EntityAction } from './entity-action';
-import { IdSelector, Update } from '../utils';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
 
 export class EntityActionGuard {
   constructor(private selectId: IdSelector<any>) {}

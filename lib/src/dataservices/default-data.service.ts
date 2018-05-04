@@ -15,7 +15,7 @@ import { HttpMethods, QueryParams, RequestData } from './interfaces';
 import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 
 import { EntityCollectionDataService } from './entity-data.service';
-import { Update } from '../utils';
+import { Update } from '../utils/ngrx-entity-models';
 
 // Pass the observable straight through
 export const noDelay = <K>(source: Observable<K>) => source;

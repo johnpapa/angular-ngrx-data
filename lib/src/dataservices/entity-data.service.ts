@@ -6,8 +6,7 @@ import { EntityAction } from '../actions/entity-action';
 import { DefaultDataServiceFactory } from './default-data.service';
 import { HttpUrlGenerator } from './http-url-generator';
 import { QueryParams } from './interfaces';
-import { Update } from '../utils';
-
+import { Update } from '../utils/ngrx-entity-models';
 
 /** A service that performs REST-like HTTP data operations */
 export interface EntityCollectionDataService<T> {
@@ -22,14 +21,11 @@ export interface EntityCollectionDataService<T> {
 
 @Injectable()
 export class EntityDataService {
-
   protected services: { [name: string]: EntityCollectionDataService<any> } = {};
 
   // TODO:  Optionally inject specialized entity data services
   // for those that aren't derived from BaseDataService.
-  constructor(
-    protected defaultDataServiceFactory: DefaultDataServiceFactory
-  ) { }
+  constructor(protected defaultDataServiceFactory: DefaultDataServiceFactory) {}
 
   /**
    * Get (or create) a data service for entity type
@@ -58,7 +54,10 @@ export class EntityDataService {
    *   registerService('Hero', myHeroDataService);
    *   registerService('Villain', myVillainDataService);
    */
-  registerService<T>(entityName: string, service: EntityCollectionDataService<T>) {
+  registerService<T>(
+    entityName: string,
+    service: EntityCollectionDataService<T>
+  ) {
     this.services[entityName.trim()] = service;
   }
 
@@ -72,7 +71,9 @@ export class EntityDataService {
    *     Villain: myVillainDataService
    *   });
    */
-  registerServices(services: { [name: string]: EntityCollectionDataService<any> }) {
+  registerServices(services: {
+    [name: string]: EntityCollectionDataService<any>;
+  }) {
     this.services = { ...this.services, ...services };
   }
 }

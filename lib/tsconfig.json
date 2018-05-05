@@ -17,5 +17,9 @@
       "es2017",
       "dom"
     ]
+  },
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true, // false doesn't work either
+    "preserveWhitespaces": false,
   }
 }

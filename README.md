@@ -30,3 +30,18 @@ Comment out the two ngrx imports in `NgrxDataModule` (leaving the `FooModule`) a
 This time the build succeeds and generates a package in `dist`.
 
  Note that `FooModule` is just fine.
+
+### Suggestions that don't work
+
+This problem is reported in `ngPackagr` as [issue 822](https://github.com/dherges/ng-packagr/issues/822).
+
+A comment there says
+>Looks like the @dynamic has no effect in this case. Though what I noticed was that setting `fullTemplateTypeCheck` does stop the error. I'll log an error with Angular.
+
+I tried it in `lib/tsconfig.json`. It didn't help
+```
+  "angularCompilerOptions": {
+    "fullTemplateTypeCheck": true, // false doesn't work either
+    "preserveWhitespaces": false,
+  }
+```

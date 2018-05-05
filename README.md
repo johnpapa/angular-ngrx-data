@@ -26,5 +26,7 @@ Error during template compile of 'NgrxDataModule'
   ...
 ```
 
-Comment out the two imports in `NgrxDataModule` and try building again.
+Comment out the two ngrx imports in `NgrxDataModule` and try building again.
 This time the build succeeds and generates a package in `dist`.
+
+ Note that `FooModule` is just fine.

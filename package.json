@@ -4,8 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build-lib": "ng-packagr -p lib",
-    "build-setup":
-      "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock"
+    "build-setup": "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock"
   },
   "private": true,
   "dependencies": {

@@ -2,6 +2,13 @@
 
 Demonstrate inability to build a library that consumes @ngrx v6.0.0-beta.1 libraries
 
+## Reported issues
+
+In Angular as https://github.com/angular/angular/issues/23609
+In ngPackagr as https://github.com/dherges/ng-packagr/issues/822
+
+## Repro
+
 To see the problem, prepare by installing as follows.
 
 ```

@@ -1,37 +1,11 @@
 {
-  "name": "angular-ngrx-data",
+  "name": "angular-ngrx-data-fail",
   "version": "0.2.12",
   "license": "MIT",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve -o",
-    "build": "ng build",
-    "build-prod": "ng build --prod",
     "build-lib": "ng-packagr -p lib",
-    "build-all": "rm -rf dist && npm run build-setup && npm run build-prod",
     "build-setup":
-      "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock",
-    "build-publish": "npm run build-lib && npm publish dist/ngrx-data",
-    "e2e": "ng e2e",
-    "sme": "./node_modules/.bin/source-map-explorer",
-    "gen-stats": "ng build --prod --stats-json",
-    "view-stats": "webpack-bundle-analyzer dist/stats.json",
-    "test": "ng test",
-    "lint": "ng lint",
-    "docker-up": "docker-compose up -d --build",
-    "docker-up-debug":
-      "docker-compose -f docker-compose.debug.yml up -d --build",
-    "docker-down": "docker-compose down",
-    "dev":
-      "concurrently \"npm run debug\" \"ng serve --proxy-config proxy.conf.json --open\"",
-    "start-server": "node ./src/server/index.js",
-    "debug":
-      "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect src/server/index.js",
-    "serve-dist":
-      "PUBLICWEB=./dist/publicweb node -r dotenv/config --inspect dist/index.js",
-    "snyk-protect": "snyk protect",
-    "prepare": "npm run snyk-protect",
-    "precommit": "pretty-quick --staged"
+      "npm run build-lib && npm install dist/ngrx-data --no-save --no-package-lock"
   },
   "private": true,
   "dependencies": {

@@ -1,9 +1,0 @@
-@import '../../../styles/mixin';
-
-.heroes {
-  @include item-list;
-}
-
-.mat-card {
-  @include mat-card-layout;
-}

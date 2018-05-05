@@ -1,6 +1,0 @@
-@import '../../../styles/mixin';
-
-.mat-card {
-  @include mat-card-layout;
-  @include editarea-margins;
-}

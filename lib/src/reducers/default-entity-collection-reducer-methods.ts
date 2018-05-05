@@ -373,7 +373,9 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T[]>
   ): EntityCollection<T> {
     // <v6: payload must be an array of `Updates<T>`, not entities
+    // this.guard.mustBeUpdates(action);
     // v6+: payload must be an array of T
+    this.guard.mustBeEntities(action);
     return this.adapter.upsertMany(action.payload, collection);
   }
 
@@ -382,7 +384,9 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T>
   ): EntityCollection<T> {
     // <v6: payload must be an `Update<T>`, not an entity
+    // this.guard.mustBeUpdate(action);
     // v6+: payload must be a T
+    this.guard.mustBeEntity(action);
     return this.adapter.upsertOne(action.payload, collection);
   }
 

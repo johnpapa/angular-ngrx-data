@@ -10,6 +10,8 @@
 * Converted to Angular v6.0.0
 * Converted to NgRX v6.0.0-beta.1
 
+<hr>
+
 <a name="1.0.0-beta.13"></a>
 
 # 1.0.0-beta.13 (2018-05-04)

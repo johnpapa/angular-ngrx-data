@@ -73,7 +73,7 @@ export interface EntitySelectors$<T> {
 @Injectable()
 export class EntitySelectors$Factory {
   /** Observable of the EntityCache */
-  entityCache$: Store<EntityCache>;
+  entityCache$: Observable<EntityCache>;
 
   constructor(
     private store: Store<any>,

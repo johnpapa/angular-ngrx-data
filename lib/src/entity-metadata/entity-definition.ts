@@ -4,7 +4,12 @@ import {
   EntitySelectors,
   EntitySelectorsFactory
 } from '../selectors/entity-selectors';
-import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
+import {
+  Comparer,
+  Dictionary,
+  IdSelector,
+  Update
+} from '../utils/ngrx-entity-models';
 import { defaultSelectId } from '../utils/utilities';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
@@ -18,6 +23,7 @@ export interface EntityDefinition<T = any> {
   initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
   selectId: IdSelector<T>;
+  sortComparer: false | Comparer<T>;
 }
 
 export function createEntityDefinition<T, S extends object>(
@@ -51,6 +57,7 @@ export function createEntityDefinition<T, S extends object>(
     entityDispatcherOptions,
     initialState,
     metadata,
-    selectId
+    selectId,
+    sortComparer
   };
 }

@@ -1,6 +1,6 @@
-## Angular ngrx-data FAIL
+## Angular ngrx v6.0.0-beta.1 FAIL
 
-Demonstrate inability to build a library with @ngrx v6.0.0-beta.1 libraries
+Demonstrate inability to build a library that consumes @ngrx v6.0.0-beta.1 libraries
 
 To see the problem, prepare by installing as follows.
 
@@ -26,7 +26,7 @@ Error during template compile of 'NgrxDataModule'
   ...
 ```
 
-Comment out the two ngrx imports in `NgrxDataModule` and try building again.
+Comment out the two ngrx imports in `NgrxDataModule` (leaving the `FooModule`) and try building again.
 This time the build succeeds and generates a package in `dist`.
 
  Note that `FooModule` is just fine.

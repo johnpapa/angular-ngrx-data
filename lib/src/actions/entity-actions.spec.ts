@@ -74,7 +74,7 @@ describe('EntityActions', () => {
     expect(results).toEqual(expectedActions);
   });
 
-  it("#ofEntityType('SomeType')", () => {
+  it(`#ofEntityType('SomeType')`, () => {
     // EntityActions of one type
     eas.ofEntityType('Hero').subscribe(ea => results.push(ea));
 
@@ -86,7 +86,7 @@ describe('EntityActions', () => {
     expect(results).toEqual(expectedActions);
   });
 
-  it("#ofEntityType('Type1', 'Type2', 'Type3')", () => {
+  it(`#ofEntityType('Type1', 'Type2', 'Type3')`, () => {
     // n.b. 'Bar' is not an EntityType even though it is an action type
     eas
       .ofEntityType('Hero', 'Villain', 'Bar')

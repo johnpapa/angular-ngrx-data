@@ -135,7 +135,7 @@ function getDbData() {
     {
       id: 25,
       name: 'West Witch',
-      saying: "I'll get you, my pretty, and your little dog too!"
+      saying: `I'll get you, my pretty, and your little dog too!`
     },
     {
       id: 26,

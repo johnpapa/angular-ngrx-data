@@ -1,8 +1,8 @@
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
 
-import { Observable, of, throwError } from 'rxjs';
-import { delay, first, merge } from 'rxjs/operators';
+import { Observable, of, merge, throwError } from 'rxjs';
+import { delay, first } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
@@ -446,14 +446,12 @@ describe('EntityEffects (normal testing)', () => {
     actions$.stream = of(action);
     const sentinel = 'no persist$ effect';
 
-    effects.persist$
-      .pipe(
-        merge(
-          of(sentinel).pipe(delay(1))
-          // of(entityActionFactory.create('Hero', EntityOp.QUERY_ALL)) // will cause test to fail
-        ),
-        first()
-      )
+    merge(
+      effects.persist$,
+      of(sentinel).pipe(delay(1))
+      // of(entityActionFactory.create('Hero', EntityOp.QUERY_ALL)) // will cause test to fail
+    )
+      .pipe(first())
       .subscribe(
         result => expect(result).toEqual(sentinel),
         err => {

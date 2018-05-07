@@ -3,13 +3,16 @@ import { TestBed } from '@angular/core/testing';
 
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
 import { EntityDefinitionService } from './entity-definition.service';
-import { EntityMetadata, EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata';
+import {
+  EntityMetadata,
+  EntityMetadataMap,
+  ENTITY_METADATA_TOKEN
+} from './entity-metadata';
 
-@NgModule({ })
+@NgModule({})
 class LazyModule {
-
   lazyMetadataMap = {
-    Sidekick: { }
+    Sidekick: {}
   };
 
   constructor(entityDefinitionService: EntityDefinitionService) {
@@ -18,26 +21,25 @@ class LazyModule {
 }
 
 describe('EntityDefinitionService', () => {
-
   let service: EntityDefinitionService;
   let metadataMap: EntityMetadataMap;
 
   beforeEach(() => {
     metadataMap = {
-      Hero: { },
-      Villain: { }
+      Hero: {},
+      Villain: {}
     };
 
     TestBed.configureTestingModule({
       // Not actually lazy but demonstrates a module that registers metadata
-      imports: [ LazyModule ],
+      imports: [LazyModule],
       providers: [
         EntityDefinitionService,
-        { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: metadataMap}
+        { provide: ENTITY_METADATA_TOKEN, multi: true, useValue: metadataMap }
       ]
     });
     service = TestBed.get(EntityDefinitionService);
-  })
+  });
 
   describe('#getDefinition', () => {
     it('returns definition for known entity', () => {
@@ -56,7 +58,6 @@ describe('EntityDefinitionService', () => {
   });
 
   describe('#registerMetadata(Map)', () => {
-
     it('can register a new definition by metadata', () => {
       service.registerMetadata({ entityName: 'Foo' });
 
@@ -69,8 +70,8 @@ describe('EntityDefinitionService', () => {
 
     it('can register new definitions by metadata map', () => {
       service.registerMetadataMap({
-        Foo: { },
-        Bar: { }
+        Foo: {},
+        Bar: {}
       });
 
       let def = service.getDefinition('Foo');
@@ -138,8 +139,7 @@ describe('EntityDefinitionService', () => {
 
       const def = service.getDefinition('Hero');
       expect(def).toBeDefined('Hero still defined');
-      expect(def.selectId).toBe(testSelectId, 'updated w/ new selectId')
+      expect(def.selectId).toBe(testSelectId, 'updated w/ new selectId');
     });
   });
 });
-

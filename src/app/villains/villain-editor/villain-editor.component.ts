@@ -3,15 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { EntityOp } from 'ngrx-data';
 
-import { Observable, Subject } from 'rxjs';
-import {
-  combineLatest,
-  delay,
-  map,
-  shareReplay,
-  startWith,
-  takeUntil
-} from 'rxjs/operators';
+import { combineLatest, Observable, Subject } from 'rxjs';
+import { delay, map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
 
 import { Villain } from '../../core';
 import { VillainsService } from '../villains.service';
@@ -35,9 +28,11 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.villain$ = this.route.paramMap.pipe(
-      map(paramMap => paramMap.get('id')),
-      combineLatest(this.villainsService.entityMap$, (id, entityMap) => {
+    this.villain$ = combineLatest(
+      this.route.paramMap.pipe(map(paramMap => paramMap.get('id'))),
+      this.villainsService.entityMap$
+    ).pipe(
+      map(([id, entityMap]) => {
         // look for it by key in the cached collection
         const villain = entityMap[id];
         if (!villain) {
@@ -60,8 +55,8 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       );
 
-    this.loading$ = this.error$.pipe(
-      combineLatest(this.villain$, (errorMsg, villain) => !villain && !errorMsg)
+    this.loading$ = combineLatest(this.error$, this.villain$).pipe(
+      map(([errorMsg, villain]) => !villain && !errorMsg)
     );
   }
 

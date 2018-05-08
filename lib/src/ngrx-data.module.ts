@@ -2,6 +2,8 @@ import {
   ModuleWithProviders,
   NgModule,
   Inject,
+  Injector,
+  InjectionToken,
   Optional,
   OnDestroy
 } from '@angular/core';
@@ -11,7 +13,7 @@ import {
   combineReducers,
   MetaReducer,
   ReducerManager,
-  StoreFeatureModule
+  StoreModule
 } from '@ngrx/store';
 import { EffectsModule, EffectSources } from '@ngrx/effects';
 
@@ -74,7 +76,9 @@ import { DefaultPluralizer } from './utils/default-pluralizer';
 
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
-  entityCacheMetaReducers?: MetaReducer<EntityCache, Action>[];
+  entityCacheMetaReducers?: (
+    | MetaReducer<EntityCache, Action>
+    | InjectionToken<MetaReducer<EntityCache, Action>>)[];
   entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[];
   // Initial EntityCache state or a function that returns that state
   initialEntityCacheState?: EntityCache | (() => EntityCache);
@@ -87,7 +91,7 @@ export interface NgrxDataModuleConfig {
  */
 @NgModule({
   imports: [
-    StoreFeatureModule // rely on Store feature providers rather than Store.forFeature()
+    StoreModule // rely on Store feature providers rather than Store.forFeature()
   ],
   providers: [
     EntityActionFactory,
@@ -121,6 +125,8 @@ export class _NgrxDataModuleWithoutEffects implements OnDestroy {
     private reducerManager: ReducerManager,
     @Inject(ENTITY_CACHE_REDUCER)
     private entityCacheReducer: ActionReducer<EntityCache, Action>,
+    private injector: Injector,
+    // optional params
     @Optional()
     @Inject(ENTITY_CACHE_NAME_TOKEN)
     private entityCacheName: string,
@@ -129,19 +135,29 @@ export class _NgrxDataModuleWithoutEffects implements OnDestroy {
     private initialState: any,
     @Optional()
     @Inject(ENTITY_CACHE_META_REDUCERS)
-    private metaReducers: MetaReducer<EntityCache, Action>[]
+    private metaReducers: (
+      | MetaReducer<EntityCache, Action>
+      | InjectionToken<MetaReducer<EntityCache, Action>>)[]
   ) {
     // Add the ngrx-data feature to the Store's features
     // as Store.forFeature does for StoreFeatureModule
     const key = entityCacheName || ENTITY_CACHE_NAME;
+
     initialState =
       typeof initialState === 'function' ? initialState() : initialState;
+
+    const reducers: MetaReducer<EntityCache, Action>[] = (
+      metaReducers || []
+    ).map(mr => {
+      return mr instanceof InjectionToken ? injector.get(mr) : mr;
+    });
+
     this.entityCacheFeature = {
       key,
       reducers: entityCacheReducer,
       reducerFactory: combineReducers,
       initialState: initialState || {},
-      metaReducers: metaReducers || []
+      metaReducers: reducers
     };
     reducerManager.addFeature(this.entityCacheFeature);
   }

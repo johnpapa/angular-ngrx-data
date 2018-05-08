@@ -49,13 +49,13 @@ export class EntityReducerFactory {
    * Create the ngrx-data entity cache reducer which either responds to entity cache level actions
    * or (more commonly) delegates to an EntityCollectionReducer based on the action.entityName.
    */
-  create(): ActionReducer<EntityCache, EntityAction> {
+  create(): ActionReducer<EntityCache, Action> {
     return entityCacheReducer.bind(this);
 
     function entityCacheReducer(
       this: EntityReducerFactory,
       state: EntityCache = {},
-      action: EntityAction
+      action: { type: string; payload?: any }
     ): EntityCache {
       switch (action.type) {
         case SET_ENTITY_CACHE: {
@@ -69,7 +69,7 @@ export class EntityReducerFactory {
         }
       }
 
-      return this.applyCollectionReducer(state, action);
+      return this.applyCollectionReducer(state, action as EntityAction);
     }
   }
 

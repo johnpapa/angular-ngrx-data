@@ -155,6 +155,7 @@ export class EntitySelectorsFactory {
   // tslint:disable-next-line:unified-signatures
   // tslint:disable-next-line:unified-signatures
   // tslint:disable-next-line:unified-signatures
+  // tslint:disable-next-line:unified-signatures
     T,
     S extends CollectionSelectors<T> = CollectionSelectors<T>
   >(entityName: string): S;

@@ -33,7 +33,6 @@ export class TestEntityActions extends EntityActions {
   }
 }
 
-// For AOT
 export function getActions() {
   return new TestEntityActions();
 }
@@ -112,6 +111,9 @@ describe('EntityEffects (normal testing)', () => {
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
 
+    const response = of(heroes);
+    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
     const completion = entityActionFactory.create(
       'Hero',
@@ -120,9 +122,55 @@ describe('EntityEffects (normal testing)', () => {
     );
 
     actions$.stream = of(action);
+    expectCompletion(completion);
+  });
+
+  it('should perform QUERY_ALL when dispatch custom labeled action', () => {
+    const hero1 = { id: 1, name: 'A' } as Hero;
+    const hero2 = { id: 2, name: 'B' } as Hero;
+    const heroes = [hero1, hero2];
+
     const response = of(heroes);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_ALL,
+      null,
+      'Custom Hero Label'
+    );
+
+    const completion = entityActionFactory.create(
+      action,
+      EntityOp.QUERY_ALL_SUCCESS,
+      heroes
+    );
+
+    actions$.stream = of(action);
+    expectCompletion(completion);
+  });
+
+  it('should perform QUERY_ALL when dispatch properly marked, custom action', () => {
+    const hero1 = { id: 1, name: 'A' } as Hero;
+    const hero2 = { id: 2, name: 'B' } as Hero;
+    const heroes = [hero1, hero2];
+
+    const response = of(heroes);
+    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+
+    const action = {
+      type: 'some/arbitrary/type/text',
+      entityName: 'Hero',
+      op: EntityOp.QUERY_ALL
+    };
+
+    const completion = entityActionFactory.create(
+      action,
+      EntityOp.QUERY_ALL_SUCCESS,
+      heroes
+    );
+
+    actions$.stream = of(action);
     expectCompletion(completion);
   });
 

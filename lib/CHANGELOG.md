@@ -2,7 +2,7 @@
 
 <a name="6.0.0-beta.1"></a>
 
-# 6.0.0-beta.1 (COMING SOON)
+# 6.0.0-beta.1 (2018-05-08)
 
 ### BREAKING CHANGES: Update to Angular/RxJS/NgRX v6
 
@@ -12,10 +12,14 @@
 * Update no longer uses upsert (because `@ngrx/entity` upsert no longer takes an `Update<T>`).
 * Can no longer change the pk via upsert (same reason).
 
-### Features
+### New Features
 
 * Add `ENTITY_CACHE_METAREDUCER`
+
 * Add `INITIAL_ENTITY_CACHE_STATE`
+
+* Add optional `label` to `EntityAction` and `EntityActionFactory.create()` as described in
+  `entity-actions.md`.
 
 <hr>
 

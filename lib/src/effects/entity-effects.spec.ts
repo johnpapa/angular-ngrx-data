@@ -1,10 +1,8 @@
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
 
-import { of } from 'rxjs/observable/of';
-import { ErrorObservable } from 'rxjs/observable/ErrorObservable';
-import { Observable } from 'rxjs/Observable';
-import { delay, first, merge } from 'rxjs/operators';
+import { Observable, of, merge, throwError } from 'rxjs';
+import { delay, first } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';
@@ -35,7 +33,6 @@ export class TestEntityActions extends EntityActions {
   }
 }
 
-// For AOT
 export function getActions() {
   return new TestEntityActions();
 }
@@ -81,8 +78,8 @@ describe('EntityEffects (normal testing)', () => {
       result => {
         expect(result).toEqual(completion);
       },
-      e => {
-        fail(e);
+      error => {
+        fail(error);
       }
     );
   }
@@ -114,6 +111,9 @@ describe('EntityEffects (normal testing)', () => {
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
 
+    const response = of(heroes);
+    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
     const completion = entityActionFactory.create(
       'Hero',
@@ -122,9 +122,55 @@ describe('EntityEffects (normal testing)', () => {
     );
 
     actions$.stream = of(action);
+    expectCompletion(completion);
+  });
+
+  it('should perform QUERY_ALL when dispatch custom labeled action', () => {
+    const hero1 = { id: 1, name: 'A' } as Hero;
+    const hero2 = { id: 2, name: 'B' } as Hero;
+    const heroes = [hero1, hero2];
+
     const response = of(heroes);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
+    const action = entityActionFactory.create(
+      'Hero',
+      EntityOp.QUERY_ALL,
+      null,
+      'Custom Hero Label'
+    );
+
+    const completion = entityActionFactory.create(
+      action,
+      EntityOp.QUERY_ALL_SUCCESS,
+      heroes
+    );
+
+    actions$.stream = of(action);
+    expectCompletion(completion);
+  });
+
+  it('should perform QUERY_ALL when dispatch properly marked, custom action', () => {
+    const hero1 = { id: 1, name: 'A' } as Hero;
+    const hero2 = { id: 2, name: 'B' } as Hero;
+    const heroes = [hero1, hero2];
+
+    const response = of(heroes);
+    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+
+    const action = {
+      type: 'some/arbitrary/type/text',
+      entityName: 'Hero',
+      op: EntityOp.QUERY_ALL
+    };
+
+    const completion = entityActionFactory.create(
+      action,
+      EntityOp.QUERY_ALL_SUCCESS,
+      heroes
+    );
+
+    actions$.stream = of(action);
     expectCompletion(completion);
   });
 
@@ -135,7 +181,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
     expectCompletion(completion);
@@ -171,7 +217,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
 
     expectCompletion(completion);
@@ -209,7 +255,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
     expectCompletion(completion);
@@ -248,7 +294,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
     expectCompletion(completion);
@@ -283,7 +329,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
     expectCompletion(completion);
@@ -322,7 +368,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
     expectCompletion(completion);
@@ -361,7 +407,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
     expectCompletion(completion);
@@ -396,7 +442,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
     expectCompletion(completion);
@@ -435,7 +481,7 @@ describe('EntityEffects (normal testing)', () => {
     const error = completion.payload.error;
 
     actions$.stream = of(action);
-    const response = new ErrorObservable(error);
+    const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
     expectCompletion(completion);
@@ -448,14 +494,12 @@ describe('EntityEffects (normal testing)', () => {
     actions$.stream = of(action);
     const sentinel = 'no persist$ effect';
 
-    effects.persist$
-      .pipe(
-        merge(
-          of(sentinel).pipe(delay(1))
-          // of(entityActionFactory.create('Hero', EntityOp.QUERY_ALL)) // will cause test to fail
-        ),
-        first()
-      )
+    merge(
+      effects.persist$,
+      of(sentinel).pipe(delay(1))
+      // of(entityActionFactory.create('Hero', EntityOp.QUERY_ALL)) // will cause test to fail
+    )
+      .pipe(first())
       .subscribe(
         result => expect(result).toEqual(sentinel),
         err => {

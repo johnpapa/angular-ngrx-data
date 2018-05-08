@@ -1,5 +1,20 @@
-import { ModuleWithProviders, NgModule, InjectionToken } from '@angular/core';
-import { ActionReducer, MetaReducer, StoreModule } from '@ngrx/store';
+import {
+  ModuleWithProviders,
+  NgModule,
+  Inject,
+  Injector,
+  InjectionToken,
+  Optional,
+  OnDestroy
+} from '@angular/core';
+import {
+  Action,
+  ActionReducer,
+  combineReducers,
+  MetaReducer,
+  ReducerManager,
+  StoreModule
+} from '@ngrx/store';
 import { EffectsModule, EffectSources } from '@ngrx/effects';
 
 import { EntityAction, EntityActionFactory } from './actions/entity-action';
@@ -45,8 +60,10 @@ import {
 import {
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
+  ENTITY_CACHE_META_REDUCERS,
   ENTITY_COLLECTION_META_REDUCERS,
-  ENTITY_REDUCER_TOKEN
+  ENTITY_CACHE_REDUCER,
+  INITIAL_ENTITY_CACHE_STATE
 } from './reducers/constants';
 
 import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
@@ -59,7 +76,12 @@ import { DefaultPluralizer } from './utils/default-pluralizer';
 
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
+  entityCacheMetaReducers?: (
+    | MetaReducer<EntityCache, Action>
+    | InjectionToken<MetaReducer<EntityCache, Action>>)[];
   entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[];
+  // Initial EntityCache state or a function that returns that state
+  initialEntityCacheState?: EntityCache | (() => EntityCache);
   pluralNames?: { [name: string]: string };
 }
 
@@ -68,7 +90,9 @@ export interface NgrxDataModuleConfig {
  * It is helpful for internal testing but not for users
  */
 @NgModule({
-  imports: [StoreModule.forFeature(ENTITY_CACHE_NAME, ENTITY_REDUCER_TOKEN)],
+  imports: [
+    StoreModule // rely on Store feature providers rather than Store.forFeature()
+  ],
   providers: [
     EntityActionFactory,
     entityCacheSelectorProvider,
@@ -83,12 +107,9 @@ export interface NgrxDataModuleConfig {
       provide: EntityCollectionReducerMethodsFactory,
       useClass: DefaultEntityCollectionReducerMethodsFactory
     },
-    // Developer cannot replace cache name this way. Too late.
-    // TODO: find a way to delay `StoreModule.forFeature()` until cache name is known.
-    // That solution will also enable ability to initialize the cache.
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
     {
-      provide: ENTITY_REDUCER_TOKEN,
+      provide: ENTITY_CACHE_REDUCER,
       deps: [EntityReducerFactory],
       useFactory: createEntityReducer
     },
@@ -97,7 +118,54 @@ export interface NgrxDataModuleConfig {
   ]
 })
 // tslint:disable-next-line:class-name
-export class _NgrxDataModuleWithoutEffects {}
+export class _NgrxDataModuleWithoutEffects implements OnDestroy {
+  private entityCacheFeature: any;
+
+  constructor(
+    private reducerManager: ReducerManager,
+    @Inject(ENTITY_CACHE_REDUCER)
+    private entityCacheReducer: ActionReducer<EntityCache, Action>,
+    private injector: Injector,
+    // optional params
+    @Optional()
+    @Inject(ENTITY_CACHE_NAME_TOKEN)
+    private entityCacheName: string,
+    @Optional()
+    @Inject(INITIAL_ENTITY_CACHE_STATE)
+    private initialState: any,
+    @Optional()
+    @Inject(ENTITY_CACHE_META_REDUCERS)
+    private metaReducers: (
+      | MetaReducer<EntityCache, Action>
+      | InjectionToken<MetaReducer<EntityCache, Action>>)[]
+  ) {
+    // Add the ngrx-data feature to the Store's features
+    // as Store.forFeature does for StoreFeatureModule
+    const key = entityCacheName || ENTITY_CACHE_NAME;
+
+    initialState =
+      typeof initialState === 'function' ? initialState() : initialState;
+
+    const reducers: MetaReducer<EntityCache, Action>[] = (
+      metaReducers || []
+    ).map(mr => {
+      return mr instanceof InjectionToken ? injector.get(mr) : mr;
+    });
+
+    this.entityCacheFeature = {
+      key,
+      reducers: entityCacheReducer,
+      reducerFactory: combineReducers,
+      initialState: initialState || {},
+      metaReducers: reducers
+    };
+    reducerManager.addFeature(this.entityCacheFeature);
+  }
+
+  ngOnDestroy() {
+    this.reducerManager.removeFeature(this.entityCacheFeature);
+  }
+}
 
 /**
  * Ngrx-data main module
@@ -107,7 +175,7 @@ export class _NgrxDataModuleWithoutEffects {}
 @NgModule({
   imports: [
     _NgrxDataModuleWithoutEffects,
-    EffectsModule.forFeature([]) // do not supply effects because can't replace later
+    EffectsModule // do not supply effects because can't replace later
   ],
   providers: [
     DefaultDataServiceFactory,
@@ -133,6 +201,12 @@ export class NgrxDataModule {
           useValue: config.entityMetadata ? config.entityMetadata : []
         },
         {
+          provide: ENTITY_CACHE_META_REDUCERS,
+          useValue: config.entityCacheMetaReducers
+            ? config.entityCacheMetaReducers
+            : []
+        },
+        {
           provide: ENTITY_COLLECTION_META_REDUCERS,
           useValue: config.entityCollectionMetaReducers
             ? config.entityCollectionMetaReducers
@@ -151,11 +225,14 @@ export class NgrxDataModule {
     private effectSources: EffectSources,
     entityEffects: EntityEffects
   ) {
-    // Warning: relies on undocumented API to add effect directly rather than through `forFeature()`.
-    // The danger is that EffectsModule.forFeature evolves and we no longer perform a crucial step.
     // We can't use `forFeature()` because, if we did, the developer could not
     // replace the ngrx-data `EntityEffects` with a custom alternative.
     // Replacing that class is an extensibility point we need.
+    //
+    // The FEATURE_EFFECTS token is not exposed, so can't use that technique.
+    // Warning: this alternative approach relies on an undocumented API
+    // to add effect directly rather than through `forFeature()`.
+    // The danger is that EffectsModule.forFeature evolves and we no longer perform a crucial step.
     this.addEffects(entityEffects);
   }
 

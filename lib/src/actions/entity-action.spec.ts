@@ -9,15 +9,14 @@ class Hero {
 }
 
 describe('EntityActionFactory', () => {
-
-  let factory: EntityActionFactory
+  let factory: EntityActionFactory;
 
   beforeEach(() => {
     factory = new EntityActionFactory();
   });
 
   it('should create expected EntityAction for named entity', () => {
-    const hero: Hero = {id: 42, name: 'Francis' };
+    const hero: Hero = { id: 42, name: 'Francis' };
     const action = factory.create('Hero', EntityOp.ADD_ONE, hero);
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.ADD_ONE);
@@ -25,9 +24,9 @@ describe('EntityActionFactory', () => {
   });
 
   it('should create EntityAction from another EntityAction', () => {
-    const hero: Hero = {id: 42, name: 'Francis' };
+    const hero: Hero = { id: 42, name: 'Francis' };
     const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
-    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE)
+    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE);
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.SAVE_ADD_ONE);
     // Forward's the payload to the new action.
@@ -35,9 +34,9 @@ describe('EntityActionFactory', () => {
   });
 
   it('can suppress the payload when create EntityAction from another EntityAction', () => {
-    const hero: Hero = {id: 42, name: 'Francis' };
+    const hero: Hero = { id: 42, name: 'Francis' };
     const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
-    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE, undefined)
+    const action = factory.create(action1, EntityOp.SAVE_ADD_ONE, undefined);
     expect(action.entityName).toBe('Hero');
     expect(action.op).toBe(EntityOp.SAVE_ADD_ONE);
     expect(action.payload).toBeUndefined();
@@ -49,8 +48,15 @@ describe('EntityActionFactory', () => {
     expect(action.type).toBe(expectedFormat);
   });
 
+  it('should format type with given label instead of the entity name', () => {
+    const label = 'Hero - Label Test';
+    const action = factory.create('Hero', EntityOp.QUERY_ALL, null, label);
+    expect(action.type).toContain(label);
+  });
+
   it('can re-format generated action.type with custom #formatActionType()', () => {
-    factory.formatActionType = (op, entityName) => `${entityName}_${op}`.toUpperCase();
+    factory.formatActionType = (op, entityName) =>
+      `${entityName}_${op}`.toUpperCase();
 
     const expected = ('Hero_' + EntityOp.QUERY_ALL).toUpperCase();
     const action = factory.create('Hero', EntityOp.QUERY_ALL);

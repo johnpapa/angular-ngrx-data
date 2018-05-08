@@ -22,7 +22,9 @@ export function defaultSelectId(entity: any) {
  * ```
  * */
 export function flattenArgs<T>(args?: any[]): T[] {
-  if (args == null) { return []; }
+  if (args == null) {
+    return [];
+  }
   if (Array.isArray(args[0])) {
     const [head, ...tail] = args;
     args = [...head, ...tail];
@@ -36,7 +38,7 @@ export function flattenArgs<T>(args?: any[]): T[] {
  * `changes` is the entity (or partial entity of changes).
  */
 export function toUpdateFactory<T>(selectId?: IdSelector<T>) {
-  selectId = selectId || defaultSelectId as IdSelector<T>;
+  selectId = selectId || (defaultSelectId as IdSelector<T>);
   /**
    * Convert an entity (or partial entity) into the `Update<T>`
    * whose `id` is the primary key and
@@ -45,7 +47,9 @@ export function toUpdateFactory<T>(selectId?: IdSelector<T>) {
    */
   return function toUpdate(entity: Partial<T>): Update<T> {
     const id: any = selectId(entity);
-    if (id == null) { throw new Error('Primary key may not be null/undefined.'); }
-    return entity && { id, changes: entity } ;
-  }
+    if (id == null) {
+      throw new Error('Primary key may not be null/undefined.');
+    }
+    return entity && { id, changes: entity };
+  };
 }

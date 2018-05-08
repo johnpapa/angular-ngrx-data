@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../../dist/app",
+    "module": "es2015",
+    "baseUrl": ".",
+    "paths": {
+      "ngrx-data": ["../dist/ngrx-data"]
+    },
+    "types": []
+  },
+  "AngularCompilerOptions": {
+    "preserveWhitespaces": false
+  },
+  "exclude": ["test.ts", "**/*.spec.ts"]
+}

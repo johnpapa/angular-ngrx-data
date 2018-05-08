@@ -2,7 +2,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Action, StoreModule, Store } from '@ngrx/store';
 
-import { Subject } from 'rxjs/Subject';
+import { Subject } from 'rxjs';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
 import { EntityActions } from '../actions/entity-actions';

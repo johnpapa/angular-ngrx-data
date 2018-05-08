@@ -151,9 +151,11 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T>
   ): EntityCollection<T> {
-    const upsert = action.payload && this.toUpdate(action.payload);
+    const upsert = action.payload;
     return upsert == null
-      ? collection.loading ? { ...collection, loading: false } : collection
+      ? collection.loading
+        ? { ...collection, loading: false }
+        : collection
       : {
           ...this.adapter.upsertOne(upsert, collection),
           loading: false
@@ -164,11 +166,15 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<T[]>
   ): EntityCollection<T> {
-    const upserts = (action.payload as T[]).map(this.toUpdate);
-    return {
-      ...this.adapter.upsertMany(upserts, collection),
-      loading: false
-    };
+    const upserts = action.payload as T[];
+    return upserts == null || upserts.length === 0
+      ? collection.loading
+        ? { ...collection, loading: false }
+        : collection
+      : {
+          ...this.adapter.upsertMany(upserts, collection),
+          loading: false
+        };
   }
 
   /** pessimistic add; add entity only upon success
@@ -258,7 +264,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
-    return this.adapter.upsertOne(action.payload, collection);
+    return this.adapter.updateOne(action.payload, collection);
   }
 
   /**
@@ -270,7 +276,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
     this.guard.mustBeUpdate(action);
-    return this.adapter.upsertOne(action.payload, collection);
+    return this.adapter.updateOne(action.payload, collection);
   }
 
   /** optimistic update; collection already updated.
@@ -280,14 +286,14 @@ export class DefaultEntityCollectionReducerMethods<T> {
    */
   protected saveUpdateOneOptimisticSuccess(
     collection: EntityCollection<T>,
-    action: EntityAction
+    action: EntityAction<Update<T>>
   ): EntityCollection<T> {
     const result = action.payload || { unchanged: true };
     // A data service like `DefaultDataService<T>` will add `unchanged:true`
     // if the server responded without data, meaning there is nothing to update.
-    return result.unchanged
+    return (<any>result).unchanged
       ? collection
-      : this.adapter.upsertOne(action.payload, collection);
+      : this.adapter.updateOne(action.payload, collection);
   }
 
   ///// Cache-only operations /////
@@ -364,21 +370,23 @@ export class DefaultEntityCollectionReducerMethods<T> {
 
   protected upsertMany(
     collection: EntityCollection<T>,
-    action: EntityAction<Update<T>[]>
+    action: EntityAction<T[]>
   ): EntityCollection<T> {
     // <v6: payload must be an array of `Updates<T>`, not entities
-    // v6+: payload must be a T
-    this.guard.mustBeUpdates(action);
+    // this.guard.mustBeUpdates(action);
+    // v6+: payload must be an array of T
+    this.guard.mustBeEntities(action);
     return this.adapter.upsertMany(action.payload, collection);
   }
 
   protected upsertOne(
     collection: EntityCollection<T>,
-    action: EntityAction<Update<T>>
+    action: EntityAction<T>
   ): EntityCollection<T> {
     // <v6: payload must be an `Update<T>`, not an entity
+    // this.guard.mustBeUpdate(action);
     // v6+: payload must be a T
-    this.guard.mustBeUpdate(action);
+    this.guard.mustBeEntity(action);
     return this.adapter.upsertOne(action.payload, collection);
   }
 

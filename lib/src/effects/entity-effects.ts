@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Effect } from '@ngrx/effects';
 
-import { Observable } from 'rxjs/Observable';
-import { of } from 'rxjs/observable/of';
+import { Observable, of } from 'rxjs';
 import { concatMap, catchError, map } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';

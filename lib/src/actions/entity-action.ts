@@ -8,8 +8,11 @@ export interface EntityAction<P = any> extends Action {
   readonly entityName: string;
   readonly op: EntityOp;
   readonly payload?: P;
+  /** The label to use in the action's type. The entityName if no label specified. */
+  readonly label?: string;
   // The only mutable property because
   // it's the only way to stop downstream action processing
+  /** The action was determined (usually by a reducer) to be in error and should not be processed. */
   error?: Error;
 }
 
@@ -19,6 +22,7 @@ export class EntityActionFactory {
     nameOrAction: string | EntityAction,
     op?: EntityOp,
     payload?: P,
+    label?: string,
     error?: Error
   ): EntityAction<P> {
     let entityName: string;
@@ -34,19 +38,21 @@ export class EntityActionFactory {
     } else {
       // is an EntityAction
       entityName = nameOrAction.entityName;
+      label = label || nameOrAction.label;
       op = op || nameOrAction.op;
       if (arguments.length < 3) {
         payload = nameOrAction.payload;
       }
     }
-    const type = this.formatActionType(op, entityName);
+    label = (label || entityName).trim();
+    const type = this.formatActionType(op, label);
     return error
-      ? { type, entityName, op, payload, error }
-      : { type, entityName, op, payload };
+      ? { type, entityName, op, payload, label, error }
+      : { type, entityName, op, payload, label };
   }
 
-  formatActionType(op: string, entityName: string) {
-    return `[${entityName}] ${op}`;
-    // return `${op} [${entityName}]`.toUpperCase(); // an alternative
+  formatActionType(op: string, label: string) {
+    return `[${label}] ${op}`;
+    // return `${op} [${label}]`.toUpperCase(); // an alternative
   }
 }

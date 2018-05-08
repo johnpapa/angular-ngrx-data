@@ -6,6 +6,10 @@ import { EntityOp } from '../actions/entity-op';
 import { EntityCollection } from './entity-collection';
 
 import { EntityCache } from './entity-cache';
+import {
+  MERGE_ENTITY_CACHE,
+  SET_ENTITY_CACHE
+} from '../actions/entity-cache-actions';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { DefaultEntityCollectionReducerMethodsFactory } from './default-entity-collection-reducer-methods';
 
@@ -13,7 +17,7 @@ import { EntityDefinitionService } from '../entity-metadata/entity-definition.se
 import { EntityMetadataMap } from '../entity-metadata/entity-metadata';
 import { Logger } from '../utils/interfaces';
 import { toUpdateFactory } from '../utils/utilities';
-import { Update } from '../utils/ngrx-entity-models';
+import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 
 import {
   EntityCollectionReducer,
@@ -24,16 +28,16 @@ import {
   EntityReducerFactory
 } from './entity-reducer';
 
-export class Foo {
+class Foo {
   id: string;
   foo: string;
 }
-export class Hero {
+class Hero {
   id: number;
   name: string;
   power?: string;
 }
-export class Villain {
+class Villain {
   key: string;
   name: string;
 }
@@ -55,15 +59,16 @@ describe('EntityCollectionReducer', () => {
   const toHeroUpdate = toUpdateFactory<Hero>();
 
   let entityReducerFactory: EntityReducerFactory;
-  let entityReducer: (state: EntityCache, action: EntityAction) => EntityCache;
+  let entityReducer: (state: EntityCache, action: Action) => EntityCache;
 
   let initialHeroes: Hero[];
   let initialCache: EntityCache;
   let logger: Logger;
+  let collectionCreator: EntityCollectionCreator;
 
   beforeEach(() => {
     const eds = new EntityDefinitionService([metadata]);
-    const collectionCreator = new EntityCollectionCreator(eds);
+    collectionCreator = new EntityCollectionCreator(eds);
     const collectionReducerMethodsFactory = new DefaultEntityCollectionReducerMethodsFactory(
       eds
     );
@@ -84,18 +89,10 @@ describe('EntityCollectionReducer', () => {
       { id: 2, name: 'B', power: 'Fast' },
       { id: 1, name: 'A', power: 'invisible' }
     ];
-    initialCache = initializeCache();
+    initialCache = createInitialCache({ Hero: initialHeroes });
   });
 
-  /** Initialize a cache with a Hero collection using QUERY_ALL_SUCCESS */
-  function initializeCache() {
-    const action = createAction(
-      'Hero',
-      EntityOp.QUERY_ALL_SUCCESS,
-      initialHeroes
-    );
-    return entityReducer({}, action);
-  }
+  // Tests for EntityCache-level actions (e.g., SET_ENTITY_CACHE) are in `entity-reducer.spec.ts`
 
   describe('#QUERY_ALL', () => {
     const queryAction = createAction('Hero', EntityOp.QUERY_ALL);
@@ -245,7 +242,7 @@ describe('EntityCollectionReducer', () => {
         EntityOp.QUERY_BY_KEY_SUCCESS,
         undefined
       );
-      state = entityReducer(initialCache, action);
+      state = entityReducer(state, action);
       const collection = state['Hero'];
 
       expect(collection.entities).toBe(
@@ -290,7 +287,7 @@ describe('EntityCollectionReducer', () => {
       let state = entityReducer(initialCache, queryAction);
       const heroes: Hero[] = [{ id: 3, name: 'C' }];
       const action = createAction('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
-      state = entityReducer(initialCache, action);
+      state = entityReducer(state, action);
       const collection = state['Hero'];
 
       expect(collection.ids).toEqual(
@@ -303,7 +300,7 @@ describe('EntityCollectionReducer', () => {
       let state = entityReducer(initialCache, queryAction);
       const heroes: Hero[] = [{ id: 1, name: 'A+' }];
       const action = createAction('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
-      state = entityReducer(initialCache, action);
+      state = entityReducer(state, action);
       const collection = state['Hero'];
 
       expect(collection.ids).toEqual(
@@ -317,7 +314,7 @@ describe('EntityCollectionReducer', () => {
       let state = entityReducer(initialCache, queryAction);
       const heroes: Hero[] = [{ id: 3, name: 'C' }, { id: 1, name: 'A+' }];
       const action = createAction('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
-      state = entityReducer(initialCache, action);
+      state = entityReducer(state, action);
       const collection = state['Hero'];
 
       expect(collection.ids).toEqual(
@@ -330,7 +327,7 @@ describe('EntityCollectionReducer', () => {
     it('QUERY_MANY_SUCCESS works when the query results are empty', () => {
       let state = entityReducer(initialCache, queryAction);
       const action = createAction('Hero', EntityOp.QUERY_MANY_SUCCESS, []);
-      state = entityReducer(initialCache, action);
+      state = entityReducer(state, action);
       const collection = state['Hero'];
 
       expect(collection.entities).toBe(
@@ -533,16 +530,14 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[42].power).toBe('Fast', 'power');
     });
 
-    // Effectively an upsert
-    it('should add new hero to collection', () => {
+    // Changed in v6. It used to add a new entity.
+    it('should NOT add new hero to collection', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
       const action = createTestAction(toHeroUpdate(hero));
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
-      expect(collection.ids).toEqual([2, 1, 13], 'new hero:13');
-      expect(collection.entities[13].name).toBe('New One', 'name');
-      expect(collection.entities[13].power).toBe('Strong', 'power');
+      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
     });
   });
 
@@ -577,16 +572,14 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[42].power).toBe('Fast', 'power');
     });
 
-    // Effectively an upsert
+    // Changed in v6. It used to add a new entity.
     it('should add new hero to collection', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
       const action = createTestAction(toHeroUpdate(hero));
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
-      expect(collection.ids).toEqual([2, 1, 13], 'new hero:13');
-      expect(collection.entities[13].name).toBe('New One', 'name');
-      expect(collection.entities[13].power).toBe('Strong', 'power');
+      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
     });
   });
 
@@ -625,16 +618,14 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[42].power).toBe('Fast', 'power');
     });
 
-    // Effectively an upsert
+    // Changed in v6. It used to add a new entity.
     it('should add new hero to collection', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
       const action = createTestAction(toHeroUpdate(hero));
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
-      expect(collection.ids).toEqual([2, 1, 13], 'new hero:13');
-      expect(collection.entities[13].name).toBe('New One', 'name');
-      expect(collection.entities[13].power).toBe('Strong', 'power');
+      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
     });
   });
 
@@ -786,13 +777,12 @@ describe('EntityCollectionReducer', () => {
   });
 
   describe('#UPSERT_MANY', () => {
-    function createTestAction(heroes: Update<Hero>[]) {
+    function createTestAction(heroes: Hero[]) {
       return createAction('Hero', EntityOp.UPSERT_MANY, heroes);
     }
 
     it('should add new hero to collection', () => {
-      const heroes: Hero[] = [{ id: 13, name: 'New One', power: 'Strong' }];
-      const updates = heroes.map(h => toHeroUpdate(h));
+      const updates: Hero[] = [{ id: 13, name: 'New One', power: 'Strong' }];
       const action = createTestAction(updates);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
@@ -803,8 +793,7 @@ describe('EntityCollectionReducer', () => {
     });
 
     it('should update existing entity in collection', () => {
-      const heroes: Hero[] = [{ id: 2, name: 'B+' }];
-      const updates = heroes.map(h => toHeroUpdate(h));
+      const updates: Hero[] = [{ id: 2, name: 'B+' }];
       const action = createTestAction(updates);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
@@ -816,12 +805,11 @@ describe('EntityCollectionReducer', () => {
     });
 
     it('should update multiple existing entities in collection', () => {
-      const heroes: Hero[] = [
+      const updates: Hero[] = [
         { id: 1, name: 'A+' },
         { id: 2, name: 'B+' },
         { id: 13, name: 'New One', power: 'Strong' }
       ];
-      const updates = heroes.map(h => toHeroUpdate(h));
       const action = createTestAction(updates);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
@@ -834,30 +822,16 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[13].name).toBe('New One', 'name');
       expect(collection.entities[13].power).toBe('Strong', 'power');
     });
-
-    it('can update existing entity key in collection', () => {
-      // Change the pkey (id) and the name of former hero:2
-      const heroes: Hero[] = [{ id: 42, name: 'Super' }];
-      const updates = [{ id: 2, changes: heroes[0] }];
-      const action = createTestAction(updates);
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
-
-      expect(collection.ids).toEqual([42, 1], 'ids are the same');
-      expect(collection.entities[42].name).toBe('Super', 'name');
-      // unmentioned property stays the same
-      expect(collection.entities[42].power).toBe('Fast', 'power');
-    });
   });
 
   describe('#UPSERT_ONE', () => {
-    function createTestAction(hero: Update<Hero>) {
+    function createTestAction(hero: Hero) {
       return createAction('Hero', EntityOp.UPSERT_ONE, hero);
     }
 
     it('should add new hero to collection', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
-      const action = createTestAction(toHeroUpdate(hero));
+      const action = createTestAction(hero);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
@@ -868,7 +842,7 @@ describe('EntityCollectionReducer', () => {
 
     it('should update existing entity in collection', () => {
       const hero: Hero = { id: 2, name: 'B+' };
-      const action = createTestAction(toHeroUpdate(hero));
+      const action = createTestAction(hero);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
@@ -876,20 +850,6 @@ describe('EntityCollectionReducer', () => {
       expect(collection.entities[2].name).toBe('B+', 'name');
       // unmentioned property stays the same
       expect(collection.entities[2].power).toBe('Fast', 'power');
-    });
-
-    it('can update existing entity key in collection', () => {
-      // Change the pkey (id) and the name of former hero:2
-      const hero: Hero = { id: 42, name: 'Super' };
-      const update = { id: 2, changes: hero };
-      const action = createTestAction(update);
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
-
-      expect(collection.ids).toEqual([42, 1], 'ids are the same');
-      expect(collection.entities[42].name).toBe('Super', 'name');
-      // unmentioned property stays the same
-      expect(collection.entities[42].power).toBe('Fast', 'power');
     });
   });
 
@@ -1119,4 +1079,40 @@ describe('EntityCollectionReducer', () => {
       };
     }
   });
+
+  // #region helpers
+  function createCollection<T = any>(
+    entityName: string,
+    data: T[],
+    selectId: IdSelector<any>
+  ) {
+    return {
+      ...collectionCreator.create<T>(entityName),
+      ids: data.map(e => selectId(e)) as string[] | number[],
+      entities: data.reduce(
+        (acc, e) => {
+          acc[selectId(e)] = e;
+          return acc;
+        },
+        {} as any
+      )
+    } as EntityCollection<T>;
+  }
+
+  function createInitialCache(entityMap: { [entityName: string]: any[] }) {
+    const cache: EntityCache = {};
+    // tslint:disable-next-line:forin
+    for (const entityName in entityMap) {
+      const selectId =
+        metadata[entityName].selectId || ((entity: any) => entity.id);
+      cache[entityName] = createCollection(
+        entityName,
+        entityMap[entityName],
+        selectId
+      );
+    }
+
+    return cache;
+  }
+  // #endregion helpers
 });

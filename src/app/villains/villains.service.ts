@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { Villain, IdGeneratorService } from '../core';
 
 import { AppSelectors } from '../store/app-config';
-import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
-
+import {
+  EntityCollectionServiceBase,
+  EntityCollectionServiceFactory
+} from 'ngrx-data';
 import { FilterObserver } from '../shared/filter';
 import { shareReplay, tap } from 'rxjs/operators';
 
-@Injectable()
-export class VillainsService extends EntityServiceBase<Villain> {
+@Injectable({ providedIn: 'root' })
+export class VillainsService extends EntityCollectionServiceBase<Villain> {
   filterObserver: FilterObserver;
 
   /** Run `getAll` if the datasource changes. */
@@ -16,11 +18,11 @@ export class VillainsService extends EntityServiceBase<Villain> {
     .dataSource$()
     .pipe(tap(_ => this.getAll()), shareReplay(1));
   constructor(
-    entityServiceFactory: EntityServiceFactory,
+    private entityCollectionServiceFactory: EntityCollectionServiceFactory,
     private appSelectors: AppSelectors,
     private idGenerator: IdGeneratorService
   ) {
-    super('Villain', entityServiceFactory);
+    super('Villain', entityCollectionServiceFactory);
 
     /** User's filter pattern */
     this.filterObserver = {

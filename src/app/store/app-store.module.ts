@@ -5,7 +5,7 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 // import { storeFreeze } from 'ngrx-store-freeze';
 
 import { appConfigReducers, appConfigServices } from './app-config';
-import { EntityStoreModule } from './entity-store.module';
+import { EntityStoreModule } from './entity/entity-store.module';
 
 import { environment } from '../../environments/environment';
 

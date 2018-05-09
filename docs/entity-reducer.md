@@ -126,7 +126,7 @@ It leaves the other current collections alone.
 
 These actions might be part of your plan to support offline scenarios or rollback changes to many collections at the same time.
 
-For example, you could subscribe to the `EntityService.entityCache$` selector.
+For example, you could subscribe to the `EntityServices.entityCache$` selector.
 When the cache changes, you could
 serialize the cache to browser local storage.
 You might want to _debounce_ for a few seconds to reduce churn.

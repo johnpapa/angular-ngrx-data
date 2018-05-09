@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { EntityActions, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
-import { ToastService } from '../core/toast.service';
+import { ToastService } from '../../core/toast.service';
 
 /** Report ngrx-data success/error actions as toast messages **/
 @Injectable()

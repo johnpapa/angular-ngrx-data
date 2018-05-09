@@ -1,14 +1,17 @@
 import { Injectable } from '@angular/core';
-import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
+import {
+  EntityCollectionServiceBase,
+  EntityCollectionServiceFactory
+} from 'ngrx-data';
 
 import { shareReplay, tap } from 'rxjs/operators';
 
 import { AppSelectors } from '../store/app-config';
-import { Hero } from '../core';
 import { FilterObserver } from '../shared/filter';
+import { Hero } from '../core';
 
-@Injectable()
-export class HeroesService extends EntityServiceBase<Hero> {
+@Injectable({ providedIn: 'root' })
+export class HeroesService extends EntityCollectionServiceBase<Hero> {
   filterObserver: FilterObserver;
 
   /** Run `getAll` if the datasource changes. */
@@ -17,10 +20,10 @@ export class HeroesService extends EntityServiceBase<Hero> {
     .pipe(tap(_ => this.getAll()), shareReplay(1));
 
   constructor(
-    entityServiceFactory: EntityServiceFactory,
+    entityCollectionServiceFactory: EntityCollectionServiceFactory,
     private appSelectors: AppSelectors
   ) {
-    super('Hero', entityServiceFactory);
+    super('Hero', entityCollectionServiceFactory);
 
     /** User's filter pattern */
     this.filterObserver = {

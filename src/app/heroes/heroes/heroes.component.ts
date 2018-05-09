@@ -8,9 +8,12 @@ import { FormControl } from '@angular/forms';
 
 import { Observable, Subscription } from 'rxjs';
 
+import { EntityServices } from 'ngrx-data';
+
 import { FilterObserver } from '../../shared/filter';
 import { Hero, MasterDetailCommands } from '../../core';
 import { HeroesService } from '../heroes.service';
+import { AppEntityServices } from '../../store/entity/app-entity-services';
 
 @Component({
   selector: 'app-heroes',
@@ -28,8 +31,15 @@ export class HeroesComponent
   filteredHeroes$: Observable<Hero[]>;
   loading$: Observable<boolean>;
 
-  constructor(public heroesService: HeroesService) {
-    this.filterObserver = heroesService.filterObserver;
+  private heroesService: HeroesService;
+
+  // Could have done the following, which is certainly clear enough
+  // constructor(public heroesService: HeroesService) {
+
+  // use AppEntityServices instead to demonstrate how it works
+  constructor(appEntityServices: AppEntityServices) {
+    this.heroesService = appEntityServices.heroesService;
+    this.filterObserver = this.heroesService.filterObserver;
     this.filteredHeroes$ = this.heroesService.filteredEntities$;
     this.loading$ = this.heroesService.loading$;
   }

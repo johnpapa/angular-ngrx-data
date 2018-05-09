@@ -79,26 +79,15 @@ You register the metadata and plurals with the `ngrx-data` module.
 export class EntityStoreModule {}
 ```
 
-Create a `HeroService` to talk to _ngrx-data_.
+Your component accesses each entity data through an `EntityCollectionService` which you can acquire from the _ngrx_data_ `EntityServices`.
 
-```javascript
-import { Injectable } from '@angular/core';
-import { EntityServiceBase, EntityServiceFactory } from 'ngrx-data';
-import { Hero } from '../core';
-
-@Injectable()
-export class HeroService extends EntityServiceBase<Hero> {
-  constructor(entityServiceFactory: EntityServiceFactory) {
-    super('Hero', entityServiceFactory);
-  }
-}
-```
-
-The `HeroesComponent` injects the `HeroService` and calls it to read and save _Hero_ entity data
+In the following example,
+the `HeroesComponent` injects `EntityServices` and asks for a _HeroesService_,
+which it uses to read and save _Hero_ entity data
 in a reactive, immutable style, _without reference to any of the ngrx artifacts_.
 
 ```javascript
-import { HeroService } from './hero-service';
+import { EntityCollectionService, EntityServices } from 'ngrx-data';
 import { Hero } from '../../core';
 
 @Component({
@@ -108,9 +97,11 @@ import { Hero } from '../../core';
 })
 export class HeroesComponent implements OnInit {
   heroes$: Observable<Hero[]>;
+  heroesService: EntityCollectionService<Hero>;
 
-  constructor(private heroService: HeroService) {
-    this.heroes$ = heroService.entities$;
+  constructor(entityServices: EntityServices) {
+    this.heroesService = entityServices.getEntityCollectionService('Hero');
+    this.heroes$ = heroesService.entities$;
   }
 
   ngOnInit() {
@@ -118,22 +109,26 @@ export class HeroesComponent implements OnInit {
   }
 
   getHeroes() {
-    this.heroService.getAll();
+    this.heroesService.getAll();
   }
 
   addHero(hero: Hero) {
-    this.heroService.add(hero);
+    this.heroesService.add(hero);
   }
 
   deleteHero(hero: Hero) {
-    this.heroService.delete(hero.id);
+    this.heroesService.delete(hero.id);
   }
 
   updateHero(hero: Hero) {
-    this.heroService.update(hero);
+    this.heroesService.update(hero);
   }
 }
 ```
+
+As you explore _ngrx-data_ and its documentation,
+you'll learn many extension points and customizations that
+tailor the developer experience to your application needs.
 
 ## QuickStart
 
@@ -161,7 +156,8 @@ The key folders in this repository are:
 * [Architecture](docs/architecture.md)
 * [Entity Metadata](docs/entity-metadata.md)
 * [Entity Collection](docs/entity-collection.md)
-* [Entity Service](docs/entity-service.md)
+* [Entity Collection Service](docs/entity-collection-service.md)
+* [Entity Services](docs/entity-services.md)
 * [Entity DataService](docs/entity-dataservice.md)
 * [Entity Actions](docs/entity-actions.md)
 * [Entity Reducer](docs/entity-reducer.md)

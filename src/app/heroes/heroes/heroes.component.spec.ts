@@ -25,14 +25,13 @@ import { BehaviorSubject, Observable, of, Subject } from 'rxjs';
 import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';
-import { EntityStoreModule } from '../../store/entity-store.module';
-import { NgrxDataToastService } from '../../store/ngrx-data-toast.service';
-import { Hero } from '../../core';
+import { EntityStoreModule } from '../../store/entity/entity-store.module';
+import { NgrxDataToastService } from '../../store/entity/ngrx-data-toast.service';
+import { Hero, CoreModule } from '../../core';
 import { HeroesComponent } from './heroes.component';
 import { HeroesService } from '../heroes.service';
 
 // Used only to test class/template interaction
-import { FilterComponent } from '../../shared/filter/filter.component';
 import { HeroListComponent } from '../hero-list/hero-list.component';
 import { HeroDetailComponent } from '../hero-detail/hero-detail.component';
 
@@ -180,6 +179,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
       imports: [
         StoreModule.forRoot({}),
         EffectsModule.forRoot([]),
+        CoreModule,
         EntityStoreModule
       ],
       providers: [
@@ -215,12 +215,7 @@ describe('HeroesComponent (mock HeroesService)', () => {
   function heroesComponentDeclarationsSetup() {
     TestBed.configureTestingModule({
       imports: [ReactiveFormsModule],
-      declarations: [
-        FilterComponent,
-        HeroesComponent,
-        HeroListComponent,
-        HeroDetailComponent
-      ],
+      declarations: [HeroesComponent, HeroListComponent, HeroDetailComponent],
       schemas: [CUSTOM_ELEMENTS_SCHEMA] // ignore Angular Material elements
     });
   }

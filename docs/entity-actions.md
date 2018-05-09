@@ -1,6 +1,6 @@
 # Entity Actions
 
-The [`EntityService`](entity-service.md) dispatches an `EntityAction` to the _ngrx store_ when you call one of its commands to query or update entities in a cached collection.
+The [`EntityCollectionService`](entity-services.md) dispatches an `EntityAction` to the _ngrx store_ when you call one of its commands to query or update entities in a cached collection.
 
 ## _Action_ and _EntityAction_
 
@@ -179,7 +179,7 @@ some/arbitrary/action/type
 
 In an _ngrx-data_ app, the _ngrx-data_ library creates and dispatches _EntityActions_ for you.
 
-_EntityActions_ are largely invisible when you call the [`EntityService`](entity-service.md) API.
+_EntityActions_ are largely invisible when you call the [`EntityCollectionService`](entity-services.md) API.
 You can see them in action with the
 [ngrx store dev-tools](https://github.com/ngrx/platform/tree/master/docs/store-devtools).
 

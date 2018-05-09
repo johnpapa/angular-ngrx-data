@@ -42,9 +42,6 @@ export interface EntitySelectors$<T> {
   /** Observable of actions related to this entity type. */
   readonly entityActions$: EntityActions;
 
-  /** Observable of the entire entity cache */
-  readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
-
   /** Observable of the map of entity keys to entities */
   readonly entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 

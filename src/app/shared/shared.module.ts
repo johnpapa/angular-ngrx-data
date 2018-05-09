@@ -15,33 +15,25 @@ import { ReactiveFormsModule } from '@angular/forms';
 
 import { FilterComponent } from './filter/filter.component';
 
+// Other modules that are both imported and exported
+export const modules = [
+  CommonModule,
+  ReactiveFormsModule,
+
+  MatButtonModule,
+  MatCardModule,
+  MatIconModule,
+  MatInputModule,
+  MatProgressSpinnerModule,
+  MatSlideToggleModule,
+  MatSnackBarModule,
+  MatToolbarModule,
+  MatTooltipModule
+];
+
 @NgModule({
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule,
-    MatSnackBarModule,
-    MatToolbarModule,
-    MatTooltipModule,
-    ReactiveFormsModule
-  ],
-  exports: [
-    FilterComponent,
-    MatButtonModule,
-    MatCardModule,
-    MatIconModule,
-    MatInputModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule,
-    MatSnackBarModule,
-    MatToolbarModule,
-    MatTooltipModule,
-    ReactiveFormsModule
-  ],
+  imports: [modules],
+  exports: [modules, FilterComponent],
   declarations: [FilterComponent]
 })
 export class SharedModule {}

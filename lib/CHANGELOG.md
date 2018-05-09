@@ -1,5 +1,31 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.0-beta.2"></a>
+
+# 6.0.0-beta.2 (2018-05-08)
+
+### BREAKING CHANGE: "EntityService..." renamed "EntityCollectionService..."
+
+Every symbol with "EntityService" in the name has been renamed with "EntityCollectionService" in that name for two reasons:
+
+1.  Every one of these renamed artifacts concerned a single _EntityCollection_.
+    This was not clear in the former name and one could easily think that the service concerned all collections or some other part of the ngrx-data system. Such uncertainty becomes more likely in the next point.
+
+2.  This release adds `EntityServices` which provides services across all entity collections managed by ngrx-data.
+
+In a related change, the former `EntityService.entityCache$` selector has been removed from the collection-level services, where it did not belong, and added to the new `EntityServices.entityCache$`.
+
+### New Features
+
+* Add `EntityServices` and `EntityServicesBase`
+
+  The new `EntityServices` interface describes provides services for all collection-level `EntityCollectionService` and includes some API members for access to the entire entity cache.
+
+  The `EntityServiceBase` is the default implementation which you can sub-class to tailor to your application needs.
+
+  See the _Entity Services_ doc (in the repo at `docs/entity-services.md`) for a discussion and
+  examples of this new class.
+
 <a name="6.0.0-beta.1"></a>
 
 # 6.0.0-beta.1 (2018-05-08)
@@ -14,7 +40,7 @@
 
 ### New Features
 
-* Add `ENTITY_CACHE_METAREDUCER`
+* Add `ENTITY_CACHE_META_REDUCERS`
 
 * Add `INITIAL_ENTITY_CACHE_STATE`
 
@@ -65,9 +91,9 @@ Writing and testing related-entity selectors.
 
 The **`related-entity-selectors.spec.ts`** demonstrates usage.
 
-* feature: expose `selectors` in `EntityService<T>` and in `EntityServiceBase<T>`.
+* feature: expose `selectors` in `EntityCollectionService<T>` and in `EntityCollectionServiceBase<T>`.
 * feature: add `entitySelectors$Factory.createCollectionSelector`
-* feature: `EntityServiceFactory` now an abstract interface-class, implemented with `DefaultEntityServiceFactory`.
+* feature: `EntityCollectionServiceFactory` now an abstract interface-class, implemented with `DefaultEntityCollectionServiceFactory`.
 * break: shuffled methods and pruned members that shouldn't be exposed.
 * break: certain create functions are now members of factories.
 
@@ -114,7 +140,7 @@ that is the injection token for a class that produces `EntityCollectionReducerMe
 # 1.0.0-beta.7 (2018-04-13)
 
 * feature: add missing dispatcher members for new actions from beta.4
-* feature: add members to EntityService
+* feature: add members to EntityCollectionService
 * feature: add Logger, DefaultLogger and replace libraries `console` calls with it so that developer
   can handle/suppress libraries logging activity..
 * refactor: `DataServiceError` no longer logs itself. Other services that create this error
@@ -252,7 +278,7 @@ New Features:
   offline and rollback scenarios.
   See "entity-reducer.md".
 
-* `entityCache$` observable selector on `EntityService` and `EntitySelectors$Factory` enable watching of the entire cache.
+* `entityCache$` observable selector on `EntityCollectionService` and `EntitySelectors$Factory` enable watching of the entire cache.
 
 <a name="1.0.0-alpha.12"></a>
 
@@ -295,23 +321,23 @@ Shouldn't affect applications which do not deep link into the library.
 
 # release 1.0.0-alpha.9 (2018-02-23)
 
-* Can create a `EntityService<T>` with new `EntityServiceBase<T>()`
+* Can create a `EntityCollectionService<T>` with new `EntityCollectionServiceBase<T>()`
 * Can create an `EntityDispatcher<T>` with new `EntityDispatcherBase()`.
-* Refactored `EntityServiceFactory` and `EntityDispatcherFactory` to suit.
+* Refactored `EntityCollectionServiceFactory` and `EntityDispatcherFactory` to suit.
 * Fixed `EntityCommands` interface for `isOptimistic` flag
 * `EntityMetadataMap.entityName` no longer required because can determine `entityName` from the map's key.
 
-Significant refactoring of `EntityService<T>` so can create write a class that
-derives from `EntityServiceBase<T>` as in this example.
+Significant refactoring of `EntityCollectionService<T>` so can create write a class that
+derives from `EntityCollectionServiceBase<T>` as in this example.
 
 ```
 @Injectable()
-export class HeroesService extends EntityServiceBase<Hero>{ ... }
+export class HeroesService extends EntityCollectionServiceBase<Hero>{ ... }
 ```
 
 See demo app's `HeroesService` and `VillainsService`.
 
-`EntityServiceFactory.create<T>` still works.
+`EntityCollectionServiceFactory.create<T>` still works.
 It is useful for simple service creation
 and when defining an entity service class with much smaller API service.
 

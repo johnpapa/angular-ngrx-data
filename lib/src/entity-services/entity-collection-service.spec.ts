@@ -12,9 +12,9 @@ import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection } from '../reducers/entity-collection';
 import { ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
 import {
-  EntityService,
-  EntityServiceFactory
-} from './entity-service-interfaces';
+  EntityCollectionService,
+  EntityCollectionServiceFactory
+} from './entity-services-interfaces';
 
 import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module';
 
@@ -26,13 +26,14 @@ class Hero {
   saying?: string;
 }
 
-describe('EntityService', () => {
+describe('EntityCollectionService', () => {
   describe('Commands', () => {
     commandDispatchTest(heroDispatcherSetup);
   });
 
   describe('Selectors$', () => {
-    let heroService: EntityService<Hero>;
+    let entityCollectionServiceFactory: EntityCollectionServiceFactory;
+    let heroService: EntityCollectionService<Hero>;
     let store: Store<EntityCache>;
     let createAction: (
       entityName: string,
@@ -45,12 +46,12 @@ describe('EntityService', () => {
     }
 
     beforeEach(() => {
-      const {
-        entityActionFactory,
-        entityServiceFactory,
-        testStore
-      } = entityServiceFactorySetup();
-      heroService = entityServiceFactory.create<Hero>('Hero');
+      // Note: bug in linter is responsible for this tortured syntax.
+      const factorySetup = entityServiceFactorySetup();
+      const { entityActionFactory, testStore } = factorySetup;
+      entityCollectionServiceFactory =
+        factorySetup.entityCollectionServiceFactory;
+      heroService = entityCollectionServiceFactory.create<Hero>('Hero');
       store = testStore;
       createAction = entityActionFactory.create.bind(entityActionFactory);
     });
@@ -68,10 +69,12 @@ describe('EntityService', () => {
       expect(collection.ids).toEqual([1]);
     });
 
-    it('`entityCache$` observes the entire entity cache', () => {
+    it('`EntityCollectionServiceFactory.entityCache$` observes the entire entity cache', () => {
       const entityCacheValues: any = [];
 
-      heroService.entityCache$.subscribe(ec => entityCacheValues.push(ec));
+      entityCollectionServiceFactory.entityCache$.subscribe(ec =>
+        entityCacheValues.push(ec)
+      );
 
       // An action that goes through the Hero's EntityCollectionReducer
       // creates the collection in the store as a side-effect
@@ -114,24 +117,27 @@ function entityServiceFactorySetup() {
   const entityActionFactory: EntityActionFactory = TestBed.get(
     EntityActionFactory
   );
-  const entityServiceFactory: EntityServiceFactory = TestBed.get(
-    EntityServiceFactory
+  const entityCollectionServiceFactory: EntityCollectionServiceFactory = TestBed.get(
+    EntityCollectionServiceFactory
   );
 
   return {
     actions$,
     entityActions,
     entityActionFactory,
-    entityServiceFactory,
+    entityCollectionServiceFactory,
     testStore
   };
 }
 
 function heroDispatcherSetup() {
-  const { entityServiceFactory, testStore } = entityServiceFactorySetup();
-  const dispatcher: EntityService<Hero> = entityServiceFactory.create<Hero>(
-    'Hero'
-  );
+  const {
+    entityCollectionServiceFactory,
+    testStore
+  } = entityServiceFactorySetup();
+  const dispatcher: EntityCollectionService<
+    Hero
+  > = entityCollectionServiceFactory.create<Hero>('Hero');
   return { dispatcher, testStore };
 }
 // endregion test helpers

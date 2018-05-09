@@ -29,10 +29,11 @@ export * from './entity-metadata/entity-definition.service';
 export * from './entity-metadata/entity-filters';
 export * from './entity-metadata/entity-metadata';
 
-// entity-service
-export * from './entity-service/default-entity-service-factory';
-export * from './entity-service/entity-service-interfaces';
-export * from './entity-service/entity-service-base';
+// entity-services
+export * from './entity-services/default-entity-collection-service-factory';
+export * from './entity-services/entity-services-interfaces';
+export * from './entity-services/entity-collection-service-base';
+export * from './entity-services/entity-services-base';
 
 // reducers
 export * from './reducers/constants';

@@ -4,6 +4,26 @@ The ngrx-data library has its own [CHANGELOG.md](lib/CHANGELOG.md) and versionin
 Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
+
+<a name="0.6.0"></a>
+
+# 0.6.0 (2018-05-08)
+
+The sample application and README now reflect
+the `6.0.0` version of ngrx-data, which relies on the v6 versions
+of Angular, RxJS, and ngrx.
+
+Also every symbol with "EntityService" in the name has been renamed with "EntityCollectionService".
+See the library's own [CHANGELOG.md](lib/CHANGELOG.md/#6.0.0-beta.2) for details.
+
+These are **breaking changes**.
+
+This version also favors the use of the new `EntityServices` for creating
+entity collection services rather than the `EntityCollectionServiceFactory`,
+which still works.
+
+<hr>
+
 <a name="0.2.13"></a>
 
 # 0.2.13 (2018-05-04)
@@ -63,7 +83,7 @@ None of these changes should break anything or interfere with creating the libra
 
 Added `VillainEditor` to demonstrate routing to a detail component
 (e.g., `/villains/21`) which tries to get the entity from cache but, if it can't find it,
-attempts a `EntityService.getByKey()`.
+attempts a `EntityCollectionService.getByKey()`.
 
 This `VillainEditor` also shows
 
@@ -123,7 +143,7 @@ Revises the demo app and updates the docs to conform to alpha.9
 
 * Adds `HeroesService` and `VillainsService`
 * Updates the `EntityMetadata`
-* Adds `HeroesV1Component` to illustrate using `EntityServiceFactory` directly w/o `HeroService`.
+* Adds `HeroesV1Component` to illustrate using `EntityCollectionServiceFactory` directly w/o `HeroService`.
 
 <a name="0.2.1"></a>
 

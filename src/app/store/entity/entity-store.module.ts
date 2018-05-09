@@ -3,15 +3,18 @@ import { NgModule } from '@angular/core';
 import {
   DefaultDataServiceConfig,
   EntityHttpResourceUrls,
+  EntityServices,
   Logger,
   NgrxDataModule,
   Pluralizer
 } from 'ngrx-data';
 
-import { AppPluralizer, AppLogger } from './app-utils';
+import { AppEntityServices } from './app-entity-services';
+
+import { AppPluralizer, AppLogger } from '../app-utils';
 import { entityMetadata } from './entity-metadata';
 import { NgrxDataToastService } from './ngrx-data-toast.service';
-import { isE2E } from '../core';
+import { isE2E } from '../../core';
 
 const defaultDataServiceConfig: DefaultDataServiceConfig = {
   root: 'api', // default root path to the server's web api
@@ -40,13 +43,17 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
     })
   ],
   providers: [
-    NgrxDataToastService,
+    AppEntityServices,
+    { provide: EntityServices, useExisting: AppEntityServices },
     { provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig },
     { provide: Logger, useClass: AppLogger },
-    { provide: Pluralizer, useClass: AppPluralizer }
+    { provide: Pluralizer, useClass: AppPluralizer },
+    NgrxDataToastService
   ]
 })
 export class EntityStoreModule {
-  // Inject NgrxDataToastService to start it listening
-  constructor(toastService: NgrxDataToastService) {}
+  constructor(
+    // Inject NgrxDataToastService to start it listening
+    toastService: NgrxDataToastService
+  ) {}
 }

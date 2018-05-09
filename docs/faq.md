@@ -1,6 +1,7 @@
 # Ngrx-data FAQs
 
 <a name="no-boilerplate-claim"></a>
+
 ## You said I'd never write an action. But what if ...
 
 Hold on. We said "you _may never_ write an action, reducer, selector, or effect."
@@ -14,13 +15,14 @@ You can customize almost anything, both at the single entity-type level and for 
 But you ONLY do so when you want to do something unusual … and that, by definition, is not boilerplate.
 
 <a name="entity"></a>
+
 ## What is an _entity_?
 
 An **_entity_** is an object with _long-lived data values_ that you read from and write to a database.
 
->Operations that access the database are called **_persistence_** operations.
+> Operations that access the database are called **_persistence_** operations.
 
-An _entity_ refers to some "thing" in the application domain, such as a customer. 
+An _entity_ refers to some "thing" in the application domain, such as a customer.
 Such things are unique even as their values change. Accordingly each entity has a unique **_primary key_**, also called its **_identifier_**.
 
 Each _entity_ object is an instance of an **_entity type_**. That type could be represented explicitly as a class or an interface. Or it could just be a bag of data.
@@ -32,6 +34,7 @@ The application's **_entity model_** is the set of all entity types in your appl
 In some definitions, the _entity type_ and _entity model_ describe both the data and the _logic_ that govern that data such as data integrity rules (e.g., validations) and behaviors (e.g., calculations). The _current version_ of _ngrx-data_ library is unaware of entity logic beyond what is strictly necessary to persist entity data values.
 
 <a name="no-panacea"></a>
+
 ## Is _ngrx-data_ the answer for everything?
 
 **_No!_**
@@ -59,22 +62,24 @@ It bears repeating: the _ngrx-data_ library is good for
 querying, caching, and saving _entity data_ ... and that's it.
 
 <a name="ngrx"></a>
+
 ## What is _ngrx_?
 
 [Ngrx](https://github.com/ngrx/platform/blob/master/README.md) is a collection of libraries for writing Angular applications in a "reactive style" that combines the
-**[redux pattern](#redux)** and tools with [RxJS Observables](#rxjs). 
+**[redux pattern](#redux)** and tools with [RxJS Observables](#rxjs).
 
-`Ngrx-data` builds upon three _ngrx_ libraries: 
+`Ngrx-data` builds upon three _ngrx_ libraries:
 [@ngrx/store](https://github.com/ngrx/platform/blob/master/docs/store/README.md),
 [@ngrx/effects](https://github.com/ngrx/platform/blob/master/docs/effects/README.md), and
 [@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md).
 
 <a name="ngrx-entity"></a>
+
 ## How is _ngrx-data_ different from _@ngrx/entity_?
 
 **The _ngrx-data_ library _extends_ [@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md)**.
 
-The _@ngrx/entity_ library provides the 
+The _@ngrx/entity_ library provides the
 core representation of a single _entity collection_ within an _ngrx store_.
 Its `EntityAdapter` defines common operations for querying and updating individual cached entity collections.
 
@@ -86,10 +91,8 @@ The _ngrx-data_ library leverages these capabilities while offering higher-level
 
 * asynchronous fetch and save HTTP operations as _@ngrx/effects_.
 
-* a reactive `EntityService` with a simple API that
-encapsulates _ngrx_ interaction details.
-
-
+* a reactive `EntityCollectionService` with a simple API that
+  encapsulates _ngrx_ interaction details.
 
 Nothing is hidden from you.
 The store, the actions, the adapter, and the entity collections remain visible and directly accessible.
@@ -97,6 +100,7 @@ The store, the actions, the adapter, and the entity collections remain visible a
 The fixes and enhancements in future _@ngrx/entity_ versions flow through _ngrx-data_ to your application.
 
 <a name="redux"></a>
+
 ## What is _redux_?
 
 [Redux](https://redux.js.org/) is an implementation of a pattern for managing application [state](#state) in a web client application.
@@ -106,7 +110,7 @@ It is notable for:
 * Holding all _shared state_ as objects in a single, central _store_.
 
 * All objects in the store are [_immutable_](https://en.wikipedia.org/wiki/Immutable_object).
-You never directly set any property of any object held in a redux store.
+  You never directly set any property of any object held in a redux store.
 
 * You update the store by _dispatching actions_ to the store.
 
@@ -121,7 +125,7 @@ You never directly set any property of any object held in a redux store.
 * _actions_ sent to the store are processed by _reducers_. A reducer may update the store by replacing old objects in the store with new objects that have the updated state.
 
 * All _reducers_ are “pure” functions.
-They have no side-effects.
+  They have no side-effects.
 
 * The store publishes an _event_ when updated by a reducer.
 
@@ -130,18 +134,19 @@ They have no side-effects.
 _Ngrx_ is similar in almost all important respects.
 It differs most significantly in replacing _events_ with _observables_.
 
-_Ngrx_ relies on 
+_Ngrx_ relies on
 [RxJS Observables](#rxjs) to listen for store events, select those that matter, and push the selected object(s) to your application.
 
 <a name="state"></a>
+
 ## What is _state_?
 
-_State_ is data. 
+_State_ is data.
 Applications have several kinds of state including:
 
 * _application_ state is _session_ data that determine how your application works. Filter values and router configurations are examples of _application_ state.
 
-* _persistent_ state is "permanent" data that you store in a remote database. [Entities](#entity) are a prime example of _persistent_ state. 
+* _persistent_ state is "permanent" data that you store in a remote database. [Entities](#entity) are a prime example of _persistent_ state.
 
 * _shared_ state is data that are shared among application components and services.
 
@@ -152,6 +157,7 @@ You replace them with new objects, created through a merge of the previous prope
 Arrays are completely replaced with you add, remove, or replace any of their items.
 
 <a name="rxjs"></a>
+
 ## What are _RxJS Observables_
 
 [RxJS Observables](http://reactivex.io/rxjs/) is a library for programming in a "reactive style".
@@ -159,11 +165,12 @@ Arrays are completely replaced with you add, remove, or replace any of their ite
 Many Angular APIs produce _RxJS Observables_ so programming "reactively" with _Observables_ is familiar to many Angular developers. Search the web for many helpful resources on _RxJS_.
 
 <a name="code-generation"></a>
+
 ## What's wrong with code generation?
 
 Some folks try to conquer the "too much boilerplate" problem by generating the code.
 
-Adding the `Foo` entity type? Run a code generator to produce  _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ for `Foo`.
+Adding the `Foo` entity type? Run a code generator to produce _actions_, _action-creators_, _reducers_, _effects_, _dispatchers_, and _selectors_ for `Foo`.
 Run another one to product the service that makes HTTP GET, PUT, POST, and DELETE calls for `Foo`.
 
 Maybe it generates canned tests for them too.

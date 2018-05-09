@@ -40,18 +40,18 @@ import {
   ENTITY_METADATA_TOKEN
 } from './entity-metadata/entity-metadata';
 
-import { EntityEffects } from './effects/entity-effects';
-import { EntityServiceFactory } from './entity-service/entity-service-interfaces';
-import { DefaultEntityServiceFactory } from './entity-service/default-entity-service-factory';
-
 import { EntityCache } from './reducers/entity-cache';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
+import { EntityCollectionServiceFactory } from './entity-services/entity-services-interfaces';
+import { DefaultEntityCollectionServiceFactory } from './entity-services/default-entity-collection-service-factory';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
 import {
   EntityCollectionReducerFactory,
   EntityCollectionReducerMethodsFactory
 } from './reducers/entity-collection-reducer';
+import { EntityEffects } from './effects/entity-effects';
+
 import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
 import {
   createEntityReducer,
@@ -71,6 +71,9 @@ import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
 import { EntitySelectors } from './selectors/entity-selectors';
 import { EntitySelectorsFactory } from './selectors/entity-selectors';
 import { EntitySelectors$Factory } from './selectors/entity-selectors$';
+import { EntityServices } from './entity-services/entity-services-interfaces';
+import { EntityServicesBase } from './entity-services/entity-services-base';
+
 import { DefaultLogger } from './utils/default-logger';
 import { DefaultPluralizer } from './utils/default-pluralizer';
 
@@ -113,7 +116,14 @@ export interface NgrxDataModuleConfig {
       deps: [EntityReducerFactory],
       useFactory: createEntityReducer
     },
-    { provide: EntityServiceFactory, useClass: DefaultEntityServiceFactory },
+    {
+      provide: EntityCollectionServiceFactory,
+      useClass: DefaultEntityCollectionServiceFactory
+    },
+    {
+      provide: EntityServices,
+      useClass: EntityServicesBase
+    },
     { provide: Logger, useClass: DefaultLogger }
   ]
 })

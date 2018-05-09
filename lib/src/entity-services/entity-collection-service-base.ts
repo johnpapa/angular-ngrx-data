@@ -14,23 +14,23 @@ import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
 import {
-  EntityService,
-  EntityServiceFactory
-} from './entity-service-interfaces';
+  EntityCollectionService,
+  EntityCollectionServiceFactory
+} from './entity-services-interfaces';
 import { QueryParams } from '../dataservices/interfaces';
 
 // tslint:disable:member-ordering
 /**
- * Base class for a concrete EntityService<T>.
+ * Base class for a concrete EntityCollectionService<T>.
  * Can be instantiated. Cannot be injected.
  * @param entityName Entity type name
- * @param entityServiceFactory A creator of an EntityService<T> which here serves
- * as a source of supporting services for creating an EntityService<T> instance.
+ * @param EntityCollectionServiceFactory A creator of an EntityCollectionService<T> which here serves
+ * as a source of supporting services for creating an EntityCollectionService<T> instance.
  */
-export class EntityServiceBase<
+export class EntityCollectionServiceBase<
   T,
   S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-> implements EntityService<T> {
+> implements EntityCollectionService<T> {
   /** Dispatch entity actions for this entity collection */
   readonly dispatcher: EntityDispatcher<T>;
 
@@ -42,14 +42,17 @@ export class EntityServiceBase<
 
   constructor(
     public readonly entityName: string,
-    entityServiceFactory: EntityServiceFactory
+    entityCollectionServiceFactory: EntityCollectionServiceFactory
   ) {
     entityName = entityName.trim();
     const {
       dispatcher,
       selectors,
       selectors$
-    } = entityServiceFactory.getEntityServiceElements<T, S$>(entityName);
+    } = entityCollectionServiceFactory.getEntityCollectionServiceElements<
+      T,
+      S$
+    >(entityName);
 
     this.entityName = entityName;
     this.dispatcher = dispatcher;
@@ -63,7 +66,6 @@ export class EntityServiceBase<
     this.count$ = selectors$.count$;
     this.entities$ = selectors$.entities$;
     this.entityActions$ = selectors$.entityActions$;
-    this.entityCache$ = selectors$.entityCache$;
     this.entityMap$ = selectors$.entityMap$;
     this.errors$ = selectors$.errors$;
     this.filter$ = selectors$.filter$;
@@ -328,9 +330,6 @@ export class EntityServiceBase<
 
   /** Observable of actions related to this entity type. */
   entityActions$: EntityActions;
-
-  /** Observable of error actions related to this entity type. */
-  entityCache$: Observable<EntityCache> | Store<EntityCache>;
 
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;

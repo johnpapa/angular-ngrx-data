@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
+import { Observable } from 'rxjs';
+
+import { EntityCache } from '../reducers/entity-cache';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
@@ -9,29 +12,34 @@ import {
   EntitySelectors$Factory
 } from '../selectors/entity-selectors$';
 import {
-  EntityService,
-  EntityServiceElements,
-  EntityServiceFactory
-} from './entity-service-interfaces';
-import { EntityServiceBase } from './entity-service-base';
+  EntityCollectionService,
+  EntityCollectionServiceElements,
+  EntityCollectionServiceFactory
+} from './entity-services-interfaces';
+import { EntityCollectionServiceBase } from './entity-collection-service-base';
 
 /**
- * Creates EntityService instances for
+ * Creates EntityCollectionService instances for
  * a cached collection of T entities in the ngrx store.
  */
 @Injectable()
-export class DefaultEntityServiceFactory implements EntityServiceFactory {
+export class DefaultEntityCollectionServiceFactory
+  implements EntityCollectionServiceFactory {
+  entityCache$: Observable<EntityCache> | Store<EntityCache>;
+
   constructor(
     private entityDispatcherFactory: EntityDispatcherFactory,
     private entityDefinitionService: EntityDefinitionService,
     private entitySelectorsFactory: EntitySelectorsFactory,
     private entitySelectors$Factory: EntitySelectors$Factory
-  ) {}
+  ) {
+    this.entityCache$ = entitySelectors$Factory.entityCache$;
+  }
 
-  getEntityServiceElements<
+  getEntityCollectionServiceElements<
     T,
     S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-  >(entityName: string): EntityServiceElements<T, S$> {
+  >(entityName: string): EntityCollectionServiceElements<T, S$> {
     entityName = entityName.trim();
     const definition = this.entityDefinitionService.getDefinition<T>(
       entityName
@@ -57,13 +65,13 @@ export class DefaultEntityServiceFactory implements EntityServiceFactory {
     };
   }
   /**
-   * Create an EntityService for an entity type
+   * Create an EntityCollectionService for an entity type
    * @param entityName - name of the entity type
    */
   create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
     entityName: string
-  ): EntityService<T> {
-    const service = new EntityServiceBase<T, S$>(entityName, this);
+  ): EntityCollectionService<T> {
+    const service = new EntityCollectionServiceBase<T, S$>(entityName, this);
     return service;
   }
 }

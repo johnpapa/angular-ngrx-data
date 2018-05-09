@@ -133,6 +133,7 @@ export class EntitySelectorsFactory {
 
   // Based on @ngrx/entity/state_selectors.ts
 
+  // tslint:disable:unified-signatures
   // createCollectionSelectors(metadata) overload
   /**
    * Creates entity collection selectors from metadata.
@@ -151,6 +152,7 @@ export class EntitySelectorsFactory {
    * @param entityName - name of the entity type
    */
   createCollectionSelectors<
+  // tslint:disable-next-line:unified-signatures
   // tslint:disable-next-line:unified-signatures
   // tslint:disable-next-line:unified-signatures
   // tslint:disable-next-line:unified-signatures

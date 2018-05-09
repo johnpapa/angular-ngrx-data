@@ -82,8 +82,10 @@ export class EntityStoreModule {}
 Your component accesses each entity data through an `EntityCollectionService` which you can acquire from the _ngrx_data_ `EntityServices`.
 
 In the following example,
-the `HeroesComponent` injects `EntityServices` and asks for a _HeroesService_,
-which it uses to read and save _Hero_ entity data
+the `HeroesComponent` injects `EntityServices` and asks it for an `EntityCollectionService`
+registered under the `Hero` entity name.
+
+The component uses that service to read and save _Hero_ entity data
 in a reactive, immutable style, _without reference to any of the ngrx artifacts_.
 
 ```javascript

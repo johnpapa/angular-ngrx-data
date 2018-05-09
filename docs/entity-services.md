@@ -164,7 +164,7 @@ export class AppEntityServices extends EntityServicesBase {
 
   /** get the (default) SideKicks service */
   get sideKicksService() {
-    return this.getEntityCollectionService<SideKick>('SideKick);
+    return this.getEntityCollectionService<SideKick>('SideKick');
   }
 }
 ```

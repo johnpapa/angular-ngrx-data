@@ -27,6 +27,8 @@ import { NgrxDataModule } from './ngrx-data.module';
 
 class TestEntityActions extends EntityActions {
   set stream(source: Observable<any>) {
+    // source is deprecated but no known substitute
+    /* tslint:disable-next-line:deprecation */
     this.source = source;
   }
 }

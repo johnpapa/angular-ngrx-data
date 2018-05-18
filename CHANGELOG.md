@@ -5,6 +5,11 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
+<a name="0.6.1">
+# 0.6.1 (TBD)
+
+* Add example of extending EntityDataServices with custom `HeroDataService` as described in `entity-dataservice.md` (#151).
+
 <a name="0.6.0"></a>
 
 # 0.6.0 (2018-05-08)

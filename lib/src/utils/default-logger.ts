@@ -3,24 +3,21 @@ import { Logger } from './interfaces';
 
 @Injectable()
 export class DefaultLogger implements Logger {
-  error(message?: any, ...optionalParams: any[]) {
-    if (message == null) {
-      return;
+  error(message?: any, extra?: any) {
+    if (message) {
+      extra ? console.error(message, extra) : console.error(message);
     }
-    console.error(message, optionalParams);
   }
 
-  log(message?: any, ...optionalParams: any[]) {
-    if (message == null) {
-      return;
+  log(message?: any, extra?: any) {
+    if (message) {
+      extra ? console.log(message, extra) : console.log(message);
     }
-    console.log(message, optionalParams);
   }
 
-  warn(message?: any, ...optionalParams: any[]) {
-    if (message == null) {
-      return;
+  warn(message?: any, extra?: any) {
+    if (message) {
+      extra ? console.warn(message, extra) : console.warn(message);
     }
-    console.warn(message, optionalParams);
   }
 }

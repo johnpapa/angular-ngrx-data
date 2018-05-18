@@ -23,7 +23,8 @@ export class EntityActions<
     super();
 
     if (source) {
-      // ONLY look at EntityActions
+      // ONLY look at EntityActions (source is deprecated but no known substitute)
+      /* tslint:disable-next-line:deprecation */
       this.source = source.pipe(
         filter((action: any) => action.op && action.entityName)
       );
@@ -45,8 +46,13 @@ export class EntityActions<
 
   lift<R>(operator: Operator<V, R>): Observable<R> {
     const observable = new EntityActions();
+    // source is deprecated but no known substitute
+    /* tslint:disable-next-line:deprecation */
     observable.source = this;
+
     // "Force-casts" below because can't change signature of Lift.
+    // operator is deprecated but no known substitute)
+    /* tslint:disable-next-line:deprecation */
     observable.operator = <Operator<any, EntityAction>>(<any>operator);
     return <Observable<R>>(<any>observable);
   }

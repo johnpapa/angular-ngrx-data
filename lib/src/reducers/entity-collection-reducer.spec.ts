@@ -485,15 +485,142 @@ describe('EntityCollectionReducer', () => {
     });
   });
 
-  // Pessimistic SAVE_DELETE_ONE operation should not touch the entities until success
+  // Pessimistic SAVE_DELETE_ONE operation should not remove the entity until success
   // See tests for this below
 
-  describe('#SAVE_DELETE_ONE_SUCCESS', () => {
-    // TODO: write tests
+  describe('#SAVE_DELETE_ONE (Pessimistic)', () => {
+    it('should NOT remove the hero with SAVE_DELETE_ONE', () => {
+      const hero = initialHeroes[0];
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE, hero);
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities[hero.id]).toBe(hero, 'hero still there');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+
+    it('should NOT remove the hero with SAVE_DELETE_ERROR', () => {
+      const hero = initialHeroes[0];
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE_ERROR, hero);
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities[hero.id]).toBe(hero, 'hero still there');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+
+    it('should remove the hero-by-id with SAVE_DELETE_ONE_SUCCESS', () => {
+      const hero = initialHeroes[0];
+      expect(initialCache['Hero'].entities[hero.id]).toBe(
+        hero,
+        'exists before delete'
+      );
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_SUCCESS,
+        hero.id
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.entities[hero.id]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+
+    it('should remove the hero with SAVE_DELETE_ONE_SUCCESS', () => {
+      const hero = initialHeroes[0];
+      expect(initialCache['Hero'].entities[hero.id]).toBe(
+        hero,
+        'exists before delete'
+      );
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_SUCCESS,
+        hero
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.entities[hero.id]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
   });
 
+  // Optimistic SAVE_DELETE_ONE_OPTIMISTIC operation should remove the entity immediately
+  // See tests for this below
   describe('#SAVE_DELETE_ONE_OPTIMISTIC', () => {
-    // TODO: write tests
+    it('should remove the hero immediately with SAVE_DELETE_ONE_OPTIMISTIC', () => {
+      const hero = initialHeroes[0];
+      expect(initialCache['Hero'].entities[hero.id]).toBe(
+        hero,
+        'exists before delete'
+      );
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
+        hero
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.entities[hero.id]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+
+    it('should remove the hero-by-id immediately with SAVE_DELETE_ONE_OPTIMISTIC', () => {
+      const hero = initialHeroes[0];
+      expect(initialCache['Hero'].entities[hero.id]).toBe(
+        hero,
+        'exists before delete'
+      );
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
+        hero.id
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.entities[hero.id]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+
+    // No compensating action on error (yet)
+    it('should NOT restore the hero with SAVE_DELETE_ONE_OPTIMISTIC_ERROR', () => {
+      const initialEntities = initialCache['Hero'].entities;
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_ERROR,
+        { id: 13, name: 'Deleted' } // Pretend optimistically deleted this hero
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities).toBe(initialEntities, 'entities untouched');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+
+    it('should only turn loading flag off with SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS', () => {
+      const initialEntities = initialCache['Hero'].entities;
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_ONE_SUCCESS,
+        { id: 13, name: 'Deleted' } // Pretend optimistically deleted this hero
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities).toBe(initialEntities, 'entities untouched');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
   });
 
   // Pessimistic SAVE_UPDATE_ONE operation should not touch the entities until success
@@ -902,12 +1029,7 @@ describe('EntityCollectionReducer', () => {
       function testAddNoop(op: EntityOp) {
         const hero: Hero = { id: 2, name: 'B+' };
         const action = createAction('Hero', op, hero);
-
-        it(`#${op} should do nothing to the collection`, () => {
-          const state = entityReducer(initialCache, action);
-          expect(state).toBe(initialCache);
-          const collection = state['Hero'];
-        });
+        shouldOnlySetLoadingFlag(action);
       }
     });
 
@@ -921,12 +1043,7 @@ describe('EntityCollectionReducer', () => {
 
       function testDeleteNoop(op: EntityOp) {
         const action = createAction('Hero', op, 2);
-
-        it(`#${op} should do nothing to the collection`, () => {
-          const state = entityReducer(initialCache, action);
-          expect(state).toBe(initialCache);
-          const collection = state['Hero'];
-        });
+        shouldOnlySetLoadingFlag(action);
       }
     });
 
@@ -945,14 +1062,26 @@ describe('EntityCollectionReducer', () => {
         // update if already updated optimistically.
         const update: any = { ...toHeroUpdate(hero), unchanged: true };
         const action = createAction('Hero', op, update);
-
-        it(`#${op} should do nothing to the collection if unchanged flag is true`, () => {
-          const state = entityReducer(initialCache, action);
-          expect(state).toBe(initialCache);
-          const collection = state['Hero'];
-        });
+        shouldOnlySetLoadingFlag(action);
       }
     });
+
+    function shouldOnlySetLoadingFlag(action: EntityAction) {
+      const expectedLoadingFlag = !/error|success/i.test(action.op);
+
+      it(`#${
+        action.op
+      } should only set loading to ${expectedLoadingFlag}`, () => {
+        // Flag should be true when op starts, false after error or success
+        const initialCollection = initialCache['Hero'];
+        const newCollection = entityReducer(initialCache, action)['Hero'];
+        expect(newCollection.loading).toBe(expectedLoadingFlag, 'loading flag');
+        expect({
+          ...newCollection,
+          loading: initialCollection.loading // revert flag for test
+        }).toEqual(initialCollection);
+      });
+    }
   });
   /** TODO: TEST REMAINING ACTIONS **/
 

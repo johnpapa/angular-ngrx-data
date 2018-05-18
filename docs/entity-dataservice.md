@@ -101,48 +101,65 @@ by setting this flag to `true`, which is the default for the `DefaultDataService
 
 When running a demo app locally, the server may respond more quickly than it will in production. You can simulate real-world by setting the `getDelay` and `saveDelay` properties.
 
-## Further customization
+## Custom _EntityDataService_
 
-While the _ngrx-data_ library provides a configuration object to modify certain aspects of the _DefaultDataService_, you may want to further customize what happens when you save or retrieve data. A good example is performing a `map` on the items returned to convert strings to dates, or to add additional properties to a specific entity. This is possible by registering a custom service with the `EntityDataService` provider.
+While the _ngrx-data_ library provides a configuration object to modify certain aspects of the _DefaultDataService_,
+you may want to further customize what happens when you save or retrieve data for a particular collection.
 
-To illustrate this we'll use an example where we add a date property to an entity when it was loaded from the API into the application state. If we use the Tour of Heroes as our example, let's add a assume there's a new property on `Hero` called `dateLoaded`:
+For example, you may need to modify fetched entities to convert strings to dates, or to add additional properties to an entity.
+
+You could do this by creating a custom data service and registering that service with the `EntityDataService`.
+
+To illustrate this, the sample app adds a `dateLoaded` property to the `Hero` entity to record when a hero is loaded from the server into the _ngrx-store_ entity cache.
+
+> This could be useful if you replace stale heroes periodically.
 
 ```typescript
 export class Hero {
-  id: number;
-  name: string;
-  saying: string;
-  dateLoaded: Date;
+  readonly id: number;
+  readonly name: string;
+  readonly saying: string;
+  readonly dateLoaded: Date;
 }
 ```
 
-Then we need to create a class that implements the `EntityCollectionDataService<T>` interface. One way to do this is to extend the existing `DefaultDataSerivce<T>` class like so (for the `Hero` class in our case):
+To support this feature, we 'll create a `HeroDataService` class that implements the `EntityCollectionDataService<T>` interface.
+
+In the sample app the `HeroDataService` derives from the _ngrx-data_ `DefaultDataService<T>` in order to leverage its base functionality.
+It only overrides what it really needs.
 
 ```typescript
+// store/entity/hero-data-service.ts
+
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   EntityCollectionDataService,
   DefaultDataService,
   HttpUrlGenerator,
+  Logger,
   QueryParams
 } from 'ngrx-data';
-import { Observable } from 'rxjs/Observable';
+
+import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Hero } from '../core';
+import { Hero } from '../../core';
 
 @Injectable()
-export class HeroEntityDataService extends DefaultDataService<Hero> {
-  constructor(http: HttpClient, httpUrlGenerator: HttpUrlGenerator) {
+export class HeroDataService extends DefaultDataService<Hero> {
+  constructor(
+    http: HttpClient,
+    httpUrlGenerator: HttpUrlGenerator,
+    logger: Logger
+  ) {
     super('Hero', http, httpUrlGenerator);
+    logger.log('Created custom Hero EntityDataService');
   }
 
   getAll(): Observable<Hero[]> {
-    return super.getAll().pipe(
-      map(heroes => {
-        return heroes.map(hero => this.mapHero(hero));
-      })
-    );
+    return super
+      .getAll()
+      .pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
   }
 
   getById(id: string | number): Observable<Hero> {
@@ -150,56 +167,55 @@ export class HeroEntityDataService extends DefaultDataService<Hero> {
   }
 
   getWithQuery(params: string | QueryParams): Observable<Hero[]> {
-    return super.getWithQuery(params).pipe(
-      map(heroes => {
-        return heroes.map(hero => this.mapHero(hero));
-      })
-    );
+    return super
+      .getWithQuery(params)
+      .pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
   }
 
   private mapHero(hero: Hero): Hero {
-    hero.dateLoaded = new Date();
-    return hero;
+    return { ...hero, dateLoaded: new Date() };
   }
 }
 ```
 
-Using this technique let's us leverage all the base functionality of `DefaultDataService<T>`, and only override what we really need. In this example we just want to hook into the various _get_ operations to perform our `map` on the entities. You could choose not to extend anything and write your own complete implementation too. It all depends on the needs of your application.
+This `HeroDataService` hooks into the _get_ operations to set the `Hero.dateLoaded` on fetched hero entities.
+It also tells the logger when it is created (see the console output of the running sample) .
 
-Finally, we need to tell _ngrx-data_ about this new provider, and we can use the `registerService()` method on the `EntityDataService` provider in our store module:
+> Alternatively, you might write your own complete implementation of `DefaultDataService<T>`.
+> It depends on the needs of your application.
+
+Finally, we must tell _ngrx-data_ about this new data service.
+
+The sample app provides `HeroDataService` and registers it by calling the `registerService()` method on the `EntityDataService` in the app's _entity store module_:
 
 ```typescript
-import { NgModule } from '@angular/core';
+// /store/entity-store.module.ts (excerpt)
+...
+
 import {
-  EntityMetadataMap,
-  NgrxDataModule,
-  EntityDataService
+  ...  
+  EntityDataService, // <-- import the ngrx-data data service registry
 } from 'ngrx-data';
-import { HeroEntityDataService } from './hero-entity-data-service.service';
 
-export const entityMetadata: EntityMetadataMap = {
-  Hero: {},
-  Villain: {}
-};
+...
 
-// because the plural of "hero" is not "heros"
-export const pluralNames = { Hero: 'Heroes' };
+import { HeroDataService } from './hero-data-service';
 
 @NgModule({
-  imports: [
-    NgrxDataModule.forRoot({
-      entityMetadata: entityMetadata,
-      pluralNames: pluralNames
-    })
-  ],
-  providers: [HeroEntityDataService]
+  imports: [ ... ],
+  providers: [
+    ...
+    HeroDataService, // <-- provide the custom data service
+  ]
 })
 export class EntityStoreModule {
   constructor(
-    heroEntityDataService: HeroEntityDataService,
-    entityDataService: EntityDataService
+    entityDataService: EntityDataService,
+    heroDataService: HeroDataService,
+    ...
   ) {
-    entityDataService.registerService('Hero', heroEntityDataService);
+    // Register custom EntityDataServices
+    entityDataService.registerService('Hero', heroDataService); // <-- register it
   }
 }
 ```

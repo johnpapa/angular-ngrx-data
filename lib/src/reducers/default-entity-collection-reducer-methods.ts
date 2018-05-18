@@ -36,6 +36,95 @@ export class DefaultEntityCollectionReducerMethods<T> {
    */
   protected toUpdate: (entity: Partial<T>) => Update<T>;
 
+  /**
+   * Dictionary of the {EntityCollectionReducerMethods} for this entity type,
+   * keyed by the {EntityOp}
+   */
+  readonly methods: EntityCollectionReducerMethods<T> = {
+    [EntityOp.QUERY_ALL]: this.queryAll.bind(this),
+    [EntityOp.QUERY_ALL_ERROR]: this.queryAllError.bind(this),
+    [EntityOp.QUERY_ALL_SUCCESS]: this.queryAllSuccess.bind(this),
+
+    [EntityOp.QUERY_BY_KEY]: this.queryByKey.bind(this),
+    [EntityOp.QUERY_BY_KEY_ERROR]: this.queryByKeyError.bind(this),
+    [EntityOp.QUERY_BY_KEY_SUCCESS]: this.queryByKeySuccess.bind(this),
+
+    [EntityOp.QUERY_MANY]: this.queryMany.bind(this),
+    [EntityOp.QUERY_MANY_ERROR]: this.queryManyError.bind(this),
+    [EntityOp.QUERY_MANY_SUCCESS]: this.queryManySuccess.bind(this),
+
+    [EntityOp.SAVE_ADD_ONE]: this.saveAddOne.bind(this),
+    [EntityOp.SAVE_ADD_ONE_ERROR]: this.saveAddOneError.bind(this),
+    [EntityOp.SAVE_ADD_ONE_SUCCESS]: this.saveAddOneSuccess.bind(this),
+
+    [EntityOp.SAVE_ADD_ONE_OPTIMISTIC]: this.saveAddOneOptimistic.bind(this),
+    [EntityOp.SAVE_ADD_ONE_OPTIMISTIC_ERROR]: this.saveAddOneOptimisticError.bind(
+      this
+    ),
+    [EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS]: this.saveAddOneOptimisticSuccess.bind(
+      this
+    ),
+
+    [EntityOp.SAVE_DELETE_ONE]: this.saveDeleteOne.bind(this),
+    [EntityOp.SAVE_DELETE_ONE_ERROR]: this.saveDeleteOneError.bind(this),
+    [EntityOp.SAVE_DELETE_ONE_SUCCESS]: this.saveDeleteOneSuccess.bind(this),
+
+    [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC]: this.saveDeleteOneOptimistic.bind(
+      this
+    ),
+    [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_ERROR]: this.saveDeleteOneOptimisticError.bind(
+      this
+    ),
+    [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS]: this.saveDeleteOneOptimisticSuccess.bind(
+      this
+    ),
+
+    [EntityOp.SAVE_UPDATE_ONE]: this.saveUpdateOne.bind(this),
+    [EntityOp.SAVE_UPDATE_ONE_ERROR]: this.saveUpdateOneError.bind(this),
+    [EntityOp.SAVE_UPDATE_ONE_SUCCESS]: this.saveUpdateOneSuccess.bind(this),
+
+    [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC]: this.saveUpdateOneOptimistic.bind(
+      this
+    ),
+    [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_ERROR]: this.saveUpdateOneOptimisticError.bind(
+      this
+    ),
+    [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS]: this.saveUpdateOneOptimisticSuccess.bind(
+      this
+    ),
+
+    // Do nothing on save errors except turn the loading flag off.
+    // See the ChangeTrackerMetaReducers
+    // Or the app could listen for those errors and do something
+
+    /// cache only operations ///
+
+    [EntityOp.ADD_ALL]: this.addAll.bind(this),
+    [EntityOp.ADD_MANY]: this.addMany.bind(this),
+    [EntityOp.ADD_ONE]: this.addOne.bind(this),
+
+    [EntityOp.REMOVE_ALL]: this.removeAll.bind(this),
+    [EntityOp.REMOVE_MANY]: this.removeMany.bind(this),
+    [EntityOp.REMOVE_ONE]: this.removeOne.bind(this),
+
+    [EntityOp.UPDATE_MANY]: this.updateMany.bind(this),
+    [EntityOp.UPDATE_ONE]: this.updateOne.bind(this),
+
+    [EntityOp.UPSERT_MANY]: this.upsertMany.bind(this),
+    [EntityOp.UPSERT_ONE]: this.upsertOne.bind(this),
+
+    [EntityOp.SET_FILTER]: this.setFilter.bind(this),
+    [EntityOp.SET_LOADED]: this.setLoaded.bind(this),
+    [EntityOp.SET_LOADING]: this.setLoading.bind(this)
+  };
+
+  /** @deprecated() in favor of the reducerMethods property
+   * Get the reducer methods.
+   */
+  getMethods() {
+    return this.methods;
+  }
+
   constructor(
     public entityName: string,
     public definition: EntityDefinition<T>,
@@ -62,77 +151,14 @@ export class DefaultEntityCollectionReducerMethods<T> {
     this.toUpdate = toUpdateFactory(this.selectId);
   }
 
-  /** get the {EntityCollectionReducerMethods} for this entity type */
-  getMethods(): EntityCollectionReducerMethods<T> {
-    return {
-      [EntityOp.QUERY_ALL]: this.setLoadingTrue,
-      [EntityOp.QUERY_ALL_ERROR]: this.setLoadingFalse,
-      [EntityOp.QUERY_ALL_SUCCESS]: this.queryAllSuccess.bind(this),
+  protected queryAll(collection: EntityCollection<T>): EntityCollection<T> {
+    return this.setLoadingTrue(collection);
+  }
 
-      [EntityOp.QUERY_BY_KEY]: this.setLoadingTrue,
-      [EntityOp.QUERY_BY_KEY_ERROR]: this.setLoadingFalse,
-      [EntityOp.QUERY_BY_KEY_SUCCESS]: this.queryByKeySuccess.bind(this),
-
-      [EntityOp.QUERY_MANY]: this.setLoadingTrue,
-      [EntityOp.QUERY_MANY_ERROR]: this.setLoadingFalse,
-      [EntityOp.QUERY_MANY_SUCCESS]: this.queryManySuccess.bind(this),
-
-      [EntityOp.SAVE_ADD_ONE]: this.saveAddOne.bind(this),
-      [EntityOp.SAVE_ADD_ONE_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_ADD_ONE_SUCCESS]: this.saveAddOneSuccess.bind(this),
-
-      [EntityOp.SAVE_ADD_ONE_OPTIMISTIC]: this.saveAddOneOptimistic.bind(this),
-      [EntityOp.SAVE_ADD_ONE_OPTIMISTIC_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS]: this.saveAddOneOptimisticSuccess.bind(
-        this
-      ),
-
-      [EntityOp.SAVE_DELETE_ONE]: this.saveDeleteOne.bind(this),
-      [EntityOp.SAVE_DELETE_ONE_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_DELETE_ONE_SUCCESS]: this.saveDeleteOneSuccess.bind(this),
-
-      [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC]: this.saveDeleteOneOptimistic.bind(
-        this
-      ),
-      [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS]: this.setLoadingFalse,
-
-      [EntityOp.SAVE_UPDATE_ONE]: this.saveUpdateOne.bind(this),
-      [EntityOp.SAVE_UPDATE_ONE_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_UPDATE_ONE_SUCCESS]: this.saveUpdateOneSuccess.bind(this),
-
-      [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC]: this.saveUpdateOneOptimistic.bind(
-        this
-      ),
-      [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_ERROR]: this.setLoadingFalse,
-      [EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS]: this.saveUpdateOneOptimisticSuccess.bind(
-        this
-      ),
-
-      // Do nothing on save errors.
-      // See the ChangeTrackerMetaReducers
-      // Or the app could listen for those errors and do something
-
-      /// cache only operations ///
-
-      [EntityOp.ADD_ALL]: this.addAll.bind(this),
-      [EntityOp.ADD_MANY]: this.addMany.bind(this),
-      [EntityOp.ADD_ONE]: this.addOne.bind(this),
-
-      [EntityOp.REMOVE_ALL]: this.removeAll.bind(this),
-      [EntityOp.REMOVE_MANY]: this.removeMany.bind(this),
-      [EntityOp.REMOVE_ONE]: this.removeOne.bind(this),
-
-      [EntityOp.UPDATE_MANY]: this.updateMany.bind(this),
-      [EntityOp.UPDATE_ONE]: this.updateOne.bind(this),
-
-      [EntityOp.UPSERT_MANY]: this.upsertMany.bind(this),
-      [EntityOp.UPSERT_ONE]: this.upsertOne.bind(this),
-
-      [EntityOp.SET_FILTER]: this.setFilter.bind(this),
-      [EntityOp.SET_LOADED]: this.setLoaded.bind(this),
-      [EntityOp.SET_LOADING]: this.setLoading.bind(this)
-    };
+  protected queryAllError(
+    collection: EntityCollection<T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   protected queryAllSuccess(
@@ -147,51 +173,78 @@ export class DefaultEntityCollectionReducerMethods<T> {
     };
   }
 
+  protected queryByKey(
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string>
+  ): EntityCollection<T> {
+    return this.setLoadingTrue(collection);
+  }
+
+  protected queryByKeyError(
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
   protected queryByKeySuccess(
     collection: EntityCollection<T>,
     action: EntityAction<T>
   ): EntityCollection<T> {
+    collection = this.setLoadingFalse(collection);
     const upsert = action.payload;
     return upsert == null
-      ? collection.loading
-        ? { ...collection, loading: false }
-        : collection
-      : {
-          ...this.adapter.upsertOne(upsert, collection),
-          loading: false
-        };
+      ? collection
+      : this.adapter.upsertOne(upsert, collection);
+  }
+
+  protected queryMany(
+    collection: EntityCollection<T>,
+    action: EntityAction
+  ): EntityCollection<T> {
+    return this.setLoadingTrue(collection);
+  }
+
+  protected queryManyError(
+    collection: EntityCollection<T>,
+    action: EntityAction
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   protected queryManySuccess(
     collection: EntityCollection<T>,
     action: EntityAction<T[]>
   ): EntityCollection<T> {
+    collection = this.setLoadingFalse(collection);
     const upserts = action.payload as T[];
     return upserts == null || upserts.length === 0
-      ? collection.loading
-        ? { ...collection, loading: false }
-        : collection
-      : {
-          ...this.adapter.upsertMany(upserts, collection),
-          loading: false
-        };
-  }
-
-  /** pessimistic add; add entity only upon success
-   * It may be OK that the pkey is missing because the server may generate the ID
-   * If it doesn't, the reducer will catch the error in the success action
-   */
-  protected saveAddOne(collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
+      ? collection
+      : this.adapter.upsertMany(upserts, collection);
   }
 
   /** pessimistic add upon success */
+  protected saveAddOne(
+    collection: EntityCollection<T>,
+    action: EntityAction<T>
+  ): EntityCollection<T> {
+    return this.setLoadingTrue(collection);
+  }
+
+  protected saveAddOneError(
+    collection: EntityCollection<T>,
+    action: EntityAction<T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
   protected saveAddOneSuccess(
     collection: EntityCollection<T>,
     action: EntityAction<T>
   ) {
     // Ensure the server generated the primary key if the client didn't send one.
     this.guard.mustBeEntity(action);
+    collection = this.setLoadingFalse(collection);
     return this.adapter.addOne(action.payload, collection);
   }
 
@@ -204,7 +257,18 @@ export class DefaultEntityCollectionReducerMethods<T> {
   ): EntityCollection<T> {
     // Ensure the server generated the primary key if the client didn't send one.
     this.guard.mustBeEntity(action);
+    collection = this.setLoadingTrue(collection);
     return this.adapter.addOne(action.payload, collection);
+  }
+
+  /** optimistic add error; item already added to collection.
+   * TODO: consider compensation to undo.
+   */
+  protected saveAddOneOptimisticError(
+    collection: EntityCollection<T>,
+    action: EntityAction<T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   // Although already added to collection
@@ -218,33 +282,64 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T>
   ): EntityCollection<T> {
     this.guard.mustBeEntity(action);
+    collection = this.setLoadingFalse(collection);
     const update = this.toUpdate(action.payload);
     return this.adapter.updateOne(update, collection);
   }
 
-  /** pessimistic delete by entity key */
+  /** pessimistic delete, after success */
   protected saveDeleteOne(
-    collection: EntityCollection<T>
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string | T>
   ): EntityCollection<T> {
-    return collection;
+    return this.setLoadingTrue(collection);
   }
 
-  /** pessimistic delete, after success */
+  protected saveDeleteOneError(
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string | T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
   protected saveDeleteOneSuccess(
     collection: EntityCollection<T>,
-    action: EntityAction<number | string>
+    action: EntityAction<number | string | T>
   ): EntityCollection<T> {
-    // payload assumed to be entity key
-    return this.adapter.removeOne(action.payload as string, collection);
+    collection = this.setLoadingFalse(collection);
+    const toDelete = action.payload;
+    const deleteId =
+      typeof toDelete === 'object' ? this.selectId(toDelete) : toDelete;
+    return this.adapter.removeOne(deleteId as string, collection);
   }
 
   /** optimistic delete by entity key immediately */
   protected saveDeleteOneOptimistic(
     collection: EntityCollection<T>,
-    action: EntityAction<number | string>
+    action: EntityAction<number | string | T>
   ): EntityCollection<T> {
-    // payload assumed to be entity key
-    return this.adapter.removeOne(action.payload as string, collection);
+    collection = this.setLoadingTrue(collection);
+    const toDelete = action.payload;
+    const deleteId =
+      typeof toDelete === 'object' ? this.selectId(toDelete) : toDelete;
+    return this.adapter.removeOne(deleteId as string, collection);
+  }
+
+  /** optimistic delete error; item already removed from collection..
+   * TODO: consider compensation to undo.
+   */
+  protected saveDeleteOneOptimisticError(
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string | T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  protected saveDeleteOneOptimisticSuccess(
+    collection: EntityCollection<T>,
+    action: EntityAction<number | string | T>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   /**
@@ -256,7 +351,14 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
     this.guard.mustBeUpdate(action);
-    return collection;
+    return this.setLoadingTrue(collection);
+  }
+
+  protected saveUpdateOneError(
+    collection: EntityCollection<T>,
+    action: EntityAction<Update<T>>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   /** pessimistic update upon success */
@@ -264,6 +366,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
+    collection = this.setLoadingFalse(collection);
     return this.adapter.updateOne(action.payload, collection);
   }
 
@@ -276,10 +379,21 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
     this.guard.mustBeUpdate(action);
+    collection = this.setLoadingTrue(collection);
     return this.adapter.updateOne(action.payload, collection);
   }
 
-  /** optimistic update; collection already updated.
+  /** optimistic update error; collection already updated.
+   * TODO: consider compensation to undo.
+   */
+  protected saveUpdateOneOptimisticError(
+    collection: EntityCollection<T>,
+    action: EntityAction<Update<T>>
+  ): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  /** optimistic update success; collection already updated.
    * Server may have touched other fields
    * so update the collection again if the server sent different data.
    * payload must be an {Update<T>}
@@ -288,6 +402,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<Update<T>>
   ): EntityCollection<T> {
+    collection = this.setLoadingFalse(collection);
     const result = action.payload || { unchanged: true };
     // A data service like `DefaultDataService<T>` will add `unchanged:true`
     // if the server responded without data, meaning there is nothing to update.
@@ -414,22 +529,27 @@ export class DefaultEntityCollectionReducerMethods<T> {
     collection: EntityCollection<T>,
     action: EntityAction<boolean>
   ): EntityCollection<T> {
-    const loading = action.payload === true || false;
-    return collection.loading === loading
-      ? collection
-      : { ...collection, loading };
+    return this.setLoadingFlag(collection, action.payload);
   }
 
   protected setLoadingFalse(
     collection: EntityCollection<T>
   ): EntityCollection<T> {
-    return collection.loading ? { ...collection, loading: false } : collection;
+    return this.setLoadingFlag(collection, false);
   }
 
   protected setLoadingTrue(
     collection: EntityCollection<T>
   ): EntityCollection<T> {
-    return collection.loading ? collection : { ...collection, loading: true };
+    return this.setLoadingFlag(collection, true);
+  }
+
+  /** Set the collection's loading flag */
+  protected setLoadingFlag(collection: EntityCollection<T>, loading: boolean) {
+    loading = loading === true ? true : false;
+    return collection.loading === loading
+      ? collection
+      : { ...collection, loading };
   }
 }
 
@@ -450,6 +570,7 @@ export class DefaultEntityCollectionReducerMethodsFactory
       entityName,
       definition
     );
-    return methodsClass.getMethods();
+
+    return methodsClass.methods;
   }
 }

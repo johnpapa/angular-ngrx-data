@@ -1,5 +1,31 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.0-beta.3"></a>
+
+# 6.0.0-beta.3 (2018-05-18)
+
+### Breaking Change: collection loading flag behavior
+
+Now all save operations turn the collection **loading flag**
+on at the start and off at the end.
+See the `DefaultEntityCollectionReducerMethods`.
+
+Reducers used to only toggle the loading flag on for queries.
+That was a mistake because there could not easily tell when a server create/update/delete had completed.
+Now you can subscribe or pipe onto the collection's `loading` flag to learn when any server operation
+for that collection has begun and when it terminates (whether successfully or with an error).
+
+Also, every action has it its own method, even when those methods simply turn the loading flag on or off.
+This change allows you to sub-class `DefaultEntityCollectionReducerMethods` and use method overrides to
+customize it rather than simply replace a method in the `reducerMethods` dictionary.
+
+`DefaultEntityCollectionReducerMethods.methods` expose the dictionary of methods corresponding to an entity action.
+
+### Other
+
+* refactored `DefaultLogger` for better console output.
+* delete reducers now accept the entity as well as just the entity id
+
 <a name="6.0.0-beta.2"></a>
 
 # 6.0.0-beta.2 (2018-05-08)

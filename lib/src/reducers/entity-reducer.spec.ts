@@ -121,7 +121,7 @@ describe('EntityReducer', () => {
       // Must initialize the state by hand
       const state = entityReducer({}, action);
       const collection = state['Foo'];
-      expect(collection.ids.length).toBe(0, 'ADD_ONE should do nothing');
+      expect(collection.ids.length).toBe(0, 'ADD_ONE should not add');
     });
 
     it('can replace existing reducer by registering with same name', () => {
@@ -137,7 +137,7 @@ describe('EntityReducer', () => {
       );
       const state = entityReducer({}, action);
       const collection = state['Hero'];
-      expect(collection.ids.length).toBe(0, 'ADD_ONE should do nothing');
+      expect(collection.ids.length).toBe(0, 'ADD_ONE should not add');
     });
   });
 
@@ -292,8 +292,8 @@ describe('EntityReducer', () => {
       let state = entityReducer({}, fooAction);
       state = entityReducer(state, barAction);
 
-      expect(state['Foo'].ids.length).toBe(0, 'ADD_ONE Foo should do nothing');
-      expect(state['Bar'].ids.length).toBe(0, 'ADD_ONE Bar should do nothing');
+      expect(state['Foo'].ids.length).toBe(0, 'ADD_ONE Foo should not add');
+      expect(state['Bar'].ids.length).toBe(0, 'ADD_ONE Bar should not add');
     });
 
     it('can register several reducers that may override.', () => {
@@ -318,11 +318,8 @@ describe('EntityReducer', () => {
       let state = entityReducer({}, fooAction);
       state = entityReducer(state, heroAction);
 
-      expect(state['Foo'].ids.length).toBe(0, 'ADD_ONE Foo should do nothing');
-      expect(state['Hero'].ids.length).toBe(
-        0,
-        'ADD_ONE Hero should do nothing'
-      );
+      expect(state['Foo'].ids.length).toBe(0, 'ADD_ONE Foo should not add');
+      expect(state['Hero'].ids.length).toBe(0, 'ADD_ONE Hero should not add');
     });
   });
 

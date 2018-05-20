@@ -1,5 +1,11 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.0-beta.4"></a>
+
+# 6.0.0-beta.4 (TBD)
+
+* Default reducer sets collection's `loaded` flag true in ADD\*ALL action. Used to only do so in QUERY_ALL_SUCCESS. This \_might be a **breaking change\*** for a very few.
+
 <a name="6.0.0-beta.3"></a>
 
 # 6.0.0-beta.3 (2018-05-18)

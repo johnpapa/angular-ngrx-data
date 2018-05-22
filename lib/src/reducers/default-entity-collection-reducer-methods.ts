@@ -166,10 +166,10 @@ export class DefaultEntityCollectionReducerMethods<T> {
     action: EntityAction<T[]>
   ): EntityCollection<T> {
     return {
+      ...this.adapter.addAll(action.payload, collection),
       loaded: true, // only QUERY_ALL_SUCCESS and ADD_ALL sets loaded to true
       loading: false,
-      originalValues: {},
-      ...this.adapter.addAll(action.payload, collection)
+      originalValues: {}
     };
   }
 
@@ -419,8 +419,9 @@ export class DefaultEntityCollectionReducerMethods<T> {
   ): EntityCollection<T> {
     this.guard.mustBeEntities(action);
     return {
+      ...this.adapter.addAll(action.payload, collection),
       loaded: true, // only QUERY_ALL_SUCCESS and ADD_ALL sets loaded to true
-      ...this.adapter.addAll(action.payload, collection)
+      originalValues: {}
     };
   }
 

@@ -310,11 +310,12 @@ describe('EntityEffects (normal testing)', () => {
     );
     const completion = entityActionFactory.create(
       'Hero',
-      EntityOp.SAVE_DELETE_ONE_SUCCESS
+      EntityOp.SAVE_DELETE_ONE_SUCCESS,
+      42
     );
 
     actions$.stream = of(action);
-    const response = of(undefined);
+    const response = of(42); // dataservice successful delete returns the deleted entity id
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
     expectCompletion(completion);

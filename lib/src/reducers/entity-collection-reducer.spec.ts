@@ -1103,7 +1103,7 @@ describe('EntityCollectionReducer', () => {
     });
 
     // Make sure read-only reducer doesn't change QUERY_ALL behavior
-    it('QUERY_ALL_SUCCESS clears loading flag and fills collection', () => {
+    it('QUERY_ALL_SUCCESS —clears loading flag and fills collection', () => {
       let state = entityReducer({}, queryAllAction);
       let collection = state['Hero'];
       expect(collection.loaded).toBe(false, 'should not be loaded at first');

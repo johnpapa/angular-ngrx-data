@@ -94,7 +94,10 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     if (key == null) {
       err = new Error(`No "${this.entityName}" key to delete`);
     }
-    return this.execute('DELETE', this.entityUrl + key, err);
+    return this.execute('DELETE', this.entityUrl + key, err).pipe(
+      // forward the id of deleted entity as the result of the HTTP DELETE
+      map(result => key as any)
+    );
   }
 
   getAll(): Observable<T[]> {

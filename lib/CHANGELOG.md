@@ -1,5 +1,16 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.0-beta.4"></a>
+
+# 6.0.0-beta.4 (2018-05-22)
+
+* Fix: DefaultDataService return the deleted entity's id, which is then forwarded in the payload
+  of the DELETE*SUCCESS and DELETE_OPTIMISTIC_SUCCESS entity operations.
+  Necessary for pessimistic delete to remove the item from the collection \_after* the server responds.
+  Fixes #154.
+
+* Feature: Default reducer sets collection's `loaded` flag true in ADD\*ALL action. Used to only do so in QUERY_ALL_SUCCESS. This \_might be a **breaking change\*** for a very few.
+
 <a name="6.0.0-beta.3"></a>
 
 # 6.0.0-beta.3 (2018-05-18)

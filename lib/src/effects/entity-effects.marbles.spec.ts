@@ -261,12 +261,13 @@ describe('EntityEffects (marble testing)', () => {
     );
     const completion = entityActionFactory.create(
       'Hero',
-      EntityOp.SAVE_DELETE_ONE_SUCCESS
+      EntityOp.SAVE_DELETE_ONE_SUCCESS,
+      42
     );
 
     actions$.stream = hot('-a---', { a: action });
     // delay the response 3 ticks
-    const response = cold('---a|', { a: undefined });
+    const response = cold('---a|', { a: 42 });
     const expected = cold('----b', { b: completion });
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 

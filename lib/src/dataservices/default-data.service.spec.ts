@@ -361,7 +361,8 @@ describe('DefaultDataService', () => {
       service
         .delete(1)
         .subscribe(
-          result => expect(result).toEqual({}, 'should return nothing'),
+          result =>
+            expect(result).toEqual(1, 'should return the deleted entity id'),
           fail
         );
 
@@ -378,7 +379,8 @@ describe('DefaultDataService', () => {
       service
         .delete(1)
         .subscribe(
-          result => expect(result).toEqual({}, 'should return nothing'),
+          result =>
+            expect(result).toEqual(1, 'should return the deleted entity id'),
           fail
         );
 

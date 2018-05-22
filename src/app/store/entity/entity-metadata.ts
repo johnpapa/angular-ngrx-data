@@ -14,8 +14,13 @@ export const entityMetadata: EntityMetadataMap = {
     selectId: villainSelectId, //  a non-default function
     filterFn: nameAndSayingFilter,
 
-    // Performs optimistic add and update. See VillainsService
-    entityDispatcherOptions: { optimisticAdd: true, optimisticUpdate: true }
+    // Override default optimism/pessimism to the opposite of the defaults seen in Hero.
+    // Pessimistic delete; optimistic add and update. See VillainsService
+    entityDispatcherOptions: {
+      optimisticDelete: false,
+      optimisticAdd: true,
+      optimisticUpdate: true
+    }
   }
 };
 

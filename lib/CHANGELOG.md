@@ -4,7 +4,12 @@
 
 # 6.0.1-beta.5 (2018-05-23)
 
-* Update to @ngrx v.6.0.1 (updated package.json)
+* Update to `@ngrx v.6.0.1` (updated package.json)
+
+* Update to **ng-packagr** `v.3.0.0-rc.5` which fixes issue #156 (for no apparent reason)
+  while causing a _different ng-Packagr compilation error_,
+  one that is both rare and easily worked around (see [ng-packager issue 901](https://github.com/dherges/ng-packagr/issues/901))
+  (note: these changes were committed directly to master in SHA ede9d (ede9d39d776752ba2e2fa03d48c06a7f0bbbbf30)).
 
 <a name="6.0.0-beta.4"></a>
 

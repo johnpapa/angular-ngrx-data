@@ -3,7 +3,9 @@
 Only a few of us are authorized to publish the npm package.
 Here is our checklist.
 
-1.  Confirm that the library builds cleanly and that the demo app can use it in production with `npm run build-all`
+1.  Confirm that the library builds cleanly and that the demo app can use it in production with `npm run build-all`.
+
+1.  Smoke-test the production app by running `lite-server --baseDir="dist/app"` which runs the prod app in port 3000.
 
 1.  Run `ng lint`. Should be clean.
 

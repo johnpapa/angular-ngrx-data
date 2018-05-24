@@ -8,11 +8,12 @@ import { distinctUntilChanged, tap } from 'rxjs/operators';
 import { initialState } from './reducer';
 
 const getAppState = createFeatureSelector<AppState>('appConfig');
+
+// The following selector implementation guards against empty session state
+// as happens when replay with redux dev tools
 const getDataSource = createSelector(
   getAppState,
   (state: AppState) =>
-    // state.session.dataSource); // fails when replay with redux dev tools
-    // recover if no state as during replay in redux dev tools
     state ? state.session.dataSource : initialState.dataSource
 );
 

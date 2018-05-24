@@ -1,5 +1,11 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.1-beta.5"></a>
+
+# 6.0.1-beta.5 (2018-05-23)
+
+* Update to @ngrx v.6.0.1 (updated package.json)
+
 <a name="6.0.0-beta.4"></a>
 
 # 6.0.0-beta.4 (2018-05-22)

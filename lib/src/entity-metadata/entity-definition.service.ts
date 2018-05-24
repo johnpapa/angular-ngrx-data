@@ -75,8 +75,8 @@ export class EntityDefinitionService {
    *   });
    */
   registerMetadataMap(metadataMap: EntityMetadataMap = {}) {
+    // The entity type name should be the same as the map key
     Object.keys(metadataMap || {}).forEach(entityName =>
-      // The entity type name should be the same as the map key
       this.registerMetadata({ entityName, ...metadataMap[entityName] })
     );
   }

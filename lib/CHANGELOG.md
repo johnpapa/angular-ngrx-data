@@ -36,6 +36,65 @@ entityActions.pipe(ofEntityOp(EntityOp.QUERY_ALL, ...);
 The `EntityActions.where` and `EntityActions.until` methods have not been replaced.
 Use standard RxJS `filter` and `takeUntil` operators instead.
 
+Here's a real-world example of the changes that may be necessary.
+
+Before
+
+```typescript
+import { Injectable } from '@angular/core';
+import { EntityActions, OP_ERROR, OP_SUCCESS } from 'ngrx-data';
+import { ToastService } from '@core/services/toast.service';
+
+/** Report ngrx-data success/error actions as toast messages **/
+@Injectable()
+export class NgrxDataToastService {
+  constructor(actions$: EntityActions, toast: ToastService) {
+    actions$
+      .where(ea => ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR))
+      // this service never dies so no need to unsubscribe
+      .subscribe(action =>
+        toast.openSnackBar(`${action.entityName} action`, action.op)
+      );
+  }
+}
+```
+
+After
+
+```typescript
+import { Injectable } from '@angular/core';
+import { Actions } from '@ngrx/effects'; // <-- import @ngrx/effects/Actions
+import { EntityAction, ofEntityOp, OP_ERROR, OP_SUCCESS } from 'ngrx-data'; // <-- EntityActions replaced
+
+import { filter } from 'rxjs/operators'; // <-- no more "where"; you'll filter it yourself
+
+import { ToastService } from '@core/services/toast.service';
+
+/** Report ngrx-data success/error actions as toast messages **/
+@Injectable()
+export class NgrxDataToastService {
+  constructor(actions$: Actions, toast: ToastService) {
+    // <-- inject @ngrx/effects/Actions
+
+    actions$
+      .pipe(
+        // <-- use a pipe
+        // this service never dies so no need to unsubscribe
+        // filter first for EntityActions with ofEntityOp()  (those with an EntityOp)
+        ofEntityOp(),
+        // use filter() instead of where()
+        filter(
+          (ea: EntityAction) =>
+            ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR)
+        )
+      )
+      .subscribe(action =>
+        toast.openSnackBar(`${action.entityName} action`, action.op)
+      );
+  }
+}
+```
+
 ## Other Features
 
 * `NgrxDataModuleWithoutEffects` is now public rather than internal.

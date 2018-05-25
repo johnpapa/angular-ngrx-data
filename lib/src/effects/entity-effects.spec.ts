@@ -1,11 +1,12 @@
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
+import { Action } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
-import { Observable, of, merge, throwError } from 'rxjs';
+import { Observable, of, merge, Subject, throwError } from 'rxjs';
 import { delay, first } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp, OP_ERROR } from '../actions/entity-op';
 
 import {
@@ -26,18 +27,6 @@ import { EntityEffects } from './entity-effects';
 
 import { Logger } from '../utils/interfaces';
 import { Update } from '../utils/ngrx-entity-models';
-
-export class TestEntityActions extends EntityActions {
-  set stream(source: Observable<any>) {
-    // source is deprecated but no known substitute
-    /* tslint:disable-next-line:deprecation */
-    this.source = source;
-  }
-}
-
-export function getActions() {
-  return new TestEntityActions();
-}
 
 export class TestEntityDataService {
   dataServiceSpy: any;
@@ -70,10 +59,10 @@ describe('EntityEffects (normal testing)', () => {
   // factory never changes in these tests
   const entityActionFactory = new EntityActionFactory();
 
+  let actions$: Subject<Action>;
   let effects: EntityEffects;
-  let testEntityDataService: TestEntityDataService;
-  let actions$: TestEntityActions;
   let logger: Logger;
+  let testEntityDataService: TestEntityDataService;
 
   function expectCompletion(completion: EntityAction) {
     effects.persist$.subscribe(
@@ -88,11 +77,12 @@ describe('EntityEffects (normal testing)', () => {
 
   beforeEach(() => {
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
+    actions$ = new Subject<Action>();
 
     TestBed.configureTestingModule({
       providers: [
         EntityEffects,
-        { provide: EntityActions, useFactory: getActions },
+        { provide: Actions, useValue: actions$ },
         { provide: EntityActionFactory, useValue: entityActionFactory },
         { provide: EntityDataService, useFactory: getDataService },
         { provide: Logger, useValue: logger },
@@ -103,9 +93,9 @@ describe('EntityEffects (normal testing)', () => {
       ]
     });
 
+    actions$ = TestBed.get(Actions);
     effects = TestBed.get(EntityEffects);
     testEntityDataService = TestBed.get(EntityDataService);
-    actions$ = TestBed.get(EntityActions);
   });
 
   it('should return a QUERY_ALL_SUCCESS, with the heroes, on success', () => {
@@ -123,7 +113,7 @@ describe('EntityEffects (normal testing)', () => {
       heroes
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     expectCompletion(completion);
   });
 
@@ -148,7 +138,7 @@ describe('EntityEffects (normal testing)', () => {
       heroes
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     expectCompletion(completion);
   });
 
@@ -172,7 +162,7 @@ describe('EntityEffects (normal testing)', () => {
       heroes
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     expectCompletion(completion);
   });
 
@@ -182,7 +172,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'GET', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
@@ -201,7 +191,7 @@ describe('EntityEffects (normal testing)', () => {
       EntityOp.QUERY_BY_KEY_SUCCESS
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(undefined);
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
 
@@ -218,7 +208,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
 
@@ -239,7 +229,7 @@ describe('EntityEffects (normal testing)', () => {
       heroes
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(heroes);
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
@@ -256,7 +246,7 @@ describe('EntityEffects (normal testing)', () => {
     });
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
@@ -277,7 +267,7 @@ describe('EntityEffects (normal testing)', () => {
       hero
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(hero);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
@@ -295,7 +285,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
@@ -314,7 +304,7 @@ describe('EntityEffects (normal testing)', () => {
       42
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(42); // dataservice successful delete returns the deleted entity id
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
@@ -331,7 +321,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
@@ -352,7 +342,7 @@ describe('EntityEffects (normal testing)', () => {
       update
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(update);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
@@ -370,7 +360,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
@@ -391,7 +381,7 @@ describe('EntityEffects (normal testing)', () => {
       hero
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(hero);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
@@ -409,7 +399,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
 
@@ -427,7 +417,7 @@ describe('EntityEffects (normal testing)', () => {
       EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(undefined);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
@@ -444,7 +434,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
 
@@ -465,7 +455,7 @@ describe('EntityEffects (normal testing)', () => {
       update
     );
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = of(update);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
@@ -483,7 +473,7 @@ describe('EntityEffects (normal testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const response = throwError(error);
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
 
@@ -494,7 +484,7 @@ describe('EntityEffects (normal testing)', () => {
     // Would clear the cached collection
     const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);
 
-    actions$.stream = of(action);
+    actions$.next(action);
     const sentinel = 'no persist$ effect';
 
     merge(

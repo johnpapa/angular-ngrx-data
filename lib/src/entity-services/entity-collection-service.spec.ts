@@ -1,11 +1,11 @@
 /** TODO: much more testing */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Action, StoreModule, Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
 import { Subject } from 'rxjs';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp } from '../actions/entity-op';
 
 import { EntityCache } from '../reducers/entity-cache';
@@ -16,7 +16,7 @@ import {
   EntityCollectionServiceFactory
 } from './entity-services-interfaces';
 
-import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module';
+import { NgrxDataModuleWithoutEffects } from '../ngrx-data-without-effects.module';
 
 import { commandDispatchTest } from '../dispatchers/entity-dispatcher.spec';
 
@@ -95,12 +95,11 @@ const heroMetadata = {
 
 function entityServiceFactorySetup() {
   const actions$ = new Subject<Action>();
-  const entityActions = new EntityActions(<any>actions$);
 
   TestBed.configureTestingModule({
-    imports: [StoreModule.forRoot({}), _NgrxDataModuleWithoutEffects],
+    imports: [StoreModule.forRoot({}), NgrxDataModuleWithoutEffects],
     providers: [
-      { provide: EntityActions, useValue: entityActions },
+      { provide: Actions, useValue: actions$ },
       {
         provide: ENTITY_METADATA_TOKEN,
         multi: true,
@@ -123,7 +122,6 @@ function entityServiceFactorySetup() {
 
   return {
     actions$,
-    entityActions,
     entityActionFactory,
     entityCollectionServiceFactory,
     testStore

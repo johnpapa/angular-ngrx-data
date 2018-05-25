@@ -7,6 +7,7 @@
     "start": "ng serve -o",
     "build": "ng build",
     "build-prod": "ng build --prod --source-map",
+    "start-lite": "lite-server --baseDir=\"dist/app\"",
     "build-lib": "ng-packagr -p lib",
     "build-all": "rm -rf dist && npm run build-setup && npm run build-prod",
     "build-setup":
@@ -82,6 +83,7 @@
     "karma-coverage-istanbul-reporter": "^1.4.2",
     "karma-jasmine": "~1.1.0",
     "karma-jasmine-html-reporter": "^0.2.2",
+    "lite-server": "^2.3.0",
     "ng-packagr": "^3.0.0-rc.5",
     "prettier": "1.12.1",
     "pretty-quick": "^1.4.1",

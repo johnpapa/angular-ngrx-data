@@ -6,13 +6,13 @@ import {
   StoreModule,
   Store
 } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
 import { Observable, Subject } from 'rxjs';
 import { skip } from 'rxjs/operators';
 
 import { Dictionary, Update } from '../utils/ngrx-entity-models';
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp } from '../actions/entity-op';
 
 import { EntityCache } from '../reducers/entity-cache';
@@ -26,7 +26,7 @@ import {
 
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 
-import { _NgrxDataModuleWithoutEffects } from '../ngrx-data.module';
+import { NgrxDataModuleWithoutEffects } from '../ngrx-data-without-effects.module';
 
 const entityMetadataMap: EntityMetadataMap = {
   Battle: {},
@@ -46,10 +46,10 @@ describe('Related-entity Selectors', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [StoreModule.forRoot({}), _NgrxDataModuleWithoutEffects],
+      imports: [StoreModule.forRoot({}), NgrxDataModuleWithoutEffects],
       providers: [
         // required by NgrxData but not used in these tests
-        { provide: EntityActions, useValue: null },
+        { provide: Actions, useValue: null },
         {
           provide: ENTITY_METADATA_TOKEN,
           multi: true,

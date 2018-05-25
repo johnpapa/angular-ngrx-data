@@ -6,13 +6,15 @@ import {
   Selector,
   Store
 } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
 import { Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { OP_ERROR } from '../actions/entity-op';
+import { ofEntityType } from '../actions/entity-action-operators';
 import {
   ENTITY_CACHE_SELECTOR_TOKEN,
   EntityCacheSelector
@@ -40,13 +42,13 @@ export interface EntitySelectors$<T> {
   readonly entities$: Observable<T[]> | Store<T[]>;
 
   /** Observable of actions related to this entity type. */
-  readonly entityActions$: EntityActions;
+  readonly entityActions$: Observable<EntityAction>;
 
   /** Observable of the map of entity keys to entities */
   readonly entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
   /** Observable of error actions related to this entity type. */
-  readonly errors$: EntityActions;
+  readonly errors$: Observable<EntityAction>;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
   readonly filter$: Observable<string> | Store<string>;
@@ -74,7 +76,7 @@ export class EntitySelectors$Factory {
 
   constructor(
     private store: Store<any>,
-    private entityActions$: EntityActions,
+    private actions: Actions,
     @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
     private selectEntityCache: EntityCacheSelector
   ) {
@@ -104,9 +106,9 @@ export class EntitySelectors$Factory {
         selectors$[name$] = this.store.select((<any>selectors)[name]);
       }
     });
-    selectors$.entityActions$ = this.entityActions$.ofEntityType(entityName);
-    selectors$.errors$ = selectors$.entityActions$.where((ea: EntityAction) =>
-      ea.op.endsWith(OP_ERROR)
+    selectors$.entityActions$ = this.actions.pipe(ofEntityType(entityName));
+    selectors$.errors$ = selectors$.entityActions$.pipe(
+      filter((ea: EntityAction) => ea.op.endsWith(OP_ERROR))
     );
     return selectors$ as S$;
   }

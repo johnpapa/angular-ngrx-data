@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { EntityOp } from 'ngrx-data';
+import { EntityOp, ofEntityOp } from 'ngrx-data';
 
 import { combineLatest, Observable, Subject } from 'rxjs';
 import { delay, map, shareReplay, startWith, takeUntil } from 'rxjs/operators';
@@ -45,15 +45,14 @@ export class VillainEditorComponent implements OnInit, OnDestroy {
       shareReplay(1)
     );
 
-    this.error$ = this.villainsService.errors$
-      .ofOp(EntityOp.QUERY_BY_KEY_ERROR)
-      .pipe(
-        map(errorAction => errorAction.payload.error.message),
-        // delay guards against `ExpressionChangedAfterItHasBeenCheckedError`
-        delay(1),
-        // startWith(''), // prime it for loading$
-        takeUntil(this.destroy$)
-      );
+    this.error$ = this.villainsService.errors$.pipe(
+      ofEntityOp(EntityOp.QUERY_BY_KEY_ERROR),
+      map(errorAction => errorAction.payload.error.message),
+      // delay guards against `ExpressionChangedAfterItHasBeenCheckedError`
+      delay(1),
+      // startWith(''), // prime it for loading$
+      takeUntil(this.destroy$)
+    );
 
     this.loading$ = combineLatest(this.error$, this.villain$).pipe(
       map(([errorMsg, villain]) => !villain && !errorMsg)

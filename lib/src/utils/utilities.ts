@@ -15,10 +15,10 @@ export function defaultSelectId(entity: any) {
  * Allows fn with ...rest signature to be called with an array instead of spread
  * Example:
  * ```
- * // EntityActions.ofOp
+ * // See entity-action-operators.ts
  * const persistOps = [EntityOp.QUERY_ALL, EntityOp.ADD, ...];
- * ofOp(...persistOps) // works
- * ofOp(persistOps) // also works
+ * actions.pipe(ofEntityOp(...persistOps)) // works
+ * actions.pipe(ofEntityOp(persistOps)) // also works
  * ```
  * */
 export function flattenArgs<T>(args?: any[]): T[] {

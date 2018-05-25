@@ -6,8 +6,9 @@ Please look there.
 **_This_** Changelog covers changes to the repository and the demo applications.
 
 <a name="0.6.1">
-# 0.6.1 (TBD)
+# 0.6.1 (2018-05-25)
 
+* Refactored for EntityAction operators as required by Beta 6
 * Add example of extending EntityDataServices with custom `HeroDataService` as described in `entity-dataservice.md` (#151).
 
 <a name="0.6.0"></a>

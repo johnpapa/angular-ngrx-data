@@ -1,9 +1,9 @@
 import { Action, createSelector, MemoizedSelector, Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp } from '../actions/entity-op';
 
 import { EntityCache } from '../reducers/entity-cache';
@@ -72,7 +72,6 @@ describe('EntitySelectors$', () => {
     let state$: BehaviorSubject<{ entityCache: EntityCache }>;
 
     let actions$: Subject<Action>;
-    let entityActions: EntityActions;
 
     const nextCacheState = (cache: EntityCache) =>
       state$.next({ entityCache: cache });
@@ -83,7 +82,6 @@ describe('EntitySelectors$', () => {
 
     beforeEach(() => {
       actions$ = new Subject<Action>();
-      entityActions = new EntityActions(<any>actions$);
       state$ = new BehaviorSubject({ entityCache: emptyCache });
       store = new Store<{ entityCache: EntityCache }>(state$, null, null);
 
@@ -103,7 +101,7 @@ describe('EntitySelectors$', () => {
       // EntitySelectorFactory
       factory = new EntitySelectors$Factory(
         store,
-        entityActions,
+        actions$ as any,
         createEntityCacheSelector(ENTITY_CACHE_NAME)
       );
 

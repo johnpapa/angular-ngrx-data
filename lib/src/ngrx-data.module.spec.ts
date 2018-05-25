@@ -11,12 +11,12 @@ import { Actions, Effect, EffectsModule } from '@ngrx/effects';
 // Not using marble testing
 import { TestBed } from '@angular/core/testing';
 
-import { Observable, of } from 'rxjs';
-import { map, skip } from 'rxjs/operators';
+import { Observable, of, Subject } from 'rxjs';
+import { map, skip, tap } from 'rxjs/operators';
 
 import { EntityAction, EntityActionFactory } from './actions/entity-action';
-import { EntityActions } from './actions/entity-actions';
 import { EntityOp, OP_ERROR } from './actions/entity-op';
+import { ofEntityOp } from './actions/entity-action-operators';
 
 import { EntityCache } from './reducers/entity-cache';
 import { EntityCollection } from './reducers/entity-collection';
@@ -24,14 +24,6 @@ import { EntityCollectionCreator } from './reducers/entity-collection-creator';
 
 import { EntityEffects, persistOps } from './effects/entity-effects';
 import { NgrxDataModule } from './ngrx-data.module';
-
-class TestEntityActions extends EntityActions {
-  set stream(source: Observable<any>) {
-    // source is deprecated but no known substitute
-    /* tslint:disable-next-line:deprecation */
-    this.source = source;
-  }
-}
 
 const TEST_ACTION = 'test/get-everything-succeeded';
 const EC_METAREDUCER_TOKEN = new InjectionToken<
@@ -41,9 +33,13 @@ const EC_METAREDUCER_TOKEN = new InjectionToken<
 @Injectable()
 class TestEntityEffects {
   @Effect()
-  test$: Observable<Action> = this.actions$
-    .ofOp(persistOps)
-    .pipe(map(this.testHook));
+  test$: Observable<Action> = this.actions.pipe(
+    // tap(action => {
+    //   console.log('test$ effect', action);
+    // }),
+    ofEntityOp(persistOps),
+    map(this.testHook)
+  );
 
   testHook(action: EntityAction) {
     return {
@@ -53,7 +49,7 @@ class TestEntityEffects {
     };
   }
 
-  constructor(private actions$: EntityActions) {}
+  constructor(private actions: Actions) {}
 }
 
 class Hero {
@@ -80,7 +76,6 @@ describe('NgrxDataModule', () => {
     const entityActionFactory = new EntityActionFactory();
 
     let actions$: Actions;
-    let entityAction$: TestEntityActions;
     let store: Store<EntityCache>;
     let testEffects: TestEntityEffects;
 
@@ -97,7 +92,6 @@ describe('NgrxDataModule', () => {
       });
 
       actions$ = TestBed.get(Actions);
-      entityAction$ = TestBed.get(EntityActions);
       store = TestBed.get(Store);
 
       testEffects = TestBed.get(EntityEffects);
@@ -105,12 +99,17 @@ describe('NgrxDataModule', () => {
     });
 
     it('should invoke test effect with an EntityAction', () => {
-      const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
       const actions: Action[] = [];
 
       // listen for actions after the next dispatched action
-      actions$.pipe(skip(1)).subscribe(act => actions.push(act));
+      actions$
+        .pipe(
+          // tap(act => console.log('test action', act)),
+          skip(1) // Skip QUERY_ALL
+        )
+        .subscribe(act => actions.push(act));
 
+      const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
       store.dispatch(action);
       expect(actions.length).toBe(1, 'expect one effect action');
       expect(actions[0].type).toBe('test-action');
@@ -122,7 +121,7 @@ describe('NgrxDataModule', () => {
       // listen for actions after the next dispatched action
       actions$.pipe(skip(1)).subscribe(act => actions.push(act));
 
-      store.dispatch({ type: 'dummy-action' });
+      store.dispatch({ type: 'not-an-entity-action' });
       expect(actions.length).toBe(0);
     });
   });

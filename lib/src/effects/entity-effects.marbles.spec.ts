@@ -2,10 +2,12 @@
 import { TestBed } from '@angular/core/testing';
 
 import { cold, hot } from 'jasmine-marbles';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+
+import { Actions } from '@ngrx/effects';
+import { provideMockActions } from '@ngrx/effects/testing';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp, OP_ERROR } from '../actions/entity-op';
 
 import {
@@ -26,19 +28,7 @@ import { EntityEffects } from './entity-effects';
 
 import { Logger } from '../utils/interfaces';
 import { Update } from '../utils/ngrx-entity-models';
-
-export class TestEntityActions extends EntityActions {
-  set stream(source: Observable<any>) {
-    // source is deprecated but no known substitute
-    /* tslint:disable-next-line:deprecation */
-    this.source = source;
-  }
-}
-
-// For AOT
-export function getActions() {
-  return new TestEntityActions();
-}
+import { TestHotObservable } from 'jasmine-marbles/src/test-observables';
 
 export class TestEntityDataService {
   dataServiceSpy: any;
@@ -70,7 +60,7 @@ describe('EntityEffects (marble testing)', () => {
   let effects: EntityEffects;
   let entityActionFactory: EntityActionFactory;
   let testEntityDataService: TestEntityDataService;
-  let actions$: TestEntityActions;
+  let actions: Observable<any>;
   let logger: Logger;
 
   beforeEach(() => {
@@ -79,8 +69,8 @@ describe('EntityEffects (marble testing)', () => {
     TestBed.configureTestingModule({
       providers: [
         EntityEffects,
+        provideMockActions(() => actions),
         EntityActionFactory,
-        { provide: EntityActions, useFactory: getActions },
         { provide: EntityDataService, useFactory: getDataService },
         { provide: Logger, useValue: logger },
         {
@@ -92,7 +82,7 @@ describe('EntityEffects (marble testing)', () => {
     entityActionFactory = TestBed.get(EntityActionFactory);
     effects = TestBed.get(EntityEffects);
     testEntityDataService = TestBed.get(EntityDataService);
-    actions$ = TestBed.get(EntityActions);
+    actions = TestBed.get(Actions);
   });
 
   it('should return a QUERY_ALL_SUCCESS with the heroes on success', () => {
@@ -107,7 +97,8 @@ describe('EntityEffects (marble testing)', () => {
       heroes
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    const x = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: heroes });
     const expected = cold('----b', { b: completion });
@@ -122,7 +113,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'GET', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
@@ -142,7 +133,7 @@ describe('EntityEffects (marble testing)', () => {
       EntityOp.QUERY_BY_KEY_SUCCESS
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: undefined });
     const expected = cold('----b', { b: completion });
@@ -161,7 +152,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
@@ -183,7 +174,7 @@ describe('EntityEffects (marble testing)', () => {
       heroes
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: heroes });
     const expected = cold('----b', { b: completion });
@@ -202,7 +193,7 @@ describe('EntityEffects (marble testing)', () => {
     });
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
@@ -225,7 +216,7 @@ describe('EntityEffects (marble testing)', () => {
       hero
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: hero });
     const expected = cold('----b', { b: completion });
@@ -245,7 +236,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
@@ -265,7 +256,7 @@ describe('EntityEffects (marble testing)', () => {
       42
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: 42 });
     const expected = cold('----b', { b: completion });
@@ -284,7 +275,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
@@ -306,7 +297,7 @@ describe('EntityEffects (marble testing)', () => {
       update
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: update });
     const expected = cold('----b', { b: completion });
@@ -326,7 +317,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
@@ -348,7 +339,7 @@ describe('EntityEffects (marble testing)', () => {
       hero
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: hero });
     const expected = cold('----b', { b: completion });
@@ -368,7 +359,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.add.and.returnValue(response);
@@ -387,7 +378,7 @@ describe('EntityEffects (marble testing)', () => {
       EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: undefined });
     const expected = cold('----b', { b: completion });
@@ -406,7 +397,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
@@ -428,7 +419,7 @@ describe('EntityEffects (marble testing)', () => {
       update
     );
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     // delay the response 3 ticks
     const response = cold('---a|', { a: update });
     const expected = cold('----b', { b: completion });
@@ -448,7 +439,7 @@ describe('EntityEffects (marble testing)', () => {
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const response = cold('----#|', {}, error);
     const expected = cold('-----b', { b: completion });
     testEntityDataService.dataServiceSpy.update.and.returnValue(response);
@@ -460,7 +451,7 @@ describe('EntityEffects (marble testing)', () => {
     // Would clear the cached collection
     const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);
 
-    actions$.stream = hot('-a---', { a: action });
+    actions = hot('-a---', { a: action });
     const expected = cold('---');
 
     expect(effects.persist$).toBeObservable(expected);

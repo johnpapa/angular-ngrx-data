@@ -1,5 +1,60 @@
 # Angular ngrx-data library ChangeLog
 
+<a name="6.0.1-beta.6"></a>
+
+# 6.0.1-beta.6 (2018-05-24)
+
+## _EntityActions_ replaced by _EntityAction operators_
+
+_BREAKING CHANGE_
+
+Sub-classing of `Observable` is deprecated in v.6, in favor of custom pipeable operators.
+
+Accordingly, `EntityActions` has been removed.
+Use the _EntityAction_ operators, `ofEntityOp` and `ofEntityType` instead.
+
+Before
+
+```typescript
+// Select HeroActions
+entityActions.ofEntityType('Hero).pipe(...);
+
+// Select QUERY_ALL operations
+entityActions.ofOp(EntityOp.QUERY_ALL).pipe(...);
+```
+
+After
+
+```typescript
+// Select HeroActions
+entityActions.pipe(ofEntityType('Hero), ...);
+
+// Select QUERY_ALL operations
+entityActions.pipe(ofEntityOp(EntityOp.QUERY_ALL, ...);
+```
+
+The `EntityActions.where` and `EntityActions.until` methods have not been replaced.
+Use standard RxJS `filter` and `takeUntil` operators instead.
+
+## Other Features
+
+* `NgrxDataModuleWithoutEffects` is now public rather than internal.
+  Useful for devs who prefer to opt out of @ngrx/effects for entities and to
+  handle HTTP calls on their own.
+
+Import it instead of `NgrxDataModule`, like this.
+
+```typescript
+@NgModule({
+  imports: [
+    NgrxDataModuleWithoutEffects.forRoot(appNgrxDataModuleConfig),
+    ...
+  ],
+  ...
+})
+export class EntityAppModule {...}
+```
+
 <a name="6.0.1-beta.5"></a>
 
 # 6.0.1-beta.5 (2018-05-23)
@@ -247,7 +302,7 @@ Extends `DefaultDataServiceConfig` so you can specify them.
 For example, instead of setting the `PluralNames` for `Hero` you could fully specify the
 singular and plural resource URLS in the `DefaultDataServiceConfig` like this:
 
-```javascript
+```typescript
 // store/entity-metadata.ts
 
 // Not needed for data access when set Hero's HttpResourceUrls

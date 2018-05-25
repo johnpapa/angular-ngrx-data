@@ -1,11 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Action, Store } from '@ngrx/store';
+import { Actions } from '@ngrx/effects';
 
 import { Observable } from 'rxjs';
 
 import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
-import { EntityActions } from '../actions/entity-actions';
 import { EntityOp } from '../actions/entity-op';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
@@ -329,13 +329,13 @@ export class EntityCollectionServiceBase<
   entities$: Observable<T[]> | Store<T[]>;
 
   /** Observable of actions related to this entity type. */
-  entityActions$: EntityActions;
+  entityActions$: Observable<EntityAction>;
 
   /** Observable of the map of entity keys to entities */
   entityMap$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
 
   /** Observable of error actions related to this entity type. */
-  errors$: EntityActions;
+  errors$: Observable<EntityAction>;
 
   /** Observable of the filter pattern applied by the entity collection's filter function */
   filter$: Observable<string> | Store<string>;

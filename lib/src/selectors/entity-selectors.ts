@@ -14,7 +14,10 @@ import {
   createEntityCacheSelector
 } from './entity-cache-selector';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
-import { EntityCollection } from '../reducers/entity-collection';
+import {
+  EntityCollection,
+  ChangeStateMap
+} from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntityFilterFn } from '../entity-metadata/entity-filters';
 import { EntityMetadata } from '../entity-metadata/entity-metadata';
@@ -51,8 +54,8 @@ export interface CollectionSelectors<T> {
   /** True when a multi-entity query command is in progress. */
   readonly selectLoading: Selector<EntityCollection<T>, boolean>;
 
-  /** Original entity values for entities with unsaved changes */
-  readonly selectOriginalValues: Selector<EntityCollection<T>, Dictionary<T>>;
+  /** ChangeState (including original values) of entities with unsaved changes */
+  readonly selectChangeState: Selector<EntityCollection<T>, ChangeStateMap<T>>;
 }
 
 /**
@@ -96,8 +99,8 @@ export interface EntitySelectors<T> {
   /** True when a multi-entity query command is in progress. */
   readonly selectLoading: MemoizedSelector<Object, boolean>;
 
-  /** Original entity values for entities with unsaved changes */
-  readonly selectOriginalValues: MemoizedSelector<Object, Dictionary<T>>;
+  /** ChangeState (including original values) of entities with unsaved changes */
+  readonly selectChangeState: MemoizedSelector<Object, ChangeStateMap<T>>;
 }
 
 @Injectable()
@@ -145,6 +148,7 @@ export class EntitySelectorsFactory {
     S extends CollectionSelectors<T> = CollectionSelectors<T>
   >(metadata: EntityMetadata<T>): S;
 
+  // tslint:disable:unified-signatures
   // createCollectionSelectors(entityName) overload
   /**
    * Creates default entity collection selectors for an entity type.
@@ -152,12 +156,6 @@ export class EntitySelectorsFactory {
    * @param entityName - name of the entity type
    */
   createCollectionSelectors<
-  // tslint:disable-next-line:unified-signatures
-  // tslint:disable-next-line:unified-signatures
-  // tslint:disable-next-line:unified-signatures
-  // tslint:disable-next-line:unified-signatures
-  // tslint:disable-next-line:unified-signatures
-  // tslint:disable-next-line:unified-signatures
     T,
     S extends CollectionSelectors<T> = CollectionSelectors<T>
   >(entityName: string): S;
@@ -200,7 +198,7 @@ export class EntitySelectorsFactory {
 
     const selectLoaded = (c: EntityCollection<T>) => c.loaded;
     const selectLoading = (c: EntityCollection<T>) => c.loading;
-    const selectOriginalValues = (c: EntityCollection<T>) => c.originalValues;
+    const selectChangeState = (c: EntityCollection<T>) => c.changeState;
 
     // Create collection selectors for each `additionalCollectionState` property.
     // These all extend from `selectCollection`
@@ -223,7 +221,7 @@ export class EntitySelectorsFactory {
       selectKeys,
       selectLoaded,
       selectLoading,
-      selectOriginalValues,
+      selectChangeState,
       ...extraSelectors
     } as S;
   }

@@ -48,10 +48,10 @@ describe('EntityActionFactory', () => {
     expect(action.type).toBe(expectedFormat);
   });
 
-  it('should format type with given label instead of the entity name', () => {
-    const label = 'Hero - Label Test';
-    const action = factory.create('Hero', EntityOp.QUERY_ALL, null, label);
-    expect(action.type).toContain(label);
+  it('should format type with given tag instead of the entity name', () => {
+    const tag = 'Hero - Tag Test';
+    const action = factory.create('Hero', EntityOp.QUERY_ALL, null, tag);
+    expect(action.type).toContain(tag);
   });
 
   it('can re-format generated action.type with custom #formatActionType()', () => {

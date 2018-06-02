@@ -31,11 +31,12 @@ export class EntityCollectionCreator {
 
 export function createEmptyEntityCollection<T>(): EntityCollection<T> {
   return {
+    entityName: '',
     ids: [],
     entities: {},
     filter: undefined,
     loaded: false,
     loading: false,
-    originalValues: {}
+    changeState: {}
   } as EntityCollection<T>;
 }

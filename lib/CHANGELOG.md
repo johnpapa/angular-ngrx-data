@@ -1,6 +1,105 @@
 # Angular ngrx-data library ChangeLog
 
-<a name="6.0.1-beta.6"></a>
+<a id="6.0.1-beta.7"></a>
+
+# 6.0.1-beta.7 (2018-06-03)
+
+This release is primarily about the new, one-level _change tracking_ feature,
+which makes _optimistic saves_ a viable choice (possibly the preferred choice),
+now that you can recover from a save error by undoing (reverting).
+
+## Features
+
+### Change Tracking
+
+EntityCollections, reducers, and selectors support change tracking and undo
+via the rewritten `EntityChangeTracker` (`DefaultEntityChangeTracker`) and the
+new `EntityCollection.changeState` property which replaces the `originalValues` property.
+
+Previously change tracking and undo were an incomplete, alpha feature.
+
+The ngrx-data now tracks changes properly by default and you can **_undo unsaved changes_**, reverting to the last know state of entity (or entities) on the server.
+This gives the developer a good option for recovering from optimistic saves that failed.
+
+Thanks to change tracking, we can tell when an entity that you're about to delete has been added locally but not saved to the server.
+Ngrx-data now removes such entities immediately, even when the save is pessimistic, and silently side-steps the
+HTTP DELETE request, which has nothing to remove on the server and might 404.
+
+In order to tell `EntityEffects.persist$` to skip such deletes, we had to add a mutable **`EntityAction.skip`** flag to the `EntityAction` envelope.
+The flag defaults to `false`.
+Ngrx-data only sets it to true when the app tries to save the deletion of an added, unsaved entity.
+
+We're not thrilled about adding another mutable property to `EntityAction`.
+But we do not know of another way to tell `EntityEffects` to skip the HTTP DELETE request.
+
+The new `EntityMetadata.enableChangeTracking` flag, which is `true` by default,
+can be set `false` in the metadata for a collection.
+When `false`, ngrx-data does not track any changes for this collection
+and the `EntityCollection.changeState` property remains an empty object.
+
+You can also turnoff change tracking for a specific, cache-only action by choosing one of the
+new "no-tracking" `EntityOps`.
+
+See `entity-change-tracker.md` for discussion and details.
+
+### Other Features
+
+`QUERY_SUCCESS_ALL` and `ADD_ALL` should have the same effect on the
+collection: they reset entity data, clear change tracking data, and
+set the loading (false) and loaded (true) flags.
+They now share the same reducer method.
+
+Added `SET_COLLECTION` EntityOp to completely replace the collection.
+Good for testing and rehydrating collection from local storage.
+Dangerous. Use wisely and rarely.
+
+## Breaking Changes
+
+## Change-tracking-related
+
+The change tracking feature required replacement of the `EntityCollection.originalValues` with `EntityCollection.changeState`.
+
+The `originalValues` property is now the `originalValue` (singular) property of `changeState`,
+which also has a `changeType` property that tells you what kind of unsaved change is being tracked.
+
+The `EntitySelectors.selectOriginalValues` and `Selectors$.originalValues$` are replaced by
+`EntitySelectors.selectChangeState` and `Selectors$.selectChangeState$`
+
+The `EntityReducerMethods` have changed to include change tracking.
+This will not affect most apps but it does mean that actions which previously did not change the collection
+may do so now by virtue of updates to the collection's `changeState` value.
+
+The `EntityDataService.update()` method still takes an `Update<T>` but it
+returns the update entity (or null) rather than an `Update<T>`.
+
+**If you wrote a custom `EntityDataService`, you must change the result of your `update` method accordingly.**
+
+The `EntityEffects.persist$` now handles transformation of HTTP update results
+into the `Update<T>` before creating the update "success" actions that are
+dispatched to the store.
+
+Moving this responsibility to the `EntityEffects` makes it a little easier to
+write custom `EntityDataServices`, which won't have to deal with it,
+while ensuring that the success action payload dispatched to the store
+arrives at the reducer with the information needed for change tracking.
+
+The app or its tests _might_ expect ngrx-data to make DELETE requests when processing SAVE_DELETE... actions
+for entities that were added to the collection but not yet saved.
+With change tracking enabled. ngrx-data no longer makes DELETE requests when processing SAVE_DELETE... actions
+for entities that were added to the collection but not yet saved.
+
+It is possible that an app or its tests expected ngrx-data to make these DELETE requests.
+
+### Other Breaking Changes
+
+Renamed `EntityAction.label` to `EntityAction.tag` because the word "label" is
+too semantically close to the `Action.type`.
+"Tag" conveys the freedom and flexibility we're looking for.
+We hope that relatively few are affected by this and the fix is easy.
+
+`ADD_ALL` resets the loading (false) and loaded (true) flags, different behavior than before.
+
+<a id="6.0.1-beta.6"></a>
 
 # 6.0.1-beta.6 (2018-05-24)
 
@@ -52,9 +151,7 @@ export class NgrxDataToastService {
     actions$
       .where(ea => ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR))
       // this service never dies so no need to unsubscribe
-      .subscribe(action =>
-        toast.openSnackBar(`${action.entityName} action`, action.op)
-      );
+      .subscribe(action => toast.openSnackBar(`${action.entityName} action`, action.op));
   }
 }
 ```
@@ -83,14 +180,9 @@ export class NgrxDataToastService {
         // filter first for EntityActions with ofEntityOp()  (those with an EntityOp)
         ofEntityOp(),
         // use filter() instead of where()
-        filter(
-          (ea: EntityAction) =>
-            ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR)
-        )
+        filter((ea: EntityAction) => ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR))
       )
-      .subscribe(action =>
-        toast.openSnackBar(`${action.entityName} action`, action.op)
-      );
+      .subscribe(action => toast.openSnackBar(`${action.entityName} action`, action.op));
   }
 }
 ```
@@ -114,7 +206,7 @@ Import it instead of `NgrxDataModule`, like this.
 export class EntityAppModule {...}
 ```
 
-<a name="6.0.1-beta.5"></a>
+<a id="6.0.1-beta.5"></a>
 
 # 6.0.1-beta.5 (2018-05-23)
 
@@ -125,7 +217,7 @@ export class EntityAppModule {...}
   one that is both rare and easily worked around (see [ng-packager issue 901](https://github.com/dherges/ng-packagr/issues/901))
   (note: these changes were committed directly to master in SHA ede9d (ede9d39d776752ba2e2fa03d48c06a7f0bbbbf30)).
 
-<a name="6.0.0-beta.4"></a>
+<a id="6.0.0-beta.4"></a>
 
 # 6.0.0-beta.4 (2018-05-22)
 
@@ -136,7 +228,7 @@ export class EntityAppModule {...}
 
 * Feature: Default reducer sets collection's `loaded` flag true in ADD\*ALL action. Used to only do so in QUERY_ALL_SUCCESS. This \_might be a **breaking change\*** for a very few.
 
-<a name="6.0.0-beta.3"></a>
+<a id="6.0.0-beta.3"></a>
 
 # 6.0.0-beta.3 (2018-05-18)
 
@@ -162,7 +254,7 @@ customize it rather than simply replace a method in the `reducerMethods` diction
 * refactored `DefaultLogger` for better console output.
 * delete reducers now accept the entity as well as just the entity id
 
-<a name="6.0.0-beta.2"></a>
+<a id="6.0.0-beta.2"></a>
 
 # 6.0.0-beta.2 (2018-05-08)
 
@@ -188,7 +280,7 @@ In a related change, the former `EntityService.entityCache$` selector has been r
   See the _Entity Services_ doc (in the repo at `docs/entity-services.md`) for a discussion and
   examples of this new class.
 
-<a name="6.0.0-beta.1"></a>
+<a id="6.0.0-beta.1"></a>
 
 # 6.0.0-beta.1 (2018-05-08)
 
@@ -211,11 +303,11 @@ In a related change, the former `EntityService.entityCache$` selector has been r
 
 <hr>
 
-<a name="1.0.0-beta.13"></a>
+<a id="1.0.0-beta.13"></a>
 
 # 1.0.0-beta.13 (2018-05-04)
 
-<a name="1.0.0-beta.13"></a>
+<a id="1.0.0-beta.13"></a>
 
 Fix AOT build error (#145) by removing all barrels.
 
@@ -235,7 +327,7 @@ These fixes should not break library consumers because they cannot reach into th
 * Refactoring of internal utils files to put the interfaces in their own file
 * Update packages to the last v5 versions.
 
-<a name="1.0.0-beta.11"></a>
+<a id="1.0.0-beta.11"></a>
 
 # 1.0.0-beta.11 (2018-04-29)
 
@@ -245,7 +337,7 @@ Add `EntityCacheSelector` which can be injected
 Minor _break_ in signature of `EntitySelectorFactory$` constructor to use `EntityCacheSelector`
 instead of `EntitySelectorFactory`
 
-<a name="1.0.0-beta.10"></a>
+<a id="1.0.0-beta.10"></a>
 
 # 1.0.0-beta.10 (2018-04-22)
 
@@ -259,7 +351,7 @@ The **`related-entity-selectors.spec.ts`** demonstrates usage.
 * break: shuffled methods and pruned members that shouldn't be exposed.
 * break: certain create functions are now members of factories.
 
-<a name="1.0.0-beta.9"></a>
+<a id="1.0.0-beta.9"></a>
 
 # 1.0.0-beta.9 (2018-04-14)
 
@@ -274,7 +366,7 @@ The **`related-entity-selectors.spec.ts`** demonstrates usage.
 
 * break: `EntityActionGuard` completely overhauled. Will break the few who call it directly.
 
-<a name="1.0.0-beta.8"></a>
+<a id="1.0.0-beta.8"></a>
 
 # 1.0.0-beta.8 (2018-04-14)
 
@@ -297,7 +389,7 @@ You'll probably make such changes within a replacement implementation of the
 `EntityCollectionReducerMethodsFactory`, an abstract class with _one_ simple method,
 that is the injection token for a class that produces `EntityCollectionReducerMethods`.
 
-<a name="1.0.0-beta.7"></a>
+<a id="1.0.0-beta.7"></a>
 
 # 1.0.0-beta.7 (2018-04-13)
 
@@ -309,14 +401,14 @@ that is the injection token for a class that produces `EntityCollectionReducerMe
   may call the new logger with the error
 * tests: repair a few
 
-<a name="1.0.0-beta.6"></a>
+<a id="1.0.0-beta.6"></a>
 
 # 1.0.0-beta.6 (2018-04-12)
 
 * refactor `DefaultDataService` to not use `pipe` static (gone in v6).
   Simplified it and deleted (internal) `make-response-delay.ts` in the process.
 
-<a name="1.0.0-beta.5"></a>
+<a id="1.0.0-beta.5"></a>
 
 # 1.0.0-beta.5 (2018-04-10)
 
@@ -335,21 +427,21 @@ that is the same as that in `EntityEffects`.
 
 Also refactored the `EntityCollectionReducer` to be a little smarter when setting flags.
 
-<a name="1.0.0-beta.4"></a>
+<a id="1.0.0-beta.4"></a>
 
 # 1.0.0-beta.4 (2018-04-09)
 
 * Feature: add SET_LOADED and SET_LOADING entity ops
 * RequestData.options is now optional
 
-<a name="1.0.0-beta.3"></a>
+<a id="1.0.0-beta.3"></a>
 
 # 1.0.0-beta.3 (2018-03-24)
 
 * Feature: enable replacement of `EntityEffects` via `@ngrx/effects` backdoor;
   see `NgrxDataModule` and its new test.
 
-<a name="1.0.0-beta.2"></a>
+<a id="1.0.0-beta.2"></a>
 
 # release 1.0.0-beta.2 (2018-03-19)
 
@@ -388,7 +480,7 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
 }
 ```
 
-<a name="1.0.0-beta.1"></a>
+<a id="1.0.0-beta.1"></a>
 
 # release 1.0.0-beta.1 (2018-03-14)
 
@@ -396,25 +488,25 @@ WAHOO! We're in beta!
 
 <hr>
 
-<a name="1.0.0-alpha.18"></a>
+<a id="1.0.0-alpha.18"></a>
 
 # release 1.0.0-alpha.18 (2018-03-14)
 
 Fix error-logging bug in `EntityReducerFactory` (thanks Colin).
 
-<a name="1.0.0-alpha.17"></a>
+<a id="1.0.0-alpha.17"></a>
 
 # release 1.0.0-alpha.17 (2018-03-13)
 
 Remove circular refs within the library that caused `ng build --prod` to fail.
 
-<a name="1.0.0-alpha.16"></a>
+<a id="1.0.0-alpha.16"></a>
 
 # release 1.0.0-alpha.16 (2018-03-10)
 
 * Feature: EntitySelectors$.errors$ makes it easier to subscribe to entity action errors in a component.
 
-<a name="1.0.0-alpha.15"></a>
+<a id="1.0.0-alpha.15"></a>
 
 # release 1.0.0-alpha.15 (2018-03-09)
 
@@ -422,7 +514,7 @@ Remove circular refs within the library that caused `ng build --prod` to fail.
   with `@ngrx/effects/Actions`.
   This is a **Breaking Change**, although we expect low impact because the feature only became viable today.
 
-<a name="1.0.0-alpha.14"></a>
+<a id="1.0.0-alpha.14"></a>
 
 # release 1.0.0-alpha.14 (2018-03-09)
 
@@ -430,7 +522,7 @@ Remove circular refs within the library that caused `ng build --prod` to fail.
 * Bug fix: DefaultDataService adds delay on server errors too (see `makeResponseDelay`).
 * Corrected text of the type constants for the QUERY_BY_KEY actions.
 
-<a name="1.0.0-alpha.13"></a>
+<a id="1.0.0-alpha.13"></a>
 
 # release 1.0.0-alpha.13 (2018-03-07)
 
@@ -442,13 +534,13 @@ New Features:
 
 * `entityCache$` observable selector on `EntityCollectionService` and `EntitySelectors$Factory` enable watching of the entire cache.
 
-<a name="1.0.0-alpha.12"></a>
+<a id="1.0.0-alpha.12"></a>
 
 # release 1.0.0-alpha.12 (2018-03-05)
 
 * EntityEffects.persist is now public, mostly for easier testing
 
-<a name="1.0.0-alpha.11"></a>
+<a id="1.0.0-alpha.11"></a>
 
 # release 1.0.0-alpha.11 (2018-03-05)
 
@@ -461,7 +553,7 @@ Small refactors for testability
 * EntityEffects: expose `persistOps`
 * EntityReducerFactory: new `getOrCreateReducer()` method.
 
-<a name="1.0.0-alpha.10"></a>
+<a id="1.0.0-alpha.10"></a>
 
 # release 1.0.0-alpha.10 (2018-02-24)
 
@@ -479,7 +571,7 @@ They also guard against collisions with your custom entity action types
 The file renaming and restructuring is for easier reading.
 Shouldn't affect applications which do not deep link into the library.
 
-<a name="1.0.0-alpha.9"></a>
+<a id="1.0.0-alpha.9"></a>
 
 # release 1.0.0-alpha.9 (2018-02-23)
 
@@ -503,14 +595,14 @@ See demo app's `HeroesService` and `VillainsService`.
 It is useful for simple service creation
 and when defining an entity service class with much smaller API service.
 
-<a name="1.0.0-alpha.8"></a>
+<a id="1.0.0-alpha.8"></a>
 
 # release 1.0.0-alpha.8 (2018-02-19)
 
 * renamed `EntityActions.filter` to `EntityActions.where`.
   Fixes conflict with `import 'rxjs/add/operator/filter';` #97 [minor breaking change]
 
-<a name="1.0.0-alpha.7"></a>
+<a id="1.0.0-alpha.7"></a>
 
 # release 1.0.0-alpha.7 (2018-02-19)
 
@@ -533,19 +625,19 @@ and when defining an entity service class with much smaller API service.
 * The previous save operations did not revert entities that failed to save.
   The next version will revert those entities after a save error.
 
-<a name="1.0.0-alpha.6"></a>
+<a id="1.0.0-alpha.6"></a>
 
 # release 1.0.0-alpha.6 (2018-02-14)
 
 * Add DefaultDataService error handling and their tests
 
-<a name="1.0.0-alpha.5"></a>
+<a id="1.0.0-alpha.5"></a>
 
 # release 1.0.0-alpha.5 (2018-02-14)
 
 * Workaround redux tools replay bug
 
-<a name="1.0.0-alpha.4"></a>
+<a id="1.0.0-alpha.4"></a>
 
 # release 1.0.0-alpha.4 (2018-02-13)
 
@@ -561,26 +653,26 @@ you must upgrade _ngrx_ to v5.1 or later,
 because the reducer uses the "upsert" feature, new in `@ngrx/entity` v5.1,
 for `QUERY_ONE_SUCCESS` and `QUERY_MANY_SUCCESS`.
 
-<a name="1.0.0-alpha.3"></a>
+<a id="1.0.0-alpha.3"></a>
 
 # 1.0.0-alpha.3 (2018-02-12)
 
 * Added `EntityCollectionMetaReducer`s for easier customization of `EntityCollectionReducer` behavior.
 * Documented entity reducers.
 
-<a name="1.0.0-alpha.2"></a>
+<a id="1.0.0-alpha.2"></a>
 
 # 1.0.0-alpha.2 (2018-02-11)
 
 Updated with more extension points
 
-<a name="1.0.0-alpha.1"></a>
+<a id="1.0.0-alpha.1"></a>
 
 # 1.0.0-alpha.1 (2018-02-06)
 
 Working release deployed to npm
 
-<a name="1.0.0-alpha.0"></a>
+<a id="1.0.0-alpha.0"></a>
 
 # 1.0.0-alpha.0 (2018-02-04)
 

@@ -89,14 +89,14 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     return this.execute('POST', this.entityUrl, entityOrError);
   }
 
-  delete(key: number | string): Observable<null> {
+  delete(key: number | string): Observable<number | string> {
     let err: Error;
     if (key == null) {
       err = new Error(`No "${this.entityName}" key to delete`);
     }
     return this.execute('DELETE', this.entityUrl + key, err).pipe(
       // forward the id of deleted entity as the result of the HTTP DELETE
-      map(result => key as any)
+      map(result => key as number | string)
     );
   }
 
@@ -121,7 +121,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     return this.execute('GET', this.entitiesUrl, undefined, { params });
   }
 
-  update(update: Update<T>): Observable<Update<T>> {
+  update(update: Update<T>): Observable<T> {
     const id = update && update.id;
     const updateOrError =
       id == null
@@ -168,19 +168,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
       }
       // N.B.: It must return an Update<T>
       case 'PUT': {
-        const { id, changes } = data; // data must be Update<T>
-        result$ = this.http.put(url, changes, options).pipe(
-          map(updated => {
-            // Return Update<T> with merged updated data (if any).
-            // If no data from server,
-            const noData = Object.keys(updated || {}).length === 0;
-            // assume the server made no additional changes of its own and
-            // append `unchanged: true` to the original payload.
-            return noData
-              ? { ...data, unchanged: true }
-              : { id, changes: { ...changes, ...updated } };
-          })
-        );
+        result$ = this.http.put(url, data, options);
         if (this.saveDelay) {
           result$ = result$.pipe(delay(this.saveDelay));
         }

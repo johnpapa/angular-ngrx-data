@@ -77,7 +77,7 @@ get the collection resource name.
 The [_Entity Metadata_](entity-metadata.md#plurals) guide
 explains how to configure the default `Pluralizer` .
 
-<a name="configuration"></a>
+<a id="configuration"></a>
 
 ### Configure the _DefaultDataService_
 
@@ -133,13 +133,7 @@ It only overrides what it really needs.
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {
-  EntityCollectionDataService,
-  DefaultDataService,
-  HttpUrlGenerator,
-  Logger,
-  QueryParams
-} from 'ngrx-data';
+import { EntityCollectionDataService, DefaultDataService, HttpUrlGenerator, Logger, QueryParams } from 'ngrx-data';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -147,19 +141,13 @@ import { Hero } from '../../core';
 
 @Injectable()
 export class HeroDataService extends DefaultDataService<Hero> {
-  constructor(
-    http: HttpClient,
-    httpUrlGenerator: HttpUrlGenerator,
-    logger: Logger
-  ) {
+  constructor(http: HttpClient, httpUrlGenerator: HttpUrlGenerator, logger: Logger) {
     super('Hero', http, httpUrlGenerator);
     logger.log('Created custom Hero EntityDataService');
   }
 
   getAll(): Observable<Hero[]> {
-    return super
-      .getAll()
-      .pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
+    return super.getAll().pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
   }
 
   getById(id: string | number): Observable<Hero> {
@@ -167,9 +155,7 @@ export class HeroDataService extends DefaultDataService<Hero> {
   }
 
   getWithQuery(params: string | QueryParams): Observable<Hero[]> {
-    return super
-      .getWithQuery(params)
-      .pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
+    return super.getWithQuery(params).pipe(map(heroes => heroes.map(hero => this.mapHero(hero))));
   }
 
   private mapHero(hero: Hero): Hero {

@@ -117,7 +117,7 @@ describe('EntityEffects (normal testing)', () => {
     expectCompletion(completion);
   });
 
-  it('should perform QUERY_ALL when dispatch custom labeled action', () => {
+  it('should perform QUERY_ALL when dispatch custom tagged action', () => {
     const hero1 = { id: 1, name: 'A' } as Hero;
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
@@ -129,7 +129,7 @@ describe('EntityEffects (normal testing)', () => {
       'Hero',
       EntityOp.QUERY_ALL,
       null,
-      'Custom Hero Label'
+      'Custom Hero Tag'
     );
 
     const completion = entityActionFactory.create(

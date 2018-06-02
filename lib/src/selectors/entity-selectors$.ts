@@ -21,7 +21,10 @@ import {
 } from './entity-cache-selector';
 import { EntitySelectors } from './entity-selectors';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityCollection } from '../reducers/entity-collection';
+import {
+  EntityCollection,
+  ChangeStateMap
+} from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntitySelectorsFactory } from './entity-selectors';
 
@@ -65,8 +68,10 @@ export interface EntitySelectors$<T> {
   /** Observable true when a multi-entity query command is in progress. */
   readonly loading$: Observable<boolean> | Store<boolean>;
 
-  /** Original entity values for entities with unsaved changes */
-  readonly originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  /** ChangeState (including original values) of entities with unsaved changes */
+  readonly changeState$:
+    | Observable<ChangeStateMap<T>>
+    | Store<ChangeStateMap<T>>;
 }
 
 @Injectable()

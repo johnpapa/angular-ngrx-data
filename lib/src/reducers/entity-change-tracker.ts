@@ -1,122 +1,174 @@
-import { EntityAdapter, EntityState } from '@ngrx/entity';
+import { ChangeState, ChangeType, EntityCollection } from './entity-collection';
 
-import { IdSelector, Update } from '../utils/ngrx-entity-models';
-import { defaultSelectId } from '../utils/utilities';
-import { EntityCollection } from './entity-collection';
+/**
+ * Methods for tracking, committing, and reverting/undoing unsaved entity changes.
+ * Used by EntityCollectionReducerMethods which should call tracker methods BEFORE modifying the collection.
+ * See EntityChangeTracker docs.
+ */
+export interface EntityChangeTracker<T> {
+  /**
+   * Commit all changes as when the collection has been completely reloaded from the server.
+   * Harmless when there are no entities to commit.
+   * @param collection The entity collection
+   */
+  commitAll(collection: EntityCollection<T>): EntityCollection<T>;
 
-// Methods needed by EntityChangeTracker to mutate the collection
-// The minimum subset of the @ngrx/entity EntityAdapter methods.
-export interface CollectionMutator<T> {
-  addMany<S extends EntityState<T>>(entities: T[], state: S): S;
-  removeMany<S extends EntityState<T>>(keys: string[], state: S): S;
+  /**
+   * Commit changes for the given entity as when it has been refreshed from the server.
+   * Harmless when there is no entity to untrack.
+   * @param entityOrId The entity to clear tracking or its id.
+   * @param collection The entity collection
+   */
+  commitOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Commit changes for the given entities as when they have been refreshed from the server.
+   * Harmless when there are no entities to commit.
+   * @param entityOrId The entities to clear tracking or their ids.
+   * @param collection The entity collection
+   */
+  commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track an entity add.
+   * Call before adding the entity.
+   * @param entity The entity to add. The entity must have its id.
+   * @param collection The entity collection
+   */
+  trackAddOne(entity: T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track multiple entity updates of the same change type
+   * @param entities The entities to add. They must all have their ids.
+   * @param collection The entity collection
+   */
+  trackAddMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track an entity removal with the intention of deleting it on the server.
+   * Call before removing the entity.
+   * @param entityOrId The entity or its id.
+   * @param collection The entity collection
+   */
+  trackDeleteOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track multiple removed entities with the intention of deleting them on the server.
+   * Call before removing the entities
+   * @param entityOrId The entities or their ids.
+   * @param collection The entity collection
+   */
+  trackDeleteMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track an entity change for the given entity.
+   * Call before the update.
+   * @param entityOrId The entity or its id.
+   * @param collection The entity collection
+   */
+  trackUpdateOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track multiple entity updates of the same change type.
+   * Call before the updates.
+   * @param entityOrId The entities or their ids.
+   * @param collection The entity collection
+   */
+  trackUpdateMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track an entity upsert (either an add or an update)
+   * @param entity The entity to add or update. It must be complete, including its id.
+   * @param collection The entity collection
+   */
+  trackUpsertOne(entity: T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Track multiple entity upserts (adds and updates).
+   * @param entityOrId The entities to add or update. They must be complete entities with ids.
+   * @param collection The entity collection
+   */
+  trackUpsertMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Revert the unsaved change for the given entity.
+   * Harmless if no entity to undo.
+   * @param entityOrId The entity to revert or its id.
+   * @param collection The entity collection
+   */
+  undoOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Revert the unsaved changes for the given entities.
+   * Harmless when there are no entities to undo.
+   * @param entityOrId The entities to revert or their ids.
+   * @param collection The entity collection
+   */
+  undoMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Revert the unsaved changes for all collection.
+   * Harmless when there are no entities to undo.
+   * @param collection The entity collection
+   */
+  undoAll(collection: EntityCollection<T>): EntityCollection<T>;
 }
 
-export class EntityChangeTracker<T> {
-  constructor(
-    public name: string,
-    private mutator: CollectionMutator<T>,
-    private selectId?: IdSelector<T>
-  ) {
-    /** Extract the primary key (id); default to `id` */
-    this.selectId = selectId || defaultSelectId;
+/** No-op EntityChangeTracker. All methods return the collection. Used when change tracking is disabled. */
+export class NoopEntityChangeTracker<T> implements EntityChangeTracker<T> {
+  commitAll(collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 
-  /**
-   * Add entities to tracker by adding them to the collection's originalValues.
-   * @param collection Source entity collection
-   * @param idsSource  Array of id sources which could be an id,
-   * an entity or an entity update
-   */
-  addToTracker(
-    collection: EntityCollection<T>,
-    idsSource: (number | string | T | Update<T>)[]
-  ): EntityCollection<T> {
-    let ids: (number | string)[] = (idsSource || []).map(
-      (source: any) =>
-        typeof source === 'object'
-          ? source.id && source.changes ? source.id : this.selectId(source)
-          : source
-    );
-
-    let originalValues = collection.originalValues;
-
-    // add only the ids that aren't currently tracked
-    ids = ids.filter(id => !originalValues.hasOwnProperty(id));
-    if (ids.length === 0) {
-      return collection;
-    }
-
-    const entities = collection.entities;
-    originalValues = { ...originalValues }; // clone it
-
-    // when entities[id] === undefined, it's a revertable "add"
-    ids.forEach(id => (originalValues[id] = entities[id]));
-    return { ...collection, originalValues };
+  commitOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 
-  /**
-   * Remove given entities from tracker by removing them from original values.
-   * Those entities can no longer be reverted to their original values.
-   * @param collection Entity collection with originalValues
-   * @param ids Ids of entities whose original values should be removed.
-   */
-  removeFromTracker(
-    collection: EntityCollection<T>,
-    ids?: (number | string)[]
-  ): EntityCollection<T> {
-    let originalValues = collection.originalValues;
-    ids = (ids || []).filter(id => originalValues.hasOwnProperty(id));
-    if (ids.length === 0) {
-      return collection;
-    }
-    originalValues = { ...originalValues }; // clone it
-    ids.forEach(id => delete originalValues[id]);
-    return { ...collection, originalValues };
+  commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 
-  /**
-   * Revert entities with given ids to their original values.
-   * @param collection Source entity collection
-   * @param ids Ids of entities to revert to original values
-   */
-  revert(
-    collection: EntityCollection<T>,
-    ids: (number | string)[]
-  ): EntityCollection<T> {
-    const newCollection = this._revertCore(collection, ids);
-    return newCollection === collection
-      ? collection
-      : this.removeFromTracker(newCollection, ids);
+  trackAddOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 
-  /**
-   * Revert every entity that is tracked in originalValues
-   * @param collection Source entity collection
-   */
-  revertAll(collection: EntityCollection<T>) {
-    const ids = Object.keys(collection.originalValues);
-    return ids.length === 0
-      ? collection
-      : { ...this._revertCore(collection, ids), originalValues: {} };
+  trackAddMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 
-  private _revertCore(
-    collection: EntityCollection<T>,
-    ids: (number | string)[]
-  ): EntityCollection<T> {
-    const originalValues = collection.originalValues;
-    ids = (ids || []).filter(id => originalValues.hasOwnProperty(id));
-    if (ids.length === 0) {
-      return collection;
-    }
+  trackDeleteOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
 
-    // TODO: consider a more efficient approach than removing and adding
-    collection = this.mutator.removeMany(<any[]>ids, collection);
+  trackDeleteMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
 
-    // `falsey` original entity indicates an added entity that should be removed
-    const originals = ids.map(id => originalValues[id]).filter(o => !!o);
-    return originals.length === 0
-      ? collection
-      : this.mutator.addMany(originals, collection);
+  trackUpdateOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  trackUpdateMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  trackUpsertOne(entity: T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  trackUpsertMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  undoOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  undoMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
+  }
+
+  undoAll(collection: EntityCollection<T>): EntityCollection<T> {
+    return collection;
   }
 }

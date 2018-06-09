@@ -2,9 +2,10 @@
 // NO BARRELS or else `ng build --aot` of any app using ngrx-data produces strange errors
 // actions
 export * from './actions/entity-action';
-export * from './actions/entity-action-operators';
+export * from './actions/entity-action-factory';
 export * from './actions/entity-action-guard';
-export * from './actions/entity-cache-actions';
+export * from './actions/entity-action-operators';
+export * from './actions/entity-cache-action';
 export * from './actions/entity-op';
 
 // dataservices
@@ -51,15 +52,13 @@ export * from './selectors/entity-selectors$';
 export * from './selectors/entity-cache-selector';
 
 // Utils
-export * from './utils/ngrx-entity-models'; // should be exported by @ngrx/entity
+export * from './utils/guid-fns';
 export * from './utils/interfaces';
 export * from './utils/default-logger';
 export * from './utils/default-pluralizer';
+export * from './utils/ngrx-entity-models'; // should be exported by @ngrx/entity
 export * from './utils/utilities';
 
 // NgrxDataModule
 export { NgrxDataModule } from './ngrx-data.module';
-export {
-  NgrxDataModuleWithoutEffects,
-  NgrxDataModuleConfig
-} from './ngrx-data-without-effects.module';
+export { NgrxDataModuleWithoutEffects, NgrxDataModuleConfig } from './ngrx-data-without-effects.module';

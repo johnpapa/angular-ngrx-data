@@ -7,10 +7,10 @@ export const ENTITY_METADATA_TOKEN = new InjectionToken<EntityMetadataMap>('ngrx
 
 /** Metadata that describe an entity type and its collection to ngrx-data */
 export interface EntityMetadata<T = any, S extends object = {}> {
-  enableChangeTracking?: boolean;
   entityName: string;
   entityDispatcherOptions?: Partial<EntityDispatcherOptions>;
   filterFn?: EntityFilterFn<T>;
+  noChangeTracking?: boolean;
   selectId?: IdSelector<T>;
   sortComparer?: false | Comparer<T>;
   additionalCollectionState?: S;

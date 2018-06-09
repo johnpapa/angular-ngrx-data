@@ -3,6 +3,7 @@ export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';
 export interface RequestData {
   method: HttpMethods;
   url: string;
+  data?: any;
   options?: any;
 }
 

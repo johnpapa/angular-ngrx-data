@@ -7,7 +7,8 @@ import { Observable, of, Subject } from 'rxjs';
 import { Actions } from '@ngrx/effects';
 import { provideMockActions } from '@ngrx/effects/testing';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, OP_ERROR } from '../actions/entity-op';
 
 import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
@@ -112,7 +113,7 @@ describe('EntityEffects (marble testing)', () => {
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
     expect(effects.persist$).toBeObservable(expected);
-    expect(completion.op).toEqual(EntityOp.QUERY_ALL_ERROR);
+    expect(completion.payload.op).toEqual(EntityOp.QUERY_ALL_ERROR);
   });
 
   it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', () => {
@@ -177,7 +178,7 @@ describe('EntityEffects (marble testing)', () => {
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
     expect(effects.persist$).toBeObservable(expected);
-    expect(completion.op).toEqual(EntityOp.QUERY_MANY_ERROR);
+    expect(completion.payload.op).toEqual(EntityOp.QUERY_MANY_ERROR);
   });
 
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
@@ -390,7 +391,7 @@ function makeEntityErrorCompletion(
   // Error produced by the EntityDataService
   const error = new DataServiceError(httpError, { method, url, options });
 
-  const errOp = <EntityOp>(originalAction.op + OP_ERROR);
+  const errOp = <EntityOp>(originalAction.payload.op + OP_ERROR);
 
   // Entity Error Action
   const eaFactory = new EntityActionFactory();

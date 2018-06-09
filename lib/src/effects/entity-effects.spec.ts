@@ -6,21 +6,13 @@ import { Actions } from '@ngrx/effects';
 import { Observable, of, merge, Subject, throwError } from 'rxjs';
 import { delay, first } from 'rxjs/operators';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, OP_ERROR } from '../actions/entity-op';
 
-import {
-  EntityCollectionDataService,
-  EntityDataService
-} from '../dataservices/entity-data.service';
-import {
-  DataServiceError,
-  EntityActionDataServiceError
-} from '../dataservices/data-service-error';
-import {
-  PersistenceResultHandler,
-  DefaultPersistenceResultHandler
-} from '../dataservices/persistence-result-handler.service';
+import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
+import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 import { HttpMethods } from '../dataservices/interfaces';
 
 import { EntityEffects } from './entity-effects';
@@ -32,10 +24,14 @@ export class TestEntityDataService {
   dataServiceSpy: any;
 
   constructor() {
-    this.dataServiceSpy = jasmine.createSpyObj(
-      'EntityCollectionDataService<Hero>',
-      ['add', 'delete', 'getAll', 'getById', 'getWithQuery', 'update']
-    );
+    this.dataServiceSpy = jasmine.createSpyObj('EntityCollectionDataService<Hero>', [
+      'add',
+      'delete',
+      'getAll',
+      'getById',
+      'getWithQuery',
+      'update'
+    ]);
   }
 
   getService() {
@@ -107,11 +103,7 @@ describe('EntityEffects (normal testing)', () => {
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
 
     actions$.next(action);
     expectCompletion(completion);
@@ -125,18 +117,13 @@ describe('EntityEffects (normal testing)', () => {
     const response = of(heroes);
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_ALL,
-      null,
-      'Custom Hero Tag'
-    );
+    const action = entityActionFactory.create({
+      entityName: 'Hero',
+      op: EntityOp.QUERY_ALL,
+      tag: 'Custom Hero Tag'
+    });
 
-    const completion = entityActionFactory.create(
-      action,
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.createFromAction(action, { op: EntityOp.QUERY_ALL_SUCCESS, data: heroes });
 
     actions$.next(action);
     expectCompletion(completion);
@@ -152,15 +139,13 @@ describe('EntityEffects (normal testing)', () => {
 
     const action = {
       type: 'some/arbitrary/type/text',
-      entityName: 'Hero',
-      op: EntityOp.QUERY_ALL
+      payload: {
+        entityName: 'Hero',
+        op: EntityOp.QUERY_ALL
+      }
     };
 
-    const completion = entityActionFactory.create(
-      action,
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.createFromAction(action, { op: EntityOp.QUERY_ALL_SUCCESS, data: heroes });
 
     actions$.next(action);
     expectCompletion(completion);
@@ -177,19 +162,12 @@ describe('EntityEffects (normal testing)', () => {
     testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
 
     expectCompletion(completion);
-    expect(completion.op).toEqual(EntityOp.QUERY_ALL_ERROR);
+    expect(completion.payload.op).toEqual(EntityOp.QUERY_ALL_ERROR);
   });
 
   it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY_SUCCESS
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY_SUCCESS);
 
     actions$.next(action);
     const response = of(undefined);
@@ -199,11 +177,7 @@ describe('EntityEffects (normal testing)', () => {
   });
 
   it('should return a QUERY_BY_KEY_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY,
-      42
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
     const httpError = { error: new Error('Entity not found'), status: 404 };
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
@@ -223,11 +197,7 @@ describe('EntityEffects (normal testing)', () => {
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {
       name: 'B'
     });
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_MANY_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
 
     actions$.next(action);
     const response = of(heroes);
@@ -241,13 +211,10 @@ describe('EntityEffects (normal testing)', () => {
       name: 'B'
     });
     const httpError = { error: new Error('Resource not found'), status: 404 };
-    const completion = makeEntityErrorCompletion(action, 'GET', httpError, {
-      name: 'B'
-    });
-    const error = completion.payload.error;
+    const completion = makeEntityErrorCompletion(action, 'GET', httpError);
 
     actions$.next(action);
-    const response = throwError(error);
+    const response = throwError(httpError);
     testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
 
     expectCompletion(completion);
@@ -256,16 +223,8 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE,
-      hero
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_SUCCESS,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero);
 
     actions$.next(action);
     const response = of(hero);
@@ -276,11 +235,7 @@ describe('EntityEffects (normal testing)', () => {
 
   it('should return a SAVE_ADD_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
@@ -293,16 +248,8 @@ describe('EntityEffects (normal testing)', () => {
   });
 
   it('should return a SAVE_DELETE_SUCCESS on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_SUCCESS,
-      42
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS, 42);
 
     actions$.next(action);
     const response = of(42); // dataservice successful delete returns the deleted entity id
@@ -312,11 +259,7 @@ describe('EntityEffects (normal testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE,
-      42
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
@@ -331,16 +274,8 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_UPDATE_SUCCESS with the hero on success', () => {
     const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE,
-      update
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_SUCCESS,
-      update
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update);
 
     actions$.next(action);
     const response = of(update);
@@ -351,11 +286,7 @@ describe('EntityEffects (normal testing)', () => {
 
   it('should return a SAVE_UPDATE_ERROR when service fails', () => {
     const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE,
-      update
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
@@ -370,16 +301,8 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_ADD_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
-      hero
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS, hero);
 
     actions$.next(action);
     const response = of(hero);
@@ -390,11 +313,7 @@ describe('EntityEffects (normal testing)', () => {
 
   it('should return a SAVE_ADD_ONE_OPTIMISTIC_ERROR when service fails', () => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_OPTIMISTIC, hero);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
@@ -407,15 +326,8 @@ describe('EntityEffects (normal testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS);
 
     actions$.next(action);
     const response = of(undefined);
@@ -425,11 +337,7 @@ describe('EntityEffects (normal testing)', () => {
   });
 
   it('should return a SAVE_DELETE_ONE_OPTIMISTIC_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
-      42
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_OPTIMISTIC, 42);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
     const error = completion.payload.error;
@@ -444,16 +352,8 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
     const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
-      update
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS,
-      update
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS, update);
 
     actions$.next(action);
     const response = of(update);
@@ -464,11 +364,7 @@ describe('EntityEffects (normal testing)', () => {
 
   it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_ERROR when service fails', () => {
     const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
-      update
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC, update);
     const httpError = { error: new Error('Test Failure'), status: 501 };
     const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
     const error = completion.payload.error;
@@ -511,28 +407,21 @@ function makeEntityErrorCompletion(
   /** Http method for that action */
   method: HttpMethods,
   /** Http error from the web api */
-  httpError?: any,
-  /** Options sent with the request */
-  options?: any
+  httpError: any
 ) {
-  let url = 'api/heroes';
-
   // Error from the web api
-  if (httpError) {
-    url = httpError.url || url;
-  } else {
-    httpError = { error: new Error('Test error'), status: 500, url };
-  }
+  const url = httpError.url || 'api/heroes';
 
   // Error produced by the EntityDataService
-  const error = new DataServiceError(httpError, { method, url, options });
+  const error = new DataServiceError(httpError, { method, url, options: originalAction.payload.data });
 
-  const errOp = <EntityOp>(originalAction.op + OP_ERROR);
+  const errOp = <EntityOp>(originalAction.payload.op + OP_ERROR);
 
   // Entity Error Action
   const eaFactory = new EntityActionFactory();
-  return eaFactory.create<EntityActionDataServiceError>('Hero', errOp, {
-    originalAction,
-    error
+  return eaFactory.create<EntityActionDataServiceError>({
+    entityName: 'Hero',
+    op: errOp,
+    data: { originalAction, error }
   });
 }

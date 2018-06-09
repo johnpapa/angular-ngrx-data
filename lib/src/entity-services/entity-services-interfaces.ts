@@ -5,9 +5,10 @@ import { Observable } from 'rxjs';
 import { EntityAction } from '../actions/entity-action';
 import { EntityOp } from '../actions/entity-op';
 import { EntityCache } from '../reducers/entity-cache';
+import { EntityCommands } from '../dispatchers/entity-commands';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
-import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
+import { EntitySelectors } from '../selectors/entity-selectors';
 
 // tslint:disable:member-ordering
 
@@ -30,9 +31,7 @@ export abstract class EntityServices {
   /** Get (or create) the singleton instance of an EntityCollectionService
    * @param entityName {string} Name of the entity type of the service
    */
-  abstract getEntityCollectionService<T = any>(
-    entityName: string
-  ): EntityCollectionService<T>;
+  abstract getEntityCollectionService<T = any>(entityName: string): EntityCollectionService<T>;
 
   //// EntityCollectionService creation and registration API //////
 
@@ -53,17 +52,13 @@ export abstract class EntityServices {
    * Will replace a pre-existing service for that type.
    * @param service {EntityCollectionService} The entity service
    */
-  abstract registerEntityCollectionService<T>(
-    service: EntityCollectionService<T>
-  ): void;
+  abstract registerEntityCollectionService<T>(service: EntityCollectionService<T>): void;
 
   /** Register entity services for several entity types at once.
    * Will replace a pre-existing service for that type.
    * @param entityCollectionServices Array of EntityCollectionServices to register
    */
-  abstract registerEntityCollectionServices(
-    entityCollectionServices: EntityCollectionService<any>[]
-  ): void;
+  abstract registerEntityCollectionServices(entityCollectionServices: EntityCollectionService<any>[]): void;
 
   /** Register entity services for several entity types at once.
    * Will replace a pre-existing service for that type.
@@ -79,9 +74,7 @@ export abstract class EntityServices {
  * A facade for managing
  * a cached collection of T entities in the ngrx store.
  */
-export interface EntityCollectionService<T>
-  extends EntityDispatcher<T>,
-    EntitySelectors$<T> {
+export interface EntityCollectionService<T> extends EntityCommands<T>, EntitySelectors$<T> {
   /** Create an EntityAction for this collection */
   createEntityAction(op: EntityOp, payload?: any): EntityAction<T>;
 
@@ -104,12 +97,8 @@ export interface EntityCollectionService<T>
   readonly store: Store<EntityCache>;
 }
 
-/** The API members of an EntityCollectionService */
-export interface EntityCollectionServiceElements<
-  T,
-  S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-> {
-  readonly entityName: string;
+/** The sub-service members of an EntityCollectionService */
+export interface EntityCollectionServiceElements<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> {
   readonly dispatcher: EntityDispatcher<T>;
   readonly selectors: EntitySelectors<T>;
   readonly selectors$: S$;
@@ -120,9 +109,7 @@ export abstract class EntityCollectionServiceFactory {
    * Create an EntityCollectionService for an entity type
    * @param entityName - name of the entity type
    */
-  abstract create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
-    entityName: string
-  ): EntityCollectionService<T>;
+  abstract create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string): EntityCollectionService<T>;
 
   /** Observable of the entire entity cache */
   readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
@@ -131,10 +118,9 @@ export abstract class EntityCollectionServiceFactory {
    * Get the core sub-service elements.
    * A helper method for EntityCollectionServiceFactory implementors.
    */
-  abstract getEntityCollectionServiceElements<
-    T,
-    S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-  >(entityName: string): EntityCollectionServiceElements<T, S$>;
+  abstract getEntityCollectionServiceElements<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
+    entityName: string
+  ): EntityCollectionServiceElements<T, S$>;
 }
 
 /**

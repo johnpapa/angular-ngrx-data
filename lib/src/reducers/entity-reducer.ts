@@ -4,17 +4,12 @@ import { Action, ActionReducer, compose, MetaReducer } from '@ngrx/store';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityCache } from './entity-cache';
-import {
-  MERGE_ENTITY_CACHE,
-  SET_ENTITY_CACHE
-} from '../actions/entity-cache-actions';
+import { EntityCacheAction, EntityCacheQuerySet } from '../actions/entity-cache-action';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { ENTITY_COLLECTION_META_REDUCERS } from './constants';
-import {
-  EntityCollectionReducer,
-  EntityCollectionReducerFactory
-} from './entity-collection-reducer';
+import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection-reducer';
+import { EntityOp } from '../actions/entity-op';
 import { Logger } from '../utils/interfaces';
 
 export interface EntityCollectionReducers {
@@ -26,10 +21,7 @@ export class EntityReducerFactory {
   /** Registry of entity types and their previously-constructed reducers */
   protected entityCollectionReducers: EntityCollectionReducers = {};
 
-  private entityCollectionMetaReducer: MetaReducer<
-    EntityCollection,
-    EntityAction
-  >;
+  private entityCollectionMetaReducer: MetaReducer<EntityCollection, EntityAction>;
 
   constructor(
     private entityCollectionCreator: EntityCollectionCreator,
@@ -39,65 +31,70 @@ export class EntityReducerFactory {
     @Inject(ENTITY_COLLECTION_META_REDUCERS)
     entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[]
   ) {
-    this.entityCollectionMetaReducer = compose.apply(
-      null,
-      entityCollectionMetaReducers || []
-    );
+    this.entityCollectionMetaReducer = compose.apply(null, entityCollectionMetaReducers || []);
   }
 
   /**
    * Create the ngrx-data entity cache reducer which either responds to entity cache level actions
-   * or (more commonly) delegates to an EntityCollectionReducer based on the action.entityName.
+   * or (more commonly) delegates to an EntityCollectionReducer based on the action.payload.entityName.
    */
   create(): ActionReducer<EntityCache, Action> {
+    // This technique ensures a named function appears in the debugger
     return entityCacheReducer.bind(this);
 
-    function entityCacheReducer(
-      this: EntityReducerFactory,
-      state: EntityCache = {},
-      action: { type: string; payload?: any }
-    ): EntityCache {
+    function entityCacheReducer(this: EntityReducerFactory, cache: EntityCache = {}, action: { type: string; payload?: any }): EntityCache {
+      // EntityCache actions
       switch (action.type) {
-        case SET_ENTITY_CACHE: {
+        case EntityCacheAction.SET_ENTITY_CACHE: {
           // Completely replace the EntityCache. Be careful!
           return action.payload;
         }
-        case MERGE_ENTITY_CACHE: {
-          // Replace collections in the current cache with collections in the payload.
-          // Beware: unsaved changes in the replaced collections are lost
-          return { ...state, ...action.payload };
+
+        // Merge entities from each collection in the QuerySet
+        // using collection reducer's upsert operation
+        case EntityCacheAction.MERGE_QUERY_SET: {
+          const op = EntityOp.UPSERT_MANY;
+          const mergePayload = action.payload; // for the options
+          const querySet = mergePayload.data as EntityCacheQuerySet;
+          const entityNames = Object.keys(querySet);
+          cache = entityNames.reduce((newCache, entityName) => {
+            const payload = {
+              ...mergePayload,
+              entityName,
+              op,
+              data: querySet[entityName]
+            };
+            const act: EntityAction = { type: action.type, payload };
+            newCache = this.applyCollectionReducer(newCache, act);
+            return newCache;
+          }, cache);
+          return cache;
         }
       }
 
-      return this.applyCollectionReducer(state, action as EntityAction);
+      // EntityCollection actions
+      return this.applyCollectionReducer(cache, action as EntityAction);
     }
   }
 
   /** Apply reducer for the action's EntityCollection (if the action targets a collection) */
-  private applyCollectionReducer(
-    state: EntityCache = {},
-    action: EntityAction
-  ) {
-    const entityName = action.entityName;
-    if (!entityName || action.error) {
-      return state; // not an EntityAction or an errant one
+  private applyCollectionReducer(cache: EntityCache = {}, action: EntityAction) {
+    const entityName = action.payload.entityName;
+    if (!entityName || action.payload.error) {
+      return cache; // not an EntityAction or an errant one
     }
-    const collection = state[entityName];
+    const collection = cache[entityName];
     const reducer = this.getOrCreateReducer(entityName);
 
     let newCollection: EntityCollection;
     try {
-      newCollection = collection
-        ? reducer(collection, action)
-        : reducer(this.entityCollectionCreator.create(entityName), action);
+      newCollection = collection ? reducer(collection, action) : reducer(this.entityCollectionCreator.create(entityName), action);
     } catch (error) {
       this.logger.error(error);
-      action.error = error;
+      action.payload.error = error;
     }
 
-    return action.error || collection === newCollection
-      ? state
-      : { ...state, [entityName]: newCollection };
+    return action.payload.error || collection === newCollection ? cache : { ...cache, [entityName]: newCollection };
   }
 
   /**
@@ -105,9 +102,7 @@ export class EntityReducerFactory {
    * @param entityName Name of the entity type for this reducer
    */
   getOrCreateReducer<T>(entityName: string): EntityCollectionReducer<T> {
-    let reducer: EntityCollectionReducer<T> = this.entityCollectionReducers[
-      entityName
-    ];
+    let reducer: EntityCollectionReducer<T> = this.entityCollectionReducers[entityName];
 
     if (!reducer) {
       reducer = this.entityCollectionReducerFactory.create<T>(entityName);
@@ -126,10 +121,7 @@ export class EntityReducerFactory {
    *   registerReducer('Hero', myHeroReducer);
    *   registerReducer('Villain', myVillainReducer);
    */
-  registerReducer<T>(
-    entityName: string,
-    reducer: EntityCollectionReducer<T>
-  ): ActionReducer<EntityCollection<T>, EntityAction<T>> {
+  registerReducer<T>(entityName: string, reducer: EntityCollectionReducer<T>): ActionReducer<EntityCollection<T>, EntityAction<T>> {
     reducer = this.entityCollectionMetaReducer(reducer);
     return (this.entityCollectionReducers[entityName.trim()] = reducer);
   }
@@ -150,8 +142,6 @@ export class EntityReducerFactory {
   }
 }
 
-export function createEntityReducer(
-  entityReducerFactory: EntityReducerFactory
-): ActionReducer<EntityCache, EntityAction> {
+export function createEntityReducer(entityReducerFactory: EntityReducerFactory): ActionReducer<EntityCache, EntityAction> {
   return entityReducerFactory.create();
 }

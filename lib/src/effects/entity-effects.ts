@@ -5,7 +5,8 @@ import { Effect, Actions } from '@ngrx/effects';
 import { asyncScheduler, Observable, of, Scheduler } from 'rxjs';
 import { concatMap, catchError, delay, map } from 'rxjs/operators';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, OP_SUCCESS } from '../actions/entity-op';
 import { ofEntityOp } from '../actions/entity-action-operators';
 import { Update } from '../utils/ngrx-entity-models';
@@ -15,6 +16,7 @@ import { PersistenceResultHandler } from '../dataservices/persistence-result-han
 
 export const persistOps: EntityOp[] = [
   EntityOp.QUERY_ALL,
+  EntityOp.QUERY_LOAD,
   EntityOp.QUERY_BY_KEY,
   EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD_ONE,
@@ -32,7 +34,7 @@ export const ENTITY_EFFECTS_SCHEDULER = new InjectionToken<Scheduler>('EntityEff
 export class EntityEffects {
   // See https://github.com/ReactiveX/rxjs/blob/master/doc/marble-testing.md
   /** Delay for error and skip observables. Must be multiple of 10 for marble testing. */
-  private skipDelay = 10;
+  private responseDelay = 10;
 
   @Effect()
   // Concurrent persistence requests considered unsafe.
@@ -60,12 +62,12 @@ export class EntityEffects {
    * @param action A persistence operation EntityAction
    */
   persist(action: EntityAction): Observable<Action> {
-    if (action.skip) {
+    if (action.payload.skip) {
       // Should not persist. Pretend it succeeded.
       return this.handleSkipSuccess$(action);
     }
-    if (action.error) {
-      return this.handleError$(action)(action.error);
+    if (action.payload.error) {
+      return this.handleError$(action)(action.payload.error);
     }
     try {
       return this.callDataService(action).pipe(map(this.resultHandler.handleSuccess(action)), catchError(this.handleError$(action)));
@@ -75,30 +77,31 @@ export class EntityEffects {
   }
 
   private callDataService(action: EntityAction) {
-    const service = this.dataService.getService(action.entityName);
-    const { op, payload } = action;
+    const { entityName, op, data } = action.payload;
+    const service = this.dataService.getService(entityName);
     switch (op) {
+      case EntityOp.QUERY_LOAD:
       case EntityOp.QUERY_ALL: {
         return service.getAll();
       }
       case EntityOp.QUERY_BY_KEY: {
-        return service.getById(payload);
+        return service.getById(data);
       }
       case EntityOp.QUERY_MANY: {
-        return service.getWithQuery(payload);
+        return service.getWithQuery(data);
       }
       case EntityOp.SAVE_ADD_ONE_OPTIMISTIC:
       case EntityOp.SAVE_ADD_ONE: {
-        return service.add(payload);
+        return service.add(data);
       }
       case EntityOp.SAVE_DELETE_ONE_OPTIMISTIC:
       case EntityOp.SAVE_DELETE_ONE: {
-        return service.delete(payload);
+        return service.delete(data);
       }
       case EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC:
       case EntityOp.SAVE_UPDATE_ONE: {
-        const { id, changes } = payload as Update<any>; // payload must be Update<T>
-        return service.update(payload).pipe(
+        const { id, changes } = data as Update<any>; // data must be Update<T>
+        return service.update(data).pipe(
           map(updatedEntity => {
             // Return an Update<T> with merged updated entity data.
             // If no update data from the server,
@@ -119,26 +122,24 @@ export class EntityEffects {
    * Handle error result of persistence operation on an EntityAction,
    * returning a scalar observable of error action
    */
-  private handleError$(action: EntityAction | EntityAction): (error: Error) => Observable<EntityAction> {
+  private handleError$(action: EntityAction): (error: Error) => Observable<EntityAction> {
     // Although error may return immediately,
-    // ensure observable tadkes one tick (by using a promise),
+    // ensure observable takes some time,
     // as app likely assumes asynchronous response.
     return (error: Error) =>
-      of(this.resultHandler.handleError(action)(error)).pipe(delay(this.skipDelay, this.scheduler || asyncScheduler));
+      of(this.resultHandler.handleError(action)(error)).pipe(delay(this.responseDelay, this.scheduler || asyncScheduler));
   }
 
   /**
-   * Because EntityAction.skip is true, skip persistence and
+   * Because EntityAction.payload.skip is true, skip the persistence step and
    * return a scalar success action that looks like the operation succeeded.
    */
   private handleSkipSuccess$(originalAction: EntityAction): Observable<EntityAction> {
-    const successOp = <EntityOp>(originalAction.op + OP_SUCCESS);
-    const successAction = this.entityActionFactory.create(originalAction, successOp, originalAction.payload);
-    // SuccessAction propagates skip=true
-    successAction.skip = true;
+    const successOp = <EntityOp>(originalAction.payload.op + OP_SUCCESS);
+    const successAction = this.entityActionFactory.createFromAction(originalAction, { op: successOp });
     // Although returns immediately,
     // ensure observable takes one tick (by using a promise),
     // as app likely assumes asynchronous response.
-    return of(successAction).pipe(delay(this.skipDelay, this.scheduler || asyncScheduler));
+    return of(successAction).pipe(delay(this.responseDelay, this.scheduler || asyncScheduler));
   }
 }

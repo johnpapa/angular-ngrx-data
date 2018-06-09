@@ -11,88 +11,88 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not an entity with a valid key */
   mustBeEntity<T = any>(action: EntityAction): T {
-    const { entityName, payload, op, type } = action;
-    if (!payload) {
+    const { entityName, data } = action.payload;
+    if (!data) {
       this.throwError(action, `should have a single entity.`);
     }
-    const id = this.selectId(payload);
+    const id = this.selectId(data);
     if (this.isNotKeyType(id)) {
       this.throwError(action, `has a missing or invalid entity key (id)`);
     }
-    return payload as T;
+    return data as T;
   }
 
   /** Throw if the action payload is not an array of entities with valid keys */
   mustBeEntities<T = any>(action: EntityAction<any[]>): T[] {
-    const { entityName, payload, op, type } = action;
-    if (!Array.isArray(payload)) {
+    const { entityName, data } = action.payload;
+    if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entities`);
     }
-    payload.forEach((entity, i) => {
+    data.forEach((entity, i) => {
       const id = this.selectId(entity);
       if (this.isNotKeyType(id)) {
         const msg = `, item ${i + 1}, does not have a valid entity key (id)`;
         this.throwError(action, msg);
       }
     });
-    return payload;
+    return data;
   }
 
   /** Throw if the action payload is not a single, valid key */
   mustBeKey(action: EntityAction<string | number>): string | number {
-    const { entityName, payload, op, type } = action;
-    if (!payload) {
+    const { entityName, data } = action.payload;
+    if (!data) {
       throw new Error(`should be a single entity key`);
     }
-    if (this.isNotKeyType(payload)) {
+    if (this.isNotKeyType(data)) {
       throw new Error(`is not a valid key (id)`);
     }
-    return payload;
+    return data;
   }
 
   /** Throw if the action payload is not an array of valid keys */
   mustBeKeys(action: EntityAction<(string | number)[]>): (string | number)[] {
-    const { entityName, payload, op, type } = action;
-    if (!Array.isArray(payload)) {
+    const { entityName, data } = action.payload;
+    if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entity keys (id)`);
     }
-    payload.forEach((id, i) => {
+    data.forEach((id, i) => {
       if (this.isNotKeyType(id)) {
         const msg = `${entityName} ', item ${i + 1}, is not a valid entity key (id)`;
         this.throwError(action, msg);
       }
     });
-    return payload;
+    return data;
   }
 
   /** Throw if the action payload is not an update with a valid key (id) */
   mustBeUpdate<T = any>(action: EntityAction<Update<T>>): Update<T> {
-    const { entityName, payload, op, type } = action;
-    if (!payload) {
+    const { entityName, data } = action.payload;
+    if (!data) {
       this.throwError(action, `should be a single entity update`);
     }
-    const { id, changes } = payload;
+    const { id, changes } = data;
     const id2 = this.selectId(changes);
     if (this.isNotKeyType(id) || this.isNotKeyType(id2)) {
       this.throwError(action, `has a missing or invalid entity key (id)`);
     }
-    return payload;
+    return data;
   }
 
   /** Throw if the action payload is not an array of updates with valid keys (ids) */
   mustBeUpdates<T = any>(action: EntityAction<Update<any>[]>): Update<T>[] {
-    const { entityName, payload, op, type } = action;
-    if (!Array.isArray(payload)) {
+    const { entityName, data } = action.payload;
+    if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entity updates`);
     }
-    payload.forEach((item, i) => {
+    data.forEach((item, i) => {
       const { id, changes } = item;
       const id2 = this.selectId(changes);
       if (this.isNotKeyType(id) || this.isNotKeyType(id2)) {
         this.throwError(action, `, item ${i + 1}, has a missing or invalid entity key (id)`);
       }
     });
-    return payload;
+    return data;
   }
 
   /** Return true if this key (id) is invalid */

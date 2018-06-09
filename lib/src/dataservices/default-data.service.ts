@@ -1,9 +1,5 @@
 import { Injectable, Optional } from '@angular/core';
-import {
-  HttpClient,
-  HttpErrorResponse,
-  HttpParams
-} from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
@@ -67,14 +63,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   ) {
     this._name = `${entityName} DefaultDataService`;
     this.entityName = entityName;
-    const {
-      root = 'api',
-      delete404OK = true,
-      getDelay = 0,
-      saveDelay = 0,
-      timeout: to = 0
-    } =
-      config || {};
+    const { root = 'api', delete404OK = true, getDelay = 0, saveDelay = 0, timeout: to = 0 } = config || {};
     this.delete404OK = delete404OK;
     this.entityUrl = httpUrlGenerator.entityResource(entityName, root);
     this.entitiesUrl = httpUrlGenerator.collectionResource(entityName, root);
@@ -84,8 +73,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   }
 
   add(entity: T): Observable<T> {
-    const entityOrError =
-      entity || new Error(`No "${this.entityName}" entity to add`);
+    const entityOrError = entity || new Error(`No "${this.entityName}" entity to add`);
     return this.execute('POST', this.entityUrl, entityOrError);
   }
 
@@ -113,20 +101,14 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   }
 
   getWithQuery(queryParams: QueryParams | string): Observable<T[]> {
-    const qParams =
-      typeof queryParams === 'string'
-        ? { fromString: queryParams }
-        : { fromObject: queryParams };
+    const qParams = typeof queryParams === 'string' ? { fromString: queryParams } : { fromObject: queryParams };
     const params = new HttpParams(qParams);
     return this.execute('GET', this.entitiesUrl, undefined, { params });
   }
 
   update(update: Update<T>): Observable<T> {
     const id = update && update.id;
-    const updateOrError =
-      id == null
-        ? new Error(`No "${this.entityName}" update data or id`)
-        : update;
+    const updateOrError = id == null ? new Error(`No "${this.entityName}" update data or id`) : update;
     return this.execute('PUT', this.entityUrl + id, updateOrError);
   }
 
@@ -136,7 +118,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     data?: any, // data, error, or undefined/null
     options?: any
   ): Observable<any> {
-    const req: RequestData = { method, url, options };
+    const req: RequestData = { method, url, data, options };
 
     if (data instanceof Error) {
       return this.handleError(req)(data);
@@ -197,11 +179,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
   }
 
   private handleDelete404(error: HttpErrorResponse, reqData: RequestData) {
-    if (
-      error.status === 404 &&
-      reqData.method === 'DELETE' &&
-      this.delete404OK
-    ) {
+    if (error.status === 404 && reqData.method === 'DELETE' && this.delete404OK) {
       return of({});
     }
     return undefined;
@@ -229,11 +207,6 @@ export class DefaultDataServiceFactory {
    * @param entityName {string} Name of the entity type for this data service
    */
   create<T>(entityName: string): EntityCollectionDataService<T> {
-    return new DefaultDataService<T>(
-      entityName,
-      this.http,
-      this.httpUrlGenerator,
-      this.config
-    );
+    return new DefaultDataService<T>(entityName, this.http, this.httpUrlGenerator, this.config);
   }
 }

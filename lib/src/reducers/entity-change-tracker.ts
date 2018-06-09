@@ -1,4 +1,4 @@
-import { ChangeState, ChangeType, EntityCollection } from './entity-collection';
+import { ChangeState, ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
 
 /**
  * Methods for tracking, committing, and reverting/undoing unsaved entity changes.
@@ -28,6 +28,17 @@ export interface EntityChangeTracker<T> {
    * @param collection The entity collection
    */
   commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Merge query results into the ChangeState as needed.
+   * If a queried entity is currently tracked, replace its changeState.originalValue
+   * with the queried entity, which is presumed to reflect the current server value.
+   * Default query-success reducer method will NOT add or update these entities in the collection
+   * because that would overwrite their pending changes.
+   * @param entities Entities returned from querying the server.
+   * @param collection The entity collection
+   */
+  mergeQueryResults(entities: T[], collection: EntityCollection<T>): ChangeStateMap<T>;
 
   /**
    * Track an entity add.
@@ -126,6 +137,10 @@ export class NoopEntityChangeTracker<T> implements EntityChangeTracker<T> {
 
   commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
     return collection;
+  }
+
+  mergeQueryResults(entities: T[], collection: EntityCollection<T>): ChangeStateMap<T> {
+    return collection.changeState;
   }
 
   trackAddOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {

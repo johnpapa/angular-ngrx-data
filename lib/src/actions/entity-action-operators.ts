@@ -19,26 +19,18 @@ import { flattenArgs } from '../utils/utilities';
  *  this.actions.pipe(ofEntityOp(), ...) // any action with a defined `op` property
  * ```
  */
-export function ofEntityOp<T extends EntityAction>(
-  allowedOps: string[] | EntityOp[]
-): OperatorFunction<EntityAction, T>;
-export function ofEntityOp<T extends EntityAction>(
-  ...allowedOps: (string | EntityOp)[]
-): OperatorFunction<EntityAction, T>;
-export function ofEntityOp<T extends EntityAction>(
-  ...allowedEntityOps: any[]
-): OperatorFunction<EntityAction, T> {
+export function ofEntityOp<T extends EntityAction>(allowedOps: string[] | EntityOp[]): OperatorFunction<EntityAction, T>;
+export function ofEntityOp<T extends EntityAction>(...allowedOps: (string | EntityOp)[]): OperatorFunction<EntityAction, T>;
+export function ofEntityOp<T extends EntityAction>(...allowedEntityOps: any[]): OperatorFunction<EntityAction, T> {
   const ops: string[] = flattenArgs(allowedEntityOps);
   switch (ops.length) {
     case 0:
-      return filter((action: EntityAction): action is T => !!action.op);
+      return filter((action: EntityAction): action is T => !!action.payload.op);
     case 1:
       const op = ops[0];
-      return filter((action: EntityAction): action is T => op === action.op);
+      return filter((action: EntityAction): action is T => op === action.payload.op);
     default:
-      return filter((action: EntityAction): action is T =>
-        ops.some(entityOp => entityOp === action.op)
-      );
+      return filter((action: EntityAction): action is T => ops.some(entityOp => entityOp === action.payload.op));
   }
 }
 
@@ -54,27 +46,17 @@ export function ofEntityOp<T extends EntityAction>(
  *  this.actions.pipe(ofEntityType(theChosen), ...)
  * ```
  */
-export function ofEntityType<T extends EntityAction>(
-  allowedEntityNames?: string[]
-): OperatorFunction<EntityAction, T>;
-export function ofEntityType<T extends EntityAction>(
-  ...allowedEntityNames: string[]
-): OperatorFunction<EntityAction, T>;
-export function ofEntityType<T extends EntityAction>(
-  ...allowedEntityNames: any[]
-): OperatorFunction<EntityAction, T> {
+export function ofEntityType<T extends EntityAction>(allowedEntityNames?: string[]): OperatorFunction<EntityAction, T>;
+export function ofEntityType<T extends EntityAction>(...allowedEntityNames: string[]): OperatorFunction<EntityAction, T>;
+export function ofEntityType<T extends EntityAction>(...allowedEntityNames: any[]): OperatorFunction<EntityAction, T> {
   const names: string[] = flattenArgs(allowedEntityNames);
   switch (names.length) {
     case 0:
-      return filter((action: EntityAction): action is T => !!action.entityName);
+      return filter((action: EntityAction): action is T => !!action.payload.entityName);
     case 1:
       const name = names[0];
-      return filter(
-        (action: EntityAction): action is T => name === action.entityName
-      );
+      return filter((action: EntityAction): action is T => name === action.payload.entityName);
     default:
-      return filter((action: EntityAction): action is T =>
-        names.some(entityName => entityName === action.entityName)
-      );
+      return filter((action: EntityAction): action is T => names.some(entityName => entityName === action.payload.entityName));
   }
 }

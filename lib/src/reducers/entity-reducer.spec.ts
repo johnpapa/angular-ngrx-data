@@ -1,13 +1,11 @@
 import { Action, ActionReducer, MetaReducer } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp } from '../actions/entity-op';
 import { EntityCache } from './entity-cache';
-import {
-  EntityCacheMerge,
-  EntityCacheSet
-} from '../actions/entity-cache-actions';
+import { MergeQuerySet, SetEntityCache, EntityCacheQuerySet } from '../actions/entity-cache-action';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { DefaultEntityCollectionReducerMethodsFactory } from './default-entity-collection-reducer-methods';
@@ -17,14 +15,8 @@ import { EntityMetadataMap } from '../entity-metadata/entity-metadata';
 import { Logger } from '../utils/interfaces';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 
-import {
-  EntityCollectionReducer,
-  EntityCollectionReducerFactory
-} from './entity-collection-reducer';
-import {
-  EntityCollectionReducers,
-  EntityReducerFactory
-} from './entity-reducer';
+import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection-reducer';
+import { EntityCollectionReducers, EntityReducerFactory } from './entity-reducer';
 
 class Bar {
   id: number;
@@ -52,11 +44,9 @@ const metadata: EntityMetadataMap = {
 describe('EntityReducer', () => {
   // action factory never changes in these tests
   const entityActionFactory = new EntityActionFactory();
-  const createAction: <P = any>(
-    entityName: string,
-    op: EntityOp,
-    payload?: P
-  ) => EntityAction = entityActionFactory.create.bind(entityActionFactory);
+  const createAction: <P = any>(entityName: string, op: EntityOp, payload?: P) => EntityAction = entityActionFactory.create.bind(
+    entityActionFactory
+  );
 
   let collectionCreator: EntityCollectionCreator;
   let collectionReducerFactory: EntityCollectionReducerFactory;
@@ -68,19 +58,11 @@ describe('EntityReducer', () => {
   beforeEach(() => {
     eds = new EntityDefinitionService([metadata]);
     collectionCreator = new EntityCollectionCreator(eds);
-    const collectionReducerMethodsFactory = new DefaultEntityCollectionReducerMethodsFactory(
-      eds
-    );
-    collectionReducerFactory = new EntityCollectionReducerFactory(
-      collectionReducerMethodsFactory
-    );
+    const collectionReducerMethodsFactory = new DefaultEntityCollectionReducerMethodsFactory(eds);
+    collectionReducerFactory = new EntityCollectionReducerFactory(collectionReducerMethodsFactory);
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
 
-    entityReducerFactory = new EntityReducerFactory(
-      collectionCreator,
-      collectionReducerFactory,
-      logger
-    );
+    entityReducerFactory = new EntityReducerFactory(collectionCreator, collectionReducerFactory, logger);
   });
 
   describe('#create', () => {
@@ -100,9 +82,7 @@ describe('EntityReducer', () => {
 
     it('throws when ask for reducer of unknown entity type', () => {
       const action = entityActionFactory.create('Foo', EntityOp.QUERY_ALL);
-      expect(() => entityReducer({}, action)).toThrowError(
-        /no EntityDefinition/i
-      );
+      expect(() => entityReducer({}, action)).toThrowError(/no EntityDefinition/i);
     });
   });
 
@@ -130,11 +110,7 @@ describe('EntityReducer', () => {
       const hero: Hero = { id: 42, name: 'Bobby' };
       const reducer = createNoopReducer();
       entityReducerFactory.registerReducer('Hero', reducer);
-      const action = entityActionFactory.create<Hero>(
-        'Hero',
-        EntityOp.ADD_ONE,
-        hero
-      );
+      const action = entityActionFactory.create<Hero>('Hero', EntityOp.ADD_ONE, hero);
       const state = entityReducer({}, action);
       const collection = state['Hero'];
       expect(collection.ids.length).toBe(0, 'ADD_ONE should not add');
@@ -153,21 +129,18 @@ describe('EntityReducer', () => {
 
     beforeEach(() => {
       entityReducer = entityReducerFactory.create();
-      initialHeroes = [
-        { id: 2, name: 'B', power: 'Fast' },
-        { id: 1, name: 'A', power: 'invisible' }
-      ];
+      initialHeroes = [{ id: 2, name: 'B', power: 'Fast' }, { id: 1, name: 'A', power: 'invisible' }];
       initialCache = createInitialCache({ Hero: initialHeroes });
     });
 
-    describe('#SET_ENTITY_CACHE', () => {
+    describe('#ENTITY_CACHE_SET', () => {
       it('should initialize cache', () => {
         const cache = createInitialCache({
           Hero: initialHeroes,
           Villain: [{ key: 'DE', name: 'Dr. Evil' }]
         });
 
-        const action = new EntityCacheSet(cache);
+        const action = new SetEntityCache(cache);
         // const action = {  // equivalent
         //   type: SET_ENTITY_CACHE,
         //   payload: cache
@@ -183,7 +156,7 @@ describe('EntityReducer', () => {
       });
 
       it('should clear the cache when set with empty object', () => {
-        const action = new EntityCacheSet({});
+        const action = new SetEntityCache({});
         const state = entityReducer(initialCache, action);
         expect(Object.keys(state)).toEqual([]);
       });
@@ -197,7 +170,7 @@ describe('EntityReducer', () => {
         const newHeroes = [{ id: 42, name: 'Bobby' }];
         const newCache = createInitialCache({ Hero: newHeroes });
 
-        const action = new EntityCacheSet(newCache);
+        const action = new SetEntityCache(newCache);
         const state = entityReducer(priorCache, action);
         expect(state['Villain']).toBeUndefined('No villains');
 
@@ -207,7 +180,7 @@ describe('EntityReducer', () => {
       });
     });
 
-    describe('#MERGE_ENTITY_CACHE', () => {
+    describe('#ENTITY_CACHE_QUERY_SET_MERGE', () => {
       function shouldHaveExpectedHeroes(state: EntityCache) {
         expect(state['Hero'].ids).toEqual([2, 1], 'Hero ids');
         expect(state['Hero'].entities).toEqual({
@@ -217,12 +190,12 @@ describe('EntityReducer', () => {
       }
 
       it('should initialize an empty cache', () => {
-        const cache = createInitialCache({
+        const querySet: EntityCacheQuerySet = {
           Hero: initialHeroes,
           Villain: [{ key: 'DE', name: 'Dr. Evil' }]
-        });
+        };
 
-        const action = new EntityCacheMerge(cache);
+        const action = new MergeQuerySet(querySet);
         // const action = {
         //   type: MERGE_ENTITY_CACHE,
         //   payload: cache
@@ -234,33 +207,30 @@ describe('EntityReducer', () => {
       });
 
       it('should return cache matching existing cache when merge empty', () => {
-        const action = new EntityCacheMerge({});
+        const action = new MergeQuerySet({});
         const state = entityReducer(initialCache, action);
         shouldHaveExpectedHeroes(state);
       });
 
       it('should add a new collection to existing cache', () => {
-        const mergeCache = createInitialCache({
+        const querySet: EntityCacheQuerySet = {
           Villain: [{ key: 'DE', name: 'Dr. Evil' }]
-        });
-        const action = new EntityCacheMerge(mergeCache);
+        };
+        const action = new MergeQuerySet(querySet);
         const state = entityReducer(initialCache, action);
         shouldHaveExpectedHeroes(state);
         expect(state['Villain'].ids).toEqual(['DE'], 'Villain ids');
       });
 
       it('should overwrite an existing cached collection', () => {
-        const mergeCache = createInitialCache({
+        const querySet: EntityCacheQuerySet = {
           Hero: [{ id: 42, name: 'Bobby' }]
-        });
-        const action = new EntityCacheMerge(mergeCache);
+        };
+        const action = new MergeQuerySet(querySet);
         const state = entityReducer(initialCache, action);
         const heroCollection = state['Hero'];
         expect(heroCollection.ids).toEqual([42], 'revised ids');
-        expect(heroCollection.entities[42]).toEqual(
-          { id: 42, name: 'Bobby' },
-          'revised heroes'
-        );
+        expect(heroCollection.entities[42]).toEqual({ id: 42, name: 'Bobby' }, 'revised heroes');
       });
     });
   });
@@ -278,16 +248,8 @@ describe('EntityReducer', () => {
       };
       entityReducerFactory.registerReducers(reducers);
 
-      const fooAction = entityActionFactory.create<Foo>(
-        'Foo',
-        EntityOp.ADD_ONE,
-        { id: 'forty-two', foo: 'fooz' }
-      );
-      const barAction = entityActionFactory.create<Bar>(
-        'Bar',
-        EntityOp.ADD_ONE,
-        { id: 84, bar: 'baz' }
-      );
+      const fooAction = entityActionFactory.create<Foo>('Foo', EntityOp.ADD_ONE, { id: 'forty-two', foo: 'fooz' });
+      const barAction = entityActionFactory.create<Bar>('Bar', EntityOp.ADD_ONE, { id: 84, bar: 'baz' });
 
       let state = entityReducer({}, fooAction);
       state = entityReducer(state, barAction);
@@ -304,16 +266,8 @@ describe('EntityReducer', () => {
       };
       entityReducerFactory.registerReducers(reducers);
 
-      const fooAction = entityActionFactory.create<Foo>(
-        'Foo',
-        EntityOp.ADD_ONE,
-        { id: 'forty-two', foo: 'fooz' }
-      );
-      const heroAction = entityActionFactory.create<Hero>(
-        'Hero',
-        EntityOp.ADD_ONE,
-        { id: 84, name: 'Alex' }
-      );
+      const fooAction = entityActionFactory.create<Foo>('Foo', EntityOp.ADD_ONE, { id: 'forty-two', foo: 'fooz' });
+      const heroAction = entityActionFactory.create<Hero>('Hero', EntityOp.ADD_ONE, { id: 84, name: 'Alex' });
 
       let state = entityReducer({}, fooAction);
       state = entityReducer(state, heroAction);
@@ -350,29 +304,16 @@ describe('EntityReducer', () => {
 
     beforeEach(() => {
       metaReducerOutput = [];
-      metaReducerA = jasmine
-        .createSpy('metaReducerA')
-        .and.callFake(testMetadataReducerFactory('A'));
-      metaReducerB = jasmine
-        .createSpy('metaReducerA')
-        .and.callFake(testMetadataReducerFactory('B'));
+      metaReducerA = jasmine.createSpy('metaReducerA').and.callFake(testMetadataReducerFactory('A'));
+      metaReducerB = jasmine.createSpy('metaReducerA').and.callFake(testMetadataReducerFactory('B'));
       const metaReducers = [metaReducerA, metaReducerB];
 
-      entityReducerFactory = new EntityReducerFactory(
-        collectionCreator,
-        collectionReducerFactory,
-        logger,
-        metaReducers
-      );
+      entityReducerFactory = new EntityReducerFactory(collectionCreator, collectionReducerFactory, logger, metaReducers);
 
       entityReducer = entityReducerFactory.create();
 
       hero = { id: 42, name: 'Bobby' };
-      addOneAction = entityActionFactory.create<Hero>(
-        'Hero',
-        EntityOp.ADD_ONE,
-        hero
-      );
+      addOneAction = entityActionFactory.create<Hero>('Hero', EntityOp.ADD_ONE, hero);
     });
 
     it('should run inner default reducer as expected', () => {
@@ -419,21 +360,13 @@ describe('EntityReducer', () => {
       };
       entityReducerFactory.registerReducers(reducers);
 
-      const fooAction = entityActionFactory.create<Foo>(
-        'Foo',
-        EntityOp.ADD_ONE,
-        { id: 'forty-two', foo: 'fooz' }
-      );
+      const fooAction = entityActionFactory.create<Foo>('Foo', EntityOp.ADD_ONE, { id: 'forty-two', foo: 'fooz' });
 
       entityReducer({}, fooAction);
       expect(metaReducerA).toHaveBeenCalled();
       expect(metaReducerB).toHaveBeenCalled();
 
-      const heroAction = entityActionFactory.create<Hero>(
-        'Hero',
-        EntityOp.ADD_ONE,
-        { id: 84, name: 'Alex' }
-      );
+      const heroAction = entityActionFactory.create<Hero>('Hero', EntityOp.ADD_ONE, { id: 84, name: 'Alex' });
 
       entityReducer({}, heroAction);
       expect(metaReducerA).toHaveBeenCalledTimes(2);
@@ -442,11 +375,7 @@ describe('EntityReducer', () => {
   });
 
   // #region helpers
-  function createCollection<T = any>(
-    entityName: string,
-    data: T[],
-    selectId: IdSelector<any>
-  ) {
+  function createCollection<T = any>(entityName: string, data: T[], selectId: IdSelector<any>) {
     return {
       ...collectionCreator.create<T>(entityName),
       ids: data.map(e => selectId(e)) as string[] | number[],
@@ -464,23 +393,15 @@ describe('EntityReducer', () => {
     const cache: EntityCache = {};
     // tslint:disable-next-line:forin
     for (const entityName in entityMap) {
-      const selectId =
-        metadata[entityName].selectId || ((entity: any) => entity.id);
-      cache[entityName] = createCollection(
-        entityName,
-        entityMap[entityName],
-        selectId
-      );
+      const selectId = metadata[entityName].selectId || ((entity: any) => entity.id);
+      cache[entityName] = createCollection(entityName, entityMap[entityName], selectId);
     }
 
     return cache;
   }
 
   function createNoopReducer<T>() {
-    return function NoopReducer(
-      collection: EntityCollection<T>,
-      action: EntityAction
-    ): EntityCollection<T> {
+    return function NoopReducer(collection: EntityCollection<T>, action: EntityAction): EntityCollection<T> {
       return collection;
     };
   }

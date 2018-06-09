@@ -3,11 +3,9 @@ import { Action } from '@ngrx/store';
 
 import { Observable, of } from 'rxjs';
 
-import {
-  DataServiceError,
-  EntityActionDataServiceError
-} from './data-service-error';
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { DataServiceError, EntityActionDataServiceError } from './data-service-error';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
 import { Logger } from '../utils/interfaces';
 
@@ -16,14 +14,10 @@ import { Logger } from '../utils/interfaces';
  */
 export abstract class PersistenceResultHandler {
   /** Handle successful result of persistence operation for an action */
-  abstract handleSuccess(action: EntityAction): (data: any) => Action;
+  abstract handleSuccess(originalAction: EntityAction): (data: any) => Action;
 
   /** Handle error result of persistence operation for an action */
-  abstract handleError(
-    action: EntityAction
-  ): (
-    error: DataServiceError | Error
-  ) => EntityAction<EntityActionDataServiceError>;
+  abstract handleError(originalAction: EntityAction): (error: DataServiceError | Error) => EntityAction<EntityActionDataServiceError>;
 }
 
 /**
@@ -31,37 +25,26 @@ export abstract class PersistenceResultHandler {
  * specifically an EntityDataService
  */
 @Injectable()
-export class DefaultPersistenceResultHandler
-  implements PersistenceResultHandler {
-  constructor(
-    private logger: Logger,
-    private entityActionFactory: EntityActionFactory
-  ) {}
+export class DefaultPersistenceResultHandler implements PersistenceResultHandler {
+  constructor(private logger: Logger, private entityActionFactory: EntityActionFactory) {}
 
   /** Handle successful result of persistence operation on an EntityAction */
-  handleSuccess(action: EntityAction): (data: any) => Action {
-    const successOp = <EntityOp>(action.op + OP_SUCCESS);
-    return (data: any) =>
-      this.entityActionFactory.create(action as EntityAction, successOp, data);
+  handleSuccess(originalAction: EntityAction): (data: any) => Action {
+    const successOp = <EntityOp>(originalAction.payload.op + OP_SUCCESS);
+    return (data: any) => this.entityActionFactory.createFromAction(originalAction, { op: successOp, data });
   }
 
   /** Handle error result of persistence operation on an EntityAction */
-  handleError(
-    action: EntityAction
-  ): (
-    error: DataServiceError | Error
-  ) => EntityAction<EntityActionDataServiceError> {
-    const errorOp = <EntityOp>(action.op + OP_ERROR);
+  handleError(originalAction: EntityAction): (error: DataServiceError | Error) => EntityAction<EntityActionDataServiceError> {
+    const errorOp = <EntityOp>(originalAction.payload.op + OP_ERROR);
     return (error: DataServiceError | Error) => {
       if (error instanceof Error) {
         error = new DataServiceError(error, null);
       }
       this.logger.error(error);
-      const errorAction = this.entityActionFactory.create<
-        EntityActionDataServiceError
-      >(action as EntityAction, errorOp, {
-        error,
-        originalAction: action as EntityAction
+      const errorAction = this.entityActionFactory.createFromAction<EntityActionDataServiceError>(originalAction, {
+        op: errorOp,
+        data: { error, originalAction }
       });
       return errorAction;
     };

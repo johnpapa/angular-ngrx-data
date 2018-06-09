@@ -1,10 +1,11 @@
 import { defaultSelectId } from '../utils/utilities';
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityOp } from '../actions/entity-op';
-import { EntityDispatcher, EntityDispatcherBase } from './entity-dispatcher';
-import { EntityDispatcherFactory } from './entity-dispatcher-factory';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityCommands } from './entity-commands';
-import { EntityDispatcherOptions } from './entity-dispatcher';
+import { EntityDispatcher } from './entity-dispatcher';
+import { EntityDispatcherBase } from './entity-dispatcher-base';
+import { EntityDispatcherFactory } from './entity-dispatcher-factory';
+import { EntityOp } from '../actions/entity-op';
 import { Update } from '../utils/ngrx-entity-models';
 
 class Hero {
@@ -13,8 +14,7 @@ class Hero {
   saying?: string;
 }
 
-const defaultDispatcherOptions = new EntityDispatcherFactory(null, null)
-  .defaultDispatcherOptions;
+const defaultDispatcherOptions = new EntityDispatcherFactory(null, null, null, null).defaultDispatcherOptions;
 
 describe('EntityDispatcher', () => {
   commandDispatchTest(entityDispatcherTestSetup);
@@ -25,13 +25,7 @@ describe('EntityDispatcher', () => {
 
     const selectId = defaultSelectId;
     const entityActionFactory = new EntityActionFactory();
-    const dispatcher = new EntityDispatcherBase<Hero>(
-      'Hero',
-      entityActionFactory,
-      testStore,
-      selectId,
-      defaultDispatcherOptions
-    );
+    const dispatcher = new EntityDispatcherBase<Hero>('Hero', entityActionFactory, testStore, selectId, defaultDispatcherOptions);
     return { dispatcher, testStore };
   }
 });
@@ -39,9 +33,7 @@ describe('EntityDispatcher', () => {
 ///// Tests /////
 
 /** Test that implementer of EntityCommands dispatches properly */
-export function commandDispatchTest(
-  setup: () => { dispatcher: EntityDispatcher<Hero>; testStore: any }
-) {
+export function commandDispatchTest(setup: () => { dispatcher: EntityDispatcher<Hero>; testStore: any }) {
   let dispatcher: EntityDispatcher<Hero>;
   let testStore: { dispatch: jasmine.Spy };
 
@@ -173,10 +165,7 @@ export function commandDispatchTest(
   /*** Cache-only operations ***/
   describe('Cache-only actions', () => {
     it('#addAllToCache dispatches ADD_ALL', () => {
-      const heroes: Hero[] = [
-        { id: 42, name: 'test 42' },
-        { id: 84, name: 'test 84', saying: 'howdy' }
-      ];
+      const heroes: Hero[] = [{ id: 42, name: 'test 42' }, { id: 84, name: 'test 84', saying: 'howdy' }];
       dispatcher.addAllToCache(heroes);
 
       expect(dispatchedAction().op).toBe(EntityOp.ADD_ALL);
@@ -192,10 +181,7 @@ export function commandDispatchTest(
     });
 
     it('#addManyToCache dispatches ADD_MANY', () => {
-      const heroes: Hero[] = [
-        { id: 42, name: 'test 42' },
-        { id: 84, name: 'test 84', saying: 'howdy' }
-      ];
+      const heroes: Hero[] = [{ id: 42, name: 'test 42' }, { id: 84, name: 'test 84', saying: 'howdy' }];
       dispatcher.addManyToCache(heroes);
 
       expect(dispatchedAction().op).toBe(EntityOp.ADD_MANY);
@@ -235,10 +221,7 @@ export function commandDispatchTest(
     });
 
     it('#removeManyFromCache(entities) dispatches REMOVE_MANY', () => {
-      const heroes: Hero[] = [
-        { id: 42, name: 'test 42' },
-        { id: 84, name: 'test 84', saying: 'howdy' }
-      ];
+      const heroes: Hero[] = [{ id: 42, name: 'test 42' }, { id: 84, name: 'test 84', saying: 'howdy' }];
       const keys = heroes.map(h => h.id);
       dispatcher.removeManyFromCache(heroes);
 
@@ -263,14 +246,8 @@ export function commandDispatchTest(
     });
 
     it('#updateManyInCache dispatches UPDATE_MANY', () => {
-      const heroes: Partial<Hero>[] = [
-        { id: 42, name: 'test 42' },
-        { id: 84, saying: 'ho ho ho' }
-      ];
-      const updates = [
-        { id: 42, changes: heroes[0] },
-        { id: 84, changes: heroes[1] }
-      ];
+      const heroes: Partial<Hero>[] = [{ id: 42, name: 'test 42' }, { id: 84, saying: 'ho ho ho' }];
+      const updates = [{ id: 42, changes: heroes[0] }, { id: 84, changes: heroes[1] }];
       dispatcher.updateManyInCache(heroes);
 
       expect(dispatchedAction().op).toBe(EntityOp.UPDATE_MANY);
@@ -287,14 +264,8 @@ export function commandDispatchTest(
     });
 
     it('#upsertManyInCache dispatches UPSERT_MANY', () => {
-      const heroes: Partial<Hero>[] = [
-        { id: 42, name: 'test 42' },
-        { id: 84, saying: 'ho ho ho' }
-      ];
-      const upserts = [
-        { id: 42, changes: heroes[0] },
-        { id: 84, changes: heroes[1] }
-      ];
+      const heroes: Partial<Hero>[] = [{ id: 42, name: 'test 42' }, { id: 84, saying: 'ho ho ho' }];
+      const upserts = [{ id: 42, changes: heroes[0] }, { id: 84, changes: heroes[1] }];
       dispatcher.upsertManyInCache(heroes);
 
       expect(dispatchedAction().op).toBe(EntityOp.UPSERT_MANY);

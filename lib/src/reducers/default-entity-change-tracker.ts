@@ -71,6 +71,37 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
   }
   // #endregion commit methods
 
+  // #region mergeQueryResults
+
+  /**
+   * Merge query results into the ChangeState as needed.
+   * If a queried entity is currently tracked, replace its changeState.originalValue
+   * with the queried entity, which is presumed to reflect the current server value.
+   * Default query-success reducer method will NOT add or update these entities in the collection
+   * because that would overwrite their pending changes.
+   * @param entities Entities returned from querying the server.
+   * @param collection The entity collection
+   * @returns The ChangeStateMap, which is different if queried entities have pending changes.
+   */
+  mergeQueryResults(entities: T[], collection: EntityCollection<T>): ChangeStateMap<T> {
+    const reducer = (chgState: ChangeStateMap<T>, entity: T) => {
+      const id = this.selectId(entity);
+      let change = chgState[id];
+      if (change) {
+        change = { ...change, originalValue: entity };
+        chgState = { ...chgState, [id]: change };
+      }
+      return chgState;
+    };
+
+    const changeState = collection.changeState;
+
+    return entities == null || entities.length === 0 || Object.keys(changeState).length === 0
+      ? changeState // nothing to merge
+      : entities.reduce(reducer, changeState);
+  }
+  // #endregion mergeQueryResults
+
   // #region track methods
 
   /**
@@ -195,27 +226,28 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
     if (entityOrIdList == null || entityOrIdList.length === 0) {
       return collection; // nothing to track
     }
-    const oldChangeState = collection.changeState;
 
-    const changeState = entityOrIdList.reduce((map, entityOrId) => {
+    const reducer = (map: ChangeStateMap<T>, entityOrId: number | string | T) => {
+      // Track changes for entity with an entity id.
       const entity = typeof entityOrId === 'object' ? entityOrId : collection.entities[entityOrId];
       const id = entity && this.selectId(entity);
-      // Track changes for entity with an entity id.
-      return entity && id ? this.updateChangeStateMap(map, changeType, entity, id) : map;
-    }, collection.changeState);
+      return entity && id ? this.updateChangeState(map, changeType, entity, id) : map;
+    };
 
-    return changeState === oldChangeState ? collection : { ...collection, changeState };
+    const changeState = entityOrIdList.reduce(reducer, collection.changeState);
+
+    return changeState === collection.changeState ? collection : { ...collection, changeState };
   }
 
   /**
    * Return the ChangeStateMap, as an updated clone if need to update it
-   * @param map current version of the ChangeStateMap
+   * @param changeState current version of the ChangeStateMap
    * @param changeType of the operation to be performed
    * @param entity the entity being changed
    * @param id that entity's id
    */
-  private updateChangeStateMap(map: ChangeStateMap<T>, changeType: ChangeType, entity: T, id: number | string): ChangeStateMap<T> {
-    const trackedChange = map[id];
+  private updateChangeState(changeState: ChangeStateMap<T>, changeType: ChangeType, entity: T, id: number | string): ChangeStateMap<T> {
+    const trackedChange = changeState[id];
 
     // Already in ChangeStateMap.
     if (trackedChange) {
@@ -227,14 +259,14 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
         //     and not try to delete it from the server
         // TODO: consider removing these entities here.
         if (trackedChange.changeType === ChangeType.Added) {
-          map = { ...map };
-          delete map[id];
+          changeState = { ...changeState };
+          delete changeState[id];
 
           // Turn a pending Update change into a Delete change.
           // because the reducer is about to remove it from the collection.
         } else if (trackedChange.changeType === ChangeType.Updated) {
-          map = {
-            ...map,
+          changeState = {
+            ...changeState,
             [id]: {
               changeType: ChangeType.Deleted,
               originalValue: trackedChange.originalValue
@@ -245,8 +277,8 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
 
       // Not in ChangeStateMap so add it.
     } else {
-      map = {
-        ...map,
+      changeState = {
+        ...changeState,
         [id]: {
           changeType,
           // record original values only for Updated and Deleted change types.
@@ -254,7 +286,7 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
         } as ChangeState<T>
       };
     }
-    return map;
+    return changeState;
   }
   // #endregion core track methods
 

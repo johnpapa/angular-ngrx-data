@@ -32,9 +32,9 @@ Ngrx-data only sets it to true when the app tries to save the deletion of an add
 We're not thrilled about adding another mutable property to `EntityAction`.
 But we do not know of another way to tell `EntityEffects` to skip the HTTP DELETE request.
 
-The new `EntityMetadata.enableChangeTracking` flag, which is `true` by default,
-can be set `false` in the metadata for a collection.
-When `false`, ngrx-data does not track any changes for this collection
+The new `EntityMetadata.noChangeTracking` flag, which is `false` by default,
+can be set `true` in the metadata for a collection.
+When `true`, ngrx-data does not track any changes for this collection
 and the `EntityCollection.changeState` property remains an empty object.
 
 You can also turnoff change tracking for a specific, cache-only action by choosing one of the
@@ -44,6 +44,20 @@ See `entity-change-tracker.md` for discussion and details.
 
 ### Other Features
 
+The `QUERY_ALL_SUCCESS` operation used to **reset the collection**.
+That functionality now belongs to the new `QUERY_LOAD` operation.
+
+Its `QUERY_LOAD_SUCCESS` now shares the same reducer method with `ADD_ALL`.
+They both reset entity data, clear change tracking data, and
+set the loading (false) and loaded (true) flags.
+
+By default, the `QUERY_ALL_SUCCESS_` **merges** entities with the collection, based on the
+change tracking
+
+It used to res no longer resets the collection data
+The new `QUERY_LOAD` resets entity data, clears change tracking data, and
+sets the loading (false) and loaded (true) flags.
+It shares its implementation with `ADD_ALL` which
 `QUERY_SUCCESS_ALL` and `ADD_ALL` should have the same effect on the
 collection: they reset entity data, clear change tracking data, and
 set the loading (false) and loaded (true) flags.
@@ -52,6 +66,15 @@ They now share the same reducer method.
 Added `SET_COLLECTION` EntityOp to completely replace the collection.
 Good for testing and rehydrating collection from local storage.
 Dangerous. Use wisely and rarely.
+
+**Added `EntityCacheAction.MERGE_QUERY_SET` (`MergeQuerySet(EntityQuerySet)`** merges query results
+from multiple collections into the EntityCache using the `upsert` entity collection reducer method,
+all at the same time.
+
+This means that collection `selectors$` emit _after all collections have been updated_.
+If you merged to each collection individually, the collection `selectors$` would emit
+after each collection merge, which could provoke an unfortunate race condition
+as when adding order line items before the parent order itself.
 
 ## Breaking Changes
 
@@ -92,12 +115,17 @@ It is possible that an app or its tests expected ngrx-data to make these DELETE 
 
 ### Other Breaking Changes
 
-Renamed `EntityAction.label` to `EntityAction.tag` because the word "label" is
+**Renamed `EntityAction.label` to `EntityAction.tag`** because the word "label" is
 too semantically close to the `Action.type`.
 "Tag" conveys the freedom and flexibility we're looking for.
 We hope that relatively few are affected by this and the fix is easy.
 
 `ADD_ALL` resets the loading (false) and loaded (true) flags, different behavior than before.
+
+**Deleted `MERGE_ENTITY_CACHE`** as it has never been used and can be easily implemented with
+`ENTITY_CACHE_SET` and a little code to get the current entity cache state.
+
+**Moved `SET_ENTITY_CACHE` under `EntityCacheAction.SET_ENTITY_CACHE`**.
 
 <a id="6.0.1-beta.6"></a>
 

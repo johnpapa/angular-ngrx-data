@@ -1,18 +1,17 @@
-import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Inject, Injectable } from '@angular/core';
+import { Store, ScannedActionsSubject } from '@ngrx/store';
+import { Observable } from 'rxjs';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityOp } from '../actions/entity-op';
-import { QueryParams } from '../dataservices/interfaces';
-import { EntityCommands } from './entity-commands';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityCache } from '../reducers/entity-cache';
-import {
-  EntityDispatcher,
-  EntityDispatcherBase,
-  EntityDispatcherOptions
-} from './entity-dispatcher';
+import { EntityCacheSelector, ENTITY_CACHE_SELECTOR_TOKEN, createEntityCacheSelector } from '../selectors/entity-cache-selector';
+import { EntityDispatcher, DefaultDispatcherOptions } from './entity-dispatcher';
+import { EntityDispatcherBase } from './entity-dispatcher-base';
+import { EntityOp } from '../actions/entity-op';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
+import { QueryParams } from '../dataservices/interfaces';
 
 @Injectable()
 export class EntityDispatcherFactory {
@@ -28,7 +27,9 @@ export class EntityDispatcherFactory {
 
   constructor(
     private entityActionFactory: EntityActionFactory,
-    private store: Store<EntityCache>
+    private store: Store<EntityCache>,
+    @Inject(ScannedActionsSubject) private actions$: Observable<EntityAction>,
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private entityCacheSelector: EntityCacheSelector
   ) {}
 
   /**
@@ -42,23 +43,21 @@ export class EntityDispatcherFactory {
      * Usually acquired from `EntityDefinition` metadata.
      */
     selectId: IdSelector<T> = defaultSelectId,
-    /** Options that influence dispatcher behavior such as whether
+    /** Defaults for options that influence dispatcher behavior such as whether
      * `add()` is optimistic or pessimistic;
      */
-    dispatcherOptions: Partial<EntityDispatcherOptions> = {}
+    defaultOptions: Partial<DefaultDispatcherOptions> = {}
   ): EntityDispatcher<T> {
     // merge w/ dispatcher options with defaults
-    const options: EntityDispatcherOptions = Object.assign(
-      {},
-      this.defaultDispatcherOptions,
-      dispatcherOptions
-    );
+    const options: DefaultDispatcherOptions = { ...this.defaultDispatcherOptions, ...defaultOptions };
     return new EntityDispatcherBase<T>(
       entityName,
       this.entityActionFactory,
       this.store,
       selectId,
-      options
+      options,
+      this.actions$,
+      this.entityCacheSelector
     );
   }
 }

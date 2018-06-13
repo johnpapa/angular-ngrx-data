@@ -4,16 +4,18 @@ import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
 import { ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
-import { Dictionary, IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
-import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
-import { EntityAction, extractActionData, MergeStrategy } from '../actions/entity-action';
-import { EntityActionGuard } from '../actions/entity-action-guard';
-import { EntityChangeTracker, NoopEntityChangeTracker } from './entity-change-tracker';
 import { DefaultEntityChangeTracker } from './default-entity-change-tracker';
+import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
+import { Dictionary, IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionGuard } from '../actions/entity-action-guard';
+import { EntityChangeTracker } from './entity-change-tracker';
 import { EntityCollectionReducerMethods, EntityCollectionReducerMethodsFactory } from './entity-collection-reducer';
 import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityOp } from '../actions/entity-op';
+import { MergeStrategy } from '../actions/merge-strategy';
+import { merge } from 'rxjs/operators';
 
 /**
  * Default reducer methods for an entity collection.
@@ -133,15 +135,15 @@ export class DefaultEntityCollectionReducerMethods<T> {
 
     this.isChangeTracking = definition.noChangeTracking !== true;
     if (!entityChangeTracker) {
-      this.entityChangeTracker = this.isChangeTracking
-        ? new DefaultEntityChangeTracker<T>(this.adapter, this.selectId)
-        : new NoopEntityChangeTracker<T>();
+      this.entityChangeTracker = new DefaultEntityChangeTracker<T>(this.adapter, this.selectId);
     }
 
-    this.guard = new EntityActionGuard(this.selectId);
     this.selectId = definition.selectId;
+    this.guard = new EntityActionGuard(entityName, this.selectId);
     this.toUpdate = toUpdateFactory(this.selectId);
   }
+
+  // #region query operations
 
   protected queryAll(collection: EntityCollection<T>): EntityCollection<T> {
     return this.setLoadingTrue(collection);
@@ -152,12 +154,13 @@ export class DefaultEntityCollectionReducerMethods<T> {
   }
 
   /**
-   * Replaces all entities in the collection
+   * Merges query results per the MergeStrategy
    * Sets loaded flag to true.
-   * Merges query results, preserving unsaved changes
    */
   protected queryAllSuccess(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
-    return this.addAll(collection, action);
+    collection = this.setLoadingFalse(collection);
+    const { data, mergeStrategy } = this.extractActionValues(action);
+    return this.entityChangeTracker.mergeQueryResults(mergeStrategy, data, collection);
   }
 
   protected queryByKey(collection: EntityCollection<T>, action: EntityAction<number | string>): EntityCollection<T> {
@@ -170,15 +173,8 @@ export class DefaultEntityCollectionReducerMethods<T> {
 
   protected queryByKeySuccess(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
     collection = this.setLoadingFalse(collection);
-    const entity = extractActionData(action);
-    if (entity != null) {
-      const changeState = this.entityChangeTracker.mergeQueryResults([entity], collection);
-      collection =
-        changeState === collection.changeState
-          ? this.adapter.upsertOne(entity, collection) // upsert because no pending change for this entity
-          : { ...collection, changeState }; // entity has pending change; do not upsert
-    }
-    return collection;
+    const { data, mergeStrategy } = this.extractActionValues(action);
+    return this.entityChangeTracker.mergeQueryResults(mergeStrategy, data, collection);
   }
 
   protected queryLoad(collection: EntityCollection<T>): EntityCollection<T> {
@@ -195,8 +191,9 @@ export class DefaultEntityCollectionReducerMethods<T> {
    * and clears changeState for the entire collection.
    */
   protected queryLoadSuccess(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
+    const data = this.extractDataArray(action);
     return {
-      ...this.adapter.addAll(action.payload.data, collection),
+      ...this.adapter.addAll(data, collection),
       loading: false,
       loaded: true,
       changeState: {}
@@ -213,19 +210,13 @@ export class DefaultEntityCollectionReducerMethods<T> {
 
   protected queryManySuccess(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
     collection = this.setLoadingFalse(collection);
-    let entities = extractActionData(action);
-    if (entities != null && entities.length > 0) {
-      const changeState = this.entityChangeTracker.mergeQueryResults(entities, collection);
-      if (changeState !== collection.changeState) {
-        // Some queried entities have pending changes and they were merged into changeState original values
-        collection = { ...collection, changeState };
-        // Only upsert those queried entities which do not have pending changes.
-        entities = entities.filter(entity => changeState[this.selectId(entity)] == null);
-      }
-      collection = this.adapter.upsertMany(entities, collection);
-    }
-    return collection;
+    const { data, mergeStrategy } = this.extractActionValues(action);
+    return this.entityChangeTracker.mergeQueryResults(mergeStrategy, data, collection);
   }
+
+  // #endregion query operations
+
+  // #region save operations
 
   /** pessimistic add upon success */
   protected saveAddOne(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
@@ -240,8 +231,8 @@ export class DefaultEntityCollectionReducerMethods<T> {
     // Ensure the server generated the primary key if the client didn't send one.
     const entity = this.guard.mustBeEntity<T>(action);
     collection = this.setLoadingFalse(collection);
-    collection = this.entityChangeTracker.commitOne(entity, collection);
-    return this.adapter.addOne(entity, collection);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    return this.entityChangeTracker.mergeSaveAdds(mergeStrategy, [entity], collection);
   }
 
   /** optimistic add; add entity immediately
@@ -251,7 +242,8 @@ export class DefaultEntityCollectionReducerMethods<T> {
     // Ensure the server generated the primary key if the client didn't send one.
     const entity = this.guard.mustBeEntity<T>(action);
     collection = this.setLoadingTrue(collection);
-    collection = this.entityChangeTracker.trackAddOne(entity, collection);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackAddMany(mergeStrategy, [entity], collection);
     return this.adapter.addOne(entity, collection);
   }
 
@@ -270,24 +262,25 @@ export class DefaultEntityCollectionReducerMethods<T> {
   /** optimistic add succeeded. */
   protected saveAddOneOptimisticSuccess(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
     const entity = this.guard.mustBeEntity(action);
-    collection = this.setLoadingFalse(collection);
-    collection = this.entityChangeTracker.commitOne(entity, collection);
     const update = this.toUpdate(entity);
-    return this.adapter.updateOne(update, collection);
+    collection = this.setLoadingFalse(collection);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    return this.entityChangeTracker.mergeSaveUpdates(mergeStrategy, false /*skip unchanged*/, [update], collection);
   }
 
   /** pessimistic delete, after success */
   protected saveDeleteOne(collection: EntityCollection<T>, action: EntityAction<number | string | T>): EntityCollection<T> {
     collection = this.setLoadingTrue(collection);
-    const toDelete = extractActionData(action);
+    const toDelete = this.extractData(action);
     const deleteId = typeof toDelete === 'object' ? this.selectId(toDelete) : toDelete;
 
-    // if entity to delete is known to be an added entity
+    // Ignore mergeStrategy. If entity to delete is known to be an added entity, remove it and skip save.
     const change = collection.changeState[deleteId];
     if (change && change.changeType === ChangeType.Added) {
+      // Don't track for undo because do not save or undo deletion of added entity
       // Remove the added entity immediately and forget about its changes (via commit).
-      collection = this.entityChangeTracker.commitOne(deleteId, collection);
       collection = this.adapter.removeOne(deleteId as string, collection);
+      collection = this.entityChangeTracker.commitMany([deleteId], collection);
       action.payload.skip = true; // Should not waste effort trying to delete on the server.
     }
     return collection;
@@ -299,25 +292,29 @@ export class DefaultEntityCollectionReducerMethods<T> {
 
   protected saveDeleteOneSuccess(collection: EntityCollection<T>, action: EntityAction<number | string | T>): EntityCollection<T> {
     collection = this.setLoadingFalse(collection);
-    const toDelete = extractActionData(action);
+    const toDelete = this.extractData(action);
     const deleteId = typeof toDelete === 'object' ? this.selectId(toDelete) : toDelete;
-    collection = this.entityChangeTracker.commitOne(deleteId, collection);
-    return this.adapter.removeOne(deleteId as string, collection);
+    // Ignore mergeStrategy, remove it from the collection and from change tracking.
+    collection = this.adapter.removeOne(deleteId as string, collection);
+    collection = this.entityChangeTracker.commitMany([deleteId], collection);
+    return collection;
   }
 
   /** optimistic delete by entity key immediately */
   protected saveDeleteOneOptimistic(collection: EntityCollection<T>, action: EntityAction<number | string | T>): EntityCollection<T> {
     collection = this.setLoadingTrue(collection);
-    const toDelete = extractActionData(action);
+    const { data, mergeStrategy } = this.extractActionValues(action);
+    const toDelete = data[0];
     const deleteId = typeof toDelete === 'object' ? this.selectId(toDelete) : toDelete;
-    // if entity to delete is known to be an added entity
     const change = collection.changeState[deleteId];
+    // If entity to delete is known to be an added entity, remove it and skip save.
     if (change && change.changeType === ChangeType.Added) {
       // Don't track for undo because do not save or undo deletion of added entity
-      collection = this.entityChangeTracker.commitOne(deleteId, collection);
+      // Remove the added entity immediately and forget about its changes (via commit).
+      collection = this.entityChangeTracker.commitMany([deleteId], collection);
       action.payload.skip = true; // Should not waste effort trying to delete on the server.
     } else {
-      collection = this.entityChangeTracker.trackDeleteOne(deleteId, collection);
+      collection = this.entityChangeTracker.trackDeleteMany(mergeStrategy, [deleteId], collection);
     }
     // Remove immediately (optimistically)
     return this.adapter.removeOne(deleteId as string, collection);
@@ -328,12 +325,10 @@ export class DefaultEntityCollectionReducerMethods<T> {
     return this.setLoadingFalse(collection);
   }
 
-  protected saveDeleteOneOptimisticSuccess(
-    collection: EntityCollection<T>,
-    action: EntityAction<number | string | T>
-  ): EntityCollection<T> {
-    collection = this.entityChangeTracker.commitOne(extractActionData(action), collection);
-    return this.setLoadingFalse(collection);
+  protected saveDeleteOneOptimisticSuccess(collection: EntityCollection<T>, action: EntityAction<number | string>): EntityCollection<T> {
+    collection = this.setLoadingFalse(collection);
+    const { data, mergeStrategy } = this.extractActionValues(action);
+    return this.entityChangeTracker.mergeSaveDeletes(mergeStrategy, data, collection);
   }
 
   /**
@@ -350,11 +345,11 @@ export class DefaultEntityCollectionReducerMethods<T> {
   }
 
   /** pessimistic update upon success */
-  protected saveUpdateOneSuccess(collection: EntityCollection<T>, action: EntityAction<Update<T>>): EntityCollection<T> {
+  protected saveUpdateOneSuccess(collection: EntityCollection<T>, action: EntityAction<UpdateData<T>>): EntityCollection<T> {
     collection = this.setLoadingFalse(collection);
-    const { unchanged, ...update } = this.guard.mustBeUpdate<T>(action) as UpdateData<T>;
-    collection = this.entityChangeTracker.commitOne(update.changes as T, collection);
-    return this.adapter.updateOne(update, collection);
+    const update = this.guard.mustBeUpdate<T>(action) as UpdateData<T>;
+    const mergeStrategy = this.extractMergeStrategy(action);
+    return this.entityChangeTracker.mergeSaveUpdates(mergeStrategy, false /*skip unchanged*/, [update], collection);
   }
 
   /**
@@ -364,7 +359,8 @@ export class DefaultEntityCollectionReducerMethods<T> {
   protected saveUpdateOneOptimistic(collection: EntityCollection<T>, action: EntityAction<Update<T>>): EntityCollection<T> {
     const update = this.guard.mustBeUpdate<T>(action);
     collection = this.setLoadingTrue(collection);
-    collection = this.entityChangeTracker.trackUpdateOne(update.changes as T, collection);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackUpdateMany(mergeStrategy, [update], collection);
     return this.adapter.updateOne(update, collection);
   }
 
@@ -378,19 +374,17 @@ export class DefaultEntityCollectionReducerMethods<T> {
   /** optimistic update success; collection already updated.
    * Server may have touched other fields
    * so update the collection again if the server sent different data.
-   * payload must be an {Update<T>}
+   * payload must be an {UpdateData<T>}
    */
-  protected saveUpdateOneOptimisticSuccess(collection: EntityCollection<T>, action: EntityAction<Update<T>>): EntityCollection<T> {
+  protected saveUpdateOneOptimisticSuccess(collection: EntityCollection<T>, action: EntityAction<UpdateData<T>>): EntityCollection<T> {
     collection = this.setLoadingFalse(collection);
-    const { unchanged, ...update } = this.guard.mustBeUpdate<T>(action) as UpdateData<T>;
-    collection = this.entityChangeTracker.commitOne(update.changes as T, collection);
-
-    // A data service like `DefaultDataService<T>` will add `unchanged:true` to the payload.
-    // if the server responded without data, there is no need to update the collection.
-    return (<any>update).unchanged ? collection : this.adapter.updateOne(update, collection);
+    const update = this.guard.mustBeUpdate<T>(action) as UpdateData<T>;
+    const mergeStrategy = this.extractMergeStrategy(action);
+    return this.entityChangeTracker.mergeSaveUpdates(mergeStrategy, true /*skip unchanged*/, [update], collection);
   }
+  // #endregion save operations
 
-  ///// Cache-only operations /////
+  // #region Cache-only operations
 
   /**
    * Replaces all entities in the collection
@@ -398,51 +392,42 @@ export class DefaultEntityCollectionReducerMethods<T> {
    * Merges query results, preserving unsaved changes
    */
   protected addAll(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
-    let entities = this.guard.mustBeEntities<T>(action);
-    const changeState = this.entityChangeTracker.mergeQueryResults(entities, collection);
-    if (changeState !== collection.changeState) {
-      // Some entities have pending changes. Only add entities which do not have pending changes.
-      entities = entities.filter(entity => changeState[this.selectId(entity)] == null);
-    }
+    const entities = this.guard.mustBeEntities<T>(action);
     return {
       ...this.adapter.addAll(entities, collection),
       loading: false,
       loaded: true,
-      changeState
+      changeState: {}
     };
   }
 
   protected addMany(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
     const entities = this.guard.mustBeEntities<T>(action);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackAddMany(entities, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackAddMany(mergeStrategy, entities, collection);
     return this.adapter.addMany(entities, collection);
   }
 
   protected addOne(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
     const entity = this.guard.mustBeEntity<T>(action);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackAddOne(entity, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackAddMany(mergeStrategy, [entity], collection);
     return this.adapter.addOne(entity, collection);
   }
 
   protected removeMany(collection: EntityCollection<T>, action: EntityAction<number[] | string[]>): EntityCollection<T> {
     // payload must be entity keys
     const keys = this.guard.mustBeKeys(action) as string[];
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackDeleteMany(keys, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackDeleteMany(mergeStrategy, keys, collection);
     return this.adapter.removeMany(keys, collection);
   }
 
   protected removeOne(collection: EntityCollection<T>, action: EntityAction<number | string>): EntityCollection<T> {
     // payload must be entity key
     const key = this.guard.mustBeKey(action) as string;
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackDeleteOne(key, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackDeleteMany(mergeStrategy, [key], collection);
     return this.adapter.removeOne(key, collection);
   }
 
@@ -458,41 +443,34 @@ export class DefaultEntityCollectionReducerMethods<T> {
   protected updateMany(collection: EntityCollection<T>, action: EntityAction<Update<T>[]>): EntityCollection<T> {
     // payload must be an array of `Updates<T>`, not entities
     const updates = this.guard.mustBeUpdates<T>(action);
-    const entities = updates.map(up => up.changes as T);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackUpdateMany(entities, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackUpdateMany(mergeStrategy, updates, collection);
     return this.adapter.updateMany(updates, collection);
   }
 
   protected updateOne(collection: EntityCollection<T>, action: EntityAction<Update<T>>): EntityCollection<T> {
     // payload must be an `Update<T>`, not an entity
     const update = this.guard.mustBeUpdate<T>(action);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackUpdateOne(update.changes as T, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackUpdateMany(mergeStrategy, [update], collection);
     return this.adapter.updateOne(update, collection);
   }
 
   protected upsertMany(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
     // <v6: payload must be an array of `Updates<T>`, not entities
-    // this.guard.mustBeUpdates(action);
     // v6+: payload must be an array of T
     const entities = this.guard.mustBeEntities<T>(action);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackUpsertMany(entities, collection);
-    }
-    return this.adapter.upsertMany(extractActionData(action), collection);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackUpsertMany(mergeStrategy, entities, collection);
+    return this.adapter.upsertMany(entities, collection);
   }
 
   protected upsertOne(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
     // <v6: payload must be an `Update<T>`, not an entity
-    // this.guard.mustBeUpdate(action);
     // v6+: payload must be a T
     const entity = this.guard.mustBeEntity(action);
-    if (this.isChangeTracking) {
-      collection = this.entityChangeTracker.trackUpsertOne(entity, collection);
-    }
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.trackUpsertMany(mergeStrategy, [entity], collection);
     return this.adapter.upsertOne(entity, collection);
   }
 
@@ -501,11 +479,11 @@ export class DefaultEntityCollectionReducerMethods<T> {
   }
 
   protected commitMany(collection: EntityCollection<T>, action: EntityAction<T[]>) {
-    return this.entityChangeTracker.commitMany(extractActionData(action), collection);
+    return this.entityChangeTracker.commitMany(this.extractDataArray(action), collection);
   }
 
   protected commitOne(collection: EntityCollection<T>, action: EntityAction<T>) {
-    return this.entityChangeTracker.commitOne(extractActionData(action), collection);
+    return this.entityChangeTracker.commitMany(this.extractDataArray(action), collection);
   }
 
   protected undoAll(collection: EntityCollection<T>) {
@@ -513,16 +491,16 @@ export class DefaultEntityCollectionReducerMethods<T> {
   }
 
   protected undoMany(collection: EntityCollection<T>, action: EntityAction<T[]>) {
-    return this.entityChangeTracker.undoMany(extractActionData(action), collection);
+    return this.entityChangeTracker.undoMany(this.extractDataArray(action), collection);
   }
 
   protected undoOne(collection: EntityCollection<T>, action: EntityAction<T>) {
-    return this.entityChangeTracker.undoOne(extractActionData(action), collection);
+    return this.entityChangeTracker.undoMany(this.extractDataArray(action), collection);
   }
 
   /** Dangerous: Completely replace the collection's ChangeState. Use rarely and wisely. */
   protected setChangeState(collection: EntityCollection<T>, action: EntityAction<ChangeStateMap<T>>) {
-    const changeState = extractActionData(action);
+    const changeState = this.extractData(action);
     return collection.changeState === changeState ? collection : { ...collection, changeState };
   }
 
@@ -532,22 +510,22 @@ export class DefaultEntityCollectionReducerMethods<T> {
    * Use rarely and wisely.
    */
   protected setCollection(collection: EntityCollection<T>, action: EntityAction<EntityCollection<T>>) {
-    const newCollection = extractActionData(action);
+    const newCollection = this.extractData(action);
     return collection === newCollection ? collection : newCollection;
   }
 
   protected setFilter(collection: EntityCollection<T>, action: EntityAction<any>): EntityCollection<T> {
-    const filter = extractActionData(action);
+    const filter = this.extractData(action);
     return collection.filter === filter ? collection : { ...collection, filter };
   }
 
   protected setLoaded(collection: EntityCollection<T>, action: EntityAction<boolean>): EntityCollection<T> {
-    const loaded = extractActionData(action) === true || false;
+    const loaded = this.extractData(action) === true || false;
     return collection.loaded === loaded ? collection : { ...collection, loaded };
   }
 
   protected setLoading(collection: EntityCollection<T>, action: EntityAction<boolean>): EntityCollection<T> {
-    return this.setLoadingFlag(collection, extractActionData(action));
+    return this.setLoadingFlag(collection, this.extractData(action));
   }
 
   protected setLoadingFalse(collection: EntityCollection<T>): EntityCollection<T> {
@@ -563,6 +541,33 @@ export class DefaultEntityCollectionReducerMethods<T> {
     loading = loading === true ? true : false;
     return collection.loading === loading ? collection : { ...collection, loading };
   }
+  // #endregion Cache-only operations
+
+  // #region helpers
+  /** Safely extract needed values from the EntityAction payload. */
+  protected extractActionValues(action: EntityAction) {
+    return { data: this.extractDataArray(action), mergeStrategy: this.extractMergeStrategy(action) };
+  }
+
+  /** Safely extract data from the EntityAction payload */
+  protected extractData<D = any>(action: EntityAction<D>): D {
+    return action.payload && action.payload.data;
+  }
+
+  /** Safely extract data from the EntityAction payload and coerce data to an array. */
+  protected extractDataArray(action: EntityAction) {
+    const data = this.extractData(action);
+    return Array.isArray(data) ? data : data == null ? [] : [data];
+  }
+
+  /** Safely extract MergeStrategy from EntityAction. Set to IgnoreChanges if collection itself is not tracked. */
+  protected extractMergeStrategy(action: EntityAction) {
+    return this.isChangeTracking
+      ? action.payload && action.payload.mergeStrategy
+      : // Not tracking this collection => always ignore
+        MergeStrategy.IgnoreChanges;
+  }
+  // #endregion helpers
 }
 
 /**

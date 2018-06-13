@@ -1,4 +1,6 @@
 import { ChangeState, ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
+import { MergeStrategy } from '../actions/merge-strategy';
+import { Update } from '../utils/ngrx-entity-models';
 
 /**
  * Methods for tracking, committing, and reverting/undoing unsaved entity changes.
@@ -14,14 +16,6 @@ export interface EntityChangeTracker<T> {
   commitAll(collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
-   * Commit changes for the given entity as when it has been refreshed from the server.
-   * Harmless when there is no entity to untrack.
-   * @param entityOrId The entity to clear tracking or its id.
-   * @param collection The entity collection
-   */
-  commitOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
-
-  /**
    * Commit changes for the given entities as when they have been refreshed from the server.
    * Harmless when there are no entities to commit.
    * @param entityOrId The entities to clear tracking or their ids.
@@ -30,84 +24,97 @@ export interface EntityChangeTracker<T> {
   commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
-   * Merge query results into the ChangeState as needed.
-   * If a queried entity is currently tracked, replace its changeState.originalValue
-   * with the queried entity, which is presumed to reflect the current server value.
-   * Default query-success reducer method will NOT add or update these entities in the collection
-   * because that would overwrite their pending changes.
+   * Merge query results into the collection, adjusting the ChangeState per the mergeStrategy.
+   * The default is MergeStrategy.PreserveChanges.
+   * @param mergeStrategy How to merge a queried entity when the corresponding entity in the collection has an unsaved change.
    * @param entities Entities returned from querying the server.
    * @param collection The entity collection
+   * @returns The merged EntityCollection.
    */
-  mergeQueryResults(entities: T[], collection: EntityCollection<T>): ChangeStateMap<T>;
+  mergeQueryResults(mergeStrategy: MergeStrategy, entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
-   * Track an entity add.
-   * Call before adding the entity.
-   * @param entity The entity to add. The entity must have its id.
+   * Merge result of saving new entities into the collection, adjusting the ChangeState per the mergeStrategy.
+   * The default is MergeStrategy.OverwriteChanges.
+   * @param mergeStrategy How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
+   * @param entities Entities returned from saving new entities to the server.
    * @param collection The entity collection
+   * @returns The merged EntityCollection.
    */
-  trackAddOne(entity: T, collection: EntityCollection<T>): EntityCollection<T>;
+  mergeSaveAdds(mergeStrategy: MergeStrategy, entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
+  /**
+   * Merge successful result of deleting entities on the server that have the given primary keys
+   * Clears the entity changeState for those keys unless the MergeStrategy is ignoreChanges.
+   * @param mergeStrategy How to adjust change tracking when the corresponding entity in the collection has an unsaved change.
+   * @param entities keys primary keys of the entities to remove/delete.
+   * @param collection The entity collection
+   * @returns The merged EntityCollection.
+   */
+  mergeSaveDeletes(mergeStrategy: MergeStrategy, keys: (number | string)[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Merge result of saving upserted entities into the collection, adjusting the ChangeState per the mergeStrategy.
+   * The default is MergeStrategy.OverwriteChanges.
+   * @param mergeStrategy How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
+   * @param entities Entities returned from saving upsert entities to the server.
+   * @param collection The entity collection
+   * @returns The merged EntityCollection.
+   */
+  mergeSaveUpserts(mergeStrategy: MergeStrategy, entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
+
+  /**
+   * Merge result of saving updated entities into the collection, adjusting the ChangeState per the mergeStrategy.
+   * The default is MergeStrategy.OverwriteChanges.
+   * @param mergeStrategy How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
+   * @param skipUnchanged True if should skip update when unchanged (for optimistic updates)
+   * @param entities Entities returned from saving updated entities to the server.
+   * @param collection The entity collection
+   * @returns The merged EntityCollection.
+   */
+  mergeSaveUpdates(
+    mergeStrategy: MergeStrategy,
+    skipUnchanged: boolean,
+    updates: Update<T>[],
+    collection: EntityCollection<T>
+  ): EntityCollection<T>;
 
   /**
    * Track multiple entity updates of the same change type
+   * Does NOT add to the collection (the reducer's job).
+   * @param mergeStrategy Don't track if is MergeStrategy.IgnoreChanges
    * @param entities The entities to add. They must all have their ids.
    * @param collection The entity collection
    */
-  trackAddMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
-
-  /**
-   * Track an entity removal with the intention of deleting it on the server.
-   * Call before removing the entity.
-   * @param entityOrId The entity or its id.
-   * @param collection The entity collection
-   */
-  trackDeleteOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+  trackAddMany(mergeStrategy: MergeStrategy, entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
    * Track multiple removed entities with the intention of deleting them on the server.
+   * Does NOT remove from the collection (the reducer's job).
    * Call before removing the entities
-   * @param entityOrId The entities or their ids.
+   * @param mergeStrategy Don't track if is MergeStrategy.IgnoreChanges
+   * @param keys The primary keys of the entities to delete.
    * @param collection The entity collection
    */
-  trackDeleteMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
-
-  /**
-   * Track an entity change for the given entity.
-   * Call before the update.
-   * @param entityOrId The entity or its id.
-   * @param collection The entity collection
-   */
-  trackUpdateOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+  trackDeleteMany(mergeStrategy: MergeStrategy, keys: (number | string)[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
    * Track multiple entity updates of the same change type.
+   * Does NOT update the collection (the reducer's job).
    * Call before the updates.
-   * @param entityOrId The entities or their ids.
+   * @param mergeStrategy Don't track if is MergeStrategy.IgnoreChanges
+   * @param updates The entities to update.
    * @param collection The entity collection
    */
-  trackUpdateMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T>;
-
-  /**
-   * Track an entity upsert (either an add or an update)
-   * @param entity The entity to add or update. It must be complete, including its id.
-   * @param collection The entity collection
-   */
-  trackUpsertOne(entity: T, collection: EntityCollection<T>): EntityCollection<T>;
+  trackUpdateMany(mergeStrategy: MergeStrategy, updates: Update<T>[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
    * Track multiple entity upserts (adds and updates).
-   * @param entityOrId The entities to add or update. They must be complete entities with ids.
+   * Does NOT update the collection (the reducer's job).
+   * @param mergeStrategy Don't track if is MergeStrategy.IgnoreChanges
+   * @param entities The entities to add or update. They must be complete entities with ids.
    * @param collection The entity collection
    */
-  trackUpsertMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
-
-  /**
-   * Revert the unsaved change for the given entity.
-   * Harmless if no entity to undo.
-   * @param entityOrId The entity to revert or its id.
-   * @param collection The entity collection
-   */
-  undoOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T>;
+  trackUpsertMany(mergeStrategy: MergeStrategy, entities: T[], collection: EntityCollection<T>): EntityCollection<T>;
 
   /**
    * Revert the unsaved changes for the given entities.
@@ -123,67 +130,4 @@ export interface EntityChangeTracker<T> {
    * @param collection The entity collection
    */
   undoAll(collection: EntityCollection<T>): EntityCollection<T>;
-}
-
-/** No-op EntityChangeTracker. All methods return the collection. Used when change tracking is disabled. */
-export class NoopEntityChangeTracker<T> implements EntityChangeTracker<T> {
-  commitAll(collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  commitOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  commitMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  mergeQueryResults(entities: T[], collection: EntityCollection<T>): ChangeStateMap<T> {
-    return collection.changeState;
-  }
-
-  trackAddOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackAddMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackDeleteOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackDeleteMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackUpdateOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackUpdateMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackUpsertOne(entity: T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  trackUpsertMany(entities: T[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  undoOne(entityOrId: number | string | T, collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  undoMany(entityOrIdList: (number | string | T)[], collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
-
-  undoAll(collection: EntityCollection<T>): EntityCollection<T> {
-    return collection;
-  }
 }

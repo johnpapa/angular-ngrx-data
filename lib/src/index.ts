@@ -7,6 +7,7 @@ export * from './actions/entity-action-guard';
 export * from './actions/entity-action-operators';
 export * from './actions/entity-cache-action';
 export * from './actions/entity-op';
+export * from './actions/merge-strategy';
 
 // dataservices
 export * from './dataservices/data-service-error';

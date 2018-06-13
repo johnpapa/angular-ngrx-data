@@ -7,11 +7,11 @@ import { IdSelector, Update } from '../utils/ngrx-entity-models';
  * throws an error.
  */
 export class EntityActionGuard {
-  constructor(private selectId: IdSelector<any>) {}
+  constructor(private entityName: string, private selectId: IdSelector<any>) {}
 
   /** Throw if the action payload is not an entity with a valid key */
-  mustBeEntity<T = any>(action: EntityAction): T {
-    const { entityName, data } = action.payload;
+  mustBeEntity<T = any>(action: EntityAction<T>): T {
+    const data = this.extractData(action);
     if (!data) {
       this.throwError(action, `should have a single entity.`);
     }
@@ -23,8 +23,8 @@ export class EntityActionGuard {
   }
 
   /** Throw if the action payload is not an array of entities with valid keys */
-  mustBeEntities<T = any>(action: EntityAction<any[]>): T[] {
-    const { entityName, data } = action.payload;
+  mustBeEntities<T = any>(action: EntityAction<T[]>): T[] {
+    const data = this.extractData(action);
     if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entities`);
     }
@@ -40,7 +40,7 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not a single, valid key */
   mustBeKey(action: EntityAction<string | number>): string | number {
-    const { entityName, data } = action.payload;
+    const data = this.extractData(action);
     if (!data) {
       throw new Error(`should be a single entity key`);
     }
@@ -52,13 +52,13 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not an array of valid keys */
   mustBeKeys(action: EntityAction<(string | number)[]>): (string | number)[] {
-    const { entityName, data } = action.payload;
+    const data = this.extractData(action);
     if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entity keys (id)`);
     }
     data.forEach((id, i) => {
       if (this.isNotKeyType(id)) {
-        const msg = `${entityName} ', item ${i + 1}, is not a valid entity key (id)`;
+        const msg = `${this.entityName} ', item ${i + 1}, is not a valid entity key (id)`;
         this.throwError(action, msg);
       }
     });
@@ -67,7 +67,7 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not an update with a valid key (id) */
   mustBeUpdate<T = any>(action: EntityAction<Update<T>>): Update<T> {
-    const { entityName, data } = action.payload;
+    const data = this.extractData(action);
     if (!data) {
       this.throwError(action, `should be a single entity update`);
     }
@@ -81,7 +81,7 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not an array of updates with valid keys (ids) */
   mustBeUpdates<T = any>(action: EntityAction<Update<any>[]>): Update<T>[] {
-    const { entityName, data } = action.payload;
+    const data = this.extractData(action);
     if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entity updates`);
     }
@@ -95,12 +95,16 @@ export class EntityActionGuard {
     return data;
   }
 
+  private extractData<T>(action: EntityAction<T>) {
+    return action.payload && action.payload.data;
+  }
+
   /** Return true if this key (id) is invalid */
   private isNotKeyType(id: any) {
     return typeof id !== 'string' && typeof id !== 'number';
   }
 
   private throwError(action: EntityAction, msg: string): void {
-    throw new Error(`EntityAction guard for "${action.type}": payload ${msg}`);
+    throw new Error(`${this.entityName} EntityAction guard for "${action.type}": payload ${msg}`);
   }
 }

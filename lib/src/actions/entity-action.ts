@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 
 import { EntityOp } from './entity-op';
+import { MergeStrategy } from './merge-strategy';
 
 export interface EntityAction<P = any> extends Action {
   readonly type: string;
@@ -40,32 +41,4 @@ export interface EntityActionOptions {
    * an innocuous Observable<Action> of success.
    */
   skip?: boolean;
-}
-
-/** How to merge an entity when the corresponding entity in the collection has unsaved changes. */
-export enum MergeStrategy {
-  /**
-   * Preserves the current changed collection entity (Query success default).
-   * Preserve the pending change.
-   * Overwrites the changeState.originalValue for the merged entities if set.
-   */
-  PreserveChanges,
-  /**
-   * Replace the current collection entity (Cache operation default).
-   * Preserves the changeState.originalValue for the merged entities if set.
-   * Special rules for REMOVE...
-   */
-  OverwriteCurrent,
-  /**
-   * Replace the current collection entity (Save success default).
-   * Change is lost.
-   * Deletes the ChangeState for the merged entities if set
-   * and their ChangeTypes becomes "unchanged".
-   */
-  OverwriteChanges
-}
-
-/** Safely extract the data from the EntityAction payload */
-export function extractActionData<T = any>(action: EntityAction<T>) {
-  return action.payload && action.payload.data;
 }

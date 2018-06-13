@@ -6,6 +6,11 @@ import { Action } from '@ngrx/store';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityActionOptions } from '../actions/entity-action';
 
+export enum EntityCacheAction {
+  MERGE_QUERY_SET = 'ngrx-data/entity-cache/merge-query-set',
+  SET_ENTITY_CACHE = 'ngrx-data/entity-cache/set-cache'
+}
+
 export interface EntityCacheQuerySet {
   [entityName: string]: any[];
 }
@@ -29,9 +34,4 @@ export class MergeQuerySet implements Action {
 export class SetEntityCache implements Action {
   readonly type = EntityCacheAction.SET_ENTITY_CACHE;
   constructor(public readonly payload: EntityCache) {}
-}
-
-export enum EntityCacheAction {
-  MERGE_QUERY_SET = 'ngrx-data/entity-cache/merge-query-set',
-  SET_ENTITY_CACHE = 'ngrx-data/entity-cache/set-cache'
 }

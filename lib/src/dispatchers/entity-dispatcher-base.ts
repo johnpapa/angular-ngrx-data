@@ -51,7 +51,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     /** Store selector for the EntityCache */
     entityCacheSelector: EntityCacheSelector
   ) {
-    this.guard = new EntityActionGuard(selectId);
+    this.guard = new EntityActionGuard(entityName, selectId);
     this.toUpdate = toUpdateFactory<T>(selectId);
 
     const collectionSelector = createSelector(entityCacheSelector, cache => cache[entityName] as EntityCollection<T>);

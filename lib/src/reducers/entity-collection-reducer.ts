@@ -32,7 +32,7 @@ export class EntityCollectionReducerFactory {
 
     /** Perform Actions against a particular entity collection in the EntityCache */
     return function entityCollectionReducer(collection: EntityCollection<T>, action: EntityAction): EntityCollection<T> {
-      const reducerMethod = methods[action.payload.op];
+      const reducerMethod = methods[action.payload.entityOp];
       return reducerMethod ? reducerMethod(collection, action) : collection;
     };
   }

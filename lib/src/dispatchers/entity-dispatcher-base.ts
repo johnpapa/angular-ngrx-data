@@ -1,9 +1,11 @@
-import { Injectable } from '@angular/core';
 import { Action, createSelector, select, Store } from '@ngrx/store';
 
 import { Observable, of, throwError } from 'rxjs';
 import { filter, first, map, mergeMap, share, withLatestFrom } from 'rxjs/operators';
 
+import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
+import { DefaultDispatcherOptions } from './default-dispatcher-options';
+import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityActionGuard } from '../actions/entity-action-guard';
@@ -11,17 +13,14 @@ import { EntityCache } from '../reducers/entity-cache';
 import { EntityCacheSelector } from '../selectors/entity-cache-selector';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCommands } from './entity-commands';
-import { EntityDispatcher, DefaultDispatcherOptions } from './entity-dispatcher';
+import { EntityDispatcher } from './entity-dispatcher';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
-import { getGuidComb } from '../utils/guid-fns';
 import { IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
-import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
+import { MergeStrategy } from '../actions/merge-strategy';
 import { QueryParams } from '../dataservices/interfaces';
 
 export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
-  /**
-   * Utility class with methods to validate EntityAction payloads.
-   */
+  /** Utility class with methods to validate EntityAction payloads.*/
   guard: EntityActionGuard;
 
   private entityCollection$: Observable<EntityCollection<T>>;
@@ -43,13 +42,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     public selectId: IdSelector<T> = defaultSelectId,
     /**
      * Dispatcher options configure dispatcher behavior such as
-     * whether add is optimistic or pessimistic.
+     * whether add is optimistic or pessimistic by default.
      */
     public defaultDispatcherOptions: DefaultDispatcherOptions,
     /** Actions dispatched to the store after the store processed them with reducers*/
     private actions$: Observable<Action>,
     /** Store selector for the EntityCache */
-    entityCacheSelector: EntityCacheSelector
+    entityCacheSelector: EntityCacheSelector,
+    /** Generates correlation ids for query and save methods */
+    private correlationIdGenerator: CorrelationIdGenerator
   ) {
     this.guard = new EntityActionGuard(entityName, selectId);
     this.toUpdate = toUpdateFactory<T>(selectId);
@@ -60,15 +61,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
 
   /**
    * Create an {EntityAction} for this entity type.
-   * @param op {EntityOp} the entity operation
+   * @param entityOp {EntityOp} the entity operation
    * @param [data] the action data
    * @param [options] additional options
    * @returns the EntityAction
    */
-  createEntityAction<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+  createEntityAction<P = any>(entityOp: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
     return this.entityActionFactory.create({
       entityName: this.entityName,
-      op,
+      entityOp,
       data,
       ...options
     });
@@ -83,7 +84,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * @returns the dispatched EntityAction
    */
   createAndDispatch<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
-    const action = this.createEntityAction(op, data);
+    const action = this.createEntityAction(op, data, options);
     this.dispatch(action);
     return action;
   }
@@ -98,18 +99,18 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     return action;
   }
 
+  // #region Query and save operations
+
   /**
    * Dispatch action to save a new entity to remote storage.
    * @param entity entity to add, which may omit its key if pessimistic and the server creates the key;
    * must have a key if optimistic save.
-   * @returns Observable of the entity
+   * @returns A terminating Observable of the entity
    * after server reports successful save or the save error.
    */
   add(entity: T, options?: EntityActionOptions): Observable<T> {
-    options = setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticAdd);
-    const op = options.isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD_ONE;
-
-    const action = this.createEntityAction(op, entity, options);
+    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticAdd);
+    const action = this.createEntityAction(EntityOp.SAVE_ADD_ONE, entity, options);
     if (options.isOptimistic) {
       this.guard.mustBeEntity(action);
     }
@@ -125,7 +126,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The primary key of the entity to remove
-   * @returns Observable of the deleted key
+   * @returns A terminating Observable of the deleted key
    * after server reports successful save or the save error.
    */
   delete(entity: T, options?: EntityActionOptions): Observable<number | string>;
@@ -133,15 +134,14 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The entity to delete
-   * @returns Observable of the deleted key
+   * @returns A terminating Observable of the deleted key
    * after server reports successful save or the save error.
    */
   delete(key: number | string, options?: EntityActionOptions): Observable<number | string>;
   delete(arg: number | string | T, options?: EntityActionOptions): Observable<number | string> {
-    options = setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticDelete);
-    const op = options.isOptimistic ? EntityOp.SAVE_DELETE_ONE_OPTIMISTIC : EntityOp.SAVE_DELETE_ONE;
+    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticDelete);
     const key = this.getKey(arg);
-    const action = this.createEntityAction(op, key, options);
+    const action = this.createEntityAction(EntityOp.SAVE_DELETE_ONE, key, options);
     this.guard.mustBeKey(action);
     this.dispatch(action);
     return this.getResponseData$<number | string>(options.correlationId).pipe(map(() => key));
@@ -150,12 +150,12 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * merge the queried entities into the cached collection.
-   * @returns Observable of the queried entities that are in the collection
+   * @returns A terminating Observable of the queried entities that are in the collection
    * after server reports success query or the query error.
    * @see load()
    */
   getAll(options?: EntityActionOptions): Observable<T[]> {
-    options = setQueryEntityActionOptions(options);
+    options = this.setQueryEntityActionOptions(options);
     const action = this.createEntityAction(EntityOp.QUERY_ALL, null, options);
     this.dispatch(action);
     return this.getResponseData$<T[]>(options.correlationId).pipe(
@@ -182,11 +182,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Dispatch action to query remote storage for the entity with this primary key.
    * If the server returns an entity,
    * merge it into the cached collection.
-   * @returns Observable of the collection
+   * @returns A terminating Observable of the collection
    * after server reports successful query or the query error.
    */
   getByKey(key: any, options?: EntityActionOptions): Observable<T> {
-    options = setQueryEntityActionOptions(options);
+    options = this.setQueryEntityActionOptions(options);
     const action = this.createEntityAction(EntityOp.QUERY_BY_KEY, key, options);
     this.dispatch(action);
     return this.getResponseData$<T>(options.correlationId).pipe(
@@ -202,11 +202,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * with either a query parameter map or an HTTP URL query string,
    * and merge the results into the cached collection.
    * @params queryParams the query in a form understood by the server
-   * @returns Observable of the queried entities
+   * @returns A terminating Observable of the queried entities
    * after server reports successful query or the query error.
    */
   getWithQuery(queryParams: QueryParams | string, options?: EntityActionOptions): Observable<T[]> {
-    options = setQueryEntityActionOptions(options);
+    options = this.setQueryEntityActionOptions(options);
     const action = this.createEntityAction(EntityOp.QUERY_MANY, queryParams, options);
     this.dispatch(action);
     return this.getResponseData$<T[]>(options.correlationId).pipe(
@@ -232,12 +232,12 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * completely replace the cached collection with the queried entities.
-   * @returns Observable of the collection
+   * @returns A terminating Observable of the entities in the collection
    * after server reports successful query or the query error.
    * @see getAll
    */
   load(options?: EntityActionOptions): Observable<T[]> {
-    options = setQueryEntityActionOptions(options);
+    options = this.setQueryEntityActionOptions(options);
     const action = this.createEntityAction(EntityOp.QUERY_LOAD, null, options);
     this.dispatch(action);
     return this.getResponseData$<T[]>(options.correlationId);
@@ -248,17 +248,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    * @param entity update entity, which might be a partial of T but must at least have its key.
-   * @returns Observable of the updated entity
+   * @returns A terminating Observable of the updated entity
    * after server reports successful save or the save error.
    */
   update(entity: Partial<T>, options?: EntityActionOptions): Observable<T> {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    options = setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticUpdate);
-    const op = options.isOptimistic ? EntityOp.SAVE_ADD_ONE_OPTIMISTIC : EntityOp.SAVE_ADD_ONE;
-
-    const action = this.createEntityAction(op, entity, options);
+    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticUpdate);
+    const action = this.createEntityAction(EntityOp.SAVE_UPDATE_ONE, update, options);
     if (options.isOptimistic) {
       this.guard.mustBeEntity(action);
     }
@@ -272,8 +270,9 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       map(([e, collection]) => collection.entities[this.selectId(e)])
     );
   }
+  // #endregion Query and save operations
 
-  /*** Cache-only operations that do not update remote storage ***/
+  // #region Cache-only operations that do not update remote storage
 
   // Unguarded for performance.
   // EntityCollectionReducer<T> runs a guard (which throws)
@@ -285,8 +284,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Replace all entities in the cached collection.
    * Does not save to remote storage.
    */
-  addAllToCache(entities: T[]): void {
-    this.createAndDispatch(EntityOp.ADD_ALL, entities);
+  addAllToCache(entities: T[], options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.ADD_ALL, entities, options);
   }
 
   /**
@@ -294,8 +293,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not save to remote storage.
    * Ignored if an entity with the same primary key is already in cache.
    */
-  addOneToCache(entity: T): void {
-    this.createAndDispatch(EntityOp.ADD_ONE, entity);
+  addOneToCache(entity: T, options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.ADD_ONE, entity, options);
   }
 
   /**
@@ -303,13 +302,13 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not save to remote storage.
    * Entities with primary keys already in cache are ignored.
    */
-  addManyToCache(entities: T[]): void {
-    this.createAndDispatch(EntityOp.ADD_MANY, entities);
+  addManyToCache(entities: T[], options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.ADD_MANY, entities, options);
   }
 
   /** Clear the cached entity collection */
-  clearCache(): void {
-    this.createAndDispatch(EntityOp.REMOVE_ALL);
+  clearCache(options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.REMOVE_ALL, undefined, options);
   }
 
   /**
@@ -317,16 +316,16 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not delete that entity from remote storage.
    * @param entity The entity to remove
    */
-  removeOneFromCache(entity: T): void;
+  removeOneFromCache(entity: T, options?: EntityActionOptions): void;
 
   /**
    * Remove an entity directly from the cache.
    * Does not delete that entity from remote storage.
    * @param key The primary key of the entity to remove
    */
-  removeOneFromCache(key: number | string): void;
-  removeOneFromCache(arg: (number | string) | T): void {
-    this.createAndDispatch(EntityOp.REMOVE_ONE, this.getKey(arg));
+  removeOneFromCache(key: number | string, options?: EntityActionOptions): void;
+  removeOneFromCache(arg: (number | string) | T, options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.REMOVE_ONE, this.getKey(arg), options);
   }
 
   /**
@@ -334,15 +333,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Does not delete these entities from remote storage.
    * @param entity The entities to remove
    */
-  removeManyFromCache(entities: T[]): void;
+  removeManyFromCache(entities: T[], options?: EntityActionOptions): void;
 
   /**
    * Remove multiple entities directly from the cache.
    * Does not delete these entities from remote storage.
    * @param keys The primary keys of the entities to remove
    */
-  removeManyFromCache(keys: (number | string)[]): void;
-  removeManyFromCache(args: (number | string)[] | T[]): void {
+  removeManyFromCache(keys: (number | string)[], options?: EntityActionOptions): void;
+  removeManyFromCache(args: (number | string)[] | T[], options?: EntityActionOptions): void {
     if (!args || args.length === 0) {
       return;
     }
@@ -351,7 +350,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
         ? // if array[0] is a key, assume they're all keys
           (<T[]>args).map(arg => this.getKey(arg))
         : args;
-    this.createAndDispatch(EntityOp.REMOVE_MANY, keys);
+    this.createAndDispatch(EntityOp.REMOVE_MANY, keys, options);
   }
 
   /**
@@ -361,11 +360,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    */
-  updateOneInCache(entity: Partial<T>): void {
+  updateOneInCache(entity: Partial<T>, options?: EntityActionOptions): void {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    this.createAndDispatch(EntityOp.UPDATE_ONE, update);
+    this.createAndDispatch(EntityOp.UPDATE_ONE, update, options);
   }
 
   /**
@@ -375,12 +374,12 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Update entities may be partial but must at least have their keys.
    * such partial entities patch their cached counterparts.
    */
-  updateManyInCache(entities: Partial<T>[]): void {
+  updateManyInCache(entities: Partial<T>[], options?: EntityActionOptions): void {
     if (!entities || entities.length === 0) {
       return;
     }
     const updates: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this.createAndDispatch(EntityOp.UPDATE_MANY, updates);
+    this.createAndDispatch(EntityOp.UPDATE_MANY, updates, options);
   }
 
   /**
@@ -389,21 +388,19 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Upsert entity might be a partial of T but must at least have its key.
    * Pass the Update<T> structure as the payload
    */
-  upsertOneInCache(entity: Partial<T>): void {
-    const upsert: Update<T> = this.toUpdate(entity);
-    this.createAndDispatch(EntityOp.UPSERT_ONE, upsert);
+  upsertOneInCache(entity: Partial<T>, options?: EntityActionOptions): void {
+    this.createAndDispatch(EntityOp.UPSERT_ONE, entity, options);
   }
 
   /**
    * Add or update multiple cached entities directly.
    * Does not save to remote storage.
    */
-  upsertManyInCache(entities: Partial<T>[]): void {
+  upsertManyInCache(entities: Partial<T>[], options?: EntityActionOptions): void {
     if (!entities || entities.length === 0) {
       return;
     }
-    const upserts: Update<T>[] = entities.map(entity => this.toUpdate(entity));
-    this.createAndDispatch(EntityOp.UPSERT_MANY, upserts);
+    this.createAndDispatch(EntityOp.UPSERT_MANY, entities, options);
   }
 
   /**
@@ -421,8 +418,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
 
   /** Set the loading flag */
   setLoading(isLoading: boolean): void {
-    this.createAndDispatch(EntityOp.SET_LOADED, !!isLoading);
+    this.createAndDispatch(EntityOp.SET_LOADING, !!isLoading);
   }
+  // #endregion Cache-only operations that do not update remote storage
+
+  // #region private helpers
 
   /** Get key from entity (unless arg is already a key) */
   private getKey(arg: number | string | T) {
@@ -433,30 +433,31 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * Return Observable of data from the server-success EntityAction with
    * the given Correlation Id, after that action was processed by the ngrx store.
    * or else put the server error on the Observable error channel.
-   * @param coRelId The correlationId for both the save and response actions.
+   * @param crid The correlationId for both the save and response actions.
    */
-  private getResponseData$<D = any>(coRelId: any): Observable<D> {
+  private getResponseData$<D = any>(crid: any): Observable<D> {
     return this.actions$.pipe(
       filter((act: EntityAction) => {
-        const { correlationId, entityName, op } = act.payload;
-        return entityName === this.entityName && correlationId === coRelId && (op.endsWith(OP_ERROR) || op.endsWith(OP_SUCCESS));
+        const { correlationId, entityName, entityOp } = act.payload;
+        return entityName === this.entityName && correlationId === crid && (entityOp.endsWith(OP_ERROR) || entityOp.endsWith(OP_SUCCESS));
       }),
       first(),
-      mergeMap(act => (act.payload.op.endsWith(OP_SUCCESS) ? of(act.payload.data as D) : throwError(act.payload.data))),
+      mergeMap(act => (act.payload.entityOp.endsWith(OP_SUCCESS) ? of(act.payload.data as D) : throwError(act.payload.data))),
       share()
     );
   }
-}
 
-export function setQueryEntityActionOptions(options: EntityActionOptions): EntityActionOptions {
-  options = options || {};
-  const correlationId = options.correlationId == null ? getGuidComb() : options.correlationId;
-  return { ...options, correlationId };
-}
+  private setQueryEntityActionOptions(options: EntityActionOptions): EntityActionOptions {
+    options = options || {};
+    const correlationId = options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
+    return { ...options, correlationId };
+  }
 
-export function setSaveEntityActionOptions(options: EntityActionOptions, defaultOptimism: boolean): EntityActionOptions {
-  options = options || {};
-  const isOptimistic = options.isOptimistic == null ? defaultOptimism || false : options.isOptimistic === true;
-  const correlationId = options.correlationId == null ? getGuidComb() : options.correlationId;
-  return { ...options, correlationId, isOptimistic };
+  private setSaveEntityActionOptions(options: EntityActionOptions, defaultOptimism: boolean): EntityActionOptions {
+    options = options || {};
+    const correlationId = options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
+    const isOptimistic = options.isOptimistic == null ? defaultOptimism || false : options.isOptimistic === true;
+    return { ...options, correlationId, isOptimistic };
+  }
+  // #endregion private helpers
 }

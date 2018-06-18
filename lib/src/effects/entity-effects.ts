@@ -7,7 +7,7 @@ import { concatMap, catchError, delay, map } from 'rxjs/operators';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
-import { EntityOp, OP_SUCCESS } from '../actions/entity-op';
+import { EntityOp, makeSuccessOp } from '../actions/entity-op';
 import { ofEntityOp } from '../actions/entity-action-operators';
 import { Update } from '../utils/ngrx-entity-models';
 
@@ -21,10 +21,7 @@ export const persistOps: EntityOp[] = [
   EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD_ONE,
   EntityOp.SAVE_DELETE_ONE,
-  EntityOp.SAVE_UPDATE_ONE,
-  EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
-  EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
-  EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC
+  EntityOp.SAVE_UPDATE_ONE
 ];
 
 /** Token to inject a special RxJS Scheduler during marble tests. */
@@ -77,9 +74,9 @@ export class EntityEffects {
   }
 
   private callDataService(action: EntityAction) {
-    const { entityName, op, data } = action.payload;
+    const { entityName, entityOp, data } = action.payload;
     const service = this.dataService.getService(entityName);
-    switch (op) {
+    switch (entityOp) {
       case EntityOp.QUERY_LOAD:
       case EntityOp.QUERY_ALL: {
         return service.getAll();
@@ -90,15 +87,12 @@ export class EntityEffects {
       case EntityOp.QUERY_MANY: {
         return service.getWithQuery(data);
       }
-      case EntityOp.SAVE_ADD_ONE_OPTIMISTIC:
       case EntityOp.SAVE_ADD_ONE: {
         return service.add(data);
       }
-      case EntityOp.SAVE_DELETE_ONE_OPTIMISTIC:
       case EntityOp.SAVE_DELETE_ONE: {
         return service.delete(data);
       }
-      case EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC:
       case EntityOp.SAVE_UPDATE_ONE: {
         const { id, changes } = data as Update<any>; // data must be Update<T>
         return service.update(data).pipe(
@@ -113,7 +107,7 @@ export class EntityEffects {
         );
       }
       default: {
-        throw new Error(`Persistence action "${op}" is not implemented.`);
+        throw new Error(`Persistence action "${entityOp}" is not implemented.`);
       }
     }
   }
@@ -135,8 +129,8 @@ export class EntityEffects {
    * return a scalar success action that looks like the operation succeeded.
    */
   private handleSkipSuccess$(originalAction: EntityAction): Observable<EntityAction> {
-    const successOp = <EntityOp>(originalAction.payload.op + OP_SUCCESS);
-    const successAction = this.entityActionFactory.createFromAction(originalAction, { op: successOp });
+    const successOp = makeSuccessOp(originalAction.payload.entityOp);
+    const successAction = this.entityActionFactory.createFromAction(originalAction, { entityOp: successOp });
     // Although returns immediately,
     // ensure observable takes one tick (by using a promise),
     // as app likely assumes asynchronous response.

@@ -1,11 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 
-import {
-  createFeatureSelector,
-  createSelector,
-  Selector,
-  Store
-} from '@ngrx/store';
+import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
 import { Observable } from 'rxjs';
@@ -15,16 +10,10 @@ import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { OP_ERROR } from '../actions/entity-op';
 import { ofEntityType } from '../actions/entity-action-operators';
-import {
-  ENTITY_CACHE_SELECTOR_TOKEN,
-  EntityCacheSelector
-} from './entity-cache-selector';
+import { ENTITY_CACHE_SELECTOR_TOKEN, EntityCacheSelector } from './entity-cache-selector';
 import { EntitySelectors } from './entity-selectors';
 import { EntityCache } from '../reducers/entity-cache';
-import {
-  EntityCollection,
-  ChangeStateMap
-} from '../reducers/entity-collection';
+import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntitySelectorsFactory } from './entity-selectors';
 
@@ -69,9 +58,7 @@ export interface EntitySelectors$<T> {
   readonly loading$: Observable<boolean> | Store<boolean>;
 
   /** ChangeState (including original values) of entities with unsaved changes */
-  readonly changeState$:
-    | Observable<ChangeStateMap<T>>
-    | Store<ChangeStateMap<T>>;
+  readonly changeState$: Observable<ChangeStateMap<T>> | Store<ChangeStateMap<T>>;
 }
 
 @Injectable()
@@ -82,8 +69,7 @@ export class EntitySelectors$Factory {
   constructor(
     private store: Store<any>,
     private actions: Actions,
-    @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
-    private selectEntityCache: EntityCacheSelector
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private selectEntityCache: EntityCacheSelector
   ) {
     // This service applies to the cache in ngrx/store named `cacheName`
     this.entityCache$ = this.store.select(this.selectEntityCache);
@@ -95,10 +81,7 @@ export class EntitySelectors$Factory {
    * @param entityName - is also the name of the collection.
    * @param selectors - selector functions for this collection.
    **/
-  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
-    entityName: string,
-    selectors?: EntitySelectors<T>
-  ): S$ {
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string, selectors?: EntitySelectors<T>): S$ {
     const selectors$: { [prop: string]: any } = {
       entityName
     };
@@ -112,9 +95,7 @@ export class EntitySelectors$Factory {
       }
     });
     selectors$.entityActions$ = this.actions.pipe(ofEntityType(entityName));
-    selectors$.errors$ = selectors$.entityActions$.pipe(
-      filter((ea: EntityAction) => ea.op.endsWith(OP_ERROR))
-    );
+    selectors$.errors$ = selectors$.entityActions$.pipe(filter((ea: EntityAction) => ea.payload.entityOp.endsWith(OP_ERROR)));
     return selectors$ as S$;
   }
 }

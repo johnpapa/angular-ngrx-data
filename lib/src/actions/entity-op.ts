@@ -1,9 +1,3 @@
-/** "Success" suffix appended to EntityOps that are successful.*/
-export const OP_SUCCESS = '/success';
-
-/** "Error" suffix appended to EntityOps that have failed.*/
-export const OP_ERROR = '/error';
-
 // Ensure that these suffix values and the EntityOp suffixes match
 // Cannot do that programmatically.
 
@@ -38,18 +32,6 @@ export enum EntityOp {
   SAVE_UPDATE_ONE_SUCCESS = 'ngrx-data/save/update-one/success',
   SAVE_UPDATE_ONE_ERROR = 'ngrx-data/save/update-one/error',
 
-  SAVE_ADD_ONE_OPTIMISTIC = 'ngrx-data/save/add-one/optimistic',
-  SAVE_ADD_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/add-one/optimistic/error',
-  SAVE_ADD_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/add-one/optimistic/success',
-
-  SAVE_DELETE_ONE_OPTIMISTIC = 'ngrx-data/save/delete-one/optimistic',
-  SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/delete-one/optimistic/success',
-  SAVE_DELETE_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/delete-one/optimistic/error',
-
-  SAVE_UPDATE_ONE_OPTIMISTIC = 'ngrx-data/save/update-one/optimistic',
-  SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS = 'ngrx-data/save/update-one/optimistic/success',
-  SAVE_UPDATE_ONE_OPTIMISTIC_ERROR = 'ngrx-data/save/update-one/optimistic/error',
-
   // Cache operations
   ADD_ALL = 'ngrx-data/add-all',
   ADD_MANY = 'ngrx-data/add-many',
@@ -74,4 +56,20 @@ export enum EntityOp {
   SET_FILTER = 'ngrx-data/set-filter',
   SET_LOADED = 'ngrx-data/set-loaded',
   SET_LOADING = 'ngrx-data/set-loading'
+}
+
+/** "Success" suffix appended to EntityOps that are successful.*/
+export const OP_SUCCESS = '/success';
+
+/** "Error" suffix appended to EntityOps that have failed.*/
+export const OP_ERROR = '/error';
+
+/** Make the error EntityOp corresponding to the given EntityOp */
+export function makeErrorOp(op: EntityOp): EntityOp {
+  return <EntityOp>(op + OP_ERROR);
+}
+
+/** Make the success EntityOp corresponding to the given EntityOp */
+export function makeSuccessOp(op: EntityOp): EntityOp {
+  return <EntityOp>(op + OP_SUCCESS);
 }

@@ -1,6 +1,6 @@
 /** TODO: much more testing */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Action, StoreModule, Store } from '@ngrx/store';
+import { Action, ScannedActionsSubject, StoreModule, Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
 import { Subject } from 'rxjs';
@@ -26,6 +26,8 @@ class Hero {
 
 describe('EntityCollectionService', () => {
   describe('Commands', () => {
+    // Borrowing the dispatcher tests from entity-dispatcher.spec.
+    // The critical difference: those test didn't invoke the reducers; they do when run here.
     commandDispatchTest(heroDispatcherSetup);
   });
 
@@ -33,25 +35,24 @@ describe('EntityCollectionService', () => {
     let entityCollectionServiceFactory: EntityCollectionServiceFactory;
     let heroService: EntityCollectionService<Hero>;
     let store: Store<EntityCache>;
-    let createAction: (entityName: string, op: EntityOp, payload: any) => EntityAction;
+    let entityActionFactory: EntityActionFactory;
 
     function dispatchedAction() {
       return <EntityAction>(<jasmine.Spy>store.dispatch).calls.argsFor(0)[0];
     }
 
     beforeEach(() => {
-      // Note: bug in linter is responsible for this tortured syntax.
-      const factorySetup = entityServiceFactorySetup();
-      const { entityActionFactory, testStore } = factorySetup;
-      entityCollectionServiceFactory = factorySetup.entityCollectionServiceFactory;
+      const setup = entityServiceFactorySetup();
+      entityActionFactory = setup.entityActionFactory;
+      entityCollectionServiceFactory = setup.entityCollectionServiceFactory;
       heroService = entityCollectionServiceFactory.create<Hero>('Hero');
-      store = testStore;
-      createAction = entityActionFactory.create.bind(entityActionFactory);
+      store = setup.store;
+      spyOn(store, 'dispatch').and.callThrough();
     });
 
     it('can get collection from collection$', () => {
       let collection: EntityCollection<Hero>;
-      const action = createAction('Hero', EntityOp.ADD_ALL, [{ id: 1, name: 'A' }]);
+      const action = entityActionFactory.create('Hero', EntityOp.ADD_ALL, [{ id: 1, name: 'A' }]);
       store.dispatch(action);
       heroService.collection$.subscribe(c => {
         collection = c;
@@ -67,7 +68,7 @@ describe('EntityCollectionService', () => {
 
       // An action that goes through the Hero's EntityCollectionReducer
       // creates the collection in the store as a side-effect
-      const heroAction = createAction('Hero', EntityOp.SET_FILTER, 'test');
+      const heroAction = entityActionFactory.create('Hero', EntityOp.SET_FILTER, 'test');
       store.dispatch(heroAction);
 
       expect(entityCacheValues.length).toEqual(2, 'set the cache twice');
@@ -99,8 +100,8 @@ function entityServiceFactorySetup() {
     ]
   });
 
-  const testStore: Store<EntityCache> = TestBed.get(Store);
-  spyOn(testStore, 'dispatch').and.callThrough();
+  const scannedActions$ = TestBed.get(ScannedActionsSubject);
+  const store: Store<EntityCache> = TestBed.get(Store);
 
   const entityActionFactory: EntityActionFactory = TestBed.get(EntityActionFactory);
   const entityCollectionServiceFactory: EntityCollectionServiceFactory = TestBed.get(EntityCollectionServiceFactory);
@@ -109,13 +110,15 @@ function entityServiceFactorySetup() {
     actions$,
     entityActionFactory,
     entityCollectionServiceFactory,
-    testStore
+    scannedActions$,
+    store
   };
 }
 
 function heroDispatcherSetup() {
-  const { entityCollectionServiceFactory, testStore } = entityServiceFactorySetup();
-  const dispatcher: EntityCollectionService<Hero> = entityCollectionServiceFactory.create<Hero>('Hero');
-  return { dispatcher, testStore };
+  const { entityCollectionServiceFactory, store } = entityServiceFactorySetup();
+  const heroService = entityCollectionServiceFactory.create<Hero>('Hero');
+  const dispatcher = heroService.dispatcher;
+  return { dispatcher, store };
 }
 // endregion test helpers

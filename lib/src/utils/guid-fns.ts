@@ -1,6 +1,6 @@
 // Client-side id-generator
 /**
- * Creates a Universally Unique Identifier (AKA Guid)
+ * Creates a Universally Unique Identifier (AKA GUID)
  */
 export function getUuid() {
   // The original implementation is based on this SO answer:
@@ -14,8 +14,13 @@ export function getUuid() {
   });
 }
 
+/** Alias for getUuid(). Compare with getGuidComb(). */
+export function getGuid() {
+  return getUuid();
+}
+
 /**
- * Creates a pseudo-Guid (globally unique identifier)
+ * Creates a sortable, pseudo-GUID (globally unique identifier)
  * whose trailing 6 bytes (12 hex digits) are time-based
  * Start either with the given getTime() value, seedTime,
  * or get the current time in ms.

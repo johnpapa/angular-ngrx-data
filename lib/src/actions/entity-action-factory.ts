@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 
 import { EntityOp } from './entity-op';
-import { EntityAction, EntityActionOptions, EntityActionPayload, extractActionData } from './entity-action';
+import { EntityAction, EntityActionOptions, EntityActionPayload } from './entity-action';
 @Injectable()
 export class EntityActionFactory {
   /**
@@ -11,7 +11,7 @@ export class EntityActionFactory {
    * @param entityName Name of the entity type
    * @param entityOp Operation to perform (EntityOp)
    * @param [data] data for the operation
-   * @param options additional options
+   * @param [options] additional options
    */
   create<P = any>(entityName: string, entityOp: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P>;
 
@@ -29,9 +29,9 @@ export class EntityActionFactory {
     options?: EntityActionOptions
   ): EntityAction<P> {
     const payload: EntityActionPayload<P> =
-      typeof nameOrPayload === 'string' ? { entityName: nameOrPayload, op: entityOp, data } : nameOrPayload;
+      typeof nameOrPayload === 'string' ? { ...(options || {}), entityName: nameOrPayload, entityOp, data } : nameOrPayload;
 
-    const { entityName, op, tag } = payload;
+    const { entityName, entityOp: op, tag } = payload;
 
     if (!entityName) {
       throw new Error('Missing entity name for new action');
@@ -39,7 +39,7 @@ export class EntityActionFactory {
     if (op == null) {
       throw new Error('Missing EntityOp for new action');
     }
-    const type = this.formatActionType(op, tag || entityName);
+    const type = this.formatActionType(entityOp, tag || entityName);
     return { type, payload };
   }
 

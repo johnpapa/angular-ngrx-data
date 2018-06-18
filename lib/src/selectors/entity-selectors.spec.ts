@@ -4,10 +4,7 @@ import { EntityCache } from '../reducers/entity-cache';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
 import { EntityCollection } from '../reducers/entity-collection';
 import { createEmptyEntityCollection } from '../reducers/entity-collection-creator';
-import {
-  EntityMetadata,
-  EntityMetadataMap
-} from '../entity-metadata/entity-metadata';
+import { EntityMetadata, EntityMetadataMap } from '../entity-metadata/entity-metadata';
 import { PropsFilterFnFactory } from '../entity-metadata/entity-filters';
 
 import { EntitySelectors, EntitySelectorsFactory } from './entity-selectors';
@@ -32,9 +29,7 @@ describe('EntitySelectors', () => {
   let entitySelectorsFactory: EntitySelectorsFactory;
 
   beforeEach(() => {
-    collectionCreator = jasmine.createSpyObj('entityCollectionCreator', [
-      'create'
-    ]);
+    collectionCreator = jasmine.createSpyObj('entityCollectionCreator', ['create']);
     entitySelectorsFactory = new EntitySelectorsFactory(collectionCreator);
   });
 
@@ -48,10 +43,7 @@ describe('EntitySelectors', () => {
 
     it('creates collection selector that defaults to initial state', () => {
       collectionCreator.create.and.returnValue(initialState);
-      const selectors = entitySelectorsFactory.createCollectionSelector<
-        Hero,
-        HeroCollection
-      >('Hero');
+      const selectors = entitySelectorsFactory.createCollectionSelector<Hero, HeroCollection>('Hero');
       const state = { entityCache: {} }; // ngrx store with empty cache
       const collection = selectors(state);
       expect(collection.entities).toEqual(initialState.entities, 'entities');
@@ -61,10 +53,7 @@ describe('EntitySelectors', () => {
 
     it('collection selector should return cached collection when it exists', () => {
       // must specify type-args when initialState isn't available for type inference
-      const selectors = entitySelectorsFactory.createCollectionSelector<
-        Hero,
-        HeroCollection
-      >('Hero');
+      const selectors = entitySelectorsFactory.createCollectionSelector<Hero, HeroCollection>('Hero');
 
       // ngrx store with populated Hero collection
       const state = {
@@ -81,10 +70,7 @@ describe('EntitySelectors', () => {
       };
 
       const collection = selectors(state);
-      expect(collection.entities[42]).toEqual(
-        { id: 42, name: 'The Answer' },
-        'entities'
-      );
+      expect(collection.entities[42]).toEqual({ id: 42, name: 'The Answer' }, 'entities');
       expect(collection.foo).toBe('towel', 'foo');
       expect(collectionCreator.create).not.toHaveBeenCalled();
     });
@@ -111,20 +97,12 @@ describe('EntitySelectors', () => {
     it('should have expected Hero selectors (a super-set of EntitySelectors)', () => {
       const store = { entityCache: { Hero: heroCollection } };
 
-      const selectors = entitySelectorsFactory.create<Hero, HeroSelectors>(
-        heroMetadata
-      );
+      const selectors = entitySelectorsFactory.create<Hero, HeroSelectors>(heroMetadata);
 
       expect(selectors.selectEntities).toBeDefined('selectEntities');
-      expect(selectors.selectEntities(store)).toEqual(
-        heroEntities,
-        'selectEntities'
-      );
+      expect(selectors.selectEntities(store)).toEqual(heroEntities, 'selectEntities');
 
-      expect(selectors.selectFilteredEntities(store)).toEqual(
-        heroEntities.filter(h => h.name === 'B'),
-        'filtered B heroes'
-      );
+      expect(selectors.selectFilteredEntities(store)).toEqual(heroEntities.filter(h => h.name === 'B'), 'filtered B heroes');
 
       expect(selectors.selectFoo).toBeDefined('selectFoo exists');
       expect(selectors.selectFoo(store)).toBe('Foo', 'execute `selectFoo`');
@@ -143,15 +121,9 @@ describe('EntitySelectors', () => {
       const selectors = eaFactory.create<Hero, HeroSelectors>(heroMetadata);
 
       expect(selectors.selectEntities).toBeDefined('selectEntities');
-      expect(selectors.selectEntities(store)).toEqual(
-        heroEntities,
-        'selectEntities'
-      );
+      expect(selectors.selectEntities(store)).toEqual(heroEntities, 'selectEntities');
 
-      expect(selectors.selectFilteredEntities(store)).toEqual(
-        heroEntities.filter(h => h.name === 'B'),
-        'filtered B heroes'
-      );
+      expect(selectors.selectFilteredEntities(store)).toEqual(heroEntities.filter(h => h.name === 'B'), 'filtered B heroes');
 
       expect(selectors.selectFoo).toBeDefined('selectFoo exists');
       expect(selectors.selectFoo(store)).toBe('Foo', 'execute `selectFoo`');
@@ -165,10 +137,7 @@ describe('EntitySelectors', () => {
       const selectors = entitySelectorsFactory.create<Hero>('Hero');
       expect(selectors.selectEntities).toBeDefined('selectEntities');
       expect(selectors.selectFoo).not.toBeDefined('selectFoo should not exist');
-      expect(selectors.selectFilteredEntities(store)).toEqual(
-        heroEntities,
-        'filtered same as all hero entities'
-      );
+      expect(selectors.selectFilteredEntities(store)).toEqual(heroEntities, 'filtered same as all hero entities');
     });
 
     it('should have expected Villain selectors', () => {
@@ -183,15 +152,9 @@ describe('EntitySelectors', () => {
       const expectedEntities: Villain[] = [{ key: 'evil', name: 'A' }];
 
       expect(selectors.selectEntities).toBeDefined('selectAll');
-      expect(selectors.selectEntities(store)).toEqual(
-        expectedEntities,
-        'try selectAll'
-      );
+      expect(selectors.selectEntities(store)).toEqual(expectedEntities, 'try selectAll');
 
-      expect(selectors.selectFilteredEntities(store)).toEqual(
-        expectedEntities,
-        'all villains because no filter fn'
-      );
+      expect(selectors.selectFilteredEntities(store)).toEqual(expectedEntities, 'all villains because no filter fn');
     });
   });
 });
@@ -199,7 +162,7 @@ describe('EntitySelectors', () => {
 /////// Test values and helpers /////////
 
 function createHeroState(state: Partial<HeroCollection>): HeroCollection {
-  return { ...createEmptyEntityCollection<Hero>(), ...state } as HeroCollection;
+  return { ...createEmptyEntityCollection<Hero>('Hero'), ...state } as HeroCollection;
 }
 
 function nameFilter<T>(entities: T[], pattern: string) {

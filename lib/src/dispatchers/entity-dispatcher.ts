@@ -8,16 +8,6 @@ import { EntityOp } from '../actions/entity-op';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 
 /**
- * Default options for EntityDispatcher behavior
- * such as whether `add()` is optimistic or pessimistic by default
- */
-export interface DefaultDispatcherOptions {
-  optimisticAdd: boolean;
-  optimisticDelete: boolean;
-  optimisticUpdate: boolean;
-}
-
-/**
  * Dispatches Entity-related commands to effects and reducers
  */
 export interface EntityDispatcher<T> extends EntityCommands<T> {

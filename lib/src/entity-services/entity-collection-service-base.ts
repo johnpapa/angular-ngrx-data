@@ -25,7 +25,7 @@ import { QueryParams } from '../dataservices/interfaces';
  * as a source of supporting services for creating an EntityCollectionService<T> instance.
  */
 export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> implements EntityCollectionService<T> {
-  /** Dispatcher of EntiyCommands (EntityActions) */
+  /** Dispatcher of EntityCommands (EntityActions) */
   readonly dispatcher: EntityDispatcher<T>;
 
   /** All selectors of entity collection properties */

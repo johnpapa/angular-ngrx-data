@@ -18,8 +18,10 @@ export * from './dataservices/interfaces';
 export * from './dataservices/persistence-result-handler.service';
 
 // dispatchers
+export * from './dispatchers/default-dispatcher-options';
 export * from './dispatchers/entity-commands';
 export * from './dispatchers/entity-dispatcher';
+export * from './dispatchers/entity-dispatcher-base';
 export * from './dispatchers/entity-dispatcher-factory';
 
 // effects
@@ -39,6 +41,7 @@ export * from './entity-services/entity-services-base';
 
 // reducers
 export * from './reducers/constants';
+export * from './reducers/default-entity-change-tracker';
 export * from './reducers/default-entity-collection-reducer-methods';
 export * from './reducers/entity-cache';
 export * from './reducers/entity-change-tracker';
@@ -53,10 +56,11 @@ export * from './selectors/entity-selectors$';
 export * from './selectors/entity-cache-selector';
 
 // Utils
-export * from './utils/guid-fns';
-export * from './utils/interfaces';
+export * from './utils/correlation-id-generator';
 export * from './utils/default-logger';
 export * from './utils/default-pluralizer';
+export * from './utils/guid-fns';
+export * from './utils/interfaces';
 export * from './utils/ngrx-entity-models'; // should be exported by @ngrx/entity
 export * from './utils/utilities';
 

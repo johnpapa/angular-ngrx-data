@@ -1,12 +1,15 @@
 # Angular ngrx-data library ChangeLog
 
-<a id="6.0.1-beta.7"></a>
+<a id="6.0.2-beta.7"></a>
 
-# 6.0.1-beta.7 (2018-06-03)
+# 6.0.2-beta.7 (2018-06-20)
 
 This release is primarily about the new, one-level _change tracking_ feature,
 which makes _optimistic saves_ a viable choice (possibly the preferred choice),
 now that you can recover from a save error by undoing (reverting).
+
+This new feature provoked a cascade of changes, most of them related to change tracking,
+and many of them are **breaking changes**.
 
 ## Features
 
@@ -44,26 +47,150 @@ See `entity-change-tracker.md` for discussion and details.
 
 ### Other Features
 
-The `QUERY_ALL_SUCCESS` operation used to **reset the collection**.
-That functionality now belongs to the new `QUERY_LOAD` operation.
+**_DefaultDispatcherOptions_ can be provided**
+Previously the default for options governing whether saves were optimistic or pessimistic was
+hardwired into the `EntityDispatcherFactory`.
+The defaults were deemed to be the safest values:
 
-Its `QUERY_LOAD_SUCCESS` now shares the same reducer method with `ADD_ALL`.
-They both reset entity data, clear change tracking data, and
-set the loading (false) and loaded (true) flags.
+```
+/** True if added entities are saved optimistically; False if saved pessimistically. */
+optimisticAdd: false;
+/** True if deleted entities are saved optimistically; False if saved pessimistically. */
+optimisticDelete: true;
+/** True if updated entities are saved optimistically; False if saved pessimistically. */
+optimisticUpdate: false;
+```
 
-By default, the `QUERY_ALL_SUCCESS_` **merges** entities with the collection, based on the
+You could (and still can) change these options at the collection level in the entity metadata.
+But you couldn't change the _defaults for all collections_.
+
+Now the collection defaults are in the `DefaultDispatcherOptions` service class, which is
+provided in the `NgrxDataWithoutEffectsModule`.
+Your app can provide an alternative to change these defaults.
+For example, you could make all save operations optimistic by default.
+
+```
+@Injectable()
+export class OptimisticDefaultDispatcherOptions {
+  optimisticAdd = true;
+  optimisticDelete = true;
+  optimisticUpdate = true;
+}
+
+@NgModule({
+  imports:   [ NgrxDataModule.forRoot({...}) ],
+  providers: [
+    { provide: DefaultDispatcherOptions, useClass: OptimisticDefaultDispatcherOptions },
+    ...
+  ]
+})
+export class EntityStoreModule {}
+```
+
+**Dispatcher query and save methods return Observables**
+
+The dispatcher query and save methods (`add`, `delete`, `update`, and `upsert`) used to return `void`.
+That was architecturally consistent with the CQRS pattern in which (c)ommands never return a result.
+Only (q)ueries in the guise of selectors returned values by way of Observables.
+
+The CQRS principle had to give way to practicality.
+Real apps often "wait" (asynchronously of course) until the save result becomes known.
+Ngrx-data saves are implemented with an ngrx _effect_ and
+effects decouple the HTTP request from the server result.
+It was difficult to know when a save operation completed, either successfully or with an error.
+
+In this release, **each of these methods return a terminating Observable of the operation result** which emits when the
+server responds and after the reducers have applied the result to the collection.
+
+> Cache-only commands continue to return `void`.
+
+Now you can subscribe to these observables to learn when the server request completed and
+to examine the result or error.
+
+```
+heroService.add(newHero).subscribe(
+  hero => ...,
+  error => ...
+);
+```
+
+Of course you can stay true to CQRS and ignore these results.
+Your existing query and save callers will compile and work as before.
+
+This feature does introduce a _breaking change_ for those apps that create custom entity collection services
+and override the base methods.
+These overrides must now return an appropriate terminating Observable.
+
+_Implementation note_: ngrx-data associates the initiating action (e.g., `QUERY_ALL`) ngrx-data to the reply actions
+(e.g,. `QUERY_ALL_SUCCESS` and `QUERY_ALL_ERROR` with a _correlation id_,
+which it generates automatically.
+Alternatively you can specify the `correlationId` as an option.
+
+**Removed _OPTIMISTIC..._ EntityOps in favor of a flag (breaking change)**
+
+The number of EntityOps and corresponding `EntityCollectionReducer` methods have been growing (see below).
+Getting rid of the `OPTIMISTIC` ops is a welcome step in the other direction and makes reducer logic
+a bit simpler.
+
+You can still choose an optimistic save with the action payload's `isOptimistic` option.
+The dispatcher defaults (see `DefaultDispatcherOptions`) have not changed.
+If you don't specify `isOptimistic`, it defaults to `false` for _adds_ and _updates_ and `true` for _deletes_.
+
+**`EntityAction` properties moved to the payload (breaking change)**
+
+The properties on the `EntityAction` was also getting out of hand.
+Had we continued the trend, the `MergeStrategy` and the `isOptimistic` flag would have
+joined `entityName`, `op`, `tag` (FKA `label`), `skip`, and `error` as properties of the `EntityAction`.
+Future options would mean more action properties and more complicated EntityAction creation.
+
+This was a bad trend. From the beginning we have been uncomfortable with adding any properties to the action
+as ngrx actions out-of-the-box are just a _type_ and an optional _payload_.
+
+Now almost all properties have moved to the payload.
+
+```
+// entity-action.ts
+export interface EntityAction<P = any> extends Action {
+  readonly type: string;
+  readonly payload: EntityActionPayload<P>;
+}
+
+export interface EntityActionPayload<P = any> {
+  readonly entityName: string;
+  readonly op: EntityOp;
+  readonly data?: P;
+  readonly correlationId?: any;
+  readonly isOptimistic?: boolean;
+  readonly mergeStrategy?: MergeStrategy;
+  readonly tag?: string;
+
+  // Mutable.
+  error?: Error;
+  skip?: boolean;
+}
+```
+
+**New _QUERY_LOAD_ EntityOp**
+
+`QUERY_ALL` used to fetch all entities of a collection and `QUERY_ALL_SUCCESS`
+reset the collection with those entities.
+That's not always correct.
+Now that you can have unsaved changes, including unsaved adds and deletes,
+querying for all entities should be able to leave those pending changes in place and
+merely update the collection.
+
+That's how `QUERY_ALL...` behaves as of this release.
+The `QUERY_ALL_SUCCESS` **merges** entities with the collection, based on the
 change tracking
 
-It used to res no longer resets the collection data
-The new `QUERY_LOAD` resets entity data, clears change tracking data, and
-sets the loading (false) and loaded (true) flags.
-It shares its implementation with `ADD_ALL` which
-`QUERY_SUCCESS_ALL` and `ADD_ALL` should have the same effect on the
-collection: they reset entity data, clear change tracking data, and
-set the loading (false) and loaded (true) flags.
-They now share the same reducer method.
+Yet there is still a need to _both_ clear the collection _and_ reinitialize if with all fetched entities.
+While you could achieve this with two actions, `REMOVE_ALL` and `QUERY_ALL`,
+the new `QUERY_LOAD...` does both more efficiently.
 
-Added `SET_COLLECTION` EntityOp to completely replace the collection.
+The new `QUERY_LOAD...` resets entity data, clears change tracking data, and
+sets the loading (false) and loaded (true) flags.
+
+**Added `SET_COLLECTION`** EntityOp to completely replace the collection.
 Good for testing and rehydrating collection from local storage.
 Dangerous. Use wisely and rarely.
 
@@ -76,9 +203,25 @@ If you merged to each collection individually, the collection `selectors$` would
 after each collection merge, which could provoke an unfortunate race condition
 as when adding order line items before the parent order itself.
 
+**_Guid utility functions and \_CorrelationIdGenerator_**
+
+New utility functions, `getGuid()`, `getUuid()`, and `getGuidComb()` generate pseudo-GUID strings
+for client-side id generation.
+The `getGuidComb()` function produces sequential guids which are sortable and often nice to SQL databases.
+All three produce 32-character hexadecimal UUID strings, not the 128-bit representation.
+
+The `_CorrelationIdGenerator_` service `next()` method produces a string correlation id
+consisting of 'CRID' plus an increasing integer.
+Generated ids are unique only for a single browser session.
+The entity dispatcher save and query methods call it to generate correlation ids that
+associate a start action with its success or error action.
+You can replace it by providing an alternative implementation.
+
+**_DataServiceError_ extends from _Error_**
+
 ## Breaking Changes
 
-## Change-tracking-related
+### Change-tracking-related
 
 The change tracking feature required replacement of the `EntityCollection.originalValues` with `EntityCollection.changeState`.
 
@@ -115,21 +258,52 @@ It is possible that an app or its tests expected ngrx-data to make these DELETE 
 
 ### Other Breaking Changes
 
-**Renamed `EntityAction.label` to `EntityAction.tag`** because the word "label" is
-too semantically close to the `Action.type`.
-"Tag" conveys the freedom and flexibility we're looking for.
-We hope that relatively few are affected by this and the fix is easy.
+**`EntityAction` properties moved to the payload**
 
-`ADD_ALL` resets the loading (false) and loaded (true) flags, different behavior than before.
+As mentioned above. This change effects those who worked directly with `EntityAction` instances.
+
+**`EntityAction.op` property renamed `entityOp`**
+
+While moving entity action properties to ``EntityAction.payload`the`op`property became`entityOp` for three reasons.
+
+1.  The rename reduces the likelihood that a non-EntityAction payload has a similarly named property that
+    would cause ngrx-data to treat the action as an `EntityAction`.
+
+1.  It should always have been called `entityOp` for consistency with its type as the value of the `EntityOp` enumeration.
+
+1.  The timing is right because the relocation of properties to the payload is already a breaking change.
+
+**Service dispatcher query and save methods must return an Observable**
+
+This feature, described above, introduces a _breaking change_ for those apps that create custom entity collection services
+and override the base methods.
+These overrides must now return an appropriate terminating Observable.
+
+**Renamed `EntityAction.label`**.
+
+The word "label" is semantically too close to the word "type" in `Action.type` and easy to confuse with the type.
+"Tag" conveys the freedom and flexibility we're looking for.
+The EntityAction formatter will embed the "tag" in the type as it did the label.
+We hope that relatively few are affected by this renaming.
+
+More significantly, the tag (FKA label) is now part of the payload rather than a property of the action.
+
+**`ADD_ALL` resets the loading (false) and loaded (true) flags**.
 
 **Deleted `MERGE_ENTITY_CACHE`** as it has never been used and can be easily implemented with
 `ENTITY_CACHE_SET` and a little code to get the current entity cache state.
 
 **Moved `SET_ENTITY_CACHE` under `EntityCacheAction.SET_ENTITY_CACHE`**.
 
-<a id="6.0.1-beta.6"></a>
+**Eliminated the `_OPTIMISTIC` variations of the save `EntityActions`** and their corresponding reducer methods.
+Now add, update, and delete are handled by single save actions and their reducers behave pessimistically or
+optimistically based on the `isOptimistic` flag in the `EntityActionOptions` in the action payload.
+This change does not affect the primary application API and should break only those apps that delved below
+the ngrx-data surface such as apps that implement their own entity action reducers.
 
-# 6.0.1-beta.6 (2018-05-24)
+<a id="6.0.0-beta.6"></a>
+
+# 6.0.0-beta.6 (2018-05-24)
 
 ## _EntityActions_ replaced by _EntityAction operators_
 
@@ -234,9 +408,9 @@ Import it instead of `NgrxDataModule`, like this.
 export class EntityAppModule {...}
 ```
 
-<a id="6.0.1-beta.5"></a>
+<a id="6.0.0-beta.5"></a>
 
-# 6.0.1-beta.5 (2018-05-23)
+# 6.0.0-beta.5 (2018-05-23)
 
 * Update to `@ngrx v.6.0.1` (updated package.json)
 

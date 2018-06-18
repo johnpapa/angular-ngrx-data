@@ -6,7 +6,7 @@ import { Observable, of } from 'rxjs';
 import { DataServiceError, EntityActionDataServiceError } from './data-service-error';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
-import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
+import { EntityOp, makeErrorOp, makeSuccessOp } from '../actions/entity-op';
 import { Logger } from '../utils/interfaces';
 
 /**
@@ -30,23 +30,23 @@ export class DefaultPersistenceResultHandler implements PersistenceResultHandler
 
   /** Handle successful result of persistence operation on an EntityAction */
   handleSuccess(originalAction: EntityAction): (data: any) => Action {
-    const successOp = <EntityOp>(originalAction.payload.op + OP_SUCCESS);
-    return (data: any) => this.entityActionFactory.createFromAction(originalAction, { op: successOp, data });
+    const successOp = makeSuccessOp(originalAction.payload.entityOp);
+    return (data: any) => this.entityActionFactory.createFromAction(originalAction, { entityOp: successOp, data });
   }
 
   /** Handle error result of persistence operation on an EntityAction */
   handleError(originalAction: EntityAction): (error: DataServiceError | Error) => EntityAction<EntityActionDataServiceError> {
-    const errorOp = <EntityOp>(originalAction.payload.op + OP_ERROR);
-    return (error: DataServiceError | Error) => {
-      if (error instanceof Error) {
-        error = new DataServiceError(error, null);
-      }
-      this.logger.error(error);
-      const errorAction = this.entityActionFactory.createFromAction<EntityActionDataServiceError>(originalAction, {
-        op: errorOp,
-        data: { error, originalAction }
+    const errorOp = makeErrorOp(originalAction.payload.entityOp);
+
+    return (err: DataServiceError | Error) => {
+      const error = err instanceof DataServiceError ? err : new DataServiceError(err, null);
+      const errorData: EntityActionDataServiceError = { error, originalAction };
+      this.logger.error(errorData);
+      const action = this.entityActionFactory.createFromAction<EntityActionDataServiceError>(originalAction, {
+        entityOp: errorOp,
+        data: errorData
       });
-      return errorAction;
+      return action;
     };
   }
 }

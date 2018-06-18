@@ -1,5 +1,6 @@
 import { Observable } from 'rxjs';
-import { EntityActionOptions, MergeStrategy } from '../actions/entity-action';
+import { EntityActionOptions } from '../actions/entity-action';
+import { MergeStrategy } from '../actions/merge-strategy';
 import { QueryParams } from '../dataservices/interfaces';
 
 /** Commands that dispatch entity actions for a collection */
@@ -11,7 +12,7 @@ export interface EntityServerCommands<T> {
    * Dispatch action to save a new entity to remote storage.
    * @param entity entity to add, which may omit its key if pessimistic and the server creates the key;
    * must have a key if optimistic save.
-   * @returns Observable of the entity
+   * @returns A terminating Observable of the entity
    * after server reports successful save or the save error.
    */
   add(entity: T, options?: EntityActionOptions): Observable<T>;
@@ -19,7 +20,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The entity to delete
-   * @returns Observable of the deleted key
+   * @returns A terminating Observable of the deleted key
    * after server reports successful save or the save error.
    */
   delete(entity: T, options?: EntityActionOptions): Observable<number | string>;
@@ -35,7 +36,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * merge the queried entities into the cached collection.
-   * @returns Observable of the collection
+   * @returns A terminating Observable of the collection
    * after server reports successful query or the query error.
    * @see load()
    */
@@ -45,7 +46,7 @@ export interface EntityServerCommands<T> {
    * Dispatch action to query remote storage for the entity with this primary key.
    * If the server returns an entity,
    * merge it into the cached collection.
-   * @returns Observable of the queried entities that are in the collection
+   * @returns A terminating Observable of the queried entities that are in the collection
    * after server reports success or the query error.
    */
   getByKey(key: any, options?: EntityActionOptions): Observable<T>;
@@ -55,7 +56,7 @@ export interface EntityServerCommands<T> {
    * with either a query parameter map or an HTTP URL query string,
    * and merge the results into the cached collection.
    * @params queryParams the query in a form understood by the server
-   * @returns Observable of the queried entities
+   * @returns A terminating Observable of the queried entities
    * after server reports successful query or the query error.
    */
   getWithQuery(queryParams: QueryParams | string, options?: EntityActionOptions): Observable<T[]>;
@@ -63,7 +64,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * completely replace the cached collection with the queried entities.
-   * @returns Observable of the collection
+   * @returns A terminating Observable of the entities in the collection
    * after server reports successful query or the query error.
    * @see getAll
    */
@@ -74,7 +75,7 @@ export interface EntityServerCommands<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    * @param entity update entity, which might be a partial of T but must at least have its key.
-   * @returns Observable of the updated entity
+   * @returns A terminating Observable of the updated entity
    * after server reports successful save or the save error.
    */
   update(entity: Partial<T>, options?: EntityActionOptions): Observable<T>;
@@ -104,7 +105,7 @@ export interface EntityCacheCommands<T> {
   addManyToCache(entities: T[], options?: EntityActionOptions): void;
 
   /** Clear the cached entity collection */
-  clearCache(): void;
+  clearCache(options?: EntityActionOptions): void;
 
   /**
    * Remove an entity directly from the cache.

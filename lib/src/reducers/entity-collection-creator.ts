@@ -5,33 +5,24 @@ import { EntityDefinitionService } from '../entity-metadata/entity-definition.se
 
 @Injectable()
 export class EntityCollectionCreator {
-  constructor(
-    @Optional() private entityDefinitionService?: EntityDefinitionService
-  ) {}
+  constructor(@Optional() private entityDefinitionService?: EntityDefinitionService) {}
 
   /**
    * Create the default collection for an entity type.
    * @param entityName {string} entity type name
    */
-  create<T = any, S extends EntityCollection<T> = EntityCollection<T>>(
-    entityName: string
-  ): S {
-    const def =
-      this.entityDefinitionService &&
-      this.entityDefinitionService.getDefinition<T>(
-        entityName,
-        /*shouldThrow*/ false
-      );
+  create<T = any, S extends EntityCollection<T> = EntityCollection<T>>(entityName: string): S {
+    const def = this.entityDefinitionService && this.entityDefinitionService.getDefinition<T>(entityName, false /*shouldThrow*/);
 
     const initialState = def && def.initialState;
 
-    return <S>(initialState || createEmptyEntityCollection<T>());
+    return <S>(initialState || createEmptyEntityCollection<T>(entityName));
   }
 }
 
-export function createEmptyEntityCollection<T>(): EntityCollection<T> {
+export function createEmptyEntityCollection<T>(entityName?: string): EntityCollection<T> {
   return {
-    entityName: '',
+    entityName,
     ids: [],
     entities: {},
     filter: undefined,

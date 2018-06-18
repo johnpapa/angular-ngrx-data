@@ -12,7 +12,7 @@ export interface EntityAction<P = any> extends Action {
 /** Payload of an EntityAction */
 export interface EntityActionPayload<P = any> extends EntityActionOptions {
   readonly entityName: string;
-  readonly op: EntityOp;
+  readonly entityOp: EntityOp;
   readonly data?: P;
 }
 

@@ -2,9 +2,10 @@ import { ModuleWithProviders, NgModule, Inject, Injector, InjectionToken, Option
 
 import { Action, ActionReducer, combineReducers, MetaReducer, ReducerManager, StoreModule } from '@ngrx/store';
 
+import { CorrelationIdGenerator } from './utils/correlation-id-generator';
+import { DefaultDispatcherOptions } from './dispatchers/default-dispatcher-options';
 import { EntityAction } from './actions/entity-action';
 import { EntityActionFactory } from './actions/entity-action-factory';
-
 import { EntityCache } from './reducers/entity-cache';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
 import { EntityCollectionServiceFactory } from './entity-services/entity-services-interfaces';
@@ -59,6 +60,8 @@ export interface NgrxDataModuleConfig {
     StoreModule // rely on Store feature providers rather than Store.forFeature()
   ],
   providers: [
+    CorrelationIdGenerator,
+    DefaultDispatcherOptions,
     EntityActionFactory,
     entityCacheSelectorProvider,
     EntityCollectionCreator,

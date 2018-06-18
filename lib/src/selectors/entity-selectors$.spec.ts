@@ -231,7 +231,7 @@ describe('EntitySelectors$', () => {
 /////// Test values and helpers /////////
 
 function createHeroState(state: Partial<HeroCollection>): HeroCollection {
-  return { ...createEmptyEntityCollection<Hero>(), ...state } as HeroCollection;
+  return { ...createEmptyEntityCollection<Hero>('Hero'), ...state } as HeroCollection;
 }
 
 function nameFilter<T>(entities: T[], pattern: string) {

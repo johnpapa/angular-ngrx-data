@@ -16,7 +16,7 @@ import { flattenArgs } from '../utils/utilities';
  *  this.actions.pipe(ofEntityOp(EntityOp.QUERY_ALL, EntityOp.QUERY_MANY), ...)
  *  this.actions.pipe(ofEntityOp(...queryOps), ...)
  *  this.actions.pipe(ofEntityOp(queryOps), ...)
- *  this.actions.pipe(ofEntityOp(), ...) // any action with a defined `op` property
+ *  this.actions.pipe(ofEntityOp(), ...) // any action with a defined `entityOp` property
  * ```
  */
 export function ofEntityOp<T extends EntityAction>(allowedOps: string[] | EntityOp[]): OperatorFunction<EntityAction, T>;

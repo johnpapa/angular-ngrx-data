@@ -46,17 +46,20 @@ export class EntityCacheReducerFactory {
         }
       }
 
-      // EntityCollection actions
-      return this.applyCollectionReducer(entityCache, action as EntityAction);
+      // Apply collection reducer if this is a valid EntityAction for a collection
+      const payload = action.payload;
+      if (payload && payload.entityName && payload.entityOp && !payload.error) {
+        return this.applyCollectionReducer(entityCache, action as EntityAction);
+      }
+
+      // Not a valid EntityAction
+      return entityCache;
     }
   }
 
   /** Apply reducer for the action's EntityCollection (if the action targets a collection) */
   private applyCollectionReducer(cache: EntityCache = {}, action: EntityAction) {
     const entityName = action.payload.entityName;
-    if (!entityName || action.payload.error) {
-      return cache; // not an EntityAction or an errant one
-    }
     const collection = cache[entityName];
     const reducer = this.entityCollectionReducerRegistry.getOrCreateReducer(entityName);
 

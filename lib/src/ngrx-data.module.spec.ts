@@ -27,9 +27,7 @@ const EC_METAREDUCER_TOKEN = new InjectionToken<MetaReducer<EntityCache, Action>
 class TestEntityEffects {
   @Effect()
   test$: Observable<Action> = this.actions.pipe(
-    // tap(action => {
-    //   console.log('test$ effect', action);
-    // }),
+    // tap(action => console.log('test$ effect', action)),
     ofEntityOp(persistOps),
     map(this.testHook)
   );

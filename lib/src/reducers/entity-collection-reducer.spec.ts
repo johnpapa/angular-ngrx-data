@@ -78,6 +78,19 @@ describe('EntityCollectionReducer', () => {
     initialCache = createInitialCache({ Hero: initialHeroes });
   });
 
+  it('should ignore an action without an EntityOp', () => {
+    // should not throw
+    const action = {
+      type: 'does-not-matter',
+      payload: {
+        entityName: 'Hero',
+        entityOp: undefined as EntityOp
+      }
+    };
+    const newCache = entityReducer(initialCache, action);
+    expect(newCache).toBe(initialCache, 'cache unchanged');
+  });
+
   // #region queries
   describe('QUERY_ALL', () => {
     const queryAction = createAction('Hero', EntityOp.QUERY_ALL);

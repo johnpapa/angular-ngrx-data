@@ -116,7 +116,7 @@ describe('EntityDataService', () => {
       expect(service).toBeDefined();
     });
 
-    it('can data service is a DefaultDataService by default', () => {
+    it('data service should be a DefaultDataService by default', () => {
       const service = entityDataService.getService('Hero');
       expect(service instanceof DefaultDataService).toBe(true);
     });

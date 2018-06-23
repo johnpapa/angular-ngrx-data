@@ -217,8 +217,6 @@ The entity dispatcher save and query methods call it to generate correlation ids
 associate a start action with its success or error action.
 You can replace it by providing an alternative implementation.
 
-**_DataServiceError_ extends from _Error_**
-
 ## Breaking Changes
 
 ### Change-tracking-related

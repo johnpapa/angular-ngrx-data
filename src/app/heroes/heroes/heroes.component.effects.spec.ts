@@ -34,12 +34,12 @@ import {
   EntityActionOptions,
   EntityEffects,
   EntityCollectionReducer,
-  EntityReducerFactory,
+  EntityCollectionReducerRegistry,
   EntityCollectionService,
   persistOps
 } from 'ngrx-data';
 
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';
@@ -216,9 +216,11 @@ function heroesComponentClassSetup() {
 
   // Spy on EntityEffects
   const effects: EntityEffects = TestBed.get(EntityEffects);
-  let persistResponsesSubject: Subject<Action>;
+  let persistResponsesSubject: ReplaySubject<Action>;
 
-  const persistSpy = spyOn(effects, 'persist').and.callFake((action: EntityAction) => (persistResponsesSubject = new Subject<Action>()));
+  const persistSpy = spyOn(effects, 'persist').and.callFake(
+    (action: EntityAction) => (persistResponsesSubject = new ReplaySubject<Action>(1))
+  );
 
   // Control EntityAction responses from EntityEffects spy
   function setPersistResponses(...actions: Action[]) {
@@ -275,11 +277,11 @@ function getInitializedComponentClass() {
 }
 
 function spyOnHeroReducer() {
-  const entityReducerFactory: EntityReducerFactory = TestBed.get(EntityReducerFactory);
-  const heroReducer: EntityCollectionReducer<Hero> = entityReducerFactory.getOrCreateReducer<Hero>('Hero');
+  const registry: EntityCollectionReducerRegistry = TestBed.get(EntityCollectionReducerRegistry);
+  const heroReducer: EntityCollectionReducer<Hero> = registry.getOrCreateReducer<Hero>('Hero');
   const heroReducerSpy = jasmine.createSpy('HeroReducer', heroReducer).and.callThrough();
   // re-register the spy version
-  entityReducerFactory.registerReducer<Hero>('Hero', heroReducerSpy);
+  registry.registerReducer<Hero>('Hero', heroReducerSpy);
   return heroReducerSpy;
 }
 

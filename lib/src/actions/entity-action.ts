@@ -9,13 +9,6 @@ export interface EntityAction<P = any> extends Action {
   readonly payload: EntityActionPayload<P>;
 }
 
-/** Payload of an EntityAction */
-export interface EntityActionPayload<P = any> extends EntityActionOptions {
-  readonly entityName: string;
-  readonly entityOp: EntityOp;
-  readonly data?: P;
-}
-
 /** Options of an EntityAction */
 export interface EntityActionOptions {
   /** Correlate related EntityActions, particularly related saves. Must be serializable. */
@@ -41,4 +34,11 @@ export interface EntityActionOptions {
    * an innocuous Observable<Action> of success.
    */
   skip?: boolean;
+}
+
+/** Payload of an EntityAction */
+export interface EntityActionPayload<P = any> extends EntityActionOptions {
+  readonly entityName: string;
+  readonly entityOp: EntityOp;
+  readonly data?: P;
 }

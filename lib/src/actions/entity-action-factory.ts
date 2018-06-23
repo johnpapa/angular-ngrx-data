@@ -39,7 +39,7 @@ export class EntityActionFactory {
     if (op == null) {
       throw new Error('Missing EntityOp for new action');
     }
-    const type = this.formatActionType(entityOp, tag || entityName);
+    const type = this.formatActionType(op, tag || entityName);
     return { type, payload };
   }
 

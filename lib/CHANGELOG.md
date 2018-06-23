@@ -299,6 +299,18 @@ optimistically based on the `isOptimistic` flag in the `EntityActionOptions` in 
 This change does not affect the primary application API and should break only those apps that delved below
 the ngrx-data surface such as apps that implement their own entity action reducers.
 
+**_EntityReducerFactory_ is now _EntityCacheReducerFactory_ and _EntityCollectionReducerRegistry_**
+
+The former `_EntityReducerFactory_` combined two purposes
+
+1.  Creator of the reducer for actions applying to the `EntityCache` as a whole.
+2.  Registry of the `EntityCollectionReducers` that apply to individual collections.
+
+The need for separating these concerns became apparent as we enriched the actions that apply to the entire `EntityCache`.
+
+This change breaks apps that registered collection reducers directly with the former `_EntityReducerFactory_`.
+Resolve by importing `EntityCollectionReducerRegistry` instead and calling the same registration methods on it.
+
 <a id="6.0.0-beta.6"></a>
 
 # 6.0.0-beta.6 (2018-05-24)

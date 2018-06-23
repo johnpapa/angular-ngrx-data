@@ -2,7 +2,7 @@ import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Effect, Actions } from '@ngrx/effects';
 
-import { asyncScheduler, Observable, of, Scheduler } from 'rxjs';
+import { asyncScheduler, Observable, of, SchedulerLike } from 'rxjs';
 import { concatMap, catchError, delay, map } from 'rxjs/operators';
 
 import { EntityAction } from '../actions/entity-action';
@@ -25,7 +25,7 @@ export const persistOps: EntityOp[] = [
 ];
 
 /** Token to inject a special RxJS Scheduler during marble tests. */
-export const ENTITY_EFFECTS_SCHEDULER = new InjectionToken<Scheduler>('EntityEffects Scheduler');
+export const ENTITY_EFFECTS_SCHEDULER = new InjectionToken<SchedulerLike>('EntityEffects Scheduler');
 
 @Injectable()
 export class EntityEffects {
@@ -50,7 +50,7 @@ export class EntityEffects {
      */
     @Optional()
     @Inject(ENTITY_EFFECTS_SCHEDULER)
-    private scheduler: Scheduler
+    private scheduler: SchedulerLike
   ) {}
 
   /**
@@ -77,23 +77,23 @@ export class EntityEffects {
     const { entityName, entityOp, data } = action.payload;
     const service = this.dataService.getService(entityName);
     switch (entityOp) {
+      case EntityOp.QUERY_ALL:
       case EntityOp.QUERY_LOAD:
-      case EntityOp.QUERY_ALL: {
         return service.getAll();
-      }
-      case EntityOp.QUERY_BY_KEY: {
+
+      case EntityOp.QUERY_BY_KEY:
         return service.getById(data);
-      }
-      case EntityOp.QUERY_MANY: {
+
+      case EntityOp.QUERY_MANY:
         return service.getWithQuery(data);
-      }
-      case EntityOp.SAVE_ADD_ONE: {
+
+      case EntityOp.SAVE_ADD_ONE:
         return service.add(data);
-      }
-      case EntityOp.SAVE_DELETE_ONE: {
+
+      case EntityOp.SAVE_DELETE_ONE:
         return service.delete(data);
-      }
-      case EntityOp.SAVE_UPDATE_ONE: {
+
+      case EntityOp.SAVE_UPDATE_ONE:
         const { id, changes } = data as Update<any>; // data must be Update<T>
         return service.update(data).pipe(
           map(updatedEntity => {
@@ -105,10 +105,9 @@ export class EntityEffects {
             return hasData ? { id, changes: { ...changes, ...updatedEntity } } : { id, changes, unchanged: true };
           })
         );
-      }
-      default: {
+
+      default:
         throw new Error(`Persistence action "${entityOp}" is not implemented.`);
-      }
     }
   }
 

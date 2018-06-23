@@ -1,6 +1,7 @@
-import { Inject, Injectable } from '@angular/core';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
 import { Action, Store, ScannedActionsSubject } from '@ngrx/store';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
 import { DefaultDispatcherOptions } from './default-dispatcher-options';
@@ -16,15 +17,29 @@ import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { QueryParams } from '../dataservices/interfaces';
 
 @Injectable()
-export class EntityDispatcherFactory {
+export class EntityDispatcherFactory implements OnDestroy {
+  /**
+   * Actions scanned by the store after it processed them with reducers.
+   * A replay observable of the most recent action reduced by the store.
+   */
+  reducedActions$: Observable<Action>;
+  private raSubscription: Subscription;
+
   constructor(
     private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>,
     private defaultDispatcherOptions: DefaultDispatcherOptions,
-    @Inject(ScannedActionsSubject) private actions$: Observable<Action>,
+    @Inject(ScannedActionsSubject) scannedActions$: Observable<Action>,
     @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private entityCacheSelector: EntityCacheSelector,
     private correlationIdGenerator: CorrelationIdGenerator
-  ) {}
+  ) {
+    // Replay because sometimes in tests will fake data service with synchronous observable
+    // which makes subscriber miss the dispatched actions.
+    // Sure that's a testing mistake. But easy to forget, leading to painful debugging.
+    this.reducedActions$ = scannedActions$.pipe(shareReplay(1));
+    // Start listening so late subscriber won't miss the most recent action.
+    this.raSubscription = this.reducedActions$.subscribe();
+  }
 
   /**
    * Create an `EntityDispatcher` for an entity type `T` and store.
@@ -50,9 +65,13 @@ export class EntityDispatcherFactory {
       this.store,
       selectId,
       options,
-      this.actions$,
+      this.reducedActions$,
       this.entityCacheSelector,
       this.correlationIdGenerator
     );
+  }
+
+  ngOnDestroy() {
+    this.raSubscription.unsubscribe();
   }
 }

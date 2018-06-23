@@ -77,14 +77,20 @@ describe('EntityActionFactory', () => {
   });
 
   it('#createFromAction should create EntityAction from another EntityAction', () => {
-    const hero: Hero = { id: 42, name: 'Francis' };
-    const action1 = factory.create('Hero', EntityOp.ADD_ONE, hero);
-    const action = factory.createFromAction(action1, { entityOp: EntityOp.SAVE_ADD_ONE });
+    // pessimistic save
+    const hero1: Hero = { id: undefined, name: 'Francis' };
+    const action1 = factory.create('Hero', EntityOp.SAVE_ADD_ONE, hero1);
+
+    // after save succeeds
+    const hero: Hero = { ...hero1, id: 42 };
+    const action = factory.createFromAction(action1, { entityOp: EntityOp.SAVE_ADD_ONE_SUCCESS, data: hero });
     const { entityName, entityOp, data } = action.payload;
+
     expect(entityName).toBe('Hero');
-    expect(entityOp).toBe(EntityOp.SAVE_ADD_ONE);
-    // Data from source action forwarded to the new action.
+    expect(entityOp).toBe(EntityOp.SAVE_ADD_ONE_SUCCESS);
     expect(data).toBe(hero);
+    const expectedType = factory.formatActionType(EntityOp.SAVE_ADD_ONE_SUCCESS, 'Hero');
+    expect(action.type).toEqual(expectedType);
   });
 
   it('#createFromAction should copy the options from the source action', () => {

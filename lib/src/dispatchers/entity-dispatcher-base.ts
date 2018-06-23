@@ -1,7 +1,7 @@
 import { Action, createSelector, select, Store } from '@ngrx/store';
 
 import { Observable, of, throwError } from 'rxjs';
-import { filter, first, map, mergeMap, share, withLatestFrom } from 'rxjs/operators';
+import { filter, first, map, mergeMap, shareReplay, withLatestFrom } from 'rxjs/operators';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
 import { DefaultDispatcherOptions } from './default-dispatcher-options';
@@ -45,8 +45,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
      * whether add is optimistic or pessimistic by default.
      */
     public defaultDispatcherOptions: DefaultDispatcherOptions,
-    /** Actions dispatched to the store after the store processed them with reducers*/
-    private actions$: Observable<Action>,
+    /** Actions scanned by the store after it processed them with reducers. */
+    private reducedActions$: Observable<Action>,
     /** Store selector for the EntityCache */
     entityCacheSelector: EntityCacheSelector,
     /** Generates correlation ids for query and save methods */
@@ -119,7 +119,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       // Use the returned entity data's id to get the entity from the collection
       // as it might be different from the entity returned from the server.
       withLatestFrom(this.entityCollection$),
-      map(([e, collection]) => collection.entities[this.selectId(e)])
+      map(([e, collection]) => collection.entities[this.selectId(e)]),
+      shareReplay(1)
     );
   }
 
@@ -144,7 +145,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     const action = this.createEntityAction(EntityOp.SAVE_DELETE_ONE, key, options);
     this.guard.mustBeKey(action);
     this.dispatch(action);
-    return this.getResponseData$<number | string>(options.correlationId).pipe(map(() => key));
+    return this.getResponseData$<number | string>(options.correlationId).pipe(map(() => key), shareReplay(1));
   }
 
   /**
@@ -174,7 +175,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
           },
           [] as T[]
         )
-      )
+      ),
+      shareReplay(1)
     );
   }
 
@@ -193,7 +195,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       // Use the returned entity data's id to get the entity from the collection
       // as it might be different from the entity returned from the server.
       withLatestFrom(this.entityCollection$),
-      map(([entity, collection]) => collection.entities[this.selectId(entity)])
+      map(([entity, collection]) => collection.entities[this.selectId(entity)]),
+      shareReplay(1)
     );
   }
 
@@ -225,7 +228,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
           },
           [] as T[]
         )
-      )
+      ),
+      shareReplay(1)
     );
   }
 
@@ -240,7 +244,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     options = this.setQueryEntityActionOptions(options);
     const action = this.createEntityAction(EntityOp.QUERY_LOAD, null, options);
     this.dispatch(action);
-    return this.getResponseData$<T[]>(options.correlationId);
+    return this.getResponseData$<T[]>(options.correlationId).pipe(shareReplay(1));
   }
 
   /**
@@ -267,7 +271,8 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       // because the id changed or there are unsaved changes.
       map(updateData => updateData.changes),
       withLatestFrom(this.entityCollection$),
-      map(([e, collection]) => collection.entities[this.selectId(e)])
+      map(([e, collection]) => collection.entities[this.selectId(e)]),
+      shareReplay(1)
     );
   }
   // #endregion Query and save operations
@@ -436,14 +441,19 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * @param crid The correlationId for both the save and response actions.
    */
   private getResponseData$<D = any>(crid: any): Observable<D> {
-    return this.actions$.pipe(
+    /**
+     * reducedActions$ must be replay observable of the most recent action reduced by the store.
+     * because the response action might have been dispatched to the store
+     * before caller had a chance to subscribe.
+     */
+    return this.reducedActions$.pipe(
+      filter((act: any) => !!act.payload),
       filter((act: EntityAction) => {
         const { correlationId, entityName, entityOp } = act.payload;
         return entityName === this.entityName && correlationId === crid && (entityOp.endsWith(OP_ERROR) || entityOp.endsWith(OP_SUCCESS));
       }),
       first(),
-      mergeMap(act => (act.payload.entityOp.endsWith(OP_SUCCESS) ? of(act.payload.data as D) : throwError(act.payload.data))),
-      share()
+      mergeMap(act => (act.payload.entityOp.endsWith(OP_SUCCESS) ? of(act.payload.data as D) : throwError(act.payload.data.error)))
     );
   }
 

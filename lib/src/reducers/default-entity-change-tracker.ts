@@ -537,9 +537,9 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
     }
     let didMutate = false;
 
-    const { chgState: changeState, remove, upsert } = entityOrIdList.reduce(
+    const { changeState, remove, upsert } = entityOrIdList.reduce(
       (acc, entityOrId) => {
-        let chgState = acc.chgState;
+        let chgState = acc.changeState;
         const id = typeof entityOrId === 'object' ? this.selectId(entityOrId) : entityOrId;
         if (chgState[id]) {
           if (!didMutate) {
@@ -570,13 +570,12 @@ export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
       {
         remove: [] as (number | string)[],
         upsert: [] as T[],
-        chgState: collection.changeState
+        changeState: collection.changeState
       }
     );
 
     collection = this.adapter.removeMany(remove as string[], collection);
     collection = this.adapter.upsertMany(upsert, collection);
-
     return didMutate ? collection : { ...collection, changeState };
   }
 

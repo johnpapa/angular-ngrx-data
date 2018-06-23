@@ -12,6 +12,11 @@ export enum EntityCacheAction {
   SET_ENTITY_CACHE = 'ngrx-data/entity-cache/set-cache'
 }
 
+/**
+ * Hash of entities keyed by EntityCollection name,
+ * typically the result of a query that returned results from a multi-collection query
+ * that will be merged into an EntityCache via the `MergeQuerySet` action.
+ */
 export interface EntityCacheQuerySet {
   [entityName: string]: any[];
 }

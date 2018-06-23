@@ -7,10 +7,8 @@ import { defaultSelectId } from '../utils/utilities';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { createEntityCacheSelector } from '../selectors/entity-cache-selector';
-import { EntityCommands } from './entity-commands';
 import { EntityDispatcher } from './entity-dispatcher';
 import { EntityDispatcherBase } from './entity-dispatcher-base';
-import { EntityDispatcherFactory } from './entity-dispatcher-factory';
 import { EntityOp } from '../actions/entity-op';
 import { MergeStrategy } from '../actions/merge-strategy';
 import { Update } from '../utils/ngrx-entity-models';
@@ -31,9 +29,9 @@ class TestStore {
 const defaultDispatcherOptions = new DefaultDispatcherOptions();
 
 describe('EntityDispatcher', () => {
-  commandDispatchTest(entityDispatcherTestSetup);
+  commandDispatchTest(entityDispatcherSetup);
 
-  function entityDispatcherTestSetup() {
+  function entityDispatcherSetup() {
     const correlationIdGenerator = new CorrelationIdGenerator();
     const entityActionFactory = new EntityActionFactory();
     const entityCacheSelector = createEntityCacheSelector();

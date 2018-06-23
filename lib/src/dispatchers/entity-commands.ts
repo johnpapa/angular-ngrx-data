@@ -3,9 +3,6 @@ import { EntityActionOptions } from '../actions/entity-action';
 import { MergeStrategy } from '../actions/merge-strategy';
 import { QueryParams } from '../dataservices/interfaces';
 
-/** Commands that dispatch entity actions for a collection */
-export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> {}
-
 /** Commands that update the remote server. */
 export interface EntityServerCommands<T> {
   /**
@@ -181,3 +178,6 @@ export interface EntityCacheCommands<T> {
   /** Set the loading flag */
   setLoading(isLoading: boolean, options?: EntityActionOptions): void;
 }
+
+/** Commands that dispatch entity actions for a collection */
+export interface EntityCommands<T> extends EntityServerCommands<T>, EntityCacheCommands<T> {}

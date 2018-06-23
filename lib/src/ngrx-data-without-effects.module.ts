@@ -14,18 +14,18 @@ import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
 import { EntityCollectionReducerFactory, EntityCollectionReducerMethodsFactory } from './reducers/entity-collection-reducer';
 import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
+import { EntityCollectionReducerRegistry } from './reducers/entity-collection-reducer-registry';
 import { EntityDispatcherFactory } from './dispatchers/entity-dispatcher-factory';
 import { EntityDefinitionService } from './entity-metadata/entity-definition.service';
 import { EntityEffects } from './effects/entity-effects';
 import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata/entity-metadata';
 
-import { createEntityReducer, EntityReducerFactory } from './reducers/entity-reducer';
+import { EntityCacheReducerFactory } from './reducers/entity-cache-reducer-factory';
 import {
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
   ENTITY_CACHE_META_REDUCERS,
   ENTITY_COLLECTION_META_REDUCERS,
-  ENTITY_CACHE_REDUCER,
   INITIAL_ENTITY_CACHE_STATE
 } from './reducers/constants';
 
@@ -63,12 +63,13 @@ export interface NgrxDataModuleConfig {
     CorrelationIdGenerator,
     DefaultDispatcherOptions,
     EntityActionFactory,
+    EntityCacheReducerFactory,
     entityCacheSelectorProvider,
     EntityCollectionCreator,
     EntityCollectionReducerFactory,
+    EntityCollectionReducerRegistry,
     EntityDefinitionService,
     EntityDispatcherFactory,
-    EntityReducerFactory,
     EntitySelectorsFactory,
     EntitySelectors$Factory,
     {
@@ -76,11 +77,6 @@ export interface NgrxDataModuleConfig {
       useClass: DefaultEntityCollectionReducerMethodsFactory
     },
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
-    {
-      provide: ENTITY_CACHE_REDUCER,
-      deps: [EntityReducerFactory],
-      useFactory: createEntityReducer
-    },
     {
       provide: EntityCollectionServiceFactory,
       useClass: DefaultEntityCollectionServiceFactory
@@ -118,7 +114,7 @@ export class NgrxDataModuleWithoutEffects implements OnDestroy {
 
   constructor(
     private reducerManager: ReducerManager,
-    @Inject(ENTITY_CACHE_REDUCER) private entityCacheReducer: ActionReducer<EntityCache, Action>,
+    entityCacheReducerFactory: EntityCacheReducerFactory,
     private injector: Injector,
     // optional params
     @Optional()
@@ -143,7 +139,7 @@ export class NgrxDataModuleWithoutEffects implements OnDestroy {
 
     this.entityCacheFeature = {
       key,
-      reducers: entityCacheReducer,
+      reducers: entityCacheReducerFactory.create(),
       reducerFactory: combineReducers,
       initialState: initialState || {},
       metaReducers: reducers

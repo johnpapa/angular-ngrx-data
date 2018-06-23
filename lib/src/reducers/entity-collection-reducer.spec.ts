@@ -1,5 +1,5 @@
 // EntityCollectionReducer tests - tests of reducers for entity collections in the entity cache
-// Tests for EntityCache-level reducers (e.g., SET_ENTITY_CACHE) are in `entity-reducer.spec.ts`
+// Tests for EntityCache-level reducers (e.g., SET_ENTITY_CACHE) are in `entity-cache-reducer.spec.ts`
 import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
@@ -20,7 +20,9 @@ import { toUpdateFactory } from '../utils/utilities';
 import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection-reducer';
-import { EntityCollectionReducers, EntityReducerFactory } from './entity-reducer';
+import { EntityCollectionReducerRegistry } from './entity-collection-reducer-registry';
+import { EntityCollectionReducers } from './entity-collection-reducer-registry';
+import { EntityCacheReducerFactory } from './entity-cache-reducer-factory';
 
 class Foo {
   id: string;
@@ -53,7 +55,7 @@ describe('EntityCollectionReducer', () => {
 
   const toHeroUpdate = toUpdateFactory<Hero>();
 
-  let entityReducerFactory: EntityReducerFactory;
+  let entityReducerRegistry: EntityCollectionReducerRegistry;
   let entityReducer: (state: EntityCache, action: Action) => EntityCache;
 
   let initialHeroes: Hero[];
@@ -68,9 +70,9 @@ describe('EntityCollectionReducer', () => {
     const collectionReducerFactory = new EntityCollectionReducerFactory(collectionReducerMethodsFactory);
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
 
-    entityReducerFactory = new EntityReducerFactory(collectionCreator, collectionReducerFactory, logger);
-
-    entityReducer = entityReducerFactory.create();
+    entityReducerRegistry = new EntityCollectionReducerRegistry(collectionReducerFactory);
+    const entityCacheReducerFactory = new EntityCacheReducerFactory(collectionCreator, entityReducerRegistry, logger);
+    entityReducer = entityCacheReducerFactory.create();
 
     initialHeroes = [{ id: 2, name: 'B', power: 'Fast' }, { id: 1, name: 'A', power: 'Invisible' }];
     initialCache = createInitialCache({ Hero: initialHeroes });
@@ -643,9 +645,6 @@ describe('EntityCollectionReducer', () => {
     });
   });
 
-  // TODO: Pessimistic SAVE_DELETE_ONE operation should not remove the entity until success
-  // TODO: Unless the entity is an ADD in which case it deletes immediately
-
   describe('SAVE_DELETE_ONE (Pessimistic)', () => {
     it('should NOT remove the existing hero', () => {
       const hero = initialHeroes[0];
@@ -1200,7 +1199,7 @@ describe('EntityCollectionReducer', () => {
       const def = eds.getDefinition<Hero>('Hero');
       const reducer = createReadOnlyHeroReducer(def.entityAdapter);
       // override regular Hero reducer
-      entityReducerFactory.registerReducer('Hero', reducer);
+      entityReducerRegistry.registerReducer('Hero', reducer);
     });
 
     // Make sure read-only reducer doesn't change QUERY_ALL behavior

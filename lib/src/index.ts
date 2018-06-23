@@ -44,11 +44,12 @@ export * from './reducers/constants';
 export * from './reducers/default-entity-change-tracker';
 export * from './reducers/default-entity-collection-reducer-methods';
 export * from './reducers/entity-cache';
+export * from './reducers/entity-cache-reducer-factory';
 export * from './reducers/entity-change-tracker';
 export * from './reducers/entity-collection';
-export * from './reducers/entity-collection-reducer';
 export * from './reducers/entity-collection-creator';
-export * from './reducers/entity-reducer';
+export * from './reducers/entity-collection-reducer';
+export * from './reducers/entity-collection-reducer-registry';
 
 // selectors
 export * from './selectors/entity-selectors';

@@ -114,15 +114,15 @@ export class DefaultEntityCollectionReducerMethods<T> {
     public entityChangeTracker?: EntityChangeTracker<T>
   ) {
     this.adapter = definition.entityAdapter;
-
     this.isChangeTracking = definition.noChangeTracking !== true;
+    this.selectId = definition.selectId;
+
+    this.guard = new EntityActionGuard(entityName, this.selectId);
+    this.toUpdate = toUpdateFactory(this.selectId);
+
     if (!entityChangeTracker) {
       this.entityChangeTracker = new DefaultEntityChangeTracker<T>(this.adapter, this.selectId);
     }
-
-    this.selectId = definition.selectId;
-    this.guard = new EntityActionGuard(entityName, this.selectId);
-    this.toUpdate = toUpdateFactory(this.selectId);
   }
 
   // #region query operations

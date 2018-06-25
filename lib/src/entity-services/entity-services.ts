@@ -1,14 +1,9 @@
 import { Action, Store } from '@ngrx/store';
-
 import { Observable } from 'rxjs';
 
-import { EntityAction } from '../actions/entity-action';
-import { EntityOp } from '../actions/entity-op';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityCommands } from '../dispatchers/entity-commands';
-import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
-import { EntitySelectors$ } from '../selectors/entity-selectors$';
-import { EntitySelectors } from '../selectors/entity-selectors';
+import { EntityCollectionService } from './entity-collection-service';
+import { EntityCollectionServiceFactory } from './entity-collection-service-factory';
 
 // tslint:disable:member-ordering
 
@@ -68,62 +63,6 @@ export abstract class EntityServices {
     // tslint:disable-next-line:unified-signatures
     entityCollectionServiceMap: EntityCollectionServiceMap
   ): void;
-}
-
-/**
- * A facade for managing
- * a cached collection of T entities in the ngrx store.
- */
-export interface EntityCollectionService<T> extends EntityCommands<T>, EntitySelectors$<T> {
-  /** Create an EntityAction for this collection */
-  createEntityAction(op: EntityOp, payload?: any): EntityAction<T>;
-
-  /**
-   * Dispatch an action to the ngrx store.
-   * @param action the Action
-   */
-  dispatch(action: Action): void;
-
-  /** Dispatcher of EntityCommands (EntityActions) */
-  readonly dispatcher: EntityDispatcher<T>;
-
-  /** Name of the entity for this collection service */
-  readonly entityName: string;
-
-  /** All selector functions of the entity collection */
-  readonly selectors: EntitySelectors<T>;
-
-  /** All selectors$ (observables of the selectors of entity collection properties) */
-  readonly selectors$: EntitySelectors$<T>;
-
-  /** The Ngrx Store for the EntityCache */
-  readonly store: Store<EntityCache>;
-}
-
-/** The sub-service members of an EntityCollectionService */
-export interface EntityCollectionServiceElements<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> {
-  readonly dispatcher: EntityDispatcher<T>;
-  readonly selectors: EntitySelectors<T>;
-  readonly selectors$: S$;
-}
-
-export abstract class EntityCollectionServiceFactory {
-  /**
-   * Create an EntityCollectionService for an entity type
-   * @param entityName - name of the entity type
-   */
-  abstract create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string): EntityCollectionService<T>;
-
-  /** Observable of the entire entity cache */
-  readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
-
-  /**
-   * Get the core sub-service elements.
-   * A helper method for EntityCollectionServiceFactory implementors.
-   */
-  abstract getEntityCollectionServiceElements<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
-    entityName: string
-  ): EntityCollectionServiceElements<T, S$>;
 }
 
 /**

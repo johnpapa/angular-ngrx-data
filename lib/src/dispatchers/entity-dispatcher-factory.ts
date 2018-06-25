@@ -4,7 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 import { shareReplay } from 'rxjs/operators';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
-import { DefaultDispatcherOptions } from './default-dispatcher-options';
+import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
@@ -28,7 +28,7 @@ export class EntityDispatcherFactory implements OnDestroy {
   constructor(
     private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>,
-    private defaultDispatcherOptions: DefaultDispatcherOptions,
+    private defaultDispatcherOptions: EntityDispatcherDefaultOptions,
     @Inject(ScannedActionsSubject) scannedActions$: Observable<Action>,
     @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private entityCacheSelector: EntityCacheSelector,
     private correlationIdGenerator: CorrelationIdGenerator
@@ -55,10 +55,10 @@ export class EntityDispatcherFactory implements OnDestroy {
     /** Defaults for options that influence dispatcher behavior such as whether
      * `add()` is optimistic or pessimistic;
      */
-    defaultOptions: Partial<DefaultDispatcherOptions> = {}
+    defaultOptions: Partial<EntityDispatcherDefaultOptions> = {}
   ): EntityDispatcher<T> {
     // merge w/ dispatcher options with defaults
-    const options: DefaultDispatcherOptions = { ...this.defaultDispatcherOptions, ...defaultOptions };
+    const options: EntityDispatcherDefaultOptions = { ...this.defaultDispatcherOptions, ...defaultOptions };
     return new EntityDispatcherBase<T>(
       entityName,
       this.entityActionFactory,

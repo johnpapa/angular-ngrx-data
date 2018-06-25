@@ -4,14 +4,13 @@ import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
 import { ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
-import { DefaultEntityChangeTracker } from './default-entity-change-tracker';
+import { EntityChangeTrackerBase } from './entity-change-tracker-base';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 import { Dictionary, IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionDataServiceError } from '../dataservices/data-service-error';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityChangeTracker } from './entity-change-tracker';
-import { EntityCollectionReducerMethods, EntityCollectionReducerMethodsFactory } from './entity-collection-reducer';
 import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityOp } from '../actions/entity-op';
@@ -19,9 +18,17 @@ import { MergeStrategy } from '../actions/merge-strategy';
 import { merge } from 'rxjs/operators';
 
 /**
- * Default reducer methods for an entity collection.
+ * Map of {EntityOp} to reducer method for the operation.
+ * If an operation is missing, caller should return the collection for that reducer.
  */
-export class DefaultEntityCollectionReducerMethods<T> {
+export interface EntityCollectionReducerMethodMap<T> {
+  [method: string]: (collection: EntityCollection<T>, action?: EntityAction) => EntityCollection<T>;
+}
+
+/**
+ * Base implementation of reducer methods for an entity collection.
+ */
+export class EntityCollectionReducerMethods<T> {
   protected adapter: EntityAdapter<T>;
   protected guard: EntityActionGuard;
   /** True if this collection tracks unsaved changes */
@@ -41,7 +48,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
    * Dictionary of the {EntityCollectionReducerMethods} for this entity type,
    * keyed by the {EntityOp}
    */
-  readonly methods: EntityCollectionReducerMethods<T> = {
+  readonly methods: EntityCollectionReducerMethodMap<T> = {
     [EntityOp.QUERY_ALL]: this.queryAll.bind(this),
     [EntityOp.QUERY_ALL_ERROR]: this.queryAllError.bind(this),
     [EntityOp.QUERY_ALL_SUCCESS]: this.queryAllSuccess.bind(this),
@@ -121,7 +128,7 @@ export class DefaultEntityCollectionReducerMethods<T> {
     this.toUpdate = toUpdateFactory(this.selectId);
 
     if (!entityChangeTracker) {
-      this.entityChangeTracker = new DefaultEntityChangeTracker<T>(this.adapter, this.selectId);
+      this.entityChangeTracker = new EntityChangeTrackerBase<T>(this.adapter, this.selectId);
     }
   }
 
@@ -559,16 +566,16 @@ export class DefaultEntityCollectionReducerMethods<T> {
 }
 
 /**
- * Creates default {EntityCollectionReducerMethods} for a given entity type.
+ * Creates {EntityCollectionReducerMethods} for a given entity type.
  */
 @Injectable()
-export class DefaultEntityCollectionReducerMethodsFactory implements EntityCollectionReducerMethodsFactory {
-  constructor(protected entityDefinitionService: EntityDefinitionService) {}
+export class EntityCollectionReducerMethodsFactory {
+  constructor(private entityDefinitionService: EntityDefinitionService) {}
 
   /** Create the  {EntityCollectionReducerMethods} for the named entity type */
-  create<T>(entityName: string): EntityCollectionReducerMethods<T> {
+  create<T>(entityName: string): EntityCollectionReducerMethodMap<T> {
     const definition = this.entityDefinitionService.getDefinition<T>(entityName);
-    const methodsClass = new DefaultEntityCollectionReducerMethods(entityName, definition);
+    const methodsClass = new EntityCollectionReducerMethods(entityName, definition);
 
     return methodsClass.methods;
   }

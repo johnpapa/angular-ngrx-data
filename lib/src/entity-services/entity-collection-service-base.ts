@@ -10,7 +10,8 @@ import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
-import { EntityCollectionService, EntityCollectionServiceFactory } from './entity-services-interfaces';
+import { EntityCollectionService } from './entity-collection-service';
+import { EntityCollectionServiceFactory } from './entity-collection-service-factory';
 import { EntityOp } from '../actions/entity-op';
 import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
@@ -84,7 +85,7 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
   }
 
   /**
-   * Dispatch an Action to the store.
+   * Dispatch an action of any type to the ngrx store.
    * @param action the Action
    * @returns the dispatched Action
    */

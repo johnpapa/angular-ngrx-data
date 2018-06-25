@@ -18,7 +18,7 @@ export * from './dataservices/interfaces';
 export * from './dataservices/persistence-result-handler.service';
 
 // dispatchers
-export * from './dispatchers/default-dispatcher-options';
+export * from './dispatchers/entity-dispatcher-default-options';
 export * from './dispatchers/entity-commands';
 export * from './dispatchers/entity-dispatcher';
 export * from './dispatchers/entity-dispatcher-base';
@@ -34,15 +34,17 @@ export * from './entity-metadata/entity-filters';
 export * from './entity-metadata/entity-metadata';
 
 // entity-services
-export * from './entity-services/default-entity-collection-service-factory';
-export * from './entity-services/entity-services-interfaces';
+export * from './entity-services/entity-collection-service-factory-base';
+export * from './entity-services/entity-collection-service';
 export * from './entity-services/entity-collection-service-base';
+export * from './entity-services/entity-collection-service-factory';
+export * from './entity-services/entity-services';
 export * from './entity-services/entity-services-base';
 
 // reducers
 export * from './reducers/constants';
-export * from './reducers/default-entity-change-tracker';
-export * from './reducers/default-entity-collection-reducer-methods';
+export * from './reducers/entity-change-tracker-base';
+export * from './reducers/entity-collection-reducer-methods';
 export * from './reducers/entity-cache';
 export * from './reducers/entity-cache-reducer-factory';
 export * from './reducers/entity-change-tracker';

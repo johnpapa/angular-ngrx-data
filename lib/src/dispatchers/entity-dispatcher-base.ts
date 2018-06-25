@@ -4,7 +4,7 @@ import { Observable, of, throwError } from 'rxjs';
 import { filter, first, map, mergeMap, shareReplay, withLatestFrom } from 'rxjs/operators';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
-import { DefaultDispatcherOptions } from './default-dispatcher-options';
+import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
@@ -44,7 +44,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
      * Dispatcher options configure dispatcher behavior such as
      * whether add is optimistic or pessimistic by default.
      */
-    public defaultDispatcherOptions: DefaultDispatcherOptions,
+    public defaultDispatcherOptions: EntityDispatcherDefaultOptions,
     /** Actions scanned by the store after it processed them with reducers. */
     private reducedActions$: Observable<Action>,
     /** Store selector for the EntityCache */

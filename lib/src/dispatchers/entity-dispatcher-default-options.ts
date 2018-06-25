@@ -8,7 +8,7 @@ import { Injectable } from '@angular/core';
  * Provide an alternative to change the defaults for all entity collections.
  */
 @Injectable()
-export class DefaultDispatcherOptions {
+export class EntityDispatcherDefaultOptions {
   /** True if added entities are saved optimistically; False if saved pessimistically. */
   optimisticAdd = false;
   /** True if deleted entities are saved optimistically; False if saved pessimistically. */

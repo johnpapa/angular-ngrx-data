@@ -13,7 +13,7 @@ import { MergeStrategy } from '../actions/merge-strategy';
  * Used by EntityCollectionReducerMethods which should call tracker methods BEFORE modifying the collection.
  * See EntityChangeTracker docs.
  */
-export class DefaultEntityChangeTracker<T> implements EntityChangeTracker<T> {
+export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
   constructor(private adapter: EntityAdapter<T>, private selectId: IdSelector<T>) {
     /** Extract the primary key (id); default to `id` */
     this.selectId = selectId || defaultSelectId;

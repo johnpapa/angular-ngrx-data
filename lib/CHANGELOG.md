@@ -256,6 +256,9 @@ It is possible that an app or its tests expected ngrx-data to make these DELETE 
 
 ### Other Breaking Changes
 
+The ChangeTracking feature has such a profound effect on the library, involving necessary breaking changes, that the occasion seemed ripe to make _other breaking changes_
+that address longstanding problems and irritants in the architecture and names.
+
 **`EntityAction` properties moved to the payload**
 
 As mentioned above. This change effects those who worked directly with `EntityAction` instances.
@@ -310,6 +313,10 @@ The need for separating these concerns became apparent as we enriched the action
 
 This change breaks apps that registered collection reducers directly with the former `_EntityReducerFactory_`.
 Resolve by importing `EntityCollectionReducerRegistry` instead and calling the same registration methods on it.
+
+**Rename _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_**
+for consistence with other members of the _EntityServices_ family.
+A breaking change for the rare app that referenced this factory directly.
 
 <a id="6.0.0-beta.6"></a>
 

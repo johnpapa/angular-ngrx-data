@@ -3,17 +3,19 @@ import { ModuleWithProviders, NgModule, Inject, Injector, InjectionToken, Option
 import { Action, ActionReducer, combineReducers, MetaReducer, ReducerManager, StoreModule } from '@ngrx/store';
 
 import { CorrelationIdGenerator } from './utils/correlation-id-generator';
-import { DefaultDispatcherOptions } from './dispatchers/default-dispatcher-options';
+import { EntityDispatcherDefaultOptions } from './dispatchers/entity-dispatcher-default-options';
 import { EntityAction } from './actions/entity-action';
 import { EntityActionFactory } from './actions/entity-action-factory';
 import { EntityCache } from './reducers/entity-cache';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
-import { EntityCollectionServiceFactory } from './entity-services/entity-services-interfaces';
-import { DefaultEntityCollectionServiceFactory } from './entity-services/default-entity-collection-service-factory';
+import { EntityCollectionService } from './entity-services/entity-collection-service';
+import { EntityCollectionServiceFactory } from './entity-services/entity-collection-service-factory';
+import { EntityCollectionServiceFactoryBase } from './entity-services/entity-collection-service-factory-base';
+import { EntityCollectionServiceMap, EntityServices } from './entity-services/entity-services';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
-import { EntityCollectionReducerFactory, EntityCollectionReducerMethodsFactory } from './reducers/entity-collection-reducer';
-import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
+import { EntityCollectionReducerFactory } from './reducers/entity-collection-reducer';
+import { EntityCollectionReducerMethodsFactory } from './reducers/entity-collection-reducer-methods';
 import { EntityCollectionReducerRegistry } from './reducers/entity-collection-reducer-registry';
 import { EntityDispatcherFactory } from './dispatchers/entity-dispatcher-factory';
 import { EntityDefinitionService } from './entity-metadata/entity-definition.service';
@@ -34,7 +36,6 @@ import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
 import { EntitySelectors } from './selectors/entity-selectors';
 import { EntitySelectorsFactory } from './selectors/entity-selectors';
 import { EntitySelectors$Factory } from './selectors/entity-selectors$';
-import { EntityServices } from './entity-services/entity-services-interfaces';
 import { EntityServicesBase } from './entity-services/entity-services-base';
 
 import { DefaultLogger } from './utils/default-logger';
@@ -61,7 +62,7 @@ export interface NgrxDataModuleConfig {
   ],
   providers: [
     CorrelationIdGenerator,
-    DefaultDispatcherOptions,
+    EntityDispatcherDefaultOptions,
     EntityActionFactory,
     EntityCacheReducerFactory,
     entityCacheSelectorProvider,
@@ -74,12 +75,12 @@ export interface NgrxDataModuleConfig {
     EntitySelectors$Factory,
     {
       provide: EntityCollectionReducerMethodsFactory,
-      useClass: DefaultEntityCollectionReducerMethodsFactory
+      useClass: EntityCollectionReducerMethodsFactory
     },
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
     {
       provide: EntityCollectionServiceFactory,
-      useClass: DefaultEntityCollectionServiceFactory
+      useClass: EntityCollectionServiceFactoryBase
     },
     {
       provide: EntityServices,

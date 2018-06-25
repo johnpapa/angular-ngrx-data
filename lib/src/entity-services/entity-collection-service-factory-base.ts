@@ -9,7 +9,8 @@ import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 import { EntitySelectors$, EntitySelectors$Factory } from '../selectors/entity-selectors$';
-import { EntityCollectionService, EntityCollectionServiceElements, EntityCollectionServiceFactory } from './entity-services-interfaces';
+import { EntityCollectionService } from './entity-collection-service';
+import { EntityCollectionServiceElements, EntityCollectionServiceFactory } from './entity-collection-service-factory';
 import { EntityCollectionServiceBase } from './entity-collection-service-base';
 
 /**
@@ -17,7 +18,7 @@ import { EntityCollectionServiceBase } from './entity-collection-service-base';
  * a cached collection of T entities in the ngrx store.
  */
 @Injectable()
-export class DefaultEntityCollectionServiceFactory implements EntityCollectionServiceFactory {
+export class EntityCollectionServiceFactoryBase implements EntityCollectionServiceFactory {
   entityCache$: Observable<EntityCache> | Store<EntityCache>;
 
   constructor(

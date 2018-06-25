@@ -8,8 +8,8 @@ import { EntityCacheReducerFactory } from './entity-cache-reducer-factory';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { ENTITY_COLLECTION_META_REDUCERS } from './constants';
-import { EntityCollectionReducerFactory, EntityCollectionReducerMethodsFactory } from './entity-collection-reducer';
-import { DefaultEntityCollectionReducerMethodsFactory } from './default-entity-collection-reducer-methods';
+import { EntityCollectionReducerFactory } from './entity-collection-reducer';
+import { EntityCollectionReducerMethodsFactory } from './entity-collection-reducer-methods';
 import { EntityCollectionReducerRegistry, EntityCollectionReducers } from './entity-collection-reducer-registry';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
@@ -55,7 +55,7 @@ describe('EntityCollectionReducerRegistry', () => {
         EntityCollectionCreator,
         {
           provide: EntityCollectionReducerMethodsFactory,
-          useClass: DefaultEntityCollectionReducerMethodsFactory
+          useClass: EntityCollectionReducerMethodsFactory
         },
         EntityCollectionReducerFactory,
         EntityCollectionReducerRegistry,

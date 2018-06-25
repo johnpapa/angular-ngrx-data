@@ -2,7 +2,7 @@ import { Action } from '@ngrx/store';
 import { Subject } from 'rxjs';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
-import { DefaultDispatcherOptions } from './default-dispatcher-options';
+import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId } from '../utils/utilities';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
@@ -26,7 +26,7 @@ class TestStore {
   select() {}
 }
 
-const defaultDispatcherOptions = new DefaultDispatcherOptions();
+const defaultDispatcherOptions = new EntityDispatcherDefaultOptions();
 
 describe('EntityDispatcher', () => {
   commandDispatchTest(entityDispatcherSetup);

@@ -6,7 +6,7 @@ import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { MergeStrategy } from '../actions/merge-strategy';
 
 import { EntityChangeTracker } from './entity-change-tracker';
-import { DefaultEntityChangeTracker } from './default-entity-change-tracker';
+import { EntityChangeTrackerBase } from './entity-change-tracker-base';
 
 interface Hero {
   id: number;
@@ -27,7 +27,7 @@ const adapter: EntityAdapter<Hero> = createEntityAdapter<Hero>({
   sortComparer: sortByName
 });
 
-describe('DefaultEntityChangeTracker', () => {
+describe('EntityChangeTrackerBase', () => {
   let origCollection: EntityCollection<Hero>;
   let tracker: EntityChangeTracker<Hero>;
 
@@ -39,7 +39,7 @@ describe('DefaultEntityChangeTracker', () => {
       7: { id: 7, name: 'Bob', power: 'Swift' }
     };
     origCollection.ids = [1, 7, 2];
-    tracker = new DefaultEntityChangeTracker(adapter, defaultSelectId);
+    tracker = new EntityChangeTrackerBase(adapter, defaultSelectId);
   });
 
   describe('#commitAll', () => {

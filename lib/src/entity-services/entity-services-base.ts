@@ -4,12 +4,10 @@ import { Action, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
 import { EntityCache } from '../reducers/entity-cache';
-import {
-  EntityCollectionService,
-  EntityCollectionServiceFactory,
-  EntityCollectionServiceMap,
-  EntityServices
-} from './entity-services-interfaces';
+
+import { EntityCollectionService } from './entity-collection-service';
+import { EntityCollectionServiceFactory } from './entity-collection-service-factory';
+import { EntityCollectionServiceMap, EntityServices } from './entity-services';
 import { EntityCollectionServiceBase } from './entity-collection-service-base';
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 
@@ -67,21 +65,14 @@ export class EntityServicesBase implements EntityServices {
    * Create a default instance of an EntityCollectionService
    * @param entityName {string} Name of the entity type of the service
    */
-  protected createEntityCollectionService<T = any>(
-    entityName: string
-  ): EntityCollectionService<T> {
-    return new EntityCollectionServiceBase<T>(
-      entityName,
-      this.entityCollectionServiceFactory
-    );
+  protected createEntityCollectionService<T = any>(entityName: string): EntityCollectionService<T> {
+    return new EntityCollectionServiceBase<T>(entityName, this.entityCollectionServiceFactory);
   }
 
   /** Get (or create) the singleton instance of an EntityCollectionService
    * @param entityName {string} Name of the entity type of the service
    */
-  getEntityCollectionService<T = any>(
-    entityName: string
-  ): EntityCollectionService<T> {
+  getEntityCollectionService<T = any>(entityName: string): EntityCollectionService<T> {
     let service = this.EntityCollectionServices[entityName];
     if (!service) {
       service = this.createEntityCollectionService(entityName);
@@ -95,10 +86,7 @@ export class EntityServicesBase implements EntityServices {
    * @param service {EntityCollectionService} The entity service
    * @param serviceName {string} optional service name to use instead of the service's entityName
    */
-  registerEntityCollectionService<T>(
-    service: EntityCollectionService<T>,
-    serviceName?: string
-  ) {
+  registerEntityCollectionService<T>(service: EntityCollectionService<T>, serviceName?: string) {
     this.EntityCollectionServices[serviceName || service.entityName] = service;
   }
 
@@ -108,21 +96,12 @@ export class EntityServicesBase implements EntityServices {
    * @param entityCollectionServices {EntityCollectionServiceMap | EntityCollectionService<any>[]}
    * EntityCollectionServices to register, either as a map or an array
    */
-  registerEntityCollectionServices(
-    entityCollectionServices:
-      | EntityCollectionServiceMap
-      | EntityCollectionService<any>[]
-  ): void {
+  registerEntityCollectionServices(entityCollectionServices: EntityCollectionServiceMap | EntityCollectionService<any>[]): void {
     if (Array.isArray(entityCollectionServices)) {
-      entityCollectionServices.forEach(service =>
-        this.registerEntityCollectionService(service)
-      );
+      entityCollectionServices.forEach(service => this.registerEntityCollectionService(service));
     } else {
       Object.keys(entityCollectionServices || {}).forEach(serviceName => {
-        this.registerEntityCollectionService(
-          entityCollectionServices[serviceName],
-          serviceName
-        );
+        this.registerEntityCollectionService(entityCollectionServices[serviceName], serviceName);
       });
     }
   }

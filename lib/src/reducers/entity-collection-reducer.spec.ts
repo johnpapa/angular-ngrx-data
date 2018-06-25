@@ -11,7 +11,7 @@ import { EntityCollection, ChangeState, ChangeStateMap, ChangeType } from './ent
 
 import { EntityCache } from './entity-cache';
 import { EntityCollectionCreator } from './entity-collection-creator';
-import { DefaultEntityCollectionReducerMethodsFactory } from './default-entity-collection-reducer-methods';
+import { EntityCollectionReducerMethodsFactory } from './entity-collection-reducer-methods';
 
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityMetadataMap } from '../entity-metadata/entity-metadata';
@@ -66,7 +66,7 @@ describe('EntityCollectionReducer', () => {
   beforeEach(() => {
     const eds = new EntityDefinitionService([metadata]);
     collectionCreator = new EntityCollectionCreator(eds);
-    const collectionReducerMethodsFactory = new DefaultEntityCollectionReducerMethodsFactory(eds);
+    const collectionReducerMethodsFactory = new EntityCollectionReducerMethodsFactory(eds);
     const collectionReducerFactory = new EntityCollectionReducerFactory(collectionReducerMethodsFactory);
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
 

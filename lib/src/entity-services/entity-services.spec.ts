@@ -15,11 +15,11 @@ import { EntityCache } from '../reducers/entity-cache';
 import { EntityCacheQuerySet, MergeQuerySet } from '../actions/entity-cache-action';
 import { EntityCacheReducerFactory } from '../reducers/entity-cache-reducer-factory';
 import { EntityCollection } from '../reducers/entity-collection';
-import { EntityCollectionService } from './entity-services-interfaces';
+import { EntityCollectionService } from './entity-collection-service';
 import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
 import { EntityMetadataMap } from '../entity-metadata/entity-metadata';
-import { EntityServices } from '../entity-services/entity-services-interfaces';
+import { EntityServices } from './entity-services';
 import { NgrxDataModule } from '../ngrx-data.module';
 import { HttpMethods } from '../dataservices/interfaces';
 import { Logger } from '../utils/interfaces';
@@ -49,6 +49,33 @@ describe('EntityServices', () => {
   });
 
   describe('dispatch(MergeQuerySet)', () => {
+    // using async test to guard against false test pass.
+    it('should update entityCache$ twice after merging two individual collections', (done: DoneFn) => {
+      const hero1 = { id: 1, name: 'A' } as Hero;
+      const hero2 = { id: 2, name: 'B' } as Hero;
+      const heroes = [hero1, hero2];
+
+      const villain = { key: 'DE', name: 'Dr. Evil' } as Villain;
+
+      const { entityServices, heroCollectionService } = entityServicesSetup();
+      const villainCollectionService = entityServices.getEntityCollectionService<Villain>('Villain');
+
+      const entityCacheValues: any = [];
+      entityServices.entityCache$.subscribe(cache => {
+        entityCacheValues.push(cache);
+        if (entityCacheValues.length === 3) {
+          expect(entityCacheValues[0]).toEqual({}, '#1 empty at first');
+          expect(entityCacheValues[1]['Hero'].ids).toEqual([1, 2], '#2 has heroes');
+          expect(entityCacheValues[1]['Villain']).toBeUndefined('#2 does not have Villain collection');
+          expect(entityCacheValues[2]['Villain'].entities['DE']).toEqual(villain, '#3 has villain');
+          done();
+        }
+      });
+
+      heroCollectionService.createAndDispatch(EntityOp.ADD_MANY, heroes);
+      villainCollectionService.createAndDispatch(EntityOp.ADD_ONE, villain);
+    });
+
     // using async test to guard against false test pass.
     it('should update entityCache$ once after merging multiple collections', (done: DoneFn) => {
       const hero1 = { id: 1, name: 'A' } as Hero;

@@ -1,8 +1,5 @@
 import { Injectable } from '@angular/core';
-import {
-  EntityCollectionServiceBase,
-  EntityCollectionServiceFactory
-} from 'ngrx-data';
+import { EntityCollectionServiceBase, EntityCollectionServiceElementsFactory } from 'ngrx-data';
 
 import { shareReplay, tap } from 'rxjs/operators';
 
@@ -15,15 +12,10 @@ export class HeroesService extends EntityCollectionServiceBase<Hero> {
   filterObserver: FilterObserver;
 
   /** Run `getAll` if the datasource changes. */
-  getAllOnDataSourceChange = this.appSelectors
-    .dataSource$()
-    .pipe(tap(_ => this.getAll()), shareReplay(1));
+  getAllOnDataSourceChange = this.appSelectors.dataSource$().pipe(tap(_ => this.getAll()), shareReplay(1));
 
-  constructor(
-    entityCollectionServiceFactory: EntityCollectionServiceFactory,
-    private appSelectors: AppSelectors
-  ) {
-    super('Hero', entityCollectionServiceFactory);
+  constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory, private appSelectors: AppSelectors) {
+    super('Hero', serviceElementsFactory);
 
     /** User's filter pattern */
     this.filterObserver = {

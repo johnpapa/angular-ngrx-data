@@ -6,6 +6,11 @@ Please look there.
 **_This_** Changelog covers changes to the repository and the demo applications.
 
 <a id="0.6.1">
+# 0.6.2 (2018-06-26)
+
+* Significantly refactored for ngrx-data `6.0.2-beta.7`.
+
+<a id="0.6.1">
 # 0.6.1 (2018-05-25)
 
 * Refactored for EntityAction operators as required by Beta 6

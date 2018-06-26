@@ -8,16 +8,9 @@ import { Observable } from 'rxjs';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityCache } from '../reducers/entity-cache';
-import {
-  ENTITY_CACHE_SELECTOR_TOKEN,
-  EntityCacheSelector,
-  createEntityCacheSelector
-} from './entity-cache-selector';
+import { ENTITY_CACHE_SELECTOR_TOKEN, EntityCacheSelector, createEntityCacheSelector } from './entity-cache-selector';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
-import {
-  EntityCollection,
-  ChangeStateMap
-} from '../reducers/entity-collection';
+import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntityFilterFn } from '../entity-metadata/entity-filters';
 import { EntityMetadata } from '../entity-metadata/entity-metadata';
@@ -103,6 +96,7 @@ export interface EntitySelectors<T> {
   readonly selectChangeState: MemoizedSelector<Object, ChangeStateMap<T>>;
 }
 
+/** Creates EntitySelector functions for entity collections. */
 @Injectable()
 export class EntitySelectorsFactory {
   constructor(
@@ -111,10 +105,8 @@ export class EntitySelectorsFactory {
     @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
     private selectEntityCache?: EntityCacheSelector
   ) {
-    this.entityCollectionCreator =
-      entityCollectionCreator || new EntityCollectionCreator();
-    this.selectEntityCache =
-      selectEntityCache || createEntityCacheSelector(ENTITY_CACHE_NAME);
+    this.entityCollectionCreator = entityCollectionCreator || new EntityCollectionCreator();
+    this.selectEntityCache = selectEntityCache || createEntityCacheSelector(ENTITY_CACHE_NAME);
   }
 
   /**
@@ -122,13 +114,8 @@ export class EntitySelectorsFactory {
    * e.g. from Object to Heroes.
    * @param entityName the name of the collection
    */
-  createCollectionSelector<
-    T = any,
-    C extends EntityCollection<T> = EntityCollection<T>
-  >(entityName: string) {
-    const getCollection = (cache: EntityCache = {}) =>
-      <C>(cache[entityName] ||
-        this.entityCollectionCreator.create<T>(entityName));
+  createCollectionSelector<T = any, C extends EntityCollection<T> = EntityCollection<T>>(entityName: string) {
+    const getCollection = (cache: EntityCache = {}) => <C>(cache[entityName] || this.entityCollectionCreator.create<T>(entityName));
     return createSelector(this.selectEntityCache, getCollection);
   }
 
@@ -143,10 +130,7 @@ export class EntitySelectorsFactory {
    * @param metadata - EntityMetadata for the collection.
    * May be partial but much have `entityName`.
    */
-  createCollectionSelectors<
-    T,
-    S extends CollectionSelectors<T> = CollectionSelectors<T>
-  >(metadata: EntityMetadata<T>): S;
+  createCollectionSelectors<T, S extends CollectionSelectors<T> = CollectionSelectors<T>>(metadata: EntityMetadata<T>): S;
 
   // tslint:disable:unified-signatures
   // createCollectionSelectors(entityName) overload
@@ -155,45 +139,28 @@ export class EntitySelectorsFactory {
    * Use the metadata overload for additional collection selectors.
    * @param entityName - name of the entity type
    */
-  createCollectionSelectors<
-    T,
-    S extends CollectionSelectors<T> = CollectionSelectors<T>
-  >(entityName: string): S;
+  createCollectionSelectors<T, S extends CollectionSelectors<T> = CollectionSelectors<T>>(entityName: string): S;
 
   // createCollectionSelectors implementation
-  createCollectionSelectors<
-    T,
-    S extends CollectionSelectors<T> = CollectionSelectors<T>
-  >(metadataOrName: EntityMetadata<T> | string): S {
-    const metadata =
-      typeof metadataOrName === 'string'
-        ? { entityName: metadataOrName }
-        : metadataOrName;
+  createCollectionSelectors<T, S extends CollectionSelectors<T> = CollectionSelectors<T>>(metadataOrName: EntityMetadata<T> | string): S {
+    const metadata = typeof metadataOrName === 'string' ? { entityName: metadataOrName } : metadataOrName;
     const selectKeys = (c: EntityCollection<T>) => c.ids;
     const selectEntityMap = (c: EntityCollection<T>) => c.entities;
 
     const selectEntities: Selector<EntityCollection<T>, T[]> = createSelector(
       selectKeys,
       selectEntityMap,
-      (keys: (number | string)[], entities: Dictionary<T>): T[] =>
-        keys.map(key => entities[key] as T)
+      (keys: (number | string)[], entities: Dictionary<T>): T[] => keys.map(key => entities[key] as T)
     );
 
-    const selectCount: Selector<EntityCollection<T>, number> = createSelector(
-      selectKeys,
-      keys => keys.length
-    );
+    const selectCount: Selector<EntityCollection<T>, number> = createSelector(selectKeys, keys => keys.length);
 
     // EntityCollection selectors that go beyond the ngrx/entity/EntityState selectors
     const selectFilter = (c: EntityCollection<T>) => c.filter;
 
     const filterFn = metadata.filterFn;
     const selectFilteredEntities: Selector<EntityCollection<T>, T[]> = filterFn
-      ? createSelector(
-          selectEntities,
-          selectFilter,
-          (entities: T[], pattern: any): T[] => filterFn(entities, pattern)
-        )
+      ? createSelector(selectEntities, selectFilter, (entities: T[], pattern: any): T[] => filterFn(entities, pattern))
       : selectEntities;
 
     const selectLoaded = (c: EntityCollection<T>) => c.loaded;
@@ -207,9 +174,7 @@ export class EntitySelectorsFactory {
       [name: string]: Selector<EntityCollection<T>, any>;
     } = {};
     Object.keys(extra).forEach(k => {
-      extraSelectors['select' + k[0].toUpperCase() + k.slice(1)] = (
-        c: EntityCollection<T>
-      ) => (<any>c)[k];
+      extraSelectors['select' + k[0].toUpperCase() + k.slice(1)] = (c: EntityCollection<T>) => (<any>c)[k];
     });
 
     return {
@@ -240,9 +205,7 @@ export class EntitySelectorsFactory {
    * Differs in that these selectors select from the NgRx store root,
    * through the collection, to the collection members.
    */
-  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
-    metadata: EntityMetadata<T>
-  ): S;
+  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(metadata: EntityMetadata<T>): S;
 
   // create(entityName) overload
   /**
@@ -262,28 +225,17 @@ export class EntitySelectorsFactory {
   ): S;
 
   // createCollectionSelectors implementation
-  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(
-    metadataOrName: EntityMetadata<T> | string
-  ): S {
-    const metadata =
-      typeof metadataOrName === 'string'
-        ? { entityName: metadataOrName }
-        : metadataOrName;
+  create<T, S extends EntitySelectors<T> = EntitySelectors<T>>(metadataOrName: EntityMetadata<T> | string): S {
+    const metadata = typeof metadataOrName === 'string' ? { entityName: metadataOrName } : metadataOrName;
     const entityName = metadata.entityName;
-    const selectCollection: Selector<
-      Object,
-      EntityCollection<T>
-    > = this.createCollectionSelector<T>(entityName);
+    const selectCollection: Selector<Object, EntityCollection<T>> = this.createCollectionSelector<T>(entityName);
     const collectionSelectors = this.createCollectionSelectors<T>(metadata);
 
     const entitySelectors: {
       [name: string]: Selector<EntityCollection<T>, any>;
     } = {};
     Object.keys(collectionSelectors).forEach(k => {
-      entitySelectors[k] = createSelector(
-        selectCollection,
-        collectionSelectors[k]
-      );
+      entitySelectors[k] = createSelector(selectCollection, collectionSelectors[k]);
     });
 
     return {

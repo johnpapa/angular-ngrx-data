@@ -77,7 +77,7 @@ describe('EntityServices', () => {
     });
 
     // using async test to guard against false test pass.
-    it('should update entityCache$ once after merging multiple collections', (done: DoneFn) => {
+    it('should update entityCache$ once when MergeQuerySet multiple collections', (done: DoneFn) => {
       const hero1 = { id: 1, name: 'A' } as Hero;
       const hero2 = { id: 2, name: 'B' } as Hero;
       const heroes = [hero1, hero2];

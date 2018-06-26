@@ -1,6 +1,7 @@
 import { Action, Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 
+import { EntityAction } from '../actions/entity-action';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollectionService } from './entity-collection-service';
 import { EntityCollectionServiceFactory } from './entity-collection-service-factory';
@@ -8,40 +9,34 @@ import { EntityCollectionServiceFactory } from './entity-collection-service-fact
 // tslint:disable:member-ordering
 
 /**
- * Class-Interface for a central registry of EntityCollectionServices for all entity types,
- * suitable as an Angular provider token.
+ * Class-Interface for EntityCache and EntityCollection services.
+ * Serves as an Angular provider token for this service class.
+ * Includes a registry of EntityCollectionServices for all entity types.
  * Creates a new default EntityCollectionService for any entity type not in the registry.
  * Optionally register specialized EntityCollectionServices for individual types
  */
 export abstract class EntityServices {
-  /** Observable of the entire entity cache */
-  abstract readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
-
-  /** The ngrx store, scoped to the EntityCache */
-  abstract readonly store: Store<EntityCache>;
-
   /** Dispatch any action to the store */
   abstract dispatch(action: Action): void;
+
+  /** Observable of error EntityActions (e.g. QUERY_ALL_ERROR) for all entity types */
+  abstract readonly entityActionErrors$: Observable<EntityAction>;
+
+  /** Observable of the entire entity cache */
+  abstract readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
 
   /** Get (or create) the singleton instance of an EntityCollectionService
    * @param entityName {string} Name of the entity type of the service
    */
   abstract getEntityCollectionService<T = any>(entityName: string): EntityCollectionService<T>;
 
-  //// EntityCollectionService creation and registration API //////
-
   /**
-   * Factory to create a default instance of an EntityCollectionService
-   * Often called within constructor of a custom collection service
-   * @example
-   * constructor(private entityServices: EntityServices) {
-   *   super('Hero', entityServices.entityCollectionServiceFactory);
-   *
-   *   // Register self as THE hero service in EntityServices
-   *   this.entityServices.registerEntityCollectionService('Hero', this);
-   * }
+   * Actions scanned by the store after it processed them with reducers.
+   * A replay observable of the most recent Action (not just EntityAction) reduced by the store.
    */
-  abstract readonly entityCollectionServiceFactory: EntityCollectionServiceFactory;
+  abstract readonly reducedActions$: Observable<Action>;
+
+  // #region EntityCollectionService creation and registration API
 
   /** Register an EntityCollectionService under its entity type name.
    * Will replace a pre-existing service for that type.
@@ -63,6 +58,7 @@ export abstract class EntityServices {
     // tslint:disable-next-line:unified-signatures
     entityCollectionServiceMap: EntityCollectionServiceMap
   ): void;
+  // #endregion EntityCollectionService creation and registration API
 }
 
 /**

@@ -16,6 +16,7 @@ import { EntityOp } from '../actions/entity-op';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { QueryParams } from '../dataservices/interfaces';
 
+/** Creates EntityDispatchers for entity collections */
 @Injectable()
 export class EntityDispatcherFactory implements OnDestroy {
   /**
@@ -28,7 +29,7 @@ export class EntityDispatcherFactory implements OnDestroy {
   constructor(
     private entityActionFactory: EntityActionFactory,
     private store: Store<EntityCache>,
-    private defaultDispatcherOptions: EntityDispatcherDefaultOptions,
+    private entityDispatcherDefaultOptions: EntityDispatcherDefaultOptions,
     @Inject(ScannedActionsSubject) scannedActions$: Observable<Action>,
     @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private entityCacheSelector: EntityCacheSelector,
     private correlationIdGenerator: CorrelationIdGenerator
@@ -57,8 +58,8 @@ export class EntityDispatcherFactory implements OnDestroy {
      */
     defaultOptions: Partial<EntityDispatcherDefaultOptions> = {}
   ): EntityDispatcher<T> {
-    // merge w/ dispatcher options with defaults
-    const options: EntityDispatcherDefaultOptions = { ...this.defaultDispatcherOptions, ...defaultOptions };
+    // merge w/ defaultOptions with injected defaults
+    const options: EntityDispatcherDefaultOptions = { ...this.entityDispatcherDefaultOptions, ...defaultOptions };
     return new EntityDispatcherBase<T>(
       entityName,
       this.entityActionFactory,

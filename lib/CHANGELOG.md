@@ -2,21 +2,23 @@
 
 <a id="6.0.2-beta.7"></a>
 
-# 6.0.2-beta.7 (2018-06-20)
+# 6.0.2-beta.7 (2018-06-26)
 
-This release is primarily about the new, one-level _change tracking_ feature,
+This **major release** is primarily about the new, _change tracking_ feature,
 which makes _optimistic saves_ a viable choice (possibly the preferred choice),
-now that you can recover from a save error by undoing (reverting).
+now that you can recover from a save error by undoing (reverting) to the last known state of the entities on the server.
 
-This new feature provoked a cascade of changes, most of them related to change tracking,
-and many of them are **breaking changes**.
+This new feature provoked a cascade of changes, most of them related to change tracking.
+
+**Many of them are breaking changes**.
+Please pay close attention to the details of this release notification.
 
 ## Features
 
 ### Change Tracking
 
 EntityCollections, reducers, and selectors support change tracking and undo
-via the rewritten `EntityChangeTracker` (`DefaultEntityChangeTracker`) and the
+via the rewritten `EntityChangeTracker` and the
 new `EntityCollection.changeState` property which replaces the `originalValues` property.
 
 Previously change tracking and undo were an incomplete, alpha feature.
@@ -24,30 +26,35 @@ Previously change tracking and undo were an incomplete, alpha feature.
 The ngrx-data now tracks changes properly by default and you can **_undo unsaved changes_**, reverting to the last know state of entity (or entities) on the server.
 This gives the developer a good option for recovering from optimistic saves that failed.
 
+**Effect on delete**
+
 Thanks to change tracking, we can tell when an entity that you're about to delete has been added locally but not saved to the server.
 Ngrx-data now removes such entities immediately, even when the save is pessimistic, and silently side-steps the
 HTTP DELETE request, which has nothing to remove on the server and might 404.
 
-In order to tell `EntityEffects.persist$` to skip such deletes, we had to add a mutable **`EntityAction.skip`** flag to the `EntityAction` envelope.
-The flag defaults to `false`.
-Ngrx-data only sets it to true when the app tries to save the deletion of an added, unsaved entity.
+In order to tell `EntityEffects.persist$` to skip such deletes, we had to add a mutable `EntityAction.skip` flag to the `EntityAction`.
+
+The `skip` flag is `false` by default.
+Ngrx-data only sets it to `true` when the app tries to save the deletion of an added, unsaved entity.
 
 We're not thrilled about adding another mutable property to `EntityAction`.
-But we do not know of another way to tell `EntityEffects` to skip the HTTP DELETE request.
+But we do not know of another way to tell `EntityEffects` to skip the HTTP DELETE request which might otherwise have produced an error.
+
+**Disable tracking**
 
 The new `EntityMetadata.noChangeTracking` flag, which is `false` by default,
 can be set `true` in the metadata for a collection.
 When `true`, ngrx-data does not track any changes for this collection
 and the `EntityCollection.changeState` property remains an empty object.
 
-You can also turnoff change tracking for a specific, cache-only action by choosing one of the
-new "no-tracking" `EntityOps`.
+You can also turnoff change tracking for a specific, cache-only action by choosing passing the `MergeStrategy.IgnoreTracking` as an option to the command.
 
-See `entity-change-tracker.md` for discussion and details.
+See [entity-change-tracker.md](../docs/entity-change-tracker.md) for discussion and details.
 
 ### Other Features
 
-**_DefaultDispatcherOptions_ can be provided**
+**_EntityDispatcherDefaultOptions_ can be provided**.
+
 Previously the default for options governing whether saves were optimistic or pessimistic was
 hardwired into the `EntityDispatcherFactory`.
 The defaults were deemed to be the safest values:
@@ -55,8 +62,10 @@ The defaults were deemed to be the safest values:
 ```
 /** True if added entities are saved optimistically; False if saved pessimistically. */
 optimisticAdd: false;
+
 /** True if deleted entities are saved optimistically; False if saved pessimistically. */
 optimisticDelete: true;
+
 /** True if updated entities are saved optimistically; False if saved pessimistically. */
 optimisticUpdate: false;
 ```
@@ -64,14 +73,15 @@ optimisticUpdate: false;
 You could (and still can) change these options at the collection level in the entity metadata.
 But you couldn't change the _defaults for all collections_.
 
-Now the collection defaults are in the `DefaultDispatcherOptions` service class, which is
+Now the collection defaults are in the `EntityDispatcherDefaultOptions` service class, which is
 provided in the `NgrxDataWithoutEffectsModule`.
+
 Your app can provide an alternative to change these defaults.
 For example, you could make all save operations optimistic by default.
 
 ```
 @Injectable()
-export class OptimisticDefaultDispatcherOptions {
+export class OptimisticDispatcherDefaultOptions {
   optimisticAdd = true;
   optimisticDelete = true;
   optimisticUpdate = true;
@@ -80,7 +90,7 @@ export class OptimisticDefaultDispatcherOptions {
 @NgModule({
   imports:   [ NgrxDataModule.forRoot({...}) ],
   providers: [
-    { provide: DefaultDispatcherOptions, useClass: OptimisticDefaultDispatcherOptions },
+    { provide: EntityDispatcherDefaultOptions, useClass: OptimisticDispatcherDefaultOptions },
     ...
   ]
 })
@@ -114,8 +124,10 @@ heroService.add(newHero).subscribe(
 );
 ```
 
+> See the `EntityServices` tests for examples.
+
 Of course you can stay true to CQRS and ignore these results.
-Your existing query and save callers will compile and work as before.
+Your existing query and save consumers will continue to compile and run as before.
 
 This feature does introduce a _breaking change_ for those apps that create custom entity collection services
 and override the base methods.
@@ -133,7 +145,7 @@ Getting rid of the `OPTIMISTIC` ops is a welcome step in the other direction and
 a bit simpler.
 
 You can still choose an optimistic save with the action payload's `isOptimistic` option.
-The dispatcher defaults (see `DefaultDispatcherOptions`) have not changed.
+The dispatcher defaults (see `EntityDispatcherDefaultOptions`) have not changed.
 If you don't specify `isOptimistic`, it defaults to `false` for _adds_ and _updates_ and `true` for _deletes_.
 
 **`EntityAction` properties moved to the payload (breaking change)**
@@ -194,28 +206,44 @@ sets the loading (false) and loaded (true) flags.
 Good for testing and rehydrating collection from local storage.
 Dangerous. Use wisely and rarely.
 
-**Added `EntityCacheAction.MERGE_QUERY_SET` (`MergeQuerySet(EntityQuerySet)`** merges query results
-from multiple collections into the EntityCache using the `upsert` entity collection reducer method,
-all at the same time.
+**Added `EntityCacheAction.MERGE_QUERY_SET`**
+
+The new `EntityCacheAction.MERGE_QUERY_SET` action and corresponding `MergeQuerySet(EntityQuerySet)` ActionCreator class can merge query results
+from multiple collections into the EntityCache using the `upsert` entity collection reducer method.
+These collections all update at the same time before selectors fire.
 
 This means that collection `selectors$` emit _after all collections have been updated_.
-If you merged to each collection individually, the collection `selectors$` would emit
-after each collection merge, which could provoke an unfortunate race condition
+
+Previously, you had to merge into each collection individually.
+Each collections `selectors$` would emit
+after each collection merge.
+That behavior could provoke an unfortunate race condition
 as when adding order line items before the parent order itself.
 
-**_Guid utility functions and \_CorrelationIdGenerator_**
+> `EntityServices` tests demonstrate these points.
+
+**Added `EntityServices.entityActionErrors$`**
+
+An observable of **error** `EntityActions` (e.g. `QUERY_ALL_ERROR`) for all entity types.
+
+**_Guid_ utility functions and _CorrelationIdGenerator_**
 
 New utility functions, `getGuid()`, `getUuid()`, and `getGuidComb()` generate pseudo-GUID strings
 for client-side id generation.
 The `getGuidComb()` function produces sequential guids which are sortable and often nice to SQL databases.
-All three produce 32-character hexadecimal UUID strings, not the 128-bit representation.
 
-The `_CorrelationIdGenerator_` service `next()` method produces a string correlation id
-consisting of 'CRID' plus an increasing integer.
-Generated ids are unique only for a single browser session.
+> All three produce 32-character hexadecimal UUID strings, not the 128-bit representation found in server-side languages and databases.
+
+The `CorrelationIdGenerator.next()` method produces a string
+consisting of 'CRID' (for "<b>c</b>o<b>r</b>relation **id**") plus an increasing integer.
+
 The entity dispatcher save and query methods call it to generate correlation ids that
 associate a start action with its success or error action.
 You can replace it by providing an alternative implementation.
+
+Correlation ids are unique for a single browser session only.
+Do not use for entity ids.
+Use the _GUID_ utilities to generate entity ids.
 
 ## Breaking Changes
 
@@ -249,23 +277,148 @@ arrives at the reducer with the information needed for change tracking.
 
 The app or its tests _might_ expect ngrx-data to make DELETE requests when processing SAVE_DELETE... actions
 for entities that were added to the collection but not yet saved.
-With change tracking enabled. ngrx-data no longer makes DELETE requests when processing SAVE_DELETE... actions
+
+As discussed above, when change tracking is enabled, ngrx-data no longer makes DELETE requests when processing SAVE_DELETE... actions
 for entities that were added to the collection but not yet saved.
 
-It is possible that an app or its tests expected ngrx-data to make these DELETE requests.
+It is possible that an app or its tests expected ngrx-data to make these DELETE requests. Please correct your code/tests accordingly.
 
 ### Other Breaking Changes
 
-The ChangeTracking feature has such a profound effect on the library, involving necessary breaking changes, that the occasion seemed ripe to make _other breaking changes_
-that address longstanding problems and irritants in the architecture and names.
+The ChangeTracking feature has such a profound effect on the library, involving necessary breaking changes, that the occasion seemed ripe to address longstanding problems and irritants in the architecture and names.
+These repairs include additional breaking changes.
+
+**Custom `EntityCollectionService` constructor changed**.
+
+Previously, when you wrote a custom `EntityCollectionService`, you injected the `EntityCollectionServiceFactory` and passed it to your constructor like this.
+
+```
+import { Injectable } from '@angular/core';
+import { EntityCollectionServiceBase, EntityCollectionServiceFactory } from 'ngrx-data';
+
+import { Hero } from '../core';
+
+@Injectable({ providedIn: 'root' })
+export class HeroesService extends EntityCollectionServiceBase<Hero> {
+  constructor(serviceFactory: EntityCollectionServiceFactory) {
+    super('Hero', serviceFactory);
+  }
+  // ... your custom service logic ...
+}
+```
+
+This was weird.
+You don't expect to inject the factory that makes that thing into the constructor of that thing.
+
+In fact, `EntityCollectionServiceFactory` wasn't behaving like a service factory.
+It merely exposed _yet another unnamed factory_, which made the core elements necessary for the service.
+
+This version of ngrx-data makes that elements factory explicit (`EntityCollectionServiceElementsFactory`).
+
+Unfortunately, this breaks your custom services.
+You'll have to modify them to inject and use the elements factory instead of the colletion service factory.
+
+Here's the updated `HeroesService` example:
+
+```
+import { Injectable } from '@angular/core';
+import { EntityCollectionServiceBase, EntityCollectionServiceElementsFactory } from 'ngrx-data';
+
+import { Hero } from '../core';
+
+
+@Injectable({ providedIn: 'root' })
+export class HeroesService extends EntityCollectionServiceBase<Hero> {
+  constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory) {
+    super('Hero', serviceElementsFactory);
+  }
+  // ... your custom service logic ...
+}
+```
+
+**Custom `EntityServices` constructor changed**.
+
+Those app custom `EntityServices` classes that derive from the `EntityServicesBase` class
+must be modified to suit the constructor of the new `EntityServicesBase` class.
+
+This change simplifies construction of custom `EntityServices` classes
+and reduces the risk of future change to the base class constructor.
+As the base `EntityServices` class evolves it might need new dependencies.
+These new dependencies can be delivered by the injected `EntityServicesElements` service,
+which can grow without disturbing the application derived classes.
+
+This manner of insulating custom classes from future library changes
+follows the _elements_ pattern used by the `EntityCollectionService`, as described above.
+
+Here is a custom `AppEntityServices` written for the _previous ngrx-data release_.
+
+```
+import { Injectable } from '@angular/core';
+import { Store } from '@ngrx/store';
+import {
+  EntityCache,
+  EntityCollectionServiceFactory,
+  EntityServicesBase
+} from 'ngrx-data';
+
+import { HeroesService } from '../../heroes/heroes.service';
+import { VillainsService } from '../../villains/villains.service';
+
+@Injectable()
+export class AppEntityServices extends EntityServicesBase {
+  constructor(
+    public readonly store: Store<EntityCache>,
+    public readonly entityCollectionServiceFactory: EntityCollectionServiceFactory,
+
+    // Inject custom services, register them with the EntityServices, and expose in API.
+    public readonly heroesService: HeroesService,
+    public readonly villainsService: VillainsService
+  ) {
+    super(store, entityCollectionServiceFactory);
+    this.registerEntityCollectionServices([heroesService, villainsService]);
+  }
+}
+```
+
+The updated `AppEntityServices` is slightly smaller with fewer imports.
+
+```
+import { Injectable } from '@angular/core';
+import { EntityServicesElements, EntityServicesBase } from 'ngrx-data';
+
+import { HeroesService } from '../../heroes/heroes.service';
+import { VillainsService } from '../../villains/villains.service';
+
+@Injectable()
+export class AppEntityServices extends EntityServicesBase {
+  constructor(
+    entityServicesElements: EntityServicesElements,
+
+    // Inject custom services, register them with the EntityServices, and expose in API.
+    public readonly heroesService: HeroesService,
+    public readonly villainsService: VillainsService
+  ) {
+    super(entityServicesElements);
+    this.registerEntityCollectionServices([heroesService, villainsService]);
+  }
+}
+```
+
+**`EntityServices.store` and `.entityCollectionServiceFactory` no longer in the API**.
+
+We could not see why these members should be part of the public `EntityServices` API.
+Removed them so we don't have to support them.
+
+A custom `EntityService` could inject them in its own constructor if need be.
+Developers can petition to re-expose them if they can offer good reasons.
 
 **`EntityAction` properties moved to the payload**
 
-As mentioned above. This change effects those who worked directly with `EntityAction` instances.
+This change, described earlier, affects those developers who worked directly with `EntityAction` instances.
 
 **`EntityAction.op` property renamed `entityOp`**
 
-While moving entity action properties to ``EntityAction.payload`the`op`property became`entityOp` for three reasons.
+While moving entity action properties to `EntityAction.payload`, the `op` property was renamed `entityOp` for three reasons.
 
 1.  The rename reduces the likelihood that a non-EntityAction payload has a similarly named property that
     would cause ngrx-data to treat the action as an `EntityAction`.
@@ -274,11 +427,19 @@ While moving entity action properties to ``EntityAction.payload`the`op`property 
 
 1.  The timing is right because the relocation of properties to the payload is already a breaking change.
 
+**_EntityCollectionService_ members only reference the collection**.
+
+Formerly such services exposed the `entityCache`, the `store` and a `dispatch` method, all of which are outside of the `EntityCollection` targeted by the service.
+
+They've been removed from the `EntityCollectionService` API.
+Use `EntityServices` instead to access the `entityCache`, the `store`,
+a general dispatcher of `Action`, etc.
+
 **Service dispatcher query and save methods must return an Observable**
 
-This feature, described above, introduces a _breaking change_ for those apps that create custom entity collection services
+The query and save commands should return an Observable as described above. This is a _breaking change_ for those apps that create custom entity collection services
 and override the base methods.
-These overrides must now return an appropriate terminating Observable.
+Such overrides must now return an appropriate terminating Observable.
 
 **Renamed `EntityAction.label`**.
 
@@ -291,14 +452,21 @@ More significantly, the tag (FKA label) is now part of the payload rather than a
 
 **`ADD_ALL` resets the loading (false) and loaded (true) flags**.
 
-**Deleted `MERGE_ENTITY_CACHE`** as it has never been used and can be easily implemented with
+**Deleted `MERGE_ENTITY_CACHE`**.
+
+The cache action was never used by ngrx-data itself.
+It can be easily implemented with
 `ENTITY_CACHE_SET` and a little code to get the current entity cache state.
 
 **Moved `SET_ENTITY_CACHE` under `EntityCacheAction.SET_ENTITY_CACHE`**.
 
-**Eliminated the `_OPTIMISTIC` variations of the save `EntityActions`** and their corresponding reducer methods.
-Now add, update, and delete are handled by single save actions and their reducers behave pessimistically or
+**Eliminated the `OPTIMISTIC` variations of the save `EntityOps`**.
+
+These entityOps and their corresponding reducer methods are gone.
+Now there is only one _add_, _update_, and _delete_ operation.
+Their reducers behave pessimistically or
 optimistically based on the `isOptimistic` flag in the `EntityActionOptions` in the action payload.
+
 This change does not affect the primary application API and should break only those apps that delved below
 the ngrx-data surface such as apps that implement their own entity action reducers.
 
@@ -314,9 +482,14 @@ The need for separating these concerns became apparent as we enriched the action
 This change breaks apps that registered collection reducers directly with the former `_EntityReducerFactory_`.
 Resolve by importing `EntityCollectionReducerRegistry` instead and calling the same registration methods on it.
 
-**Rename _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_**
-for consistence with other members of the _EntityServices_ family.
+**Renamed _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_**.
+
+Renamed for consistence with other members of the _EntityServices_ family.
 A breaking change for the rare app that referenced this factory directly.
+
+**Renamed _DefaultDispatcherOptions_ to _EntityDispatcherDefaultOptions_**.
+
+Renamed for clarity.
 
 <a id="6.0.0-beta.6"></a>
 
@@ -597,9 +770,10 @@ This makes it much easier to customize the reducer methods.
 Formerly they were hidden within the `switch()`, which meant you had to effectively replace the
 entire collection reducer if you wanted to change the behavior of a single action.
 
-The default collection reducer methods are in the `DefaultEntityCollectionReducerMethods`.
-This produces a map of `EntityOps` to entity collection reducer methods.
-These methods rely on the `DefaultEntityCollectionReducerMethods` class properties
+The default collection reducer methods are in the `EntityCollectionReducerMethods`.
+This produces a map (`EntityCollectionReducerMethodsMap`) of `EntityOps` to entity collection reducer methods.
+
+These methods rely on the `EntityCollectionReducerMethods` class members
 that you can override.
 Alternatively, you can replace any of them by name with your own method.
 You could also add new "operations" and reducer methods to meet your custom needs.

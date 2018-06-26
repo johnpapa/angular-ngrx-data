@@ -1,17 +1,14 @@
 import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
 
 import { createEntityDefinition, EntityDefinition } from './entity-definition';
-import {
-  EntityMetadata,
-  EntityMetadataMap,
-  ENTITY_METADATA_TOKEN
-} from './entity-metadata';
+import { EntityMetadata, EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
 
 export interface EntityDefinitions {
   [entityName: string]: EntityDefinition<any>;
 }
 
+/** Registry of EntityDefinitions for all cached entity types */
 @Injectable()
 export class EntityDefinitionService {
   /** {EntityDefinition} for all cached entity types */
@@ -35,10 +32,7 @@ export class EntityDefinitionService {
    *   getDefinition('Hero'); // definition for Heroes, untyped
    *   getDefinition<Hero>(`Hero`); // definition for Heroes, typed with Hero interface
    */
-  getDefinition<T>(
-    entityName: string,
-    shouldThrow = true
-  ): EntityDefinition<T> {
+  getDefinition<T>(entityName: string, shouldThrow = true): EntityDefinition<T> {
     entityName = entityName.trim();
     const definition = this.definitions[entityName];
     if (!definition && shouldThrow) {
@@ -76,9 +70,7 @@ export class EntityDefinitionService {
    */
   registerMetadataMap(metadataMap: EntityMetadataMap = {}) {
     // The entity type name should be the same as the map key
-    Object.keys(metadataMap || {}).forEach(entityName =>
-      this.registerMetadata({ entityName, ...metadataMap[entityName] })
-    );
+    Object.keys(metadataMap || {}).forEach(entityName => this.registerMetadata({ entityName, ...metadataMap[entityName] }));
   }
 
   /**

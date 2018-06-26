@@ -4,6 +4,7 @@ import { Action } from '@ngrx/store';
 import { EntityOp } from './entity-op';
 import { MergeStrategy } from './merge-strategy';
 
+/** Action concerning an entity collection. */
 export interface EntityAction<P = any> extends Action {
   readonly type: string;
   readonly payload: EntityActionPayload<P>;

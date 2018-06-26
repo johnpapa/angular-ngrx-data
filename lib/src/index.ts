@@ -34,12 +34,13 @@ export * from './entity-metadata/entity-filters';
 export * from './entity-metadata/entity-metadata';
 
 // entity-services
-export * from './entity-services/entity-collection-service-factory-base';
 export * from './entity-services/entity-collection-service';
 export * from './entity-services/entity-collection-service-base';
+export * from './entity-services/entity-collection-service-elements-factory';
 export * from './entity-services/entity-collection-service-factory';
 export * from './entity-services/entity-services';
 export * from './entity-services/entity-services-base';
+export * from './entity-services/entity-services-elements';
 
 // reducers
 export * from './reducers/constants';

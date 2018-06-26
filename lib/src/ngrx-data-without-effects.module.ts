@@ -9,8 +9,8 @@ import { EntityActionFactory } from './actions/entity-action-factory';
 import { EntityCache } from './reducers/entity-cache';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
 import { EntityCollectionService } from './entity-services/entity-collection-service';
+import { EntityCollectionServiceElementsFactory } from './entity-services/entity-collection-service-elements-factory';
 import { EntityCollectionServiceFactory } from './entity-services/entity-collection-service-factory';
-import { EntityCollectionServiceFactoryBase } from './entity-services/entity-collection-service-factory-base';
 import { EntityCollectionServiceMap, EntityServices } from './entity-services/entity-services';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
@@ -31,15 +31,14 @@ import {
   INITIAL_ENTITY_CACHE_STATE
 } from './reducers/constants';
 
-import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
-
+import { DefaultLogger } from './utils/default-logger';
+import { DefaultPluralizer } from './utils/default-pluralizer';
 import { EntitySelectors } from './selectors/entity-selectors';
 import { EntitySelectorsFactory } from './selectors/entity-selectors';
 import { EntitySelectors$Factory } from './selectors/entity-selectors$';
 import { EntityServicesBase } from './entity-services/entity-services-base';
-
-import { DefaultLogger } from './utils/default-logger';
-import { DefaultPluralizer } from './utils/default-pluralizer';
+import { EntityServicesElements } from './entity-services/entity-services-elements';
+import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
 
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
@@ -68,24 +67,17 @@ export interface NgrxDataModuleConfig {
     entityCacheSelectorProvider,
     EntityCollectionCreator,
     EntityCollectionReducerFactory,
+    EntityCollectionReducerMethodsFactory,
     EntityCollectionReducerRegistry,
+    EntityCollectionServiceElementsFactory,
+    EntityCollectionServiceFactory,
     EntityDefinitionService,
     EntityDispatcherFactory,
     EntitySelectorsFactory,
     EntitySelectors$Factory,
-    {
-      provide: EntityCollectionReducerMethodsFactory,
-      useClass: EntityCollectionReducerMethodsFactory
-    },
+    EntityServicesElements,
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
-    {
-      provide: EntityCollectionServiceFactory,
-      useClass: EntityCollectionServiceFactoryBase
-    },
-    {
-      provide: EntityServices,
-      useClass: EntityServicesBase
-    },
+    { provide: EntityServices, useClass: EntityServicesBase },
     { provide: Logger, useClass: DefaultLogger }
   ]
 })

@@ -34,7 +34,7 @@ export interface EntityCollectionService<T> extends EntityCommands<T>, EntitySel
   /** Dispatcher of EntityCommands (EntityActions) */
   readonly dispatcher: EntityDispatcher<T>;
 
-  /** Name of the entity for this collection service */
+  /** Name of the entity type for this collection service */
   readonly entityName: string;
 
   /** All selector functions of the entity collection */

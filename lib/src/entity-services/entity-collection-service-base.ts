@@ -11,18 +11,18 @@ import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntityCollectionService } from './entity-collection-service';
-import { EntityCollectionServiceFactory } from './entity-collection-service-factory';
+import { EntityCollectionServiceElementsFactory } from './entity-collection-service-elements-factory';
 import { EntityOp } from '../actions/entity-op';
 import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
 import { QueryParams } from '../dataservices/interfaces';
 
 // tslint:disable:member-ordering
+
 /**
  * Base class for a concrete EntityCollectionService<T>.
  * Can be instantiated. Cannot be injected. Use EntityCollectionServiceFactory to create.
- * @param entityName Entity type name
- * @param EntityCollectionServiceFactory A creator of an EntityCollectionService<T> which here serves
+ * @param EntityCollectionServiceElements The ingredients for this service
  * as a source of supporting services for creating an EntityCollectionService<T> instance.
  */
 export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> implements EntityCollectionService<T> {
@@ -35,9 +35,14 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
   /** All selectors$ (observables of entity collection properties) */
   readonly selectors$: S$;
 
-  constructor(public readonly entityName: string, entityCollectionServiceFactory: EntityCollectionServiceFactory) {
+  constructor(
+    /** Name of the entity type of this collection service */
+    public readonly entityName: string,
+    /** Creates the core elements of the EntityCollectionService for this entity type */
+    serviceElementsFactory: EntityCollectionServiceElementsFactory
+  ) {
     entityName = entityName.trim();
-    const { dispatcher, selectors, selectors$ } = entityCollectionServiceFactory.getEntityCollectionServiceElements<T, S$>(entityName);
+    const { dispatcher, selectors, selectors$ } = serviceElementsFactory.getServiceElements<T, S$>(entityName);
 
     this.entityName = entityName;
     this.dispatcher = dispatcher;

@@ -27,6 +27,26 @@ import { Logger } from '../utils/interfaces';
 import { commandDispatchTest } from '../dispatchers/entity-dispatcher.spec';
 
 describe('EntityServices', () => {
+  describe('entityActionErrors$', () => {
+    it('should emit EntityAction errors for multiple entity types', () => {
+      const errors: EntityAction[] = [];
+      const { entityActionFactory, entityServices } = entityServicesSetup();
+      entityServices.entityActionErrors$.subscribe(error => errors.push(error));
+
+      entityServices.dispatch({ type: 'not-an-entity-action' });
+      entityServices.dispatch(entityActionFactory.create('Hero', EntityOp.QUERY_ALL)); // not an error
+      entityServices.dispatch(
+        entityActionFactory.create('Hero', EntityOp.QUERY_ALL_ERROR, makeDataServiceError('GET', new Error('Bad hero news')))
+      );
+      entityServices.dispatch(entityActionFactory.create('Villain', EntityOp.QUERY_ALL)); // not an error
+      entityServices.dispatch(
+        entityActionFactory.create('Villain', EntityOp.SAVE_ADD_ONE_ERROR, makeDataServiceError('PUT', new Error('Bad villain news')))
+      );
+
+      expect(errors.length).toBe(2);
+    });
+  });
+
   describe('entityCache$', () => {
     it('should observe the entire entity cache', () => {
       const entityCacheValues: any = [];
@@ -113,6 +133,8 @@ describe('EntityServices', () => {
       }
     });
 
+    // TODO: test the effect of MergeStrategy when there are entities in cache with changes
+    // This concern is largely met by EntityChangeTracker tests but integration tests would be reassuring.
     describe('queries', () => {
       let heroCollectionService: EntityCollectionService<Hero>;
       let dataService: TestDataService;
@@ -178,6 +200,38 @@ describe('EntityServices', () => {
         const error = makeDataServiceError('GET', httpError);
         dataService.setErrorResponse('getById', error);
         heroCollectionService.getByKey(42).subscribe(expectErrorToBe(error, done));
+      });
+
+      it('getWithQuery observable should emit heroes on success', (done: DoneFn) => {
+        const hero1 = { id: 1, name: 'A' } as Hero;
+        const hero2 = { id: 2, name: 'B' } as Hero;
+        const heroes = [hero1, hero2];
+        dataService.setResponse('getWithQuery', heroes);
+        heroCollectionService.getWithQuery({ name: 'foo' }).subscribe(expectDataToBe(heroes, done));
+
+        // reducedActions$Snoop(); // diagnostic
+      });
+
+      it('getWithQuery observable should emit expected error when data service fails', (done: DoneFn) => {
+        const httpError = { error: new Error('Test Failure'), status: 501 };
+        const error = makeDataServiceError('GET', httpError);
+        dataService.setErrorResponse('getWithQuery', error);
+        heroCollectionService.getWithQuery({ name: 'foo' }).subscribe(expectErrorToBe(error, done));
+      });
+
+      it('load observable should emit heroes on success', (done: DoneFn) => {
+        const hero1 = { id: 1, name: 'A' } as Hero;
+        const hero2 = { id: 2, name: 'B' } as Hero;
+        const heroes = [hero1, hero2];
+        dataService.setResponse('getAll', heroes);
+        heroCollectionService.load().subscribe(expectDataToBe(heroes, done));
+      });
+
+      it('load observable should emit expected error when data service fails', (done: DoneFn) => {
+        const httpError = { error: new Error('Test Failure'), status: 501 };
+        const error = makeDataServiceError('GET', httpError);
+        dataService.setErrorResponse('getAll', error);
+        heroCollectionService.load().subscribe(expectErrorToBe(error, done));
       });
     });
 

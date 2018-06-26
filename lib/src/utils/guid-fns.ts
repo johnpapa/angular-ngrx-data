@@ -1,4 +1,16 @@
-// Client-side id-generator
+/*
+Client-side id-generators
+
+These GUID utility functions are not used by ngrx-data itself at this time.
+They are included as candidates for generating persistable correlation ids if that becomes desirable.
+They are also safe for generating unique entity ids on the client.
+
+Note they produce 32-character hexadecimal UUID strings,
+not the 128-bit representation found in server-side languages and databases.
+
+These utilities are experimental and may be withdrawn or replaced in future.
+*/
+
 /**
  * Creates a Universally Unique Identifier (AKA GUID)
  */

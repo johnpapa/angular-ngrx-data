@@ -1,4 +1,4 @@
-/** TODO: much more testing */
+import { Injectable } from '@angular/core';
 import { ComponentFixture, inject, TestBed } from '@angular/core/testing';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Action, StoreModule, Store } from '@ngrx/store';
@@ -10,13 +10,14 @@ import { delay, filter, first, mergeMap, skip, withLatestFrom } from 'rxjs/opera
 import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
-import { EntityOp, makeErrorOp } from '../actions/entity-op';
+import { EntityOp, makeErrorOp, OP_SUCCESS } from '../actions/entity-op';
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCacheQuerySet, MergeQuerySet } from '../actions/entity-cache-action';
 import { EntityCacheReducerFactory } from '../reducers/entity-cache-reducer-factory';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionService } from './entity-collection-service';
 import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
+import { EntityDispatcherDefaultOptions } from '../dispatchers/entity-dispatcher-default-options';
 import { EntityDispatcherFactory } from '../dispatchers/entity-dispatcher-factory';
 import { EntityMetadataMap } from '../entity-metadata/entity-metadata';
 import { EntityServices } from './entity-services';
@@ -235,9 +236,99 @@ describe('EntityServices', () => {
       });
     });
 
-    describe('saves (optimistic)', () => {});
+    describe('saves (optimistic)', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          /* tslint:disable-next-line:no-use-before-declare */
+          providers: [{ provide: EntityDispatcherDefaultOptions, useClass: OptimisticDispatcherDefaultOptions }]
+        });
+      });
 
-    describe('saves (pessimistic)', () => {});
+      combinedSaveTests(true);
+    });
+
+    describe('saves (pessimistic)', () => {
+      beforeEach(() => {
+        TestBed.configureTestingModule({
+          /* tslint:disable-next-line:no-use-before-declare */
+          providers: [{ provide: EntityDispatcherDefaultOptions, useClass: PessimisticDispatcherDefaultOptions }]
+        });
+      });
+
+      combinedSaveTests(false);
+    });
+
+    /** Save tests to be run both optimistically and pessimistically */
+    function combinedSaveTests(isOptimistic: boolean) {
+      let heroCollectionService: EntityCollectionService<Hero>;
+      let dataService: TestDataService;
+      let expectOptimisticSuccess: (expect: boolean) => () => void;
+      let reducedActions$Snoop: () => void;
+      let successActions$: Observable<EntityAction>;
+
+      beforeEach(() => {
+        ({ dataService, expectOptimisticSuccess, heroCollectionService, reducedActions$Snoop, successActions$ } = entityServicesSetup());
+      });
+
+      it('add() should save a new entity and return it', (done: DoneFn) => {
+        const extra = expectOptimisticSuccess(isOptimistic);
+        const hero = { id: 1, name: 'A' } as Hero;
+        dataService.setResponse('add', hero);
+        heroCollectionService.add(hero).subscribe(expectDataToBe(hero, done, undefined, extra));
+      });
+
+      it('add() observable should emit expected error when data service fails', (done: DoneFn) => {
+        const hero = { id: 1, name: 'A' } as Hero;
+        const httpError = { error: new Error('Test Failure'), status: 501 };
+        const error = makeDataServiceError('PUT', httpError);
+        dataService.setErrorResponse('add', error);
+        heroCollectionService.add(hero).subscribe(expectErrorToBe(error, done));
+      });
+
+      it('delete() should send delete for entity not in cache and return its id', (done: DoneFn) => {
+        const extra = expectOptimisticSuccess(isOptimistic);
+        dataService.setResponse('delete', 42);
+        heroCollectionService.delete(42).subscribe(expectDataToBe(42, done, undefined, extra));
+      });
+
+      it('delete() should skip delete for added entity cache', (done: DoneFn) => {
+        // reducedActions$Snoop();
+        let wasSkipped: boolean;
+        successActions$.subscribe((act: EntityAction) => (wasSkipped = act.payload.skip === true));
+        const extra = () => expect(wasSkipped).toBe(true, 'expected to be skipped');
+
+        const hero = { id: 1, name: 'A' } as Hero;
+        heroCollectionService.addOneToCache(hero);
+        dataService.setResponse('delete', 1);
+        heroCollectionService.delete(1).subscribe(expectDataToBe(1, done, undefined, extra));
+      });
+
+      it('delete() observable should emit expected error when data service fails', (done: DoneFn) => {
+        const httpError = { error: new Error('Test Failure'), status: 501 };
+        const error = makeDataServiceError('DELETE', httpError);
+        dataService.setErrorResponse('delete', error);
+        heroCollectionService.delete(42).subscribe(expectErrorToBe(error, done));
+      });
+
+      it('update() should save updated entity and return it', (done: DoneFn) => {
+        const extra = expectOptimisticSuccess(isOptimistic);
+        const preUpdate = { id: 1, name: 'A' } as Hero;
+        heroCollectionService.addAllToCache([preUpdate]); // populate cache
+        const update = { ...preUpdate, name: 'Updated A' };
+        dataService.setResponse('update', null); // server returns nothing after update
+        heroCollectionService.update(update).subscribe(expectDataToBe(update, done, undefined, extra));
+      });
+
+      it('update() observable should emit expected error when data service fails', (done: DoneFn) => {
+        const preUpdate = { id: 1, name: 'A' } as Hero;
+        heroCollectionService.addAllToCache([preUpdate]); // populate cache
+        const update = { ...preUpdate, name: 'Updated A' };
+        const httpError = { error: new Error('Test Failure'), status: 501 };
+        const error = makeDataServiceError('PUT', httpError);
+        dataService.setErrorResponse('update', error);
+        heroCollectionService.update(update).subscribe(expectErrorToBe(error, done));
+      });
+    }
 
     describe('selectors$', () => {
       let entityActionFactory: EntityActionFactory;
@@ -268,7 +359,7 @@ describe('EntityServices', () => {
   });
 });
 
-// region test helpers
+// #region test helpers
 class Hero {
   id: number;
   name: string;
@@ -300,13 +391,24 @@ function entityServicesSetup() {
   });
 
   const actions$: Observable<Action> = TestBed.get(Actions);
+  const dataService: TestDataService = TestBed.get(EntityDataService);
   const entityActionFactory: EntityActionFactory = TestBed.get(EntityActionFactory);
+  const entityDispatcherFactory: EntityDispatcherFactory = TestBed.get(EntityDispatcherFactory);
   const entityServices: EntityServices = TestBed.get(EntityServices);
   const heroCollectionService = entityServices.getEntityCollectionService<Hero>('Hero');
-  const entityDispatcherFactory: EntityDispatcherFactory = TestBed.get(EntityDispatcherFactory);
   const reducedActions$: Observable<Action> = entityDispatcherFactory.reducedActions$;
   const store: Store<EntityCache> = TestBed.get(Store);
-  const dataService: TestDataService = TestBed.get(EntityDataService);
+  const successActions$: Observable<EntityAction> = reducedActions$.pipe(
+    filter((act: any) => act.payload && act.payload.entityOp.endsWith(OP_SUCCESS))
+  );
+
+  /** Returns fn that confirms EntityAction was (or was not Optimistic) after success */
+  function expectOptimisticSuccess(expected: boolean) {
+    let wasOptimistic: boolean;
+    const msg = `${expected ? 'Optimistic' : 'Pessimistic'} save `;
+    successActions$.subscribe((act: EntityAction) => (wasOptimistic = act.payload.isOptimistic === true));
+    return () => expect(wasOptimistic).toBe(expected, msg);
+  }
 
   /** Snoop on reducedActions$ while debugging a test */
   function reducedActions$Snoop() {
@@ -317,20 +419,25 @@ function entityServicesSetup() {
 
   return {
     actions$,
+    dataService,
     entityActionFactory,
     entityServices,
+    expectOptimisticSuccess,
     heroCollectionService,
     reducedActions$,
     reducedActions$Snoop,
     store,
-    dataService
+    successActions$
   };
 }
 
-function expectDataToBe(expected: any, done: DoneFn, message?: string) {
+function expectDataToBe(expected: any, done: DoneFn, message?: string, extra?: () => void) {
   return {
     next: (data: any) => {
       expect(data).toEqual(expected, message);
+      if (extra) {
+        extra(); // extra expectations before done
+      }
       done();
     },
     error: fail
@@ -368,6 +475,20 @@ function makeDataServiceError(
   return new DataServiceError(httpError, { method, url, options });
 }
 
+@Injectable()
+export class OptimisticDispatcherDefaultOptions {
+  optimisticAdd = true;
+  optimisticDelete = true;
+  optimisticUpdate = true;
+}
+
+@Injectable()
+export class PessimisticDispatcherDefaultOptions {
+  optimisticAdd = false;
+  optimisticDelete = false;
+  optimisticUpdate = false;
+}
+
 export interface TestDataServiceMethod {
   add: jasmine.Spy;
   delete: jasmine.Spy;
@@ -400,4 +521,4 @@ export class TestDataService {
     this[methodName].and.returnValue(timer(1).pipe(mergeMap(() => throwError(error))));
   }
 }
-// endregion test helpers
+// #endregion test helpers

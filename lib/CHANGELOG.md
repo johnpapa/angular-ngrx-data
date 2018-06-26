@@ -226,24 +226,32 @@ as when adding order line items before the parent order itself.
 
 An observable of **error** `EntityActions` (e.g. `QUERY_ALL_ERROR`) for all entity types.
 
-**_Guid_ utility functions and _CorrelationIdGenerator_**
+**_CorrelationIdGenerator_ and _Guid_ utility functions**
 
-New utility functions, `getGuid()`, `getUuid()`, and `getGuidComb()` generate pseudo-GUID strings
-for client-side id generation.
-The `getGuidComb()` function produces sequential guids which are sortable and often nice to SQL databases.
+Ngrx-data needs a `CorrelationIdGenerator` service to coordinate multiple EntityActions.
 
-> All three produce 32-character hexadecimal UUID strings, not the 128-bit representation found in server-side languages and databases.
+The entity dispatcher save and query methods use it to generate correlation ids that
+associate a start action with its corresponding success or error action.
 
-The `CorrelationIdGenerator.next()` method produces a string
+The ngrx-data `CorrelationIdGenerator.next()` method produces a string
 consisting of 'CRID' (for "<b>c</b>o<b>r</b>relation **id**") plus an increasing integer.
-
-The entity dispatcher save and query methods call it to generate correlation ids that
-associate a start action with its success or error action.
-You can replace it by providing an alternative implementation.
 
 Correlation ids are unique for a single browser session only.
 Do not use for entity ids.
 Use the _GUID_ utilities to generate entity ids.
+
+You can replace this generator by providing an alternative implementation with a `next()` method
+that returns a value of any type that serves the purpose.
+
+The new GUID utility functions - `getGuid()`, `getUuid()`, and `getGuidComb()` - generate pseudo-GUID strings
+for client-side id generation.
+The `getGuidComb()` function produces sequential guids which are sortable and often nice to SQL databases.
+
+All three produce 32-character hexadecimal UUID strings, not the 128-bit representation found in server-side languages and databases. That's less than ideal but we don't have a better alternative at this time.
+
+> The GUID utility functions are not used by ngrx-data itself at this time
+> They are included as candidates for generating persistable correlation ids if that becomes desirable.
+> These utilities are classified as _experimental_ and may be withdrawn or replaced in future.
 
 ## Breaking Changes
 

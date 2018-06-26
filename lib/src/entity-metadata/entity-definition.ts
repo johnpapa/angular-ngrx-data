@@ -1,15 +1,7 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
-import {
-  EntitySelectors,
-  EntitySelectorsFactory
-} from '../selectors/entity-selectors';
-import {
-  Comparer,
-  Dictionary,
-  IdSelector,
-  Update
-} from '../utils/ngrx-entity-models';
+import { EntitySelectors, EntitySelectorsFactory } from '../selectors/entity-selectors';
+import { Comparer, Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { defaultSelectId } from '../utils/utilities';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
@@ -24,34 +16,35 @@ export interface EntityDefinition<T = any> {
   metadata: EntityMetadata<T>;
   selectId: IdSelector<T>;
   sortComparer: false | Comparer<T>;
+  enableChangeTracking: boolean;
 }
 
-export function createEntityDefinition<T, S extends object>(
-  metadata: EntityMetadata<T, S>
-): EntityDefinition<T> {
+export function createEntityDefinition<T, S extends object>(metadata: EntityMetadata<T, S>): EntityDefinition<T> {
   // extract known essential properties driving entity definition.
   let entityName = metadata.entityName;
   if (!entityName) {
     throw new Error('Missing required entityName');
   }
   metadata.entityName = entityName = entityName.trim();
+  const enableChangeTracking = metadata.enableChangeTracking !== false; // true by default
   const selectId = metadata.selectId || defaultSelectId;
   const sortComparer = (metadata.sortComparer = metadata.sortComparer || false);
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
-  const entityDispatcherOptions: Partial<EntityDispatcherOptions> =
-    metadata.entityDispatcherOptions || {};
+  const entityDispatcherOptions: Partial<EntityDispatcherOptions> = metadata.entityDispatcherOptions || {};
 
   const initialState: EntityCollection<T> = entityAdapter.getInitialState({
+    entityName,
     filter: '',
     loaded: false,
     loading: false,
-    originalValues: {},
+    changeState: {},
     ...(metadata.additionalCollectionState || {})
   });
 
   return {
+    enableChangeTracking,
     entityName,
     entityAdapter,
     entityDispatcherOptions,

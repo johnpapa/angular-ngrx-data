@@ -141,7 +141,7 @@ Rather than expect a result from the command,
 you subscribe to a _selector$_ property that reflects
 the effects of the command. If the command did something you care about, a _selector$_ property should be able to tell you about it.
 
-<a name="entity-collection-service-factory"></a>
+<a id="entity-collection-service-factory"></a>
 
 ## _EntityServiceFactory_
 

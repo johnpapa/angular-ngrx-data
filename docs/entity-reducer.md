@@ -2,7 +2,7 @@
 
 The _Entity Reducer_ is the _master reducer_ for all entity collections in the stored entity cache.
 
-<a name="reducer-factory"></a>
+<a id="reducer-factory"></a>
 
 The library doesn't have a named _entity reducer_ type.
 Rather it relies on the **`EntityReducerFactory.create()`** method to produce that reducer,
@@ -36,7 +36,7 @@ If it can't find a reducer for the entity type, it [creates one](#collection-red
 of the injected `EntityCollectionReducerFactory`, and registers that reducer
 so it can use it again next time.
 
-<a name="register"></a>
+<a id="register"></a>
 
 ### Register custom reducers
 
@@ -47,7 +47,7 @@ You can register several custom reducers at the same time
 by calling `EntityReducerFactory.registerReducer(reducerMap)` where
 the `reducerMap` is a hash of reducers, keyed by _entity-type-name_.
 
-<a name="collection-reducer-factory"></a>
+<a id="collection-reducer-factory"></a>
 
 ## Default _EntityCollectionReducer_
 
@@ -76,7 +76,7 @@ cache altering operations performed by the default _entity collection reducer_.
 
 The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts`) and its tests are the authority on how the default reducer actually works.
 
-<a name='initialize'></a>
+<a id='initialize'></a>
 
 ## Initializing collection state
 
@@ -95,7 +95,7 @@ the creator returns an `EntityCollection`.
 
 The _entity reducer_ then passes the new collection in the `state` argument of the _entity collection reducer_.
 
-<a name="customizing"></a>
+<a id="customizing"></a>
 
 ## Customizing entity reducer behavior
 
@@ -109,7 +109,7 @@ providing a custom alternative to the [`EntityReducerFactory`](#reducer-factory)
 
 But quite often you'd like to extend a _collection reducer_ with some additional reducer logic that runs before or after.
 
-<a name="entity-cache-actions"></a>
+<a id="entity-cache-actions"></a>
 
 ## EntityCache-level actions
 
@@ -142,7 +142,7 @@ in error-recovery or "what-if" scenarios.
 If you want to create and reduce additional, cache-wide actions,
 consider the _EntityCache MetaReducer_, described in the next section.
 
-<a name='meta-reducers'></a>
+<a id='meta-reducers'></a>
 
 ## _MetaReducers_
 
@@ -167,7 +167,7 @@ Ngrx-data supports two levels of MetaReducer
 1.  _EntityCache MetaReducer_, scoped to the entire entity cache
 1.  _EntityCollection MetaReducer_, scoped to a particular collection.
 
-<a name='cache-meta-reducers'></a>
+<a id='cache-meta-reducers'></a>
 
 ### Entity Cache _MetaReducers_
 
@@ -184,7 +184,7 @@ An _EntityCache MetaReducer_ reducer must satisfy three requirements:
 > We intend to explain how in a documentation update.
 > For now, see the `ngrx-data.module.spec.ts` for examples.
 
-<a name='collection-meta-reducers'></a>
+<a id='collection-meta-reducers'></a>
 
 ### Entity Collection _MetaReducers_
 

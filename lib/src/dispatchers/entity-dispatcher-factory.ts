@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { Store } from '@ngrx/store';
 
 import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityOp } from '../actions/entity-op';
 import { QueryParams } from '../dataservices/interfaces';
 import { EntityCommands } from './entity-commands';

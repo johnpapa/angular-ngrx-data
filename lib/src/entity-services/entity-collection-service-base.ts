@@ -9,7 +9,10 @@ import { EntityAction } from '../actions/entity-action';
 import { EntityOp } from '../actions/entity-op';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityCollection } from '../reducers/entity-collection';
+import {
+  EntityCollection,
+  ChangeStateMap
+} from '../reducers/entity-collection';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
 import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
@@ -73,7 +76,7 @@ export class EntityCollectionServiceBase<
     this.keys$ = selectors$.keys$;
     this.loaded$ = selectors$.loaded$;
     this.loading$ = selectors$.loading$;
-    this.originalValues$ = selectors$.originalValues$;
+    this.changeState$ = selectors$.changeState$;
   }
 
   /**
@@ -353,7 +356,7 @@ export class EntityCollectionServiceBase<
   loading$: Observable<boolean> | Store<boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  changeState$: Observable<ChangeStateMap<T>> | Store<ChangeStateMap<T>>;
 
   // endregion Selectors$
 }

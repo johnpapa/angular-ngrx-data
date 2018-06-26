@@ -2,7 +2,7 @@
 
 The _ngrx-data_ library lacks many capabilities of a [full-featured entity management](#alternatives) system.
 
-You may be able to work-around some of the limitations  without too much effort,
+You may be able to work-around some of the limitations without too much effort,
 particularly when the shortcomings are a problem for just a few entity types.
 
 This page lists many of the serious limitations we've recognized ourselves.
@@ -17,8 +17,8 @@ We could use your help.
 
 ## Deep entity cloning
 
-This library (like the [@ngrx/entity library](https://github.com/ngrx/platform/tree/master/docs/entity) 
-on which it depends) assumes that entity property values 
+This library (like the [@ngrx/entity library](https://github.com/ngrx/platform/tree/master/docs/entity)
+on which it depends) assumes that entity property values
 are simple data types such as strings, numbers, and dates.
 
 Nothing enforces that assumption.
@@ -26,8 +26,8 @@ Many web APIs return entity data with complex properties.
 A property value could be a _value type_ (e.g., a _money type_ that combines a currency indicator and an amount).
 It could have a nested structure (e.g., an address).
 
-This library shallow-clones the entity data in the collections. 
-It doesn't clone complex, nested, or array properties. 
+This library shallow-clones the entity data in the collections.
+It doesn't clone complex, nested, or array properties.
 You'll have to do the deep equality tests and cloning yourself _before_ asking _ngrx-data_ to save data.
 
 ## Non-normalized server responses
@@ -45,11 +45,11 @@ This library lacks the tools to help you disaggregate and normalize server respo
 Entities are often related to each other via _foreign keys_.
 These relationships can be represented as a directed graph, often with cycles.
 
-This library tacitly assumes that entities of different types are unrelated. 
+This library tacitly assumes that entities of different types are unrelated.
 It is completely unaware of _relationships_ and _foreign keys_ that may be implicit in the entity data.
-It's up to you to make something out of those relationships and keys. 
+It's up to you to make something out of those relationships and keys.
 
-It's not easy to represent relationships. 
+It's not easy to represent relationships.
 
 A `Customer` entity could have a one-to-many relationship with `Order` entities.
 The `Order` entity has an `order.customer` property whose value is the primary key
@@ -74,7 +74,7 @@ as entities enter and leave the cache.
 
 There will be long chains of navigations (`Customer <-> Order <-> <-> LineItem <-> Product <-> Supplier`).
 How should these be implemented?
-_Observable selector_ properties seem logical but thorny performance traps 
+_Observable selector_ properties seem logical but thorny performance traps
 await.
 
 ## Client-side primary key generation
@@ -90,14 +90,14 @@ You can create new records offline or recover if your connection to the server
 breaks inconveniently during the save.
 
 It's easy to generate a new _guid_ (or _uuid_) key.
-It's much harder to generate integer or semantic keys because 
+It's much harder to generate integer or semantic keys because
 you need a foolproof way to enforce uniqueness.
 
 Server-supplied keys greatly complicate maintenance of a cache of inter-related entities.
 You'll have to find a way to hold the related entities together until you can save them.
 
 Temporary-key generation is one approach. It requires complex key-fixup logic
-to replace the temporary keys in _foreign key properties_ 
+to replace the temporary keys in _foreign key properties_
 with the server-supplied permanent keys.
 
 ## Transactions
@@ -110,7 +110,7 @@ The library doesn't support that yet.
 
 ## Data integrity rules
 
-Entities are often governed by intra- and inter-entity validation rules. 
+Entities are often governed by intra- and inter-entity validation rules.
 The `Customer.name` property may be required.
 The `Order.shipDate` must be after the `Order.orderDate`.
 The parent `Order` of a `LineItem` may have to exist.
@@ -122,7 +122,8 @@ It would be great if the library knew about the rules (in `EntityMetadata`?), ra
 
 These might be features in a future version of this library.
 
-<a name="serialization"></a>
+<a id="serialization"></a>
+
 ## Server/client entity mapping
 
 The representation of an entity on the server may be different than on the client.
@@ -144,7 +145,7 @@ But maybe you can't connect to the server.
 Where do you keep the user's pending, unsaved changes?
 
 One approach is to keep track of pending changes, either in a change-tracker or in the entity data themselves.
-Then you might be able to use one of the 
+Then you might be able to use one of the
 [_cache-only_ commands](../lib/src/entity-metadata/entity-commands.ts) to
 put hold the entity in cache while you waited for restored connectivity.
 
@@ -165,18 +166,18 @@ while adding your own entity actions and _ngrx effects_ for these operations.
 ## No explicit _SAVE_UPSERT_
 
 The default `EntityEffects` supports saving a new or existing entity but does not have an explicit
-SAVE_UPSERT action that would _official_ save
+SAVE*UPSERT action that would \_official* save
 an entity which might be either new or existing.
 
 You may be able to add a new entity with `SAVE_UPDATE` or `SAVE_UPDATE_ONE_OPTIMISTIC`,
-because the `EntityCollectionReducer` implements these actions 
+because the `EntityCollectionReducer` implements these actions
 by calling the collection `upsertOne()` method.
 
 Do this _only_ if your server supports _upsert-with-PUT_ requests.
 
 ## No request concurrency checking
 
-The user saves a new `Customer`, followed by a query for all customers. 
+The user saves a new `Customer`, followed by a query for all customers.
 It the new customer in the query response?
 
 `Ngrx-data` does not coordinate save and query requests and does not guarantee order of responses.
@@ -186,11 +187,10 @@ Here's some pseudo-code that might do that for the previous example:
 
 ```javascript
 // add new customer, then query all customers
-customerService.addEntity(newCustomer)
-  .pipe(
-    concatMap(() => customerService.queryAll())
-  )
-  .subscribe(custs => this.customers = custs);
+customerService
+  .addEntity(newCustomer)
+  .pipe(concatMap(() => customerService.queryAll()))
+  .subscribe(custs => (this.customers = custs));
 ```
 
 The same reasoning applies to _any_ request that must follow in a precise sequence.
@@ -208,7 +208,7 @@ What's the actual address in the database? What's the address in the user's cach
 It could be any of the three addresses depending on when the server saw them and when the responses arrived.
 You cannot know.
 
-Many applications maintain a concurrency property that guards against updating an entity 
+Many applications maintain a concurrency property that guards against updating an entity
 that was updated by someone else.
 The `ngrx-data` library is unaware of this protocol.
 You'll have to manage concurrency yourself.
@@ -231,7 +231,8 @@ This library's `getWithQuery()` command takes a query specification in the form 
 
 There is no apparatus for composing queries or sending them to the server except as a query string.
 
-<a name="alternatives"></a>
+<a id="alternatives"></a>
+
 ## An alternative to _ngrx-data_
 
 [BreezeJS](http://www.getbreezenow.com/breezejs) is a free, open source,
@@ -241,5 +242,5 @@ Many Angular (and AngularJS) applications use _Breeze_ today.
 
 It's not the library for you if you **_require_** a small library that adheres to _reactive_, _immutable_, _redux-like_ principles.
 
->Disclosure: one of the _ngrx-data_ authors, Ward Bell,
-is an original core Breeze contributor.
+> Disclosure: one of the _ngrx-data_ authors, Ward Bell,
+> is an original core Breeze contributor.

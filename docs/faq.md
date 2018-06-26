@@ -1,6 +1,6 @@
 # Ngrx-data FAQs
 
-<a name="no-boilerplate-claim"></a>
+<a id="no-boilerplate-claim"></a>
 
 ## You said I'd never write an action. But what if ...
 
@@ -14,7 +14,7 @@ You can customize almost anything, both at the single entity-type level and for 
 
 But you ONLY do so when you want to do something unusual … and that, by definition, is not boilerplate.
 
-<a name="entity"></a>
+<a id="entity"></a>
 
 ## What is an _entity_?
 
@@ -33,7 +33,7 @@ The application's **_entity model_** is the set of all entity types in your appl
 
 In some definitions, the _entity type_ and _entity model_ describe both the data and the _logic_ that govern that data such as data integrity rules (e.g., validations) and behaviors (e.g., calculations). The _current version_ of _ngrx-data_ library is unaware of entity logic beyond what is strictly necessary to persist entity data values.
 
-<a name="no-panacea"></a>
+<a id="no-panacea"></a>
 
 ## Is _ngrx-data_ the answer for everything?
 
@@ -61,7 +61,7 @@ They are still worth managing with _ngrx_.
 It bears repeating: the _ngrx-data_ library is good for
 querying, caching, and saving _entity data_ ... and that's it.
 
-<a name="ngrx"></a>
+<a id="ngrx"></a>
 
 ## What is _ngrx_?
 
@@ -73,7 +73,7 @@ querying, caching, and saving _entity data_ ... and that's it.
 [@ngrx/effects](https://github.com/ngrx/platform/blob/master/docs/effects/README.md), and
 [@ngrx/entity](https://github.com/ngrx/platform/blob/master/docs/entity/README.md).
 
-<a name="ngrx-entity"></a>
+<a id="ngrx-entity"></a>
 
 ## How is _ngrx-data_ different from _@ngrx/entity_?
 
@@ -99,7 +99,7 @@ The store, the actions, the adapter, and the entity collections remain visible a
 
 The fixes and enhancements in future _@ngrx/entity_ versions flow through _ngrx-data_ to your application.
 
-<a name="redux"></a>
+<a id="redux"></a>
 
 ## What is _redux_?
 
@@ -137,7 +137,7 @@ It differs most significantly in replacing _events_ with _observables_.
 _Ngrx_ relies on
 [RxJS Observables](#rxjs) to listen for store events, select those that matter, and push the selected object(s) to your application.
 
-<a name="state"></a>
+<a id="state"></a>
 
 ## What is _state_?
 
@@ -156,7 +156,7 @@ You replace them with new objects, created through a merge of the previous prope
 
 Arrays are completely replaced with you add, remove, or replace any of their items.
 
-<a name="rxjs"></a>
+<a id="rxjs"></a>
 
 ## What are _RxJS Observables_
 
@@ -164,7 +164,7 @@ Arrays are completely replaced with you add, remove, or replace any of their ite
 
 Many Angular APIs produce _RxJS Observables_ so programming "reactively" with _Observables_ is familiar to many Angular developers. Search the web for many helpful resources on _RxJS_.
 
-<a name="code-generation"></a>
+<a id="code-generation"></a>
 
 ## What's wrong with code generation?
 

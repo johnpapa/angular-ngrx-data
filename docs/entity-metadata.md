@@ -66,7 +66,7 @@ class LazyModule {
 }
 ```
 
-<a name="entity-metadata-interface"></a>
+<a id="entity-metadata-interface"></a>
 
 ## Metadata Properties
 
@@ -100,7 +100,7 @@ Importantly, the default [_entity dataservice_](docs/entity-dataservice.md) crea
 > Of course the proper plural of "hero" is "hero**es**", not "hero**s**".
 > You'll see how to correct this problem [below](#plurals).
 
-<a name=filterfn></a>
+<a id=filterfn></a>
 
 ### _filterFn_
 
@@ -139,7 +139,7 @@ export function nameAndSayingFilter(entities: Villain[], pattern: string) {
 }
 ```
 
-<a name=selectid></a>
+<a id=selectid></a>
 
 ### _selectId_
 
@@ -158,7 +158,7 @@ The `selectorId` function is this:
 selectId: (villain: Villain) => villain.key;
 ```
 
-<a name=sortcomparer></a>
+<a id=sortcomparer></a>
 
 ### _sortComparer_
 
@@ -186,7 +186,7 @@ Run the demo app and try changing existing hero names or adding new heroes.
 
 Your app can call the `selectKey` selector to see the collection's `ids` property, which returns an array of the collection's primary key values in sorted order.
 
-<a name="entity-dispatcher-options"></a>
+<a id="entity-dispatcher-options"></a>
 
 ### _entityDispatcherOptions_
 
@@ -200,7 +200,7 @@ If the caller doesn't specify, the dispatcher chooses based on default options.
 The _default_ defaults are the safe ones: _optimistic_ for delete and _pessimistic_ for add and update.
 You can override those choices here.
 
-<a name=additional-collection-state></a>
+<a id=additional-collection-state></a>
 
 ### _additionalCollectionState_
 
@@ -222,7 +222,7 @@ The property values become the initial collection values for those properties wh
 
 The _ngrx-data_ library generates selectors for these properties but has no way to update them. You'll have to create or extend the existing reducers to do that yourself.
 
-<a name="plurals"></a>
+<a id="plurals"></a>
 
 ## Pluralizing the entity name
 

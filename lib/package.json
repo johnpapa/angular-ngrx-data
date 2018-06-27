@@ -4,8 +4,8 @@
   "repository": "https://github.com/johnpapa/angular-ngrx-data.git",
   "license": "MIT",
   "peerDependencies": {
-    "@angular/core": "6.0.0",
-    "@angular/common": "6.0.0",
+    "@angular/core": "~6.0.0",
+    "@angular/common": "~6.0.0",
     "@ngrx/effects": "^6.0.0",
     "@ngrx/entity": "^6.0.0",
     "@ngrx/store": "^6.0.0",

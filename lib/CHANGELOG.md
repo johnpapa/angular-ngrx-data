@@ -22,11 +22,11 @@ The new features that we think will be most widely appreciated are:
   * It makes optimistic saves a viable first choice
   * It lets you accumulate unsaved-changes in cache and then save them together transactionally if your server supports that.
 
-* The `EntityService` query and save commands return an `Observable` result.
+* The `EntityCollectionService` query and save commands return an `Observable` result.
 
 * Multiple queries and saves can be in progress concurrently.
 
-* You can cancel long-running server requests with `EntityService.cancel(correlationId)`.
+* You can cancel long-running server requests with `EntityCollectionService.cancel(correlationId)`.
 
 * The `MergeQuerySet` enables bulk cache updates with multiple collection query results.
 
@@ -128,7 +128,7 @@ which it generates automatically.
 Alternatively you can specify the `correlationId` as an option.
 You might do so in order to cancel a long-running query.
 
-The `EntityService` (and dispatcher) offer a new `cancel` command that dispatches an EntityAction
+The `EntityCollectionService` (and dispatcher) offer a new `cancel` command that dispatches an EntityAction
 with the new `EntityOp.CANCEL-PERSIST`.
 
 You pass the command the correlation id for the action you want to cancel, along with an optional reason-to-cancel string.
@@ -539,8 +539,7 @@ While moving entity action properties to `EntityAction.payload`, the `op` proper
 Formerly such services exposed the `entityCache`, the `store` and a `dispatch` method, all of which are outside of the `EntityCollection` targeted by the service.
 
 They've been removed from the `EntityCollectionService` API.
-Use `EntityServices` instead to access the `entityCache`, the `store`,
-a general dispatcher of `Action`, etc.
+Use `EntityServices` instead to access the `entityCache`, a general dispatcher of `Action`, etc.
 
 #### Service dispatcher query and save methods must return an Observable
 

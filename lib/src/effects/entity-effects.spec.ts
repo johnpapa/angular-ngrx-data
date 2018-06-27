@@ -65,6 +65,15 @@ describe('EntityEffects (normal testing)', () => {
     dataService = TestBed.get(EntityDataService);
   });
 
+  it('cancel$ should emit correlation id for CANCEL_PERSIST', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.CANCEL_PERSIST, undefined, { correlationId: 42 });
+    effects.cancel$.subscribe(crid => {
+      expect(crid).toBe(42);
+      done();
+    });
+    actions$.next(action);
+  });
+
   it('should return a QUERY_ALL_SUCCESS with the heroes on success', (done: DoneFn) => {
     const hero1 = { id: 1, name: 'A' } as Hero;
     const hero2 = { id: 2, name: 'B' } as Hero;

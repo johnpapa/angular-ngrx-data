@@ -57,3 +57,12 @@ export interface EntityDispatcher<T> extends EntityCommands<T> {
    */
   toUpdate(entity: Partial<T>): Update<T>;
 }
+
+/**
+ * Persistence operation canceled
+ */
+export class PersistanceCanceled {
+  constructor(public readonly message?: string) {
+    this.message = message || 'Canceled by user';
+  }
+}

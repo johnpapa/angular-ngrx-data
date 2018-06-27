@@ -13,7 +13,7 @@ import { EntityCache } from '../reducers/entity-cache';
 import { EntityCacheSelector } from '../selectors/entity-cache-selector';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCommands } from './entity-commands';
-import { EntityDispatcher } from './entity-dispatcher';
+import { EntityDispatcher, PersistanceCanceled } from './entity-dispatcher';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
 import { IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
 import { MergeStrategy } from '../actions/merge-strategy';
@@ -122,6 +122,15 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       map(([e, collection]) => collection.entities[this.selectId(e)]),
       shareReplay(1)
     );
+  }
+
+  /**
+   * Dispatch action to cancel the persistence operation (query or save)
+   * @param correlationId The correlation id for the corresponding EntityAction
+   * @param [reason] explains why canceled and by whom.
+   */
+  cancel(correlationId: any, reason?: string): void {
+    this.createAndDispatch(EntityOp.CANCEL_PERSIST, reason, { correlationId });
   }
 
   /**
@@ -450,10 +459,21 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       filter((act: any) => !!act.payload),
       filter((act: EntityAction) => {
         const { correlationId, entityName, entityOp } = act.payload;
-        return entityName === this.entityName && correlationId === crid && (entityOp.endsWith(OP_ERROR) || entityOp.endsWith(OP_SUCCESS));
+        return (
+          entityName === this.entityName &&
+          correlationId === crid &&
+          (entityOp.endsWith(OP_SUCCESS) || entityOp.endsWith(OP_ERROR) || entityOp === EntityOp.CANCEL_PERSIST)
+        );
       }),
       first(),
-      mergeMap(act => (act.payload.entityOp.endsWith(OP_SUCCESS) ? of(act.payload.data as D) : throwError(act.payload.data.error)))
+      mergeMap(act => {
+        const { entityOp } = act.payload;
+        return entityOp === EntityOp.CANCEL_PERSIST
+          ? throwError(new PersistanceCanceled(act.payload.data))
+          : entityOp.endsWith(OP_SUCCESS)
+            ? of(act.payload.data as D)
+            : throwError(act.payload.data.error);
+      })
     );
   }
 

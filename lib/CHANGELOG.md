@@ -15,6 +15,23 @@ Please pay close attention to the details of this release notification.
 
 ## Features
 
+The new features that we think will be most widely appreciated are:
+
+* ChangeTracking
+
+  * It makes optimistic saves a viable first choice
+  * It lets you accumulate unsaved-changes in cache and then save them together transactionally if your server supports that.
+
+* The `EntityService` query and save commands return an `Observable` result.
+
+* Multiple queries and saves can be in progress concurrently.
+
+* You can cancel long-running server requests with `EntityService.cancel(correlationId)`.
+
+* The `MergeQuerySet` enables bulk cache updates with multiple collection query results.
+
+Look for these features below.
+
 ### Change Tracking
 
 EntityCollections, reducers, and selectors support change tracking and undo
@@ -26,7 +43,7 @@ Previously change tracking and undo were an incomplete, alpha feature.
 The ngrx-data now tracks changes properly by default and you can **_undo unsaved changes_**, reverting to the last know state of entity (or entities) on the server.
 This gives the developer a good option for recovering from optimistic saves that failed.
 
-**Effect on delete**
+#### Effect on delete
 
 Thanks to change tracking, we can tell when an entity that you're about to delete has been added locally but not saved to the server.
 Ngrx-data now removes such entities immediately, even when the save is pessimistic, and silently side-steps the
@@ -40,7 +57,7 @@ Ngrx-data only sets it to `true` when the app tries to save the deletion of an a
 We're not thrilled about adding another mutable property to `EntityAction`.
 But we do not know of another way to tell `EntityEffects` to skip the HTTP DELETE request which might otherwise have produced an error.
 
-**Disable tracking**
+#### Disable tracking
 
 The new `EntityMetadata.noChangeTracking` flag, which is `false` by default,
 can be set `true` in the metadata for a collection.
@@ -53,7 +70,129 @@ See [entity-change-tracker.md](../docs/entity-change-tracker.md) for discussion 
 
 ### Other Features
 
-**_EntityDispatcherDefaultOptions_ can be provided**.
+#### Dispatcher query and save methods return Observables
+
+The dispatcher query and save methods (`add`, `delete`, `update`, and `upsert`) used to return `void`.
+That was architecturally consistent with the CQRS pattern in which (c)ommands never return a result.
+Only (q)ueries in the guise of selectors returned values by way of Observables.
+
+The CQRS principle had to give way to practicality.
+Real apps often "wait" (asynchronously of course) until the save result becomes known.
+Ngrx-data saves are implemented with an ngrx _effect_ and
+effects decouple the HTTP request from the server result.
+It was difficult to know when a save operation completed, either successfully or with an error.
+
+In this release, **each of these methods return a terminating Observable of the operation result** which emits when the
+server responds and after the reducers have applied the result to the collection.
+
+> Cache-only commands, which are synchronous, continue to return `void`.
+
+Now you can subscribe to these observables to learn when the server request completed and
+to examine the result or error.
+
+```
+heroService.add(newHero).subscribe(
+  hero => ...,
+  error => ...
+);
+```
+
+> See the `EntityServices` tests for examples.
+
+This feature simplifies scenarios that used to be challenging.
+For example, you can query for the master record and then
+query for its related child records as in the following example.
+
+```
+heroService.getByKey(42)
+  .pipe(hero => {
+   sideKickService.getWithQuery({heroId: hero.id}),
+   map(sideKicks => {hero, sideKicks})
+  })
+  .subscribe((results: {hero: Hero, sideKicks: SideKicks}) => doSomething(results));
+```
+
+Of course you can stay true to CQRS and ignore these results.
+Your existing query and save command callers will continue to compile and run as before.
+
+This feature does introduce a _breaking change_ for those apps that create custom entity collection services
+and override the base methods.
+These overrides must now return an appropriate terminating Observable.
+
+#### Cancellation with the correlation id
+
+The ngrx-data associates the initiating action (e.g., `QUERY_ALL`) ngrx-data to the reply actions
+(e.g,. `QUERY_ALL_SUCCESS` and `QUERY_ALL_ERROR` with a _correlation id_,
+which it generates automatically.
+
+Alternatively you can specify the `correlationId` as an option.
+You might do so in order to cancel a long-running query.
+
+The `EntityService` (and dispatcher) offer a new `cancel` command that dispatches an EntityAction
+with the new `EntityOp.CANCEL-PERSIST`.
+
+You pass the command the correlation id for the action you want to cancel, along with an optional reason-to-cancel string.
+
+```
+// Too much time passes without a response. The user cancels
+heroCollectionService.cancel(correlationId, 'User canceled');
+```
+
+The `EntityCollectionReducer` responds to that action by turning off the loading flag
+(it would be on for a persistence operation that is still in-flight).
+
+The `EntityEffects.cancel$` effect watches for `EntityOp.CANCEL-PERSIST` actions and emits the correlation id.
+Meanwhile, the `EntityEffects.persist$` is processing the persistance EntityActions.
+It cancels an in-flight server request when it that `cancel$` has emitted
+the corresponding persistence action's correlation id.
+
+The observable returned by the original server request (e.g., `heroCollectionService.getAll(...)`)
+will emit an error with an instance of `PersistanceCanceled`, whose `message` property contains the cancellation reason.
+
+This `EntityService` test demonstrates.
+
+```
+// Create the correlation id yourself to know which action to cancel.
+const correlationId = 'CRID007';
+const options: EntityActionOptions = { correlationId };
+heroCollectionService.getAll(options).subscribe(
+  data => fail('should not have data but got data'),
+  error => {
+    expect(error instanceof PersistanceCanceled).toBe(true, 'PersistanceCanceled');
+    expect(error.message).toBe('Test cancel');
+    done();
+  }
+);
+
+heroCollectionService.cancel(correlationId, 'User canceled');
+```
+
+Note that cancelling a command may not stop the browser from making the HTTP request
+and it certainly can't stop the server from processing a request it received.
+
+It will prevent ngrx-data `EntityEffect` from creating and dispatching the success or failure
+actions that would otherwise update the entity cache.
+
+#### HTTP requests from `EntityCollectionService` query and save commands are now concurrent.
+
+The `EntityCollectionService` query and save commands (e.g `getAll()` and `add()`) produce EntityActions that are handled by the `EntityEffects.persist$` effect.
+
+`EntityEffects.persist$` now uses `mergeMap` so that multiple HTTP requests may be in-flight concurrently.
+
+The `persist$` method previously used `concatMap, forcing each request to wait until the previous request finished.
+
+This change may improve performance for some apps.
+
+> It may also break an app that relied on strictly sequential requests.
+
+The `persist$` method used `concatMap` previously because there was no easy way to control the order of HTTP requests
+or know when a particular command updated the collection.
+
+Now, the command observable tells you when it completed and how.
+And if command A must complete before command B, you can pipe the command observables appropriately,
+as seen in the "hero/sidekick" example above.
+
+#### _EntityDispatcherDefaultOptions_ can be provided.
 
 Previously the default for options governing whether saves were optimistic or pessimistic was
 hardwired into the `EntityDispatcherFactory`.
@@ -97,48 +236,7 @@ export class OptimisticDispatcherDefaultOptions {
 export class EntityStoreModule {}
 ```
 
-**Dispatcher query and save methods return Observables**
-
-The dispatcher query and save methods (`add`, `delete`, `update`, and `upsert`) used to return `void`.
-That was architecturally consistent with the CQRS pattern in which (c)ommands never return a result.
-Only (q)ueries in the guise of selectors returned values by way of Observables.
-
-The CQRS principle had to give way to practicality.
-Real apps often "wait" (asynchronously of course) until the save result becomes known.
-Ngrx-data saves are implemented with an ngrx _effect_ and
-effects decouple the HTTP request from the server result.
-It was difficult to know when a save operation completed, either successfully or with an error.
-
-In this release, **each of these methods return a terminating Observable of the operation result** which emits when the
-server responds and after the reducers have applied the result to the collection.
-
-> Cache-only commands continue to return `void`.
-
-Now you can subscribe to these observables to learn when the server request completed and
-to examine the result or error.
-
-```
-heroService.add(newHero).subscribe(
-  hero => ...,
-  error => ...
-);
-```
-
-> See the `EntityServices` tests for examples.
-
-Of course you can stay true to CQRS and ignore these results.
-Your existing query and save consumers will continue to compile and run as before.
-
-This feature does introduce a _breaking change_ for those apps that create custom entity collection services
-and override the base methods.
-These overrides must now return an appropriate terminating Observable.
-
-_Implementation note_: ngrx-data associates the initiating action (e.g., `QUERY_ALL`) ngrx-data to the reply actions
-(e.g,. `QUERY_ALL_SUCCESS` and `QUERY_ALL_ERROR` with a _correlation id_,
-which it generates automatically.
-Alternatively you can specify the `correlationId` as an option.
-
-**Removed _OPTIMISTIC..._ EntityOps in favor of a flag (breaking change)**
+#### Removed _OPTIMISTIC..._ EntityOps in favor of a flag (breaking change)
 
 The number of EntityOps and corresponding `EntityCollectionReducer` methods have been growing (see below).
 Getting rid of the `OPTIMISTIC` ops is a welcome step in the other direction and makes reducer logic
@@ -148,7 +246,7 @@ You can still choose an optimistic save with the action payload's `isOptimistic`
 The dispatcher defaults (see `EntityDispatcherDefaultOptions`) have not changed.
 If you don't specify `isOptimistic`, it defaults to `false` for _adds_ and _updates_ and `true` for _deletes_.
 
-**`EntityAction` properties moved to the payload (breaking change)**
+#### `EntityAction` properties moved to the payload (breaking change)
 
 The properties on the `EntityAction` was also getting out of hand.
 Had we continued the trend, the `MergeStrategy` and the `isOptimistic` flag would have
@@ -182,7 +280,7 @@ export interface EntityActionPayload<P = any> {
 }
 ```
 
-**New _QUERY_LOAD_ EntityOp**
+#### New _QUERY_LOAD_ EntityOp
 
 `QUERY_ALL` used to fetch all entities of a collection and `QUERY_ALL_SUCCESS`
 reset the collection with those entities.
@@ -202,11 +300,12 @@ the new `QUERY_LOAD...` does both more efficiently.
 The new `QUERY_LOAD...` resets entity data, clears change tracking data, and
 sets the loading (false) and loaded (true) flags.
 
-**Added `SET_COLLECTION`** EntityOp to completely replace the collection.
+#### Added `SET_COLLECTION` EntityOp to completely replace the collection.
+
 Good for testing and rehydrating collection from local storage.
 Dangerous. Use wisely and rarely.
 
-**Added `EntityCacheAction.MERGE_QUERY_SET`**
+#### Added `EntityCacheAction.MERGE_QUERY_SET`
 
 The new `EntityCacheAction.MERGE_QUERY_SET` action and corresponding `MergeQuerySet(EntityQuerySet)` ActionCreator class can merge query results
 from multiple collections into the EntityCache using the `upsert` entity collection reducer method.
@@ -222,11 +321,11 @@ as when adding order line items before the parent order itself.
 
 > `EntityServices` tests demonstrate these points.
 
-**Added `EntityServices.entityActionErrors$`**
+#### Added `EntityServices.entityActionErrors$`
 
 An observable of **error** `EntityActions` (e.g. `QUERY_ALL_ERROR`) for all entity types.
 
-**_CorrelationIdGenerator_ and _Guid_ utility functions**
+#### _CorrelationIdGenerator_ and _Guid_ utility functions
 
 Ngrx-data needs a `CorrelationIdGenerator` service to coordinate multiple EntityActions.
 
@@ -296,7 +395,7 @@ It is possible that an app or its tests expected ngrx-data to make these DELETE 
 The ChangeTracking feature has such a profound effect on the library, involving necessary breaking changes, that the occasion seemed ripe to address longstanding problems and irritants in the architecture and names.
 These repairs include additional breaking changes.
 
-**Custom `EntityCollectionService` constructor changed**.
+#### Custom `EntityCollectionService` constructor changed.
 
 Previously, when you wrote a custom `EntityCollectionService`, you injected the `EntityCollectionServiceFactory` and passed it to your constructor like this.
 
@@ -344,7 +443,7 @@ export class HeroesService extends EntityCollectionServiceBase<Hero> {
 }
 ```
 
-**Custom `EntityServices` constructor changed**.
+#### Custom `EntityServices` constructor changed.
 
 Those app custom `EntityServices` classes that derive from the `EntityServicesBase` class
 must be modified to suit the constructor of the new `EntityServicesBase` class.
@@ -412,7 +511,7 @@ export class AppEntityServices extends EntityServicesBase {
 }
 ```
 
-**`EntityServices.store` and `.entityCollectionServiceFactory` no longer in the API**.
+#### `EntityServices.store` and `.entityCollectionServiceFactory` no longer in the API.
 
 We could not see why these members should be part of the public `EntityServices` API.
 Removed them so we don't have to support them.
@@ -420,11 +519,11 @@ Removed them so we don't have to support them.
 A custom `EntityService` could inject them in its own constructor if need be.
 Developers can petition to re-expose them if they can offer good reasons.
 
-**`EntityAction` properties moved to the payload**
+#### `EntityAction` properties moved to the payload.
 
 This change, described earlier, affects those developers who worked directly with `EntityAction` instances.
 
-**`EntityAction.op` property renamed `entityOp`**
+#### `EntityAction.op` property renamed `entityOp`
 
 While moving entity action properties to `EntityAction.payload`, the `op` property was renamed `entityOp` for three reasons.
 
@@ -435,7 +534,7 @@ While moving entity action properties to `EntityAction.payload`, the `op` proper
 
 1.  The timing is right because the relocation of properties to the payload is already a breaking change.
 
-**_EntityCollectionService_ members only reference the collection**.
+#### _EntityCollectionService_ members only reference the collection.
 
 Formerly such services exposed the `entityCache`, the `store` and a `dispatch` method, all of which are outside of the `EntityCollection` targeted by the service.
 
@@ -443,13 +542,21 @@ They've been removed from the `EntityCollectionService` API.
 Use `EntityServices` instead to access the `entityCache`, the `store`,
 a general dispatcher of `Action`, etc.
 
-**Service dispatcher query and save methods must return an Observable**
+#### Service dispatcher query and save methods must return an Observable
 
 The query and save commands should return an Observable as described above. This is a _breaking change_ for those apps that create custom entity collection services
 and override the base methods.
 Such overrides must now return an appropriate terminating Observable.
 
-**Renamed `EntityAction.label`**.
+#### `EntityEffects.persist$` uses `mergeMap` instead of `concatMap`.
+
+`EntityEffects.persist$` uses `mergeMap` so that multiple HTTP requests may be in-flight concurrently.
+
+Previously used `concatMap`, which meant that ngrx-data did not make a new HTTP request until the previous request finished.
+
+This change may break an app that counted upon strictly sequential HTTP requests.
+
+#### Renamed `EntityAction.label`.
 
 The word "label" is semantically too close to the word "type" in `Action.type` and easy to confuse with the type.
 "Tag" conveys the freedom and flexibility we're looking for.
@@ -458,17 +565,17 @@ We hope that relatively few are affected by this renaming.
 
 More significantly, the tag (FKA label) is now part of the payload rather than a property of the action.
 
-**`ADD_ALL` resets the loading (false) and loaded (true) flags**.
+#### `ADD_ALL` resets the loading (false) and loaded (true) flags.
 
-**Deleted `MERGE_ENTITY_CACHE`**.
+#### Deleted `MERGE_ENTITY_CACHE`.
 
 The cache action was never used by ngrx-data itself.
 It can be easily implemented with
 `ENTITY_CACHE_SET` and a little code to get the current entity cache state.
 
-**Moved `SET_ENTITY_CACHE` under `EntityCacheAction.SET_ENTITY_CACHE`**.
+#### Moved `SET_ENTITY_CACHE` under `EntityCacheAction.SET_ENTITY_CACHE`.
 
-**Eliminated the `OPTIMISTIC` variations of the save `EntityOps`**.
+#### Eliminated the `OPTIMISTIC` variations of the save `EntityOps`.
 
 These entityOps and their corresponding reducer methods are gone.
 Now there is only one _add_, _update_, and _delete_ operation.
@@ -478,7 +585,7 @@ optimistically based on the `isOptimistic` flag in the `EntityActionOptions` in 
 This change does not affect the primary application API and should break only those apps that delved below
 the ngrx-data surface such as apps that implement their own entity action reducers.
 
-**_EntityReducerFactory_ is now _EntityCacheReducerFactory_ and _EntityCollectionReducerRegistry_**
+#### _EntityReducerFactory_ is now _EntityCacheReducerFactory_ and _EntityCollectionReducerRegistry_
 
 The former `_EntityReducerFactory_` combined two purposes
 
@@ -490,12 +597,12 @@ The need for separating these concerns became apparent as we enriched the action
 This change breaks apps that registered collection reducers directly with the former `_EntityReducerFactory_`.
 Resolve by importing `EntityCollectionReducerRegistry` instead and calling the same registration methods on it.
 
-**Renamed _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_**.
+#### Renamed _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_.
 
 Renamed for consistence with other members of the _EntityServices_ family.
 A breaking change for the rare app that referenced this factory directly.
 
-**Renamed _DefaultDispatcherOptions_ to _EntityDispatcherDefaultOptions_**.
+#### Renamed _DefaultDispatcherOptions_ to _EntityDispatcherDefaultOptions_.
 
 Renamed for clarity.
 

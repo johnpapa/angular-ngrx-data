@@ -49,6 +49,8 @@ export class EntityCollectionReducerMethods<T> {
    * keyed by the {EntityOp}
    */
   readonly methods: EntityCollectionReducerMethodMap<T> = {
+    [EntityOp.CANCEL_PERSIST]: this.cancelPersist.bind(this),
+
     [EntityOp.QUERY_ALL]: this.queryAll.bind(this),
     [EntityOp.QUERY_ALL_ERROR]: this.queryAllError.bind(this),
     [EntityOp.QUERY_ALL_SUCCESS]: this.queryAllSuccess.bind(this),
@@ -130,6 +132,11 @@ export class EntityCollectionReducerMethods<T> {
     if (!entityChangeTracker) {
       this.entityChangeTracker = new EntityChangeTrackerBase<T>(this.adapter, this.selectId);
     }
+  }
+
+  /** Cancel a persistence operation */
+  protected cancelPersist(collection: EntityCollection<T>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
   }
 
   // #region query operations

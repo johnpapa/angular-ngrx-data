@@ -5,10 +5,10 @@ import { Action, StoreModule, Store } from '@ngrx/store';
 import { Actions, EffectsModule } from '@ngrx/effects';
 
 import { Observable, of, ReplaySubject, throwError, timer } from 'rxjs';
-import { delay, filter, first, mergeMap, skip, withLatestFrom } from 'rxjs/operators';
+import { delay, filter, first, mergeMap, skip, tap, withLatestFrom } from 'rxjs/operators';
 
 import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
-import { EntityAction } from '../actions/entity-action';
+import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, makeErrorOp, OP_SUCCESS } from '../actions/entity-op';
 import { EntityCache } from '../reducers/entity-cache';
@@ -24,6 +24,7 @@ import { EntityServices } from './entity-services';
 import { NgrxDataModule } from '../ngrx-data.module';
 import { HttpMethods } from '../dataservices/interfaces';
 import { Logger } from '../utils/interfaces';
+import { PersistanceCanceled } from '../dispatchers/entity-dispatcher';
 
 import { commandDispatchTest } from '../dispatchers/entity-dispatcher.spec';
 
@@ -236,6 +237,65 @@ describe('EntityServices', () => {
       });
     });
 
+    describe('cancel', () => {
+      const hero1 = { id: 1, name: 'A' } as Hero;
+      const hero2 = { id: 2, name: 'B' } as Hero;
+      const heroes = [hero1, hero2];
+
+      let heroCollectionService: EntityCollectionService<Hero>;
+      let dataService: TestDataService;
+      let reducedActions$Snoop: () => void;
+
+      beforeEach(() => {
+        ({ dataService, heroCollectionService, reducedActions$Snoop } = entityServicesSetup());
+      });
+
+      it('can cancel a long running query', (done: DoneFn) => {
+        const responseDelay = 4;
+        dataService['getAll'].and.returnValue(of(heroes).pipe(delay(responseDelay)));
+
+        // Create the correlation id yourself to know which action to cancel.
+        const correlationId = 'CRID007';
+        const options: EntityActionOptions = { correlationId };
+        heroCollectionService.getAll(options).subscribe(
+          data => fail('should not have data but got data'),
+          error => {
+            expect(error instanceof PersistanceCanceled).toBe(true, 'is PersistanceCanceled');
+            expect(error.message).toBe('Test cancel');
+            done();
+          }
+        );
+
+        heroCollectionService.cancel(correlationId, 'Test cancel');
+      });
+
+      it('has no effect on action with different correlationId', (done: DoneFn) => {
+        const responseDelay = 4;
+        dataService['getAll'].and.returnValue(of(heroes).pipe(delay(responseDelay)));
+
+        const correlationId = 'CRID007';
+        const options: EntityActionOptions = { correlationId };
+        heroCollectionService.getAll(options).subscribe(data => {
+          expect(data).toEqual(heroes);
+          done();
+        }, fail);
+
+        heroCollectionService.cancel('not-the-crid');
+      });
+
+      it('has no effect when too late', (done: DoneFn) => {
+        const responseDelay = 4;
+        dataService['getAll'].and.returnValue(of(heroes).pipe(delay(responseDelay)));
+
+        const correlationId = 'CRID007';
+        const options: EntityActionOptions = { correlationId };
+        heroCollectionService.getAll(options).subscribe(data => expect(data).toEqual(heroes), fail);
+
+        setTimeout(() => heroCollectionService.cancel(correlationId), responseDelay + 2);
+        setTimeout(done, responseDelay + 4); // wait for all to complete
+      });
+    });
+
     describe('saves (optimistic)', () => {
       beforeEach(() => {
         TestBed.configureTestingModule({
@@ -327,6 +387,38 @@ describe('EntityServices', () => {
         const error = makeDataServiceError('PUT', httpError);
         dataService.setErrorResponse('update', error);
         heroCollectionService.update(update).subscribe(expectErrorToBe(error, done));
+      });
+
+      it('can handle out-of-order save results', (done: DoneFn) => {
+        const hero1 = { id: 1, name: 'A' } as Hero;
+        const hero2 = { id: 2, name: 'B' } as Hero;
+        let successActionCount = 0;
+        const delayMs = 5;
+        let responseDelay = delayMs;
+        const savedHeroes: Hero[] = [];
+
+        successActions$.pipe(delay(1)).subscribe(act => {
+          successActionCount += 1;
+          if (successActionCount === 2) {
+            // Confirm hero2 actually saved before hero1
+            expect(savedHeroes).toEqual([hero2, hero1], 'savedHeroes');
+            done();
+          }
+        });
+
+        // dataService.add returns odd responses later than even responses
+        // so add of hero2 should complete before add of hero1
+        dataService['add'].and.callFake((data: Hero) => {
+          const result = of(data).pipe(delay(responseDelay), tap(h => savedHeroes.push(h)));
+          responseDelay = delayMs === responseDelay ? 1 : responseDelay;
+          return result;
+        });
+
+        // Save hero1 before hero2
+        // Confirm that each add returns with its own hero
+        heroCollectionService.add(hero1).subscribe(data => expect(data).toEqual(hero1, 'first hero'));
+
+        heroCollectionService.add(hero2).subscribe(data => expect(data).toEqual(hero2, 'second hero'));
       });
     }
 

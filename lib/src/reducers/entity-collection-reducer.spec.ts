@@ -365,6 +365,17 @@ describe('EntityCollectionReducer', () => {
     });
   });
 
+  describe('CANCEL_PERSIST', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache } = createTestTrackedEntities();
+      let cache = entityReducer(entityCache, createAction('Hero', EntityOp.SET_LOADING, true));
+      expect(cache['Hero'].loading).toBe(true, 'loading flag on at start');
+      cache = entityReducer(cache, createAction('Hero', EntityOp.CANCEL_PERSIST, undefined, { correlationId: 42 }));
+      expect(cache['Hero'].loading).toBe(false, 'loading flag on at start');
+      expect(cache).toEqual(entityCache, 'the rest of the cache is untouched');
+    });
+  });
+
   describe('QUERY_LOAD', () => {
     const queryAction = createAction('Hero', EntityOp.QUERY_LOAD);
 

@@ -131,6 +131,15 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
   }
 
   /**
+   * Dispatch action to cancel the persistence operation (query or save) with the given correlationId.
+   * @param correlationId The correlation id for the corresponding EntityAction
+   * @param [reason] explains why canceled and by whom.
+   */
+  cancel(correlationId: any, reason?: string): void {
+    this.dispatcher.cancel(correlationId, reason);
+  }
+
+  /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The entity to delete
    * @returns Observable of the deleted key

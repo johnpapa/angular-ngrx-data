@@ -3,7 +3,7 @@ import { Action } from '@ngrx/store';
 import { Effect, Actions } from '@ngrx/effects';
 
 import { asyncScheduler, Observable, of, SchedulerLike } from 'rxjs';
-import { concatMap, catchError, delay, map } from 'rxjs/operators';
+import { concatMap, catchError, delay, filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
@@ -33,10 +33,17 @@ export class EntityEffects {
   /** Delay for error and skip observables. Must be multiple of 10 for marble testing. */
   private responseDelay = 10;
 
+  @Effect({ dispatch: false })
+  cancel$: Observable<any> = this.actions.pipe(
+    ofEntityOp(EntityOp.CANCEL_PERSIST),
+    map((action: EntityAction) => action.payload.correlationId),
+    filter(id => id !== null)
+  );
+
   @Effect()
   // Concurrent persistence requests considered unsafe.
-  // `concatMap` ensures each request must complete-or-fail before making the next request.
-  persist$: Observable<Action> = this.actions.pipe(ofEntityOp(persistOps), concatMap(action => this.persist(action)));
+  // `mergeMap` allows for concurrent requests which may return in any order
+  persist$: Observable<Action> = this.actions.pipe(ofEntityOp(persistOps), mergeMap(action => this.persist(action)));
 
   constructor(
     private actions: Actions,
@@ -67,7 +74,16 @@ export class EntityEffects {
       return this.handleError$(action)(action.payload.error);
     }
     try {
-      return this.callDataService(action).pipe(map(this.resultHandler.handleSuccess(action)), catchError(this.handleError$(action)));
+      return this.callDataService(action).pipe(
+        takeUntil(
+          this.cancel$.pipe(
+            // terminate this observable if canceled with this action's correlationId
+            filter(id => action.payload.correlationId === id)
+          )
+        ),
+        map(this.resultHandler.handleSuccess(action)),
+        catchError(this.handleError$(action))
+      );
     } catch (err) {
       return this.handleError$(action)(err);
     }

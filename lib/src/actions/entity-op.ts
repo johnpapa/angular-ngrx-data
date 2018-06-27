@@ -3,7 +3,9 @@
 
 /** General purpose entity action operations, good for any entity type */
 export enum EntityOp {
-  // Persisting operations
+  // Persistance operations
+  CANCEL_PERSIST = 'ngrx-data/cancel-persist',
+
   QUERY_ALL = 'ngrx-data/query-all',
   QUERY_ALL_SUCCESS = 'ngrx-data/query-all/success',
   QUERY_ALL_ERROR = 'ngrx-data/query-all/error',

@@ -78,6 +78,14 @@ export function commandDispatchTest(setup: () => { dispatcher: EntityDispatcher<
     expect(dispatcher.entityName).toBe('Hero');
   });
 
+  it('#cancel(correlationId) can dispatch CANCEL_PERSIST', () => {
+    dispatcher.cancel('CRID007', 'Test cancel');
+    const { entityOp, correlationId, data } = dispatchedAction().payload;
+    expect(entityOp).toBe(EntityOp.CANCEL_PERSIST);
+    expect(correlationId).toBe('CRID007');
+    expect(data).toBe('Test cancel');
+  });
+
   describe('Save actions', () => {
     // By default add and update are pessimistic and delete is optimistic.
     // Tests override in the dispatcher method calls as necessary.

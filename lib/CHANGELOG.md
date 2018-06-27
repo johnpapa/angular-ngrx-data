@@ -2,6 +2,15 @@
 
 <a id="6.0.2-beta.7"></a>
 
+# 6.0.2-beta.8 (2018-06-27)
+
+Minor internal refactoring
+
+* `EntityActionFactory` - Polymorphic `create` method delegates to mono-morphic `createCore` method
+  which makes the factory easier to sub-class.
+
+<a id="6.0.2-beta.7"></a>
+
 # 6.0.2-beta.7 (2018-06-26)
 
 This **major release** is primarily about the new, _change tracking_ feature,
@@ -522,6 +531,17 @@ Developers can petition to re-expose them if they can offer good reasons.
 #### `EntityAction` properties moved to the payload.
 
 This change, described earlier, affects those developers who worked directly with `EntityAction` instances.
+
+#### `EntityActionFactory.create` signature changed.
+
+The relocation of `EntityAction` properties to the payload forced changes to the `EntityActionFactory`,
+most significantly its `create` signatures.
+
+The `create` method no longer accepts a source action.
+Use `createFromAction` instead.
+
+This is a breaking change for anyone sub-classing `EntityActionFactory` or calling it directly with
+one of its lesser used `create` signatures.
 
 #### `EntityAction.op` property renamed `entityOp`
 

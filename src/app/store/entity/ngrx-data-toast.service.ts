@@ -10,16 +10,8 @@ import { ToastService } from '../../core/toast.service';
 export class NgrxDataToastService {
   constructor(actions$: Actions, toast: ToastService) {
     actions$
-      .pipe(
-        ofEntityOp(),
-        filter(
-          (ea: EntityAction) =>
-            ea.op.endsWith(OP_SUCCESS) || ea.op.endsWith(OP_ERROR)
-        )
-      )
+      .pipe(ofEntityOp(), filter((ea: EntityAction) => ea.payload.entityOp.endsWith(OP_SUCCESS) || ea.payload.entityOp.endsWith(OP_ERROR)))
       // this service never dies so no need to unsubscribe
-      .subscribe(action =>
-        toast.openSnackBar(`${action.entityName} action`, action.op)
-      );
+      .subscribe(action => toast.openSnackBar(`${action.payload.entityName} action`, action.payload.entityOp));
   }
 }

@@ -2,57 +2,44 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 
 import { EntityOp } from './entity-op';
+import { MergeStrategy } from './merge-strategy';
 
+/** Action concerning an entity collection. */
 export interface EntityAction<P = any> extends Action {
   readonly type: string;
-  readonly entityName: string;
-  readonly op: EntityOp;
-  readonly payload?: P;
-  /** The label to use in the action's type. The entityName if no label specified. */
-  readonly label?: string;
-  // The only mutable property because
-  // it's the only way to stop downstream action processing
-  /** The action was determined (usually by a reducer) to be in error and should not be processed. */
-  error?: Error;
+  readonly payload: EntityActionPayload<P>;
 }
 
-@Injectable()
-export class EntityActionFactory {
-  create<P = any>(
-    nameOrAction: string | EntityAction,
-    op?: EntityOp,
-    payload?: P,
-    label?: string,
-    error?: Error
-  ): EntityAction<P> {
-    let entityName: string;
+/** Options of an EntityAction */
+export interface EntityActionOptions {
+  /** Correlate related EntityActions, particularly related saves. Must be serializable. */
+  readonly correlationId?: any;
+  /** True if should perform action optimistically (before server responds) */
+  readonly isOptimistic?: boolean;
+  readonly mergeStrategy?: MergeStrategy;
+  /** The tag to use in the action's type. The entityName if no tag specified. */
+  readonly tag?: string;
 
-    if (typeof nameOrAction === 'string') {
-      if (nameOrAction == null) {
-        throw new Error('Missing entity name for new action');
-      }
-      if (op == null) {
-        throw new Error('Missing EntityOp for new action');
-      }
-      entityName = nameOrAction.trim();
-    } else {
-      // is an EntityAction
-      entityName = nameOrAction.entityName;
-      label = label || nameOrAction.label;
-      op = op || nameOrAction.op;
-      if (arguments.length < 3) {
-        payload = nameOrAction.payload;
-      }
-    }
-    label = (label || entityName).trim();
-    const type = this.formatActionType(op, label);
-    return error
-      ? { type, entityName, op, payload, label, error }
-      : { type, entityName, op, payload, label };
-  }
+  // Mutable actions are BAD.
+  // Unfortunately, these mutations are the only way to stop @ngrx/effects
+  // from processing these actions.
 
-  formatActionType(op: string, label: string) {
-    return `[${label}] ${op}`;
-    // return `${op} [${label}]`.toUpperCase(); // an alternative
-  }
+  /**
+   * The action was determined (usually by a reducer) to be in error.
+   * Downstream effects should not process but rather treat it as an error.
+   */
+  error?: Error;
+
+  /**
+   * Downstream effects should skip processing this action but should return
+   * an innocuous Observable<Action> of success.
+   */
+  skip?: boolean;
+}
+
+/** Payload of an EntityAction */
+export interface EntityActionPayload<P = any> extends EntityActionOptions {
+  readonly entityName: string;
+  readonly entityOp: EntityOp;
+  readonly data?: P;
 }

@@ -20,17 +20,19 @@ export interface EntityAction<P = any> extends Action {
   readonly entityName: string;
   readonly op: EntityOp;
   readonly payload?: P;
-  readonly label?: string;
+  readonly tag?: string;
   error?: Error;
+  skip?: boolean
 }
 ```
 
-* `type` - action name, typically generated from the `label` and the `op`
+* `type` - action name, typically generated from the `tag` and the `op`
 * `entityName` - the name of the entity type
 * `op` - the name of an entity operation
 * `payload?` - the message data for the action.
-* `label?` - the label to use within the generated type. If not specified, the `entityName` is the label.
+* `tag?` - the tag to use within the generated type. If not specified, the `entityName` is the tag.
 * `error?` - an unexpected action processing error.
+* `skip?` - true if downstream consumers should skip processing the action.
 
 The `type` is the only property required by _ngrx_. It is a string that uniquely identifies the action among the set of all the types of actions that can be dispatched to the store.
 
@@ -48,12 +50,16 @@ that the _ngrx-data_ library can perform.
 The `payload` is conceptually the body of the message.
 Its type and content should fit the requirements of the operation to be performed.
 
-The optional `label` appears in the generated `type` text when the `EntityActionFactory` creates this `EntityAction`.
+The optional `tag` appears in the generated `type` text when the `EntityActionFactory` creates this `EntityAction`.
 
-The `entityName` is the default label that appears between brackets in the formatted `type`,
+The `entityName` is the default tag that appears between brackets in the formatted `type`,
 e.g., `'[Hero] ngrx-data/query-all'`.
 
 The `error` property indicates that something went wrong while processing the action. [See more below](#action-error).
+
+The `skip` property tells downstream action receivers that they should skip the usual action processing.
+This flag is usually missing and is implicitly false.
+[See more below](#action-skip).
 
 ## _EntityAction_ consumers
 
@@ -72,7 +78,7 @@ You can create an `EntityAction` by hand if you wish.
 The _ngrx-data_ library considers _any action_ with an `entityName` and `op` properties to be an `EntityAction`.
 
 The `EntityActionFactory.create()` method helps you create a consistently well-formed `EntityAction` instance
-whose `type` is a string composed from the `label` (the `entityName` by default) and the `op`.
+whose `type` is a string composed from the `tag` (the `entityName` by default) and the `op`.
 
 For example, the default generated `Action.type` for the operation that queries the server for all heroes is `'[Hero] ngrx-data/query-all'`.
 
@@ -84,7 +90,7 @@ For example, the default generated `Action.type` for the operation that queries 
 
 Note that **_each entity type has its own \_unique_ `Action` for each operation\_**, as if you had created them individually by hand.
 
-## Labeling the EntityAction
+## Tagging the EntityAction
 
 A well-formed action `type` can tell the reader what changed and
 who changed it.
@@ -95,10 +101,10 @@ So you can get the same behavior from several different actions,
 each with its own informative `type`, as long as they share the same
 `entityName` and `entityOp`.
 
-The optional `label` parameter of the `EntityActionFactory.create()` method makes
+The optional `tag` parameter of the `EntityActionFactory.create()` method makes
 it easy to produce meaningful _EntityActions_.
 
-You don't have to specify a label. The `entityName` is the default label that appears between brackets in the formatted `type`,
+You don't have to specify a tag. The `entityName` is the default tag that appears between brackets in the formatted `type`,
 e.g., `'[Hero] ngrx-data/query-all'`.
 
 Here's an example that uses the injectable `EntityActionFactory` to construct the default "query all heroes" action.
@@ -118,11 +124,11 @@ Thanks to the _ngrx-data **effects**_, this produces _two_ actions in the log, t
 [Hero] ngrx-data/query-all-success
 ```
 
-This default `entityName` label identifies the action's target entity collection.
+This default `entityName` tag identifies the action's target entity collection.
 But you can't understand the _context_ of the action from these log entries. You don't know who dispatched the action or why.
 The action `type` is too generic.
 
-You can create a more informative action by providing a label that
+You can create a more informative action by providing a tag that
 better describes what is happening and also make it easier to find
 where that action is dispatched by your code.
 
@@ -164,7 +170,7 @@ store.dispatch(action);
 It triggers the HTTP request via _ngrx-data effects_, as in the previous examples.
 
 Just be aware that _ngrx-data effects_ uses the `EntityActionFactory` to create the second, success Action.
-Without the `label` property, it produces a generic success action.
+Without the `tag` property, it produces a generic success action.
 
 The log of the two action types will look like this:
 
@@ -209,7 +215,7 @@ That's a lot of code to write, test, and maintain.
 With the help of _ngrx-data_, you don't write any of it.
 _Ngrx-data_ creates the _actions_ and the _dispatchers_, _reducers_, and _effects_ that respond to those actions.
 
-<a name="action-error"></a>
+<a id="action-error"></a>
 
 ## _EntityAction.error_
 
@@ -229,7 +235,25 @@ The `EntityEffects` will see that such an action has an error and will return th
 
 > This is the only way we've found to prevent a bad action from getting through the effect and triggering an HTTP request.
 
-<a name="entity-cache-actions"></a>
+<a id="action-skip"></a>
+
+## _EntityAction.skip_
+
+The `skip` property tells downstream action receivers that they should skip the usual action processing.
+This flag is usually missing and is implicitly false.
+
+The ngrx-data sets `skip=true` when you try to delete a new entity that has not been saved.
+When the `EntityEffects.persist$` method sees this flag set true on the `EntityAction` envelope,
+it skips the HTTP request and dispatches an appropriate `_SUCCESS` action with the
+original request payload.
+
+This feature allows ngrx-data to avoid making a DELETE request when you try to delete an entity
+that has been added to the collection but not saved.
+Such a request would have failed on the server because there is no such entity to delete.
+
+See the [`EntityChangeTracker`](entity-change-tracker.md) page for more about change tracking.
+
+<a id="entity-cache-actions"></a>
 
 ## EntityCache-level actions
 

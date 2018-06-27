@@ -1,27 +1,19 @@
 import { Inject, Injectable } from '@angular/core';
 
-import {
-  createFeatureSelector,
-  createSelector,
-  Selector,
-  Store
-} from '@ngrx/store';
+import { createFeatureSelector, createSelector, Selector, Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
 import { Observable } from 'rxjs';
-import { filter } from 'rxjs/operators';
+import { filter, shareReplay } from 'rxjs/operators';
 
 import { Dictionary } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { OP_ERROR } from '../actions/entity-op';
 import { ofEntityType } from '../actions/entity-action-operators';
-import {
-  ENTITY_CACHE_SELECTOR_TOKEN,
-  EntityCacheSelector
-} from './entity-cache-selector';
+import { ENTITY_CACHE_SELECTOR_TOKEN, EntityCacheSelector } from './entity-cache-selector';
 import { EntitySelectors } from './entity-selectors';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityCollection } from '../reducers/entity-collection';
+import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityCollectionCreator } from '../reducers/entity-collection-creator';
 import { EntitySelectorsFactory } from './entity-selectors';
 
@@ -65,23 +57,30 @@ export interface EntitySelectors$<T> {
   /** Observable true when a multi-entity query command is in progress. */
   readonly loading$: Observable<boolean> | Store<boolean>;
 
-  /** Original entity values for entities with unsaved changes */
-  readonly originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  /** ChangeState (including original values) of entities with unsaved changes */
+  readonly changeState$: Observable<ChangeStateMap<T>> | Store<ChangeStateMap<T>>;
 }
 
+/** Creates observable EntitySelectors$ for entity collections. */
 @Injectable()
 export class EntitySelectors$Factory {
   /** Observable of the EntityCache */
   entityCache$: Observable<EntityCache>;
 
+  /** Observable of error EntityActions (e.g. QUERY_ALL_ERROR) for all entity types */
+  entityActionErrors$: Observable<EntityAction>;
+
   constructor(
     private store: Store<any>,
     private actions: Actions,
-    @Inject(ENTITY_CACHE_SELECTOR_TOKEN)
-    private selectEntityCache: EntityCacheSelector
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private selectEntityCache: EntityCacheSelector
   ) {
     // This service applies to the cache in ngrx/store named `cacheName`
     this.entityCache$ = this.store.select(this.selectEntityCache);
+    this.entityActionErrors$ = actions.pipe(
+      filter((ea: EntityAction) => ea.payload && ea.payload.entityOp && ea.payload.entityOp.endsWith(OP_ERROR)),
+      shareReplay(1)
+    );
   }
 
   /**
@@ -90,10 +89,7 @@ export class EntitySelectors$Factory {
    * @param entityName - is also the name of the collection.
    * @param selectors - selector functions for this collection.
    **/
-  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(
-    entityName: string,
-    selectors?: EntitySelectors<T>
-  ): S$ {
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string, selectors?: EntitySelectors<T>): S$ {
     const selectors$: { [prop: string]: any } = {
       entityName
     };
@@ -107,9 +103,7 @@ export class EntitySelectors$Factory {
       }
     });
     selectors$.entityActions$ = this.actions.pipe(ofEntityType(entityName));
-    selectors$.errors$ = selectors$.entityActions$.pipe(
-      filter((ea: EntityAction) => ea.op.endsWith(OP_ERROR))
-    );
+    selectors$.errors$ = this.entityActionErrors$.pipe(ofEntityType(entityName));
     return selectors$ as S$;
   }
 }

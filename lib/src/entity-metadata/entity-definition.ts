@@ -1,35 +1,25 @@
 import { EntityState, EntityAdapter, createEntityAdapter } from '@ngrx/entity';
 
-import {
-  EntitySelectors,
-  EntitySelectorsFactory
-} from '../selectors/entity-selectors';
-import {
-  Comparer,
-  Dictionary,
-  IdSelector,
-  Update
-} from '../utils/ngrx-entity-models';
+import { EntitySelectors, EntitySelectorsFactory } from '../selectors/entity-selectors';
+import { Comparer, Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
+import { EntityDispatcherDefaultOptions } from '../dispatchers/entity-dispatcher-default-options';
 import { defaultSelectId } from '../utils/utilities';
 import { EntityCollection } from '../reducers/entity-collection';
-import { EntityDispatcherOptions } from '../dispatchers/entity-dispatcher';
 import { EntityFilterFn } from './entity-filters';
 import { EntityMetadata } from './entity-metadata';
 
 export interface EntityDefinition<T = any> {
   entityName: string;
   entityAdapter: EntityAdapter<T>;
-  entityDispatcherOptions?: Partial<EntityDispatcherOptions>;
+  entityDispatcherOptions?: Partial<EntityDispatcherDefaultOptions>;
   initialState: EntityCollection<T>;
   metadata: EntityMetadata<T>;
+  noChangeTracking: boolean;
   selectId: IdSelector<T>;
   sortComparer: false | Comparer<T>;
 }
 
-export function createEntityDefinition<T, S extends object>(
-  metadata: EntityMetadata<T, S>
-): EntityDefinition<T> {
-  // extract known essential properties driving entity definition.
+export function createEntityDefinition<T, S extends object>(metadata: EntityMetadata<T, S>): EntityDefinition<T> {
   let entityName = metadata.entityName;
   if (!entityName) {
     throw new Error('Missing required entityName');
@@ -40,16 +30,18 @@ export function createEntityDefinition<T, S extends object>(
 
   const entityAdapter = createEntityAdapter<T>({ selectId, sortComparer });
 
-  const entityDispatcherOptions: Partial<EntityDispatcherOptions> =
-    metadata.entityDispatcherOptions || {};
+  const entityDispatcherOptions: Partial<EntityDispatcherDefaultOptions> = metadata.entityDispatcherOptions || {};
 
   const initialState: EntityCollection<T> = entityAdapter.getInitialState({
+    entityName,
     filter: '',
     loaded: false,
     loading: false,
-    originalValues: {},
+    changeState: {},
     ...(metadata.additionalCollectionState || {})
   });
+
+  const noChangeTracking = metadata.noChangeTracking === true; // false by default
 
   return {
     entityName,
@@ -57,6 +49,7 @@ export function createEntityDefinition<T, S extends object>(
     entityDispatcherOptions,
     initialState,
     metadata,
+    noChangeTracking,
     selectId,
     sortComparer
   };

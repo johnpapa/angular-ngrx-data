@@ -3,24 +3,16 @@ import { TestBed } from '@angular/core/testing';
 import { Action } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
-import { Observable, of, merge, Subject, throwError } from 'rxjs';
-import { delay, first } from 'rxjs/operators';
+import { Observable, of, merge, ReplaySubject, throwError, timer } from 'rxjs';
+import { delay, first, mergeMap } from 'rxjs/operators';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityOp, OP_ERROR } from '../actions/entity-op';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
+import { EntityOp, makeErrorOp } from '../actions/entity-op';
 
-import {
-  EntityCollectionDataService,
-  EntityDataService
-} from '../dataservices/entity-data.service';
-import {
-  DataServiceError,
-  EntityActionDataServiceError
-} from '../dataservices/data-service-error';
-import {
-  PersistenceResultHandler,
-  DefaultPersistenceResultHandler
-} from '../dataservices/persistence-result-handler.service';
+import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
+import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 import { HttpMethods } from '../dataservices/interfaces';
 
 import { EntityEffects } from './entity-effects';
@@ -28,46 +20,20 @@ import { EntityEffects } from './entity-effects';
 import { Logger } from '../utils/interfaces';
 import { Update } from '../utils/ngrx-entity-models';
 
-export class TestEntityDataService {
-  dataServiceSpy: any;
-
-  constructor() {
-    this.dataServiceSpy = jasmine.createSpyObj(
-      'EntityCollectionDataService<Hero>',
-      ['add', 'delete', 'getAll', 'getById', 'getWithQuery', 'update']
-    );
-  }
-
-  getService() {
-    return this.dataServiceSpy;
-  }
-}
-
-// For AOT
-export function getDataService() {
-  return new TestEntityDataService();
-}
-
-export class Hero {
-  id: number;
-  name: string;
-}
-
-//////// Tests begin ////////
-
 describe('EntityEffects (normal testing)', () => {
   // factory never changes in these tests
   const entityActionFactory = new EntityActionFactory();
 
-  let actions$: Subject<Action>;
+  let actions$: ReplaySubject<Action>;
   let effects: EntityEffects;
   let logger: Logger;
-  let testEntityDataService: TestEntityDataService;
+  let dataService: TestDataService;
 
-  function expectCompletion(completion: EntityAction) {
+  function expectCompletion(completion: EntityAction, done: DoneFn) {
     effects.persist$.subscribe(
       result => {
         expect(result).toEqual(completion);
+        done();
       },
       error => {
         fail(error);
@@ -77,14 +43,15 @@ describe('EntityEffects (normal testing)', () => {
 
   beforeEach(() => {
     logger = jasmine.createSpyObj('Logger', ['error', 'log', 'warn']);
-    actions$ = new Subject<Action>();
+    actions$ = new ReplaySubject<Action>(1);
 
     TestBed.configureTestingModule({
       providers: [
         EntityEffects,
         { provide: Actions, useValue: actions$ },
         { provide: EntityActionFactory, useValue: entityActionFactory },
-        { provide: EntityDataService, useFactory: getDataService },
+        /* tslint:disable-next-line:no-use-before-declare */
+        { provide: EntityDataService, useClass: TestDataService },
         { provide: Logger, useValue: logger },
         {
           provide: PersistenceResultHandler,
@@ -95,127 +62,106 @@ describe('EntityEffects (normal testing)', () => {
 
     actions$ = TestBed.get(Actions);
     effects = TestBed.get(EntityEffects);
-    testEntityDataService = TestBed.get(EntityDataService);
+    dataService = TestBed.get(EntityDataService);
   });
 
-  it('should return a QUERY_ALL_SUCCESS, with the heroes, on success', () => {
+  it('cancel$ should emit correlation id for CANCEL_PERSIST', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.CANCEL_PERSIST, undefined, { correlationId: 42 });
+    effects.cancel$.subscribe(crid => {
+      expect(crid).toBe(42);
+      done();
+    });
+    actions$.next(action);
+  });
+
+  it('should return a QUERY_ALL_SUCCESS with the heroes on success', (done: DoneFn) => {
     const hero1 = { id: 1, name: 'A' } as Hero;
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
-
-    const response = of(heroes);
-    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+    dataService.setResponse('getAll', heroes);
 
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_ALL_SUCCESS, heroes);
 
     actions$.next(action);
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should perform QUERY_ALL when dispatch custom labeled action', () => {
+  it('should perform QUERY_ALL when dispatch custom tagged action', (done: DoneFn) => {
     const hero1 = { id: 1, name: 'A' } as Hero;
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
+    dataService.setResponse('getAll', heroes);
 
-    const response = of(heroes);
-    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+    const action = entityActionFactory.create({
+      entityName: 'Hero',
+      entityOp: EntityOp.QUERY_ALL,
+      tag: 'Custom Hero Tag'
+    });
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_ALL,
-      null,
-      'Custom Hero Label'
-    );
-
-    const completion = entityActionFactory.create(
-      action,
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.createFromAction(action, { entityOp: EntityOp.QUERY_ALL_SUCCESS, data: heroes });
 
     actions$.next(action);
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should perform QUERY_ALL when dispatch properly marked, custom action', () => {
+  it('should perform QUERY_ALL when dispatch custom action w/ that entityOp', (done: DoneFn) => {
     const hero1 = { id: 1, name: 'A' } as Hero;
     const hero2 = { id: 2, name: 'B' } as Hero;
     const heroes = [hero1, hero2];
-
-    const response = of(heroes);
-    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+    dataService.setResponse('getAll', heroes);
 
     const action = {
       type: 'some/arbitrary/type/text',
-      entityName: 'Hero',
-      op: EntityOp.QUERY_ALL
+      payload: {
+        entityName: 'Hero',
+        entityOp: EntityOp.QUERY_ALL
+      }
     };
 
-    const completion = entityActionFactory.create(
-      action,
-      EntityOp.QUERY_ALL_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.createFromAction(action, { entityOp: EntityOp.QUERY_ALL_SUCCESS, data: heroes });
 
     actions$.next(action);
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a QUERY_ALL_ERROR when service fails', () => {
+  it('should return a QUERY_ALL_ERROR when data service fails', (done: DoneFn) => {
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_ALL);
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'GET', httpError);
-    const error = completion.payload.error;
+    const error = makeDataServiceError('GET', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.getAll.and.returnValue(response);
+    dataService.setErrorResponse('getAll', error);
 
-    expectCompletion(completion);
-    expect(completion.op).toEqual(EntityOp.QUERY_ALL_ERROR);
+    expectCompletion(completion, done);
+    expect(completion.payload.entityOp).toEqual(EntityOp.QUERY_ALL_ERROR);
   });
 
-  it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY_SUCCESS
-    );
+  it('should return a QUERY_BY_KEY_SUCCESS with a hero on success', (done: DoneFn) => {
+    const hero = { id: 1, name: 'A' } as Hero;
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 1);
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY_SUCCESS, hero);
 
     actions$.next(action);
-    const response = of(undefined);
-    testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
+    dataService.setResponse('getById', hero);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a QUERY_BY_KEY_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_BY_KEY,
-      42
-    );
+  it('should return a QUERY_BY_KEY_ERROR when data service fails', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.QUERY_BY_KEY, 42);
     const httpError = { error: new Error('Entity not found'), status: 404 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
-    const error = completion.payload.error;
+    const error = makeDataServiceError('GET', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.getById.and.returnValue(response);
+    dataService.setErrorResponse('getById', error);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a QUERY_MANY_SUCCESS with selected heroes on success', () => {
+  it('should return a QUERY_MANY_SUCCESS with selected heroes on success', (done: DoneFn) => {
     const hero1 = { id: 1, name: 'BA' } as Hero;
     const hero2 = { id: 2, name: 'BB' } as Hero;
     const heroes = [hero1, hero2];
@@ -223,261 +169,136 @@ describe('EntityEffects (normal testing)', () => {
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {
       name: 'B'
     });
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.QUERY_MANY_SUCCESS,
-      heroes
-    );
+    const completion = entityActionFactory.create('Hero', EntityOp.QUERY_MANY_SUCCESS, heroes);
 
     actions$.next(action);
-    const response = of(heroes);
-    testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
+    dataService.setResponse('getWithQuery', heroes);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a QUERY_MANY_ERROR when service fails', () => {
+  it('should return a QUERY_MANY_ERROR when data service fails', (done: DoneFn) => {
     const action = entityActionFactory.create('Hero', EntityOp.QUERY_MANY, {
       name: 'B'
     });
     const httpError = { error: new Error('Resource not found'), status: 404 };
-    const completion = makeEntityErrorCompletion(action, 'GET', httpError, {
+    const error = makeDataServiceError('GET', httpError, {
       name: 'B'
     });
-    const error = completion.payload.error;
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.getWithQuery.and.returnValue(response);
+    dataService.setErrorResponse('getWithQuery', error);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_ADD_SUCCESS with the hero on success', () => {
+  it('should return a SAVE_ADD_ONE_SUCCESS (Optimistic) with the hero on success', (done: DoneFn) => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE,
-      hero
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_SUCCESS,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero, { isOptimistic: true });
 
     actions$.next(action);
-    const response = of(hero);
-    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+    dataService.setResponse('add', hero);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_ADD_ERROR when service fails', () => {
-    const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE,
-      hero
-    );
-    const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
-    const error = completion.payload.error;
-
-    actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_DELETE_SUCCESS on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_SUCCESS,
-      42
-    );
-
-    actions$.next(action);
-    const response = of(42); // dataservice successful delete returns the deleted entity id
-    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_DELETE_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE,
-      42
-    );
-    const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
-    const error = completion.payload.error;
-
-    actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_UPDATE_SUCCESS with the hero on success', () => {
-    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE,
-      update
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_SUCCESS,
-      update
-    );
-
-    actions$.next(action);
-    const response = of(update);
-    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_UPDATE_ERROR when service fails', () => {
-    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE,
-      update
-    );
-    const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
-    const error = completion.payload.error;
-
-    actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_ADD_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
+  it('should return a SAVE_ADD_ONE_SUCCESS (Pessimistic) with the hero on success', (done: DoneFn) => {
     const hero = { id: 1, name: 'A' } as Hero;
 
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
-      hero
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC_SUCCESS,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero);
 
     actions$.next(action);
-    const response = of(hero);
-    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+    dataService.setResponse('add', hero);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_ADD_ONE_OPTIMISTIC_ERROR when service fails', () => {
+  it('should return a SAVE_ADD_ONE_ERROR when data service fails', (done: DoneFn) => {
     const hero = { id: 1, name: 'A' } as Hero;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_ADD_ONE_OPTIMISTIC,
-      hero
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_ADD_ONE, hero);
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
-    const error = completion.payload.error;
+    const error = makeDataServiceError('PUT', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.add.and.returnValue(response);
+    dataService.setErrorResponse('add', error);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS on success', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
-      42
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
-    );
+  it('should return a SAVE_DELETE_ONE_SUCCESS (Optimistic) on success with delete id', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS, 42, { isOptimistic: true });
 
     actions$.next(action);
-    const response = of(undefined);
-    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+    dataService.setResponse('delete', 42);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_DELETE_ONE_OPTIMISTIC_ERROR when service fails', () => {
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE_OPTIMISTIC,
-      42
-    );
+  it('should return a SAVE_DELETE_ONE_SUCCESS (Pessimistic) on success', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS, 42);
+
+    actions$.next(action);
+    dataService.setResponse('delete', 42);
+
+    expectCompletion(completion, done);
+  });
+
+  it('should return a SAVE_DELETE_ONE_ERROR when data service fails', (done: DoneFn) => {
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42);
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'DELETE', httpError);
-    const error = completion.payload.error;
+    const error = makeDataServiceError('DELETE', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.delete.and.returnValue(response);
+    dataService.setErrorResponse('delete', error);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
-  it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS with the hero on success', () => {
+  it('should return a SAVE_UPDATE_ONE_SUCCESS (Optimistic) with the hero on success', (done: DoneFn) => {
+    const updateEntity = { id: 1, name: 'A' };
+    const update = { id: 1, changes: updateEntity } as Update<Hero>;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update, { isOptimistic: true });
+
+    actions$.next(action);
+    dataService.setResponse('update', updateEntity);
+
+    expectCompletion(completion, done);
+  });
+
+  it('should return a SAVE_UPDATE_ONE_SUCCESS (Pessimistic) with the hero on success', (done: DoneFn) => {
+    const updateEntity = { id: 1, name: 'A' };
+    const update = { id: 1, changes: updateEntity } as Update<Hero>;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update);
+
+    actions$.next(action);
+    dataService.setResponse('update', updateEntity);
+
+    expectCompletion(completion, done);
+  });
+
+  it('should return a SAVE_UPDATE_ONE_ERROR when data service fails', (done: DoneFn) => {
     const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
-      update
-    );
-    const completion = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC_SUCCESS,
-      update
-    );
-
-    actions$.next(action);
-    const response = of(update);
-    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
-
-    expectCompletion(completion);
-  });
-
-  it('should return a SAVE_UPDATE_ONE_OPTIMISTIC_ERROR when service fails', () => {
-    const update = { id: 1, changes: { id: 1, name: 'A' } } as Update<Hero>;
-    const action = entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_UPDATE_ONE_OPTIMISTIC,
-      update
-    );
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
     const httpError = { error: new Error('Test Failure'), status: 501 };
-    const completion = makeEntityErrorCompletion(action, 'PUT', httpError);
-    const error = completion.payload.error;
+    const error = makeDataServiceError('PUT', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
 
     actions$.next(action);
-    const response = throwError(error);
-    testEntityDataService.dataServiceSpy.update.and.returnValue(response);
+    dataService.setErrorResponse('update', error);
 
-    expectCompletion(completion);
+    expectCompletion(completion, done);
   });
 
   it(`should not do anything with an irrelevant action`, (done: DoneFn) => {
@@ -504,10 +325,14 @@ describe('EntityEffects (normal testing)', () => {
   });
 });
 
-/** Make an EntityDataService error */
-function makeEntityErrorCompletion(
-  /** The action that initiated the data service call */
-  originalAction: EntityAction,
+// #region test helpers
+export class Hero {
+  id: number;
+  name: string;
+}
+
+/** make error produced by the EntityDataService */
+function makeDataServiceError(
   /** Http method for that action */
   method: HttpMethods,
   /** Http error from the web api */
@@ -516,18 +341,22 @@ function makeEntityErrorCompletion(
   options?: any
 ) {
   let url = 'api/heroes';
-
-  // Error from the web api
   if (httpError) {
     url = httpError.url || url;
   } else {
     httpError = { error: new Error('Test error'), status: 500, url };
   }
+  return new DataServiceError(httpError, { method, url, options });
+}
 
-  // Error produced by the EntityDataService
-  const error = new DataServiceError(httpError, { method, url, options });
-
-  const errOp = <EntityOp>(originalAction.op + OP_ERROR);
+/** Make an EntityDataService error */
+function makeEntityErrorCompletion(
+  /** The action that initiated the data service call */
+  originalAction: EntityAction,
+  /** error produced by the EntityDataService */
+  error: DataServiceError
+) {
+  const errOp = makeErrorOp(originalAction.payload.entityOp);
 
   // Entity Error Action
   const eaFactory = new EntityActionFactory();
@@ -536,3 +365,36 @@ function makeEntityErrorCompletion(
     error
   });
 }
+
+export interface TestDataServiceMethod {
+  add: jasmine.Spy;
+  delete: jasmine.Spy;
+  getAll: jasmine.Spy;
+  getById: jasmine.Spy;
+  getWithQuery: jasmine.Spy;
+  update: jasmine.Spy;
+}
+export class TestDataService {
+  add = jasmine.createSpy('add');
+  delete = jasmine.createSpy('delete');
+  getAll = jasmine.createSpy('getAll');
+  getById = jasmine.createSpy('getById');
+  getWithQuery = jasmine.createSpy('getWithQuery');
+  update = jasmine.createSpy('update');
+
+  getService(): TestDataServiceMethod {
+    return this;
+  }
+
+  setResponse(methodName: keyof TestDataServiceMethod, data: any) {
+    this[methodName].and.returnValue(of(data).pipe(delay(1)));
+  }
+
+  setErrorResponse(methodName: keyof TestDataServiceMethod, error: any) {
+    // Following won't quite work because delay does not appear to delay an error
+    // this[methodName].and.returnValue(throwError(error).pipe(delay(1)));
+    // Use timer instead
+    this[methodName].and.returnValue(timer(1).pipe(mergeMap(() => throwError(error))));
+  }
+}
+// #endregion test helpers

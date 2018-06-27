@@ -5,33 +5,28 @@ import { Actions } from '@ngrx/effects';
 import { Observable } from 'rxjs';
 
 import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
-import { EntityAction } from '../actions/entity-action';
-import { EntityOp } from '../actions/entity-op';
+import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionGuard } from '../actions/entity-action-guard';
 import { EntityCache } from '../reducers/entity-cache';
-import { EntityCollection } from '../reducers/entity-collection';
+import { EntityCollection, ChangeStateMap } from '../reducers/entity-collection';
 import { EntityDispatcher } from '../dispatchers/entity-dispatcher';
+import { EntityCollectionService } from './entity-collection-service';
+import { EntityCollectionServiceElementsFactory } from './entity-collection-service-elements-factory';
+import { EntityOp } from '../actions/entity-op';
 import { EntitySelectors } from '../selectors/entity-selectors';
 import { EntitySelectors$ } from '../selectors/entity-selectors$';
-import {
-  EntityCollectionService,
-  EntityCollectionServiceFactory
-} from './entity-services-interfaces';
 import { QueryParams } from '../dataservices/interfaces';
 
 // tslint:disable:member-ordering
+
 /**
  * Base class for a concrete EntityCollectionService<T>.
- * Can be instantiated. Cannot be injected.
- * @param entityName Entity type name
- * @param EntityCollectionServiceFactory A creator of an EntityCollectionService<T> which here serves
+ * Can be instantiated. Cannot be injected. Use EntityCollectionServiceFactory to create.
+ * @param EntityCollectionServiceElements The ingredients for this service
  * as a source of supporting services for creating an EntityCollectionService<T> instance.
  */
-export class EntityCollectionServiceBase<
-  T,
-  S$ extends EntitySelectors$<T> = EntitySelectors$<T>
-> implements EntityCollectionService<T> {
-  /** Dispatch entity actions for this entity collection */
+export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> implements EntityCollectionService<T> {
+  /** Dispatcher of EntityCommands (EntityActions) */
   readonly dispatcher: EntityDispatcher<T>;
 
   /** All selectors of entity collection properties */
@@ -41,18 +36,13 @@ export class EntityCollectionServiceBase<
   readonly selectors$: S$;
 
   constructor(
+    /** Name of the entity type of this collection service */
     public readonly entityName: string,
-    entityCollectionServiceFactory: EntityCollectionServiceFactory
+    /** Creates the core elements of the EntityCollectionService for this entity type */
+    serviceElementsFactory: EntityCollectionServiceElementsFactory
   ) {
     entityName = entityName.trim();
-    const {
-      dispatcher,
-      selectors,
-      selectors$
-    } = entityCollectionServiceFactory.getEntityCollectionServiceElements<
-      T,
-      S$
-    >(entityName);
+    const { dispatcher, selectors, selectors$ } = serviceElementsFactory.getServiceElements<T, S$>(entityName);
 
     this.entityName = entityName;
     this.dispatcher = dispatcher;
@@ -73,34 +63,39 @@ export class EntityCollectionServiceBase<
     this.keys$ = selectors$.keys$;
     this.loaded$ = selectors$.loaded$;
     this.loading$ = selectors$.loading$;
-    this.originalValues$ = selectors$.originalValues$;
+    this.changeState$ = selectors$.changeState$;
   }
 
   /**
    * Create an {EntityAction} for this entity type.
    * @param op {EntityOp} the entity operation
-   * @param payload the action payload
+   * @param [data] the action data
+   * @param [options] additional options
+   * @returns the EntityAction
    */
-  createEntityAction(op: EntityOp, payload?: any): EntityAction<T> {
-    return this.dispatcher.createEntityAction(op, payload);
+  createEntityAction<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+    return this.dispatcher.createEntityAction(op, data, options);
   }
 
   /**
    * Create an {EntityAction} for this entity type and
    * dispatch it immediately to the store.
    * @param op {EntityOp} the entity operation
-   * @param payload the action payload
+   * @param [data] the action data
+   * @param [options] additional options
+   * @returns the dispatched EntityAction
    */
-  createAndDispatch(op: EntityOp, payload?: any): void {
-    this.dispatcher.createAndDispatch(op, payload);
+  createAndDispatch<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+    return this.dispatcher.createAndDispatch(op, data, options);
   }
 
   /**
-   * Dispatch action to the store.
-   * @param action the EntityAction
+   * Dispatch an action of any type to the ngrx store.
+   * @param action the Action
+   * @returns the dispatched Action
    */
-  dispatch(action: Action): void {
-    this.dispatcher.dispatch(action);
+  dispatch(action: Action): Action {
+    return this.dispatcher.dispatch(action);
   }
 
   /** The NgRx Store for the {EntityCache} */
@@ -125,68 +120,99 @@ export class EntityCollectionServiceBase<
   // region Dispatch commands
 
   /**
-   * Save a new entity to remote storage.
-   * Does not add to cache until save succeeds.
-   * Ignored by cache-add if the entity is already in cache.
+   * Dispatch action to save a new entity to remote storage.
+   * @param entity entity to add, which may omit its key if pessimistic and the server creates the key;
+   * must have a key if optimistic save.
+   * @returns Observable of the entity
+   * after server reports successful save or the save error.
    */
-  add(entity: T, isOptimistic?: boolean): void {
-    this.dispatcher.add(entity, isOptimistic);
+  add(entity: T, options?: EntityActionOptions): Observable<T> {
+    return this.dispatcher.add(entity, options);
   }
 
   /**
-   * Removes entity from the cache (if it is in the cache)
-   * and deletes entity from remote storage by key.
-   * Does not restore to cache if the delete fails.
-   * @param entity The entity to remove
+   * Dispatch action to cancel the persistence operation (query or save) with the given correlationId.
+   * @param correlationId The correlation id for the corresponding EntityAction
+   * @param [reason] explains why canceled and by whom.
    */
-  delete(entity: T, isOptimistic?: boolean): void;
+  cancel(correlationId: any, reason?: string): void {
+    this.dispatcher.cancel(correlationId, reason);
+  }
 
   /**
-   * Removes entity from the cache by key (if it is in the cache)
-   * and deletes entity from remote storage by key.
-   * Does not restore to cache if the delete fails.
+   * Dispatch action to delete entity from remote storage by key.
+   * @param key The entity to delete
+   * @returns Observable of the deleted key
+   * after server reports successful save or the save error.
+   */
+  delete(entity: T, options?: EntityActionOptions): Observable<number | string>;
+
+  /**
+   * Dispatch action to delete entity from remote storage by key.
    * @param key The primary key of the entity to remove
+   * @returns Observable of the deleted key
+   * after server reports successful save or the save error.
    */
-  delete(key: number | string, isOptimistic?: boolean): void;
-  delete(arg: (number | string) | T, isOptimistic?: boolean): void {
-    this.dispatcher.delete(arg as any, isOptimistic);
+  delete(key: number | string, options?: EntityActionOptions): Observable<number | string>;
+  delete(arg: number | string | T, options?: EntityActionOptions): Observable<number | string> {
+    return this.dispatcher.delete(arg as any, options);
   }
 
   /**
-   * Query remote storage for all entities and
-   * completely replace the cached collection with the queried entities.
+   * Dispatch action to query remote storage for all entities and
+   * merge the queried entities into the cached collection.
+   * @returns Observable of the collection
+   * after server reports successful query or the query error.
+   * @see load()
    */
-  getAll(): void {
-    this.dispatcher.getAll();
+  getAll(options?: EntityActionOptions): Observable<T[]> {
+    return this.dispatcher.getAll(options);
   }
 
   /**
-   * Query remote storage for the entity with this primary key.
+   * Dispatch action to query remote storage for the entity with this primary key.
    * If the server returns an entity,
    * merge it into the cached collection.
+   * @returns Observable of the queried entities that are in the collection
+   * after server reports success or the query error.
    */
-  getByKey(key: any): void {
-    this.dispatcher.getByKey(key);
+  getByKey(key: any, options?: EntityActionOptions): Observable<T> {
+    return this.dispatcher.getByKey(key, options);
   }
 
   /**
-   * Query remote storage for the entities that satisfy a query expressed
-   * with either a query parameter map or an HTTP URL query string.
+   * Dispatch action to query remote storage for the entities that satisfy a query expressed
+   * with either a query parameter map or an HTTP URL query string,
    * and merge the results into the cached collection.
+   * @params queryParams the query in a form understood by the server
+   * @returns Observable of the queried entities
+   * after server reports successful query or the query error.
    */
-  getWithQuery(queryParams: QueryParams | string): void {
-    this.dispatcher.getWithQuery(queryParams);
+  getWithQuery(queryParams: QueryParams | string, options?: EntityActionOptions): Observable<T[]> {
+    return this.dispatcher.getWithQuery(queryParams, options);
   }
 
   /**
-   * Save the updated entity (or partial entity) to remote storage.
-   * Updates the cached entity after the save succeeds.
-   * Update in cache is ignored if the entity's key is not found in cache.
+   * Dispatch action to query remote storage for all entities and
+   * completely replace the cached collection with the queried entities.
+   * @returns Observable of the collection
+   * after server reports successful query or the query error.
+   * @see getAll
+   */
+  load(options?: EntityActionOptions): Observable<T[]> {
+    return this.dispatcher.load(options);
+  }
+
+  /**
+   * Dispatch action to save the updated entity (or partial entity) in remote storage.
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
+   * @param entity update entity, which might be a partial of T but must at least have its key.
+   * @returns Observable of the updated entity
+   * after server reports successful save or the save error.
    */
-  update(entity: Partial<T>, isOptimistic?: boolean): void {
-    this.dispatcher.update(entity, isOptimistic);
+  update(entity: Partial<T>, options?: EntityActionOptions): Observable<T> {
+    return this.dispatcher.update(entity, options);
   }
 
   /*** Cache-only operations that do not update remote storage ***/
@@ -353,7 +379,7 @@ export class EntityCollectionServiceBase<
   loading$: Observable<boolean> | Store<boolean>;
 
   /** Original entity values for entities with unsaved changes */
-  originalValues$: Observable<Dictionary<T>> | Store<Dictionary<T>>;
+  changeState$: Observable<ChangeStateMap<T>> | Store<ChangeStateMap<T>>;
 
   // endregion Selectors$
 }

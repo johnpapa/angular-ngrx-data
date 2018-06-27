@@ -1,28 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import {
-  Action,
-  createSelector,
-  Selector,
-  StoreModule,
-  Store
-} from '@ngrx/store';
+import { Action, createSelector, Selector, StoreModule, Store } from '@ngrx/store';
 import { Actions } from '@ngrx/effects';
 
 import { Observable, Subject } from 'rxjs';
 import { skip } from 'rxjs/operators';
 
 import { Dictionary, Update } from '../utils/ngrx-entity-models';
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp } from '../actions/entity-op';
 
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection } from '../reducers/entity-collection';
 
-import {
-  EntityMetadata,
-  EntityMetadataMap,
-  ENTITY_METADATA_TOKEN
-} from '../entity-metadata/entity-metadata';
+import { EntityMetadata, EntityMetadataMap, ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
 
 import { EntitySelectorsFactory } from '../selectors/entity-selectors';
 
@@ -71,9 +62,7 @@ describe('Related-entity Selectors', () => {
       const heroSelectors = entitySelectorsFactory.create<Hero>('Hero');
       const selectHeroMap = heroSelectors.selectEntityMap;
 
-      const sidekickSelectors = entitySelectorsFactory.create<Sidekick>(
-        'Sidekick'
-      );
+      const sidekickSelectors = entitySelectorsFactory.create<Sidekick>('Sidekick');
       const selectSidekickMap = sidekickSelectors.selectEntityMap;
 
       return {
@@ -84,18 +73,11 @@ describe('Related-entity Selectors', () => {
 
     function createHeroSidekickSelector$(heroId: number): Observable<Sidekick> {
       const { selectHeroMap, selectSidekickMap } = setCollectionSelectors();
-      const selectHero = createSelector(
-        selectHeroMap,
-        heroes => heroes[heroId]
-      );
-      const selectSideKick = createSelector(
-        selectHero,
-        selectSidekickMap,
-        (hero, sidekicks) => {
-          const sidekickId = hero && hero.sidekickFk;
-          return sidekicks[sidekickId];
-        }
-      );
+      const selectHero = createSelector(selectHeroMap, heroes => heroes[heroId]);
+      const selectSideKick = createSelector(selectHero, selectSidekickMap, (hero, sidekicks) => {
+        const sidekickId = hero && hero.sidekickFk;
+        return sidekicks[sidekickId];
+      });
       return store.select(selectSideKick);
     }
 
@@ -118,11 +100,7 @@ describe('Related-entity Selectors', () => {
         });
 
       // update the related sidekick
-      const action = eaFactory.create<Update<Sidekick>>(
-        'Sidekick',
-        EntityOp.UPDATE_ONE,
-        { id: 1, changes: { id: 1, name: 'Robert' } }
-      );
+      const action = eaFactory.create<Update<Sidekick>>('Sidekick', EntityOp.UPDATE_ONE, { id: 1, changes: { id: 1, name: 'Robert' } });
       store.dispatch(action);
     });
 
@@ -156,10 +134,7 @@ describe('Related-entity Selectors', () => {
         .pipe(skip(1))
         .subscribe(sk => {
           expect(sk.name).toBe('Bob');
-          expect(alphaCount).toEqual(
-            1,
-            'should only callback for Hero #1 once'
-          );
+          expect(alphaCount).toEqual(1, 'should only callback for Hero #1 once');
           done();
         });
 
@@ -197,14 +172,10 @@ describe('Related-entity Selectors', () => {
         });
 
       // create a new sidekick
-      let action: EntityAction = eaFactory.create<Sidekick>(
-        'Sidekick',
-        EntityOp.ADD_ONE,
-        {
-          id: 42,
-          name: 'Robin'
-        }
-      );
+      let action: EntityAction = eaFactory.create<Sidekick>('Sidekick', EntityOp.ADD_ONE, {
+        id: 42,
+        name: 'Robin'
+      });
       store.dispatch(action);
 
       // assign new sidekick to Gamma
@@ -224,24 +195,22 @@ describe('Related-entity Selectors', () => {
       const battleSelectors = entitySelectorsFactory.create<Battle>('Battle');
       const selectBattleEntities = battleSelectors.selectEntities;
 
-      const selectHeroBattleMap = createSelector(
-        selectBattleEntities,
-        battles =>
-          battles.reduce(
-            (acc, battle) => {
-              const hid = battle.heroFk;
-              if (hid) {
-                const hbs = acc[hid];
-                if (hbs) {
-                  hbs.push(battle);
-                } else {
-                  acc[hid] = [battle];
-                }
+      const selectHeroBattleMap = createSelector(selectBattleEntities, battles =>
+        battles.reduce(
+          (acc, battle) => {
+            const hid = battle.heroFk;
+            if (hid) {
+              const hbs = acc[hid];
+              if (hbs) {
+                hbs.push(battle);
+              } else {
+                acc[hid] = [battle];
               }
-              return acc;
-            },
-            {} as { [heroId: number]: Battle[] }
-          )
+            }
+            return acc;
+          },
+          {} as { [heroId: number]: Battle[] }
+        )
       );
 
       return {
@@ -253,19 +222,12 @@ describe('Related-entity Selectors', () => {
     function createHeroBattlesSelector$(heroId: number): Observable<Battle[]> {
       const { selectHeroMap, selectHeroBattleMap } = setCollectionSelectors();
 
-      const selectHero = createSelector(
-        selectHeroMap,
-        heroes => heroes[heroId]
-      );
+      const selectHero = createSelector(selectHeroMap, heroes => heroes[heroId]);
 
-      const selectHeroBattles = createSelector(
-        selectHero,
-        selectHeroBattleMap,
-        (hero, heroBattleMap) => {
-          const hid = hero && hero.id;
-          return heroBattleMap[hid] || [];
-        }
-      );
+      const selectHeroBattles = createSelector(selectHero, selectHeroBattleMap, (hero, heroBattleMap) => {
+        const hid = hero && hero.id;
+        return heroBattleMap[hid] || [];
+      });
       return store.select(selectHeroBattles);
     }
 
@@ -289,11 +251,7 @@ describe('Related-entity Selectors', () => {
         });
 
       // update the first of the related battles
-      const action = eaFactory.create<Update<Battle>>(
-        'Battle',
-        EntityOp.UPDATE_ONE,
-        { id: 100, changes: { id: 100, name: 'Scalliwag' } }
-      );
+      const action = eaFactory.create<Update<Battle>>('Battle', EntityOp.UPDATE_ONE, { id: 100, changes: { id: 100, name: 'Scalliwag' } });
       store.dispatch(action);
     });
 
@@ -313,29 +271,25 @@ describe('Related-entity Selectors', () => {
       const powerSelectors = entitySelectorsFactory.create<Power>('Power');
       const selectPowerMap = powerSelectors.selectEntityMap;
 
-      const heroPowerMapSelectors = entitySelectorsFactory.create<HeroPowerMap>(
-        'HeroPowerMap'
-      );
+      const heroPowerMapSelectors = entitySelectorsFactory.create<HeroPowerMap>('HeroPowerMap');
       const selectHeroPowerMapEntities = heroPowerMapSelectors.selectEntities;
 
-      const selectHeroPowerIds = createSelector(
-        selectHeroPowerMapEntities,
-        hpMaps =>
-          hpMaps.reduce(
-            (acc, hpMap) => {
-              const hid = hpMap.heroFk;
-              if (hid) {
-                const hpIds = acc[hid];
-                if (hpIds) {
-                  hpIds.push(hpMap.powerFk);
-                } else {
-                  acc[hid] = [hpMap.powerFk];
-                }
+      const selectHeroPowerIds = createSelector(selectHeroPowerMapEntities, hpMaps =>
+        hpMaps.reduce(
+          (acc, hpMap) => {
+            const hid = hpMap.heroFk;
+            if (hid) {
+              const hpIds = acc[hid];
+              if (hpIds) {
+                hpIds.push(hpMap.powerFk);
+              } else {
+                acc[hid] = [hpMap.powerFk];
               }
-              return acc;
-            },
-            {} as { [heroId: number]: number[] }
-          )
+            }
+            return acc;
+          },
+          {} as { [heroId: number]: number[] }
+        )
       );
 
       return {
@@ -346,28 +300,16 @@ describe('Related-entity Selectors', () => {
     }
 
     function createHeroPowersSelector$(heroId: number): Observable<Power[]> {
-      const {
-        selectHeroMap,
-        selectHeroPowerIds,
-        selectPowerMap
-      } = setCollectionSelectors();
+      const { selectHeroMap, selectHeroPowerIds, selectPowerMap } = setCollectionSelectors();
 
-      const selectHero = createSelector(
-        selectHeroMap,
-        heroes => heroes[heroId]
-      );
+      const selectHero = createSelector(selectHeroMap, heroes => heroes[heroId]);
 
-      const selectHeroPowers = createSelector(
-        selectHero,
-        selectHeroPowerIds,
-        selectPowerMap,
-        (hero, heroPowerIds, powerMap) => {
-          const hid = hero && hero.id;
-          const pids = heroPowerIds[hid] || [];
-          const powers = pids.map(id => powerMap[id]).filter(power => power);
-          return powers;
-        }
-      );
+      const selectHeroPowers = createSelector(selectHero, selectHeroPowerIds, selectPowerMap, (hero, heroPowerIds, powerMap) => {
+        const hid = hero && hero.id;
+        const pids = heroPowerIds[hid] || [];
+        const powers = pids.map(id => powerMap[id]).filter(power => power);
+        return powers;
+      });
       return store.select(selectHeroPowers);
     }
 
@@ -398,11 +340,7 @@ describe('Related-entity Selectors', () => {
         });
 
       // delete Beta's one power via the HeroPowerMap
-      const action: EntityAction = eaFactory.create<number>(
-        'HeroPowerMap',
-        EntityOp.REMOVE_ONE,
-        96
-      );
+      const action: EntityAction = eaFactory.create<number>('HeroPowerMap', EntityOp.REMOVE_ONE, 96);
       store.dispatch(action);
     });
 
@@ -452,16 +390,10 @@ export function sortByName(a: { name: string }, b: { name: string }): number {
   return a.name.localeCompare(b.name);
 }
 
-function initializeCache(
-  eaFactory: EntityActionFactory,
-  store: Store<EntityCache>
-) {
+function initializeCache(eaFactory: EntityActionFactory, store: Store<EntityCache>) {
   let action: EntityAction;
 
-  action = eaFactory.create<Sidekick[]>('Sidekick', EntityOp.ADD_ALL, [
-    { id: 1, name: 'Bob' },
-    { id: 2, name: 'Sally' }
-  ]);
+  action = eaFactory.create<Sidekick[]>('Sidekick', EntityOp.ADD_ALL, [{ id: 1, name: 'Bob' }, { id: 2, name: 'Sally' }]);
   store.dispatch(action);
 
   action = eaFactory.create<Hero[]>('Hero', EntityOp.ADD_ALL, [

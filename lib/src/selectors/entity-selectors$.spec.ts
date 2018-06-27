@@ -3,26 +3,17 @@ import { Actions } from '@ngrx/effects';
 
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp } from '../actions/entity-op';
 
 import { EntityCache } from '../reducers/entity-cache';
 import { EntityCollection } from '../reducers/entity-collection';
 import { ENTITY_CACHE_NAME } from '../reducers/constants';
-import {
-  EntityCollectionCreator,
-  createEmptyEntityCollection
-} from '../reducers/entity-collection-creator';
-import {
-  EntityMetadata,
-  EntityMetadataMap
-} from '../entity-metadata/entity-metadata';
+import { EntityCollectionCreator, createEmptyEntityCollection } from '../reducers/entity-collection-creator';
+import { EntityMetadata, EntityMetadataMap } from '../entity-metadata/entity-metadata';
 import { PropsFilterFnFactory } from '../entity-metadata/entity-filters';
-import {
-  ENTITY_CACHE_SELECTOR_TOKEN,
-  EntityCacheSelector,
-  createEntityCacheSelector
-} from './entity-cache-selector';
+import { ENTITY_CACHE_SELECTOR_TOKEN, EntityCacheSelector, createEntityCacheSelector } from './entity-cache-selector';
 import { EntitySelectors, EntitySelectorsFactory } from './entity-selectors';
 import { EntitySelectors$, EntitySelectors$Factory } from './entity-selectors$';
 
@@ -73,8 +64,7 @@ describe('EntitySelectors$', () => {
 
     let actions$: Subject<Action>;
 
-    const nextCacheState = (cache: EntityCache) =>
-      state$.next({ entityCache: cache });
+    const nextCacheState = (cache: EntityCache) => state$.next({ entityCache: cache });
 
     let heroCollectionSelectors: HeroSelectors;
 
@@ -86,29 +76,16 @@ describe('EntitySelectors$', () => {
       store = new Store<{ entityCache: EntityCache }>(state$, null, null);
 
       // EntitySelectors
-      collectionCreator = jasmine.createSpyObj('entityCollectionCreator', [
-        'create'
-      ]);
+      collectionCreator = jasmine.createSpyObj('entityCollectionCreator', ['create']);
       collectionCreator.create.and.returnValue(emptyHeroCollection);
-      const entitySelectorsFactory = new EntitySelectorsFactory(
-        collectionCreator
-      );
-      heroCollectionSelectors = entitySelectorsFactory.create<
-        Hero,
-        HeroSelectors
-      >(heroMetadata);
+      const entitySelectorsFactory = new EntitySelectorsFactory(collectionCreator);
+      heroCollectionSelectors = entitySelectorsFactory.create<Hero, HeroSelectors>(heroMetadata);
 
       // EntitySelectorFactory
-      factory = new EntitySelectors$Factory(
-        store,
-        actions$ as any,
-        createEntityCacheSelector(ENTITY_CACHE_NAME)
-      );
+      factory = new EntitySelectors$Factory(store, actions$ as any, createEntityCacheSelector(ENTITY_CACHE_NAME));
 
       // listen for changes to the hero collection
-      store
-        .select(ENTITY_CACHE_NAME, 'Hero')
-        .subscribe((c: HeroCollection) => (collection = c));
+      store.select(ENTITY_CACHE_NAME, 'Hero').subscribe((c: HeroCollection) => (collection = c));
     });
 
     function subscribeToSelectors(selectors$: HeroSelectors$) {
@@ -120,10 +97,7 @@ describe('EntitySelectors$', () => {
     }
 
     it('can select$ the default empty collection when store collection is undefined ', () => {
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      );
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors);
       let selectorCollection: EntityCollection<HeroCollection>;
       selectors$.collection$.subscribe(c => (selectorCollection = c));
       expect(selectorCollection).toBeDefined('selector collection');
@@ -131,16 +105,11 @@ describe('EntitySelectors$', () => {
 
       // Important: the selector is returning these values;
       // They are not actually in the store's entity cache collection!
-      expect(collection).toBeUndefined(
-        'no collection until reducer creates it.'
-      );
+      expect(collection).toBeUndefined('no collection until reducer creates it.');
     });
 
     it('selectors$ emit default empty values when collection is undefined', () => {
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      );
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors);
 
       subscribeToSelectors(selectors$);
 
@@ -152,10 +121,7 @@ describe('EntitySelectors$', () => {
     });
 
     it('selectors$ emit updated hero values', () => {
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      );
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors);
 
       subscribeToSelectors(selectors$);
 
@@ -198,10 +164,7 @@ describe('EntitySelectors$', () => {
       });
 
       collectionCreator.create.and.returnValue(defaultHeroState);
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      ); // <- override default state
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors); // <- override default state
 
       subscribeToSelectors(selectors$);
 
@@ -211,9 +174,7 @@ describe('EntitySelectors$', () => {
 
       // Important: the selector is returning these values;
       // They are not actually in the store's entity cache collection!
-      expect(collection).toBeUndefined(
-        'no collection until reducer creates it.'
-      );
+      expect(collection).toBeUndefined('no collection until reducer creates it.');
     });
 
     it('`entityCache$` should observe the entire entity cache', () => {
@@ -230,10 +191,7 @@ describe('EntitySelectors$', () => {
 
     it('`actions$` emits hero collection EntityActions and no other actions', () => {
       const actionsReceived: Action[] = [];
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      );
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors);
       const entityActions$ = selectors$.entityActions$;
       entityActions$.subscribe(action => actionsReceived.push(action));
 
@@ -251,10 +209,7 @@ describe('EntitySelectors$', () => {
 
     it('`errors$` emits hero collection EntityAction errors and no other actions', () => {
       const actionsReceived: Action[] = [];
-      const selectors$ = factory.create<Hero, HeroSelectors$>(
-        'Hero',
-        heroCollectionSelectors
-      );
+      const selectors$ = factory.create<Hero, HeroSelectors$>('Hero', heroCollectionSelectors);
       const errors$ = selectors$.errors$;
       errors$.subscribe(action => actionsReceived.push(action));
 
@@ -265,16 +220,10 @@ describe('EntitySelectors$', () => {
       // Hero EntityAction (but not an error)
       actions$.next(eaFactory.create('Hero', EntityOp.QUERY_ALL));
       // Hero EntityAction Error
-      const heroErrorAction = eaFactory.create(
-        'Hero',
-        EntityOp.QUERY_ALL_ERROR
-      );
+      const heroErrorAction = eaFactory.create('Hero', EntityOp.QUERY_ALL_ERROR);
       actions$.next(heroErrorAction);
       expect(actionsReceived.length).toBe(1, 'only one hero action');
-      expect(actionsReceived[0]).toBe(
-        heroErrorAction,
-        'expected error hero action'
-      );
+      expect(actionsReceived[0]).toBe(heroErrorAction, 'expected error hero action');
     });
   });
 });
@@ -282,7 +231,7 @@ describe('EntitySelectors$', () => {
 /////// Test values and helpers /////////
 
 function createHeroState(state: Partial<HeroCollection>): HeroCollection {
-  return { ...createEmptyEntityCollection<Hero>(), ...state } as HeroCollection;
+  return { ...createEmptyEntityCollection<Hero>('Hero'), ...state } as HeroCollection;
 }
 
 function nameFilter<T>(entities: T[], pattern: string) {

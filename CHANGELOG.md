@@ -5,13 +5,18 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
-<a name="0.6.1">
+<a id="0.6.1">
+# 0.6.2 (2018-06-26)
+
+* Significantly refactored for ngrx-data `6.0.2-beta.7`.
+
+<a id="0.6.1">
 # 0.6.1 (2018-05-25)
 
 * Refactored for EntityAction operators as required by Beta 6
 * Add example of extending EntityDataServices with custom `HeroDataService` as described in `entity-dataservice.md` (#151).
 
-<a name="0.6.0"></a>
+<a id="0.6.0"></a>
 
 # 0.6.0 (2018-05-08)
 
@@ -30,7 +35,7 @@ which still works.
 
 <hr>
 
-<a name="0.2.13"></a>
+<a id="0.2.13"></a>
 
 # 0.2.13 (2018-05-04)
 
@@ -46,7 +51,7 @@ The downside is that "Go to definition" takes you to the `d.ts` file rather than
 That's inconvenient. But the benefit is that the routine build process reflects what apps will experience.
 This is the approach followed by the Angular CLI's library support.
 
-<a name="0.2.12"></a>
+<a id="0.2.12"></a>
 
 # 0.2.12 (2018-03-25)
 
@@ -55,19 +60,19 @@ This is the approach followed by the Angular CLI's library support.
 * Opted not to force trailing slash because as contrary to the goal of putting dev
   in complete control of url generation. May re-evaluate that decision later.
 
-<a name="0.2.11"></a>
+<a id="0.2.11"></a>
 
 # 0.2.11 (2018-03-19)
 
 * demonstrates `HttpResourceUrls` setting in config (new in beta.2)
 
-<a name="0.2.10"></a>
+<a id="0.2.10"></a>
 
 # 0.2.10 (2018-03-15)
 
 * Update ngPackagr from -rc to v.2.2
 
-<a name="0.2.9"></a>
+<a id="0.2.9"></a>
 
 # 0.2.9 (2018-03-14)
 
@@ -77,13 +82,13 @@ This is the approach followed by the Angular CLI's library support.
 
 None of these changes should break anything or interfere with creating the library package.
 
-<a name="0.2.8"></a>
+<a id="0.2.8"></a>
 
 # 0.2.8 (2018-03-12)
 
 * Update app to align with app in ngrx-data-lab (much cleaner)
 
-<a name="0.2.7"></a>
+<a id="0.2.7"></a>
 
 # 0.2.7 (2018-03-09)
 
@@ -101,7 +106,7 @@ This `VillainEditor` also shows
 
 Depends on alpha.14
 
-<a name="0.2.6"></a>
+<a id="0.2.6"></a>
 
 # 0.2.6 (2018-03-05)
 
@@ -121,7 +126,7 @@ Sample revised
 * Those components now start with the cached version of the `getAll()` results.
   Press refresh or toggle the datasource to trigger a new `getAll()`
 
-<a name="0.2.5"></a>
+<a id="0.2.5"></a>
 
 # 0.2.5 (2018-03-05)
 
@@ -129,19 +134,19 @@ Add HeroesComponent tests to illustrate how one might write test components. Exp
 
 Requires Alpha.11
 
-<a name="0.2.4"></a>
+<a id="0.2.4"></a>
 
 # 0.2.4 (2018-02-26)
 
 App refactors based on learnings from our Angular Awesome workshop.
 
-<a name="0.2.3"></a>
+<a id="0.2.3"></a>
 
 # 0.2.3 (2018-02-24)
 
 Adapt to alpha.10
 
-<a name="0.2.2"></a>
+<a id="0.2.2"></a>
 
 # 0.2.2 (2018-02-23)
 
@@ -151,7 +156,7 @@ Revises the demo app and updates the docs to conform to alpha.9
 * Updates the `EntityMetadata`
 * Adds `HeroesV1Component` to illustrate using `EntityCollectionServiceFactory` directly w/o `HeroService`.
 
-<a name="0.2.1"></a>
+<a id="0.2.1"></a>
 
 # 0.2.1 (2018-02-19)
 
@@ -171,7 +176,7 @@ Revises the demo app and updates the docs to conform to alpha.9
 
   Should not affect the builds of the _ngrx-data lib packages_!
 
-<a name="0.2.0"></a>
+<a id="0.2.0"></a>
 
 # 0.2.0 (2018-02-13)
 
@@ -185,7 +190,7 @@ you must upgrade _ngrx_ to v5.1 or later,
 because the reducer uses the "upsert" feature, new in `@ngrx/entity` v5.1,
 for `QUERY_ONE_SUCCESS` and `QUERY_MANY_SUCCESS`.
 
-<a name="0.1.0"></a>
+<a id="0.1.0"></a>
 
 # 0.1.0 (2018-02-04)
 

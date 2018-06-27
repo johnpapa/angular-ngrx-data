@@ -39,12 +39,13 @@ describe('EntityDefinition', () => {
       const def = createEntityDefinition(heroMetadata);
       const initialState = def.initialState;
       expect(initialState).toEqual({
+        entityName: 'Hero',
         ids: [],
         entities: {},
         filter: '',
         loaded: false,
         loading: false,
-        originalValues: {}
+        changeState: {}
       });
     });
 
@@ -57,12 +58,13 @@ describe('EntityDefinition', () => {
       const def = createEntityDefinition(metadata);
       const initialState = def.initialState;
       expect(initialState).toEqual(<any>{
+        entityName: 'Hero',
         ids: [],
         entities: {},
         filter: '',
         loaded: false,
         loading: false,
-        originalValues: {},
+        changeState: {},
         foo: 'foo'
       });
     });

@@ -3,7 +3,8 @@ import { Actions } from '@ngrx/effects';
 
 import { Subject } from 'rxjs';
 
-import { EntityAction, EntityActionFactory } from './entity-action';
+import { EntityAction } from './entity-action';
+import { EntityActionFactory } from './entity-action-factory';
 import { EntityOp } from './entity-op';
 
 import { ofEntityType, ofEntityOp } from './entity-action-operators';
@@ -24,15 +25,8 @@ describe('EntityAction Operators', () => {
   const testActions = {
     foo: <Action>{ type: 'Foo' },
     hero_query_all: entityActionFactory.create('Hero', EntityOp.QUERY_ALL),
-    villain_query_many: entityActionFactory.create(
-      'Villain',
-      EntityOp.QUERY_MANY
-    ),
-    hero_delete: entityActionFactory.create(
-      'Hero',
-      EntityOp.SAVE_DELETE_ONE,
-      42
-    ),
+    villain_query_many: entityActionFactory.create('Villain', EntityOp.QUERY_MANY),
+    hero_delete: entityActionFactory.create('Hero', EntityOp.SAVE_DELETE_ONE, 42),
     bar: <Action>(<any>{ type: 'Bar', payload: 'bar' })
   };
 
@@ -51,11 +45,7 @@ describe('EntityAction Operators', () => {
     // EntityActions of any kind
     actions.pipe(ofEntityType()).subscribe(ea => results.push(ea));
 
-    const expectedActions = [
-      testActions.hero_query_all,
-      testActions.villain_query_many,
-      testActions.hero_delete
-    ];
+    const expectedActions = [testActions.hero_query_all, testActions.villain_query_many, testActions.hero_delete];
     dispatchTestActions();
     expect(results).toEqual(expectedActions);
   });
@@ -64,19 +54,14 @@ describe('EntityAction Operators', () => {
     // EntityActions of one type
     actions.pipe(ofEntityType('Hero')).subscribe(ea => results.push(ea));
 
-    const expectedActions = [
-      testActions.hero_query_all,
-      testActions.hero_delete
-    ];
+    const expectedActions = [testActions.hero_query_all, testActions.hero_delete];
     dispatchTestActions();
     expect(results).toEqual(expectedActions);
   });
 
   it(`#ofEntityType('Type1', 'Type2', 'Type3')`, () => {
     // n.b. 'Bar' is not an EntityType even though it is an action type
-    actions
-      .pipe(ofEntityType('Hero', 'Villain', 'Bar'))
-      .subscribe(ea => results.push(ea));
+    actions.pipe(ofEntityType('Hero', 'Villain', 'Bar')).subscribe(ea => results.push(ea));
 
     ofEntityTypeTest();
   });
@@ -117,9 +102,7 @@ describe('EntityAction Operators', () => {
   ///////////////
 
   it('#ofEntityOp with string args', () => {
-    actions
-      .pipe(ofEntityOp(EntityOp.QUERY_ALL, EntityOp.QUERY_MANY))
-      .subscribe(ea => results.push(ea));
+    actions.pipe(ofEntityOp(EntityOp.QUERY_ALL, EntityOp.QUERY_MANY)).subscribe(ea => results.push(ea));
 
     ofEntityOpTest();
   });
@@ -142,20 +125,13 @@ describe('EntityAction Operators', () => {
     // EntityOps of any kind
     actions.pipe(ofEntityOp()).subscribe(ea => results.push(ea));
 
-    const expectedActions = [
-      testActions.hero_query_all,
-      testActions.villain_query_many,
-      testActions.hero_delete
-    ];
+    const expectedActions = [testActions.hero_query_all, testActions.villain_query_many, testActions.hero_delete];
     dispatchTestActions();
     expect(results).toEqual(expectedActions);
   });
 
   function ofEntityOpTest() {
-    const expectedActions = [
-      testActions.hero_query_all,
-      testActions.villain_query_many
-    ];
+    const expectedActions = [testActions.hero_query_all, testActions.villain_query_many];
     dispatchTestActions();
     expect(results).toEqual(expectedActions);
   }

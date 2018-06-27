@@ -1,74 +1,48 @@
-import {
-  ModuleWithProviders,
-  NgModule,
-  Inject,
-  Injector,
-  InjectionToken,
-  Optional,
-  OnDestroy
-} from '@angular/core';
+import { ModuleWithProviders, NgModule, Inject, Injector, InjectionToken, Optional, OnDestroy } from '@angular/core';
 
-import {
-  Action,
-  ActionReducer,
-  combineReducers,
-  MetaReducer,
-  ReducerManager,
-  StoreModule
-} from '@ngrx/store';
+import { Action, ActionReducer, combineReducers, MetaReducer, ReducerManager, StoreModule } from '@ngrx/store';
 
-import { EntityAction, EntityActionFactory } from './actions/entity-action';
-
-import { EntityDispatcherFactory } from './dispatchers/entity-dispatcher-factory';
-
-import { EntityDefinitionService } from './entity-metadata/entity-definition.service';
-import {
-  EntityMetadataMap,
-  ENTITY_METADATA_TOKEN
-} from './entity-metadata/entity-metadata';
-
+import { CorrelationIdGenerator } from './utils/correlation-id-generator';
+import { EntityDispatcherDefaultOptions } from './dispatchers/entity-dispatcher-default-options';
+import { EntityAction } from './actions/entity-action';
+import { EntityActionFactory } from './actions/entity-action-factory';
 import { EntityCache } from './reducers/entity-cache';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
-import { EntityCollectionServiceFactory } from './entity-services/entity-services-interfaces';
-import { DefaultEntityCollectionServiceFactory } from './entity-services/default-entity-collection-service-factory';
+import { EntityCollectionService } from './entity-services/entity-collection-service';
+import { EntityCollectionServiceElementsFactory } from './entity-services/entity-collection-service-elements-factory';
+import { EntityCollectionServiceFactory } from './entity-services/entity-collection-service-factory';
+import { EntityCollectionServiceMap, EntityServices } from './entity-services/entity-services';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
-import {
-  EntityCollectionReducerFactory,
-  EntityCollectionReducerMethodsFactory
-} from './reducers/entity-collection-reducer';
+import { EntityCollectionReducerFactory } from './reducers/entity-collection-reducer';
+import { EntityCollectionReducerMethodsFactory } from './reducers/entity-collection-reducer-methods';
+import { EntityCollectionReducerRegistry } from './reducers/entity-collection-reducer-registry';
+import { EntityDispatcherFactory } from './dispatchers/entity-dispatcher-factory';
+import { EntityDefinitionService } from './entity-metadata/entity-definition.service';
 import { EntityEffects } from './effects/entity-effects';
+import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata/entity-metadata';
 
-import { DefaultEntityCollectionReducerMethodsFactory } from './reducers/default-entity-collection-reducer-methods';
-import {
-  createEntityReducer,
-  EntityReducerFactory
-} from './reducers/entity-reducer';
+import { EntityCacheReducerFactory } from './reducers/entity-cache-reducer-factory';
 import {
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
   ENTITY_CACHE_META_REDUCERS,
   ENTITY_COLLECTION_META_REDUCERS,
-  ENTITY_CACHE_REDUCER,
   INITIAL_ENTITY_CACHE_STATE
 } from './reducers/constants';
 
-import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
-
+import { DefaultLogger } from './utils/default-logger';
+import { DefaultPluralizer } from './utils/default-pluralizer';
 import { EntitySelectors } from './selectors/entity-selectors';
 import { EntitySelectorsFactory } from './selectors/entity-selectors';
 import { EntitySelectors$Factory } from './selectors/entity-selectors$';
-import { EntityServices } from './entity-services/entity-services-interfaces';
 import { EntityServicesBase } from './entity-services/entity-services-base';
-
-import { DefaultLogger } from './utils/default-logger';
-import { DefaultPluralizer } from './utils/default-pluralizer';
+import { EntityServicesElements } from './entity-services/entity-services-elements';
+import { Logger, Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
 
 export interface NgrxDataModuleConfig {
   entityMetadata?: EntityMetadataMap;
-  entityCacheMetaReducers?: (
-    | MetaReducer<EntityCache, Action>
-    | InjectionToken<MetaReducer<EntityCache, Action>>)[];
+  entityCacheMetaReducers?: (MetaReducer<EntityCache, Action> | InjectionToken<MetaReducer<EntityCache, Action>>)[];
   entityCollectionMetaReducers?: MetaReducer<EntityCollection, EntityAction>[];
   // Initial EntityCache state or a function that returns that state
   initialEntityCacheState?: EntityCache | (() => EntityCache);
@@ -86,33 +60,24 @@ export interface NgrxDataModuleConfig {
     StoreModule // rely on Store feature providers rather than Store.forFeature()
   ],
   providers: [
+    CorrelationIdGenerator,
+    EntityDispatcherDefaultOptions,
     EntityActionFactory,
+    EntityCacheReducerFactory,
     entityCacheSelectorProvider,
     EntityCollectionCreator,
     EntityCollectionReducerFactory,
+    EntityCollectionReducerMethodsFactory,
+    EntityCollectionReducerRegistry,
+    EntityCollectionServiceElementsFactory,
+    EntityCollectionServiceFactory,
     EntityDefinitionService,
     EntityDispatcherFactory,
-    EntityReducerFactory,
     EntitySelectorsFactory,
     EntitySelectors$Factory,
-    {
-      provide: EntityCollectionReducerMethodsFactory,
-      useClass: DefaultEntityCollectionReducerMethodsFactory
-    },
+    EntityServicesElements,
     { provide: ENTITY_CACHE_NAME_TOKEN, useValue: ENTITY_CACHE_NAME },
-    {
-      provide: ENTITY_CACHE_REDUCER,
-      deps: [EntityReducerFactory],
-      useFactory: createEntityReducer
-    },
-    {
-      provide: EntityCollectionServiceFactory,
-      useClass: DefaultEntityCollectionServiceFactory
-    },
-    {
-      provide: EntityServices,
-      useClass: EntityServicesBase
-    },
+    { provide: EntityServices, useClass: EntityServicesBase },
     { provide: Logger, useClass: DefaultLogger }
   ]
 })
@@ -125,15 +90,11 @@ export class NgrxDataModuleWithoutEffects implements OnDestroy {
       providers: [
         {
           provide: ENTITY_CACHE_META_REDUCERS,
-          useValue: config.entityCacheMetaReducers
-            ? config.entityCacheMetaReducers
-            : []
+          useValue: config.entityCacheMetaReducers ? config.entityCacheMetaReducers : []
         },
         {
           provide: ENTITY_COLLECTION_META_REDUCERS,
-          useValue: config.entityCollectionMetaReducers
-            ? config.entityCollectionMetaReducers
-            : []
+          useValue: config.entityCollectionMetaReducers ? config.entityCollectionMetaReducers : []
         },
         {
           provide: PLURAL_NAMES_TOKEN,
@@ -146,8 +107,7 @@ export class NgrxDataModuleWithoutEffects implements OnDestroy {
 
   constructor(
     private reducerManager: ReducerManager,
-    @Inject(ENTITY_CACHE_REDUCER)
-    private entityCacheReducer: ActionReducer<EntityCache, Action>,
+    entityCacheReducerFactory: EntityCacheReducerFactory,
     private injector: Injector,
     // optional params
     @Optional()
@@ -158,26 +118,21 @@ export class NgrxDataModuleWithoutEffects implements OnDestroy {
     private initialState: any,
     @Optional()
     @Inject(ENTITY_CACHE_META_REDUCERS)
-    private metaReducers: (
-      | MetaReducer<EntityCache, Action>
-      | InjectionToken<MetaReducer<EntityCache, Action>>)[]
+    private metaReducers: (MetaReducer<EntityCache, Action> | InjectionToken<MetaReducer<EntityCache, Action>>)[]
   ) {
     // Add the ngrx-data feature to the Store's features
     // as Store.forFeature does for StoreFeatureModule
     const key = entityCacheName || ENTITY_CACHE_NAME;
 
-    initialState =
-      typeof initialState === 'function' ? initialState() : initialState;
+    initialState = typeof initialState === 'function' ? initialState() : initialState;
 
-    const reducers: MetaReducer<EntityCache, Action>[] = (
-      metaReducers || []
-    ).map(mr => {
+    const reducers: MetaReducer<EntityCache, Action>[] = (metaReducers || []).map(mr => {
       return mr instanceof InjectionToken ? injector.get(mr) : mr;
     });
 
     this.entityCacheFeature = {
       key,
-      reducers: entityCacheReducer,
+      reducers: entityCacheReducerFactory.create(),
       reducerFactory: combineReducers,
       initialState: initialState || {},
       metaReducers: reducers

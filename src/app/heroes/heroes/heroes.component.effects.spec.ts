@@ -31,14 +31,15 @@ import {
   EntityActionFactory,
   EntityCache,
   EntityOp,
+  EntityActionOptions,
   EntityEffects,
   EntityCollectionReducer,
-  EntityReducerFactory,
+  EntityCollectionReducerRegistry,
   EntityCollectionService,
   persistOps
 } from 'ngrx-data';
 
-import { BehaviorSubject, Observable, Subject } from 'rxjs';
+import { BehaviorSubject, Observable, ReplaySubject } from 'rxjs';
 import { first, skip } from 'rxjs/operators';
 
 import { AppSelectors } from '../../store/app-config/selectors';
@@ -64,27 +65,16 @@ describe('HeroesComponent (mock effects)', () => {
     });
 
     it('should initialize component with getAll() [no helper]', () => {
-      const {
-        createHeroAction,
-        initialHeroes,
-        setPersistResponses
-      } = heroesComponentClassSetup();
+      const { createHeroAction, initialHeroes, setPersistResponses } = heroesComponentClassSetup();
 
-      const getAllSuccessAction = createHeroAction(
-        EntityOp.QUERY_ALL_SUCCESS,
-        initialHeroes
-      );
+      const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
 
       let subscriptionCalled = false;
 
       const component: HeroesComponent = TestBed.get(HeroesComponent);
       component.ngOnInit();
 
-      component.loading$
-        .pipe(first())
-        .subscribe(loading =>
-          expect(loading).toBe(true, 'loading while getting all')
-        );
+      component.loading$.pipe(first()).subscribe(loading => expect(loading).toBe(true, 'loading while getting all'));
 
       setPersistResponses(getAllSuccessAction);
 
@@ -93,11 +83,7 @@ describe('HeroesComponent (mock effects)', () => {
         expect(heroes.length).toBe(initialHeroes.length);
       });
 
-      component.loading$
-        .pipe(first())
-        .subscribe(loading =>
-          expect(loading).toBe(false, 'loading after getting all')
-        );
+      component.loading$.pipe(first()).subscribe(loading => expect(loading).toBe(false, 'loading after getting all'));
 
       expect(subscriptionCalled).toBe(true, 'should have gotten heroes');
     });
@@ -146,9 +132,7 @@ describe('HeroesComponent (mock effects)', () => {
 
       component.delete(initialHeroes[1]); // 'B'
 
-      const success = createHeroAction(
-        EntityOp.SAVE_DELETE_ONE_OPTIMISTIC_SUCCESS
-      );
+      const success = createHeroAction(EntityOp.SAVE_DELETE_ONE);
 
       setPersistResponses(success);
 
@@ -159,20 +143,12 @@ describe('HeroesComponent (mock effects)', () => {
       });
 
       expect(subscriptionCalled).toBe(true, 'subscription was called');
-      expect(dispatchSpy.calls.count()).toBe(
-        1,
-        'can only see the direct dispatch to the store!'
-      );
+      expect(dispatchSpy.calls.count()).toBe(1, 'can only see the direct dispatch to the store!');
       expect(heroReducerSpy.calls.count()).toBe(2, 'HroReducer called twice');
     });
 
     it('should add a hero', () => {
-      const {
-        component,
-        createHeroAction,
-        initialHeroes,
-        setPersistResponses
-      } = getInitializedComponentClass();
+      const { component, createHeroAction, initialHeroes, setPersistResponses } = getInitializedComponentClass();
 
       let subscriptionCalled = false;
 
@@ -204,12 +180,7 @@ describe('HeroesComponent (mock effects)', () => {
     beforeEach(heroesComponentDeclarationsSetup);
 
     it('should display all heroes', () => {
-      const {
-        component,
-        fixture,
-        initialHeroes,
-        view
-      } = getInitializedComponent();
+      const { component, fixture, initialHeroes, view } = getInitializedComponent();
       const itemEls = view.querySelectorAll('ul.heroes li');
       expect(itemEls.length).toBe(initialHeroes.length);
     });
@@ -220,12 +191,7 @@ describe('HeroesComponent (mock effects)', () => {
 
 function heroesComponentClassSetup() {
   TestBed.configureTestingModule({
-    imports: [
-      StoreModule.forRoot({}),
-      EffectsModule.forRoot([]),
-      CoreModule,
-      EntityStoreModule
-    ],
+    imports: [StoreModule.forRoot({}), EffectsModule.forRoot([]), CoreModule, EntityStoreModule],
     providers: [
       Actions,
       AppEntityServices,
@@ -243,19 +209,17 @@ function heroesComponentClassSetup() {
   spyOn(appSelectors, 'dataSource$').and.returnValue(appSelectorsDataSource);
 
   // Create Hero entity actions as ngrx-data will do it
-  const entityActionFactory: EntityActionFactory = TestBed.get(
-    EntityActionFactory
-  );
-  function createHeroAction(op: EntityOp, payload?: any) {
-    return entityActionFactory.create('Hero', op, payload);
+  const entityActionFactory: EntityActionFactory = TestBed.get(EntityActionFactory);
+  function createHeroAction(op: EntityOp, data?: any, options?: EntityActionOptions) {
+    return entityActionFactory.create('Hero', op, data, options);
   }
 
   // Spy on EntityEffects
   const effects: EntityEffects = TestBed.get(EntityEffects);
-  let persistResponsesSubject: Subject<Action>;
+  let persistResponsesSubject: ReplaySubject<Action>;
 
   const persistSpy = spyOn(effects, 'persist').and.callFake(
-    (action: EntityAction) => (persistResponsesSubject = new Subject<Action>())
+    (action: EntityAction) => (persistResponsesSubject = new ReplaySubject<Action>(1))
   );
 
   // Control EntityAction responses from EntityEffects spy
@@ -295,17 +259,9 @@ function heroesComponentClassSetup() {
  */
 function getInitializedComponentClass() {
   const setup = heroesComponentClassSetup();
-  const {
-    createHeroAction,
-    dispatchSpy,
-    initialHeroes,
-    setPersistResponses
-  } = setup;
+  const { createHeroAction, dispatchSpy, initialHeroes, setPersistResponses } = setup;
 
-  const getAllSuccessAction = createHeroAction(
-    EntityOp.QUERY_ALL_SUCCESS,
-    initialHeroes
-  );
+  const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
 
   // When testing the class-only, can inject it as if it were a service
   const component: HeroesComponent = TestBed.get(HeroesComponent);
@@ -321,17 +277,11 @@ function getInitializedComponentClass() {
 }
 
 function spyOnHeroReducer() {
-  const entityReducerFactory: EntityReducerFactory = TestBed.get(
-    EntityReducerFactory
-  );
-  const heroReducer: EntityCollectionReducer<
-    Hero
-  > = entityReducerFactory.getOrCreateReducer<Hero>('Hero');
-  const heroReducerSpy = jasmine
-    .createSpy('HeroReducer', heroReducer)
-    .and.callThrough();
+  const registry: EntityCollectionReducerRegistry = TestBed.get(EntityCollectionReducerRegistry);
+  const heroReducer: EntityCollectionReducer<Hero> = registry.getOrCreateReducer<Hero>('Hero');
+  const heroReducerSpy = jasmine.createSpy('HeroReducer', heroReducer).and.callThrough();
   // re-register the spy version
-  entityReducerFactory.registerReducer<Hero>('Hero', heroReducerSpy);
+  registry.registerReducer<Hero>('Hero', heroReducerSpy);
   return heroReducerSpy;
 }
 
@@ -363,10 +313,7 @@ function getInitializedComponent() {
 
   fixture.detectChanges(); // triggers ngOnInit() which gets all heroes.
 
-  const getAllSuccessAction = createHeroAction(
-    EntityOp.QUERY_ALL_SUCCESS,
-    initialHeroes
-  );
+  const getAllSuccessAction = createHeroAction(EntityOp.QUERY_ALL_SUCCESS, initialHeroes);
   setPersistResponses(getAllSuccessAction);
 
   fixture.detectChanges(); // populate view with heroes from store.

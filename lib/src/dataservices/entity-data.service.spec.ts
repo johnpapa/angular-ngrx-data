@@ -4,20 +4,10 @@ import { HttpClient } from '@angular/common/http';
 
 import { Observable } from 'rxjs';
 
-import {
-  createEntityDefinition,
-  EntityDefinition
-} from '../entity-metadata/entity-definition';
-import {
-  EntityMetadata,
-  EntityMetadataMap,
-  ENTITY_METADATA_TOKEN
-} from '../entity-metadata/entity-metadata';
+import { createEntityDefinition, EntityDefinition } from '../entity-metadata/entity-definition';
+import { EntityMetadata, EntityMetadataMap, ENTITY_METADATA_TOKEN } from '../entity-metadata/entity-metadata';
 
-import {
-  DefaultDataService,
-  DefaultDataServiceFactory
-} from './default-data.service';
+import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
 import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 
 import { EntityDataService } from './entity-data.service';
@@ -40,8 +30,7 @@ export class Bazinga {
   wow: string;
 }
 
-export class BazingaDataService
-  implements EntityCollectionDataService<Bazinga> {
+export class BazingaDataService implements EntityCollectionDataService<Bazinga> {
   name: string;
 
   // TestBed bug requires `@Optional` even though http is always provided.
@@ -67,7 +56,7 @@ export class BazingaDataService
   getWithQuery(params: string | QueryParams): Observable<Bazinga[]> {
     return this.bazinga();
   }
-  update(update: Update<Bazinga>): Observable<Update<Bazinga>> {
+  update(update: Update<Bazinga>): Observable<Bazinga> {
     return this.bazinga();
   }
 
@@ -81,10 +70,7 @@ export class BazingaDataService
   providers: [BazingaDataService]
 })
 export class CustomDataServiceModule {
-  constructor(
-    entityDataService: EntityDataService,
-    bazingaService: BazingaDataService
-  ) {
+  constructor(entityDataService: EntityDataService, bazingaService: BazingaDataService) {
     entityDataService.registerService('Bazinga', bazingaService);
   }
 }
@@ -101,9 +87,7 @@ class TestHttpUrlGenerator implements HttpUrlGenerator {
   collectionResource(entityName: string, root: string): string {
     return 'api/heroes/';
   }
-  registerHttpResourceUrls(
-    entityHttpResourceUrls: EntityHttpResourceUrls
-  ): void {}
+  registerHttpResourceUrls(entityHttpResourceUrls: EntityHttpResourceUrls): void {}
 }
 
 // endregion
@@ -132,7 +116,7 @@ describe('EntityDataService', () => {
       expect(service).toBeDefined();
     });
 
-    it('can data service is a DefaultDataService by default', () => {
+    it('data service should be a DefaultDataService by default', () => {
       const service = entityDataService.getService('Hero');
       expect(service instanceof DefaultDataService).toBe(true);
     });

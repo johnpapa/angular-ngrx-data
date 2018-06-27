@@ -1,36 +1,46 @@
-import { Injectable } from '@angular/core';
-import { Store } from '@ngrx/store';
+import { Inject, Injectable, OnDestroy } from '@angular/core';
+import { Action, Store, ScannedActionsSubject } from '@ngrx/store';
+import { Observable, Subscription } from 'rxjs';
+import { shareReplay } from 'rxjs/operators';
 
-import { EntityAction, EntityActionFactory } from '../actions/entity-action';
-import { EntityActionGuard } from '../actions/entity-action-guard';
-import { EntityOp } from '../actions/entity-op';
-import { QueryParams } from '../dataservices/interfaces';
-import { EntityCommands } from './entity-commands';
-import { EntityCache } from '../reducers/entity-cache';
-import {
-  EntityDispatcher,
-  EntityDispatcherBase,
-  EntityDispatcherOptions
-} from './entity-dispatcher';
-import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
+import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
+import { EntityAction } from '../actions/entity-action';
+import { EntityActionFactory } from '../actions/entity-action-factory';
+import { EntityCache } from '../reducers/entity-cache';
+import { EntityCacheSelector, ENTITY_CACHE_SELECTOR_TOKEN, createEntityCacheSelector } from '../selectors/entity-cache-selector';
+import { EntityDispatcher } from './entity-dispatcher';
+import { EntityDispatcherBase } from './entity-dispatcher-base';
+import { EntityOp } from '../actions/entity-op';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { QueryParams } from '../dataservices/interfaces';
 
+/** Creates EntityDispatchers for entity collections */
 @Injectable()
-export class EntityDispatcherFactory {
+export class EntityDispatcherFactory implements OnDestroy {
   /**
-   * Default dispatcher options.
-   * These defaults are the safest values.
+   * Actions scanned by the store after it processed them with reducers.
+   * A replay observable of the most recent action reduced by the store.
    */
-  defaultDispatcherOptions = {
-    optimisticAdd: false,
-    optimisticDelete: true,
-    optimisticUpdate: false
-  };
+  reducedActions$: Observable<Action>;
+  private raSubscription: Subscription;
 
   constructor(
     private entityActionFactory: EntityActionFactory,
-    private store: Store<EntityCache>
-  ) {}
+    private store: Store<EntityCache>,
+    private entityDispatcherDefaultOptions: EntityDispatcherDefaultOptions,
+    @Inject(ScannedActionsSubject) scannedActions$: Observable<Action>,
+    @Inject(ENTITY_CACHE_SELECTOR_TOKEN) private entityCacheSelector: EntityCacheSelector,
+    private correlationIdGenerator: CorrelationIdGenerator
+  ) {
+    // Replay because sometimes in tests will fake data service with synchronous observable
+    // which makes subscriber miss the dispatched actions.
+    // Sure that's a testing mistake. But easy to forget, leading to painful debugging.
+    this.reducedActions$ = scannedActions$.pipe(shareReplay(1));
+    // Start listening so late subscriber won't miss the most recent action.
+    this.raSubscription = this.reducedActions$.subscribe();
+  }
 
   /**
    * Create an `EntityDispatcher` for an entity type `T` and store.
@@ -43,23 +53,26 @@ export class EntityDispatcherFactory {
      * Usually acquired from `EntityDefinition` metadata.
      */
     selectId: IdSelector<T> = defaultSelectId,
-    /** Options that influence dispatcher behavior such as whether
+    /** Defaults for options that influence dispatcher behavior such as whether
      * `add()` is optimistic or pessimistic;
      */
-    dispatcherOptions: Partial<EntityDispatcherOptions> = {}
+    defaultOptions: Partial<EntityDispatcherDefaultOptions> = {}
   ): EntityDispatcher<T> {
-    // merge w/ dispatcher options with defaults
-    const options: EntityDispatcherOptions = Object.assign(
-      {},
-      this.defaultDispatcherOptions,
-      dispatcherOptions
-    );
+    // merge w/ defaultOptions with injected defaults
+    const options: EntityDispatcherDefaultOptions = { ...this.entityDispatcherDefaultOptions, ...defaultOptions };
     return new EntityDispatcherBase<T>(
       entityName,
       this.entityActionFactory,
       this.store,
       selectId,
-      options
+      options,
+      this.reducedActions$,
+      this.entityCacheSelector,
+      this.correlationIdGenerator
     );
+  }
+
+  ngOnDestroy() {
+    this.raSubscription.unsubscribe();
   }
 }

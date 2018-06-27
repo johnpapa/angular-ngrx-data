@@ -22,6 +22,7 @@ export class EntityActionFactory {
    */
   create<P = any>(payload: EntityActionPayload<P>): EntityAction<P>;
 
+  // polymorphic create for the two signatures
   create<P = any>(
     nameOrPayload: EntityActionPayload<P> | string,
     entityOp?: EntityOp,
@@ -30,16 +31,23 @@ export class EntityActionFactory {
   ): EntityAction<P> {
     const payload: EntityActionPayload<P> =
       typeof nameOrPayload === 'string' ? { ...(options || {}), entityName: nameOrPayload, entityOp, data } : nameOrPayload;
+    return this.createCore(payload);
+  }
 
-    const { entityName, entityOp: op, tag } = payload;
-
+  /**
+   * Create an EntityAction to perform an operation (op) for a particular entity type
+   * (entityName) with optional data and other optional flags
+   * @param payload Defines the EntityAction and its options
+   */
+  protected createCore<P = any>(payload: EntityActionPayload<P>) {
+    const { entityName, entityOp, tag } = payload;
     if (!entityName) {
       throw new Error('Missing entity name for new action');
     }
-    if (op == null) {
+    if (entityOp == null) {
       throw new Error('Missing EntityOp for new action');
     }
-    const type = this.formatActionType(op, tag || entityName);
+    const type = this.formatActionType(entityOp, tag || entityName);
     return { type, payload };
   }
 

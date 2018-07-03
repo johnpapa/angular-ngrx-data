@@ -5,10 +5,8 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
-import { HttpMethods, QueryParams, RequestData } from './interfaces';
+import { EntityCollectionDataService, HttpMethods, QueryParams, RequestData } from './interfaces';
 import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
-
-import { EntityCollectionDataService } from './entity-data.service';
 import { Update } from '../utils/ngrx-entity-models';
 
 // Pass the observable straight through
@@ -108,7 +106,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
 
   update(update: Update<T>): Observable<T> {
     const id = update && update.id;
-    const updateOrError = id == null ? new Error(`No "${this.entityName}" update data or id`) : update;
+    const updateOrError = id == null ? new Error(`No "${this.entityName}" update data or id`) : update.changes;
     return this.execute('PUT', this.entityUrl + id, updateOrError);
   }
 

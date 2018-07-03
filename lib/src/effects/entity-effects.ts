@@ -10,6 +10,7 @@ import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, makeSuccessOp } from '../actions/entity-op';
 import { ofEntityOp } from '../actions/entity-action-operators';
 import { Update } from '../utils/ngrx-entity-models';
+import { UpdateResponseData } from '../actions/update-response-data';
 
 import { EntityDataService } from '../dataservices/entity-data.service';
 import { PersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
@@ -113,12 +114,17 @@ export class EntityEffects {
         const { id, changes } = data as Update<any>; // data must be Update<T>
         return service.update(data).pipe(
           map(updatedEntity => {
-            // Return an Update<T> with merged updated entity data.
-            // If no update data from the server,
-            // assume the server made no additional changes of its own and
-            // append `unchanged: true` to the original payload.
+            // Return an Update<T> with updated entity data.
+            // If server returned entity data, merge with the changes that were sent
+            // and set the 'changed' flag to true.
+            // If server did not return entity data,
+            // assume it made no additional changes of its own, return the original changes,
+            // and set the `changed` flag to `false`.
             const hasData = updatedEntity && Object.keys(updatedEntity).length > 0;
-            return hasData ? { id, changes: { ...changes, ...updatedEntity } } : { id, changes, unchanged: true };
+            const responseData: UpdateResponseData<any> = hasData
+              ? { id, changes: { ...changes, ...updatedEntity }, changed: true }
+              : { id, changes, changed: false };
+            return responseData;
           })
         );
 

@@ -862,55 +862,76 @@ describe('EntityCollectionReducer', () => {
   });
 
   describe('SAVE_UPDATE_ONE_SUCCESS (Optimistic)', () => {
-    function createTestAction(hero: Update<Hero>) {
-      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, hero, { isOptimistic: true });
+    function createTestAction(update: Update<Hero>, changed: boolean) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, { ...update, changed }, { isOptimistic: true });
     }
 
-    it('should update existing entity in collection', () => {
-      const hero: Hero = { id: 2, name: 'B+' };
-      const action = createTestAction(toHeroUpdate(hero));
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
+    it('should leave updated entity alone if server did not change the update (changed: false)', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids;
+      const id = updatedEntity.id;
+      const action = createTestAction(toHeroUpdate(updatedEntity), false);
+      const collection = entityReducer(entityCache, action)['Hero'];
 
-      expect(collection.ids).toEqual([2, 1], 'ids are the same');
-      expect(collection.entities[2].name).toBe('B+', 'name');
-      // unmentioned property stays the same
-      expect(collection.entities[2].power).toBe('Fast', 'power');
+      expect(collection.ids).toEqual(ids, 'ids are the same');
+      expect(collection.entities[id].name).toBe(updatedEntity.name, 'name');
+      expect(collection.entities[id].power).toBe(updatedEntity.power, 'power');
     });
 
-    it('can update existing entity key in collection', () => {
-      // Change the pkey (id) and the name of former hero:2
-      const hero: Hero = { id: 42, name: 'Super' };
-      const update = { id: 2, changes: hero };
-      const action = createTestAction(update);
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
+    it('should update existing entity when server adds its own changes (changed: true)', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids;
+      const id = updatedEntity.id;
+      // Server changed the name
+      const serverEntity = { id: updatedEntity.id, name: 'Server Update Name' };
+      const action = createTestAction(toHeroUpdate(serverEntity), true);
+      const collection = entityReducer(entityCache, action)['Hero'];
 
-      expect(collection.ids).toEqual([42, 1], 'ids are the same');
-      expect(collection.entities[42].name).toBe('Super', 'name');
+      expect(collection.ids).toEqual(ids, 'ids are the same');
+      expect(collection.entities[id].name).toBe(serverEntity.name, 'name');
       // unmentioned property stays the same
-      expect(collection.entities[42].power).toBe('Fast', 'power');
+      expect(collection.entities[id].power).toBe(updatedEntity.power, 'power');
+    });
+
+    it('can update existing entity key', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids as number[];
+      const id = updatedEntity.id;
+      // Server changed the pkey (id) and the name
+      const serverEntity = { id: 13, name: 'Server Update Name' };
+      const update = { id: updatedEntity.id, changes: serverEntity };
+      const action = createTestAction(update, true);
+      const collection = entityReducer(entityCache, action)['Hero'];
+
+      // Should have replaced updatedEntity.id with 13
+      const newIds = ids.map(i => (i === id ? 13 : i));
+
+      expect(collection.ids).toEqual(newIds, 'server-changed id in the ids');
+      expect(collection.entities[13].name).toBe(serverEntity.name, 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[13].power).toBe(updatedEntity.power, 'power');
     });
 
     // Changed in v6. It used to add a new entity.
     it('should NOT add new hero to collection', () => {
+      const { entityCache } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids;
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
-      const action = createTestAction(toHeroUpdate(hero));
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
+      const action = createTestAction(toHeroUpdate(hero), true);
+      const collection = entityReducer(entityCache, action)['Hero'];
 
-      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
+      expect(collection.ids).toEqual(ids, 'no new hero:13');
     });
   });
 
   describe('SAVE_UPDATE_ONE_SUCCESS (Pessimistic)', () => {
-    function createTestAction(hero: Update<Hero>) {
-      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, hero);
+    function createTestAction(update: Update<Hero>, changed: boolean) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, { ...update, changed });
     }
 
     it('should update existing entity in collection', () => {
       const hero: Hero = { id: 2, name: 'B+' };
-      const action = createTestAction(toHeroUpdate(hero));
+      const action = createTestAction(toHeroUpdate(hero), false);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
@@ -924,7 +945,7 @@ describe('EntityCollectionReducer', () => {
       // Change the pkey (id) and the name of former hero:2
       const hero: Hero = { id: 42, name: 'Super' };
       const update = { id: 2, changes: hero };
-      const action = createTestAction(update);
+      const action = createTestAction(update, true);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 
@@ -937,7 +958,7 @@ describe('EntityCollectionReducer', () => {
     // Changed in v6. It used to add a new entity.
     it('should NOT add new hero to collection', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
-      const action = createTestAction(toHeroUpdate(hero));
+      const action = createTestAction(toHeroUpdate(hero), false);
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
 

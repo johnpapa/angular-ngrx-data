@@ -3,10 +3,12 @@ import { Injectable } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { EntityAdapter } from '@ngrx/entity';
 
+import { merge } from 'rxjs/operators';
+
 import { ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
 import { EntityChangeTrackerBase } from './entity-change-tracker-base';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
-import { Dictionary, IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
+import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionDataServiceError } from '../dataservices/data-service-error';
 import { EntityActionGuard } from '../actions/entity-action-guard';
@@ -15,7 +17,7 @@ import { EntityDefinition } from '../entity-metadata/entity-definition';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
 import { EntityOp } from '../actions/entity-op';
 import { MergeStrategy } from '../actions/merge-strategy';
-import { merge } from 'rxjs/operators';
+import { UpdateResponseData } from '../actions/update-response-data';
 
 /**
  * Map of {EntityOp} to reducer method for the operation.
@@ -266,7 +268,7 @@ export class EntityCollectionReducerMethods<T> {
     const entity = this.guard.mustBeEntity<T>(action);
     const mergeStrategy = this.extractMergeStrategy(action);
     if (this.isOptimistic(action)) {
-      const update = this.toUpdate(entity);
+      const update: UpdateResponseData<T> = { ...this.toUpdate(entity), changed: true };
       collection = this.entityChangeTracker.mergeSaveUpdates([update], collection, mergeStrategy, true /*skip unchanged*/);
     } else {
       collection = this.entityChangeTracker.mergeSaveAdds([entity], collection, mergeStrategy);
@@ -383,10 +385,10 @@ export class EntityCollectionReducerMethods<T> {
    * Use pessimistic update to avoid this risk.
    * @param collection The collection to update
    * @param action The action payload holds options, including if the save is optimistic,
-   * and the data which, must be an {Update<T>}
+   * and the data which, must be an Update<T>
    */
-  protected saveUpdateOneSuccess(collection: EntityCollection<T>, action: EntityAction<UpdateData<T>>): EntityCollection<T> {
-    const update = this.guard.mustBeUpdate<T>(action) as UpdateData<T>;
+  protected saveUpdateOneSuccess(collection: EntityCollection<T>, action: EntityAction<UpdateResponseData<T>>): EntityCollection<T> {
+    const update = this.guard.mustBeUpdateResponse<T>(action);
     const isOptimistic = this.isOptimistic(action);
     const mergeStrategy = this.extractMergeStrategy(action);
     collection = this.entityChangeTracker.mergeSaveUpdates([update], collection, mergeStrategy, isOptimistic /*skip unchanged*/);

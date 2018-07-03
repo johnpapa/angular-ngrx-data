@@ -8,6 +8,7 @@ export * from './actions/entity-action-operators';
 export * from './actions/entity-cache-action';
 export * from './actions/entity-op';
 export * from './actions/merge-strategy';
+export * from './actions/update-response-data';
 
 // dataservices
 export * from './dataservices/data-service-error';

@@ -1,6 +1,7 @@
 import { ChangeState, ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
 import { MergeStrategy } from '../actions/merge-strategy';
 import { Update } from '../utils/ngrx-entity-models';
+import { UpdateResponseData } from '../actions/update-response-data';
 
 /**
  * Methods for tracking, committing, and reverting/undoing unsaved entity changes.
@@ -81,15 +82,17 @@ export interface EntityChangeTracker<T> {
   /**
    * Merge result of saving updated entities into the collection, adjusting the ChangeState per the mergeStrategy.
    * The default is MergeStrategy.OverwriteChanges.
-   * @param entities Entities returned from saving updated entities to the server.
+   * @param updates Entity response data returned from saving updated entities to the server.
    * @param [mergeStrategy] How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
    * If not specified, implementation supplies a default strategy.
-   * @param [skipUnchanged] True if should skip update when unchanged (for optimistic updates). False by default.
+   * @param [skipUnchanged] True means skip update if server didn't change it. False by default.
+   * If the update was optimistic and the server didn't make more changes of its own
+   * then the updates are already in the collection and shouldn't make them again.
    * @param collection The entity collection
    * @returns The merged EntityCollection.
    */
   mergeSaveUpdates(
-    updates: Update<T>[],
+    updates: UpdateResponseData<T>[],
     collection: EntityCollection<T>,
     mergeStrategy?: MergeStrategy,
     skipUnchanged?: boolean

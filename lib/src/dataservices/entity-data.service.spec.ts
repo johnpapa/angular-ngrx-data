@@ -11,7 +11,7 @@ import { DefaultDataService, DefaultDataServiceFactory } from './default-data.se
 import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
 
 import { EntityDataService } from './entity-data.service';
-import { EntityCollectionDataService } from './entity-data.service';
+import { EntityCollectionDataService } from './interfaces';
 import { QueryParams } from './interfaces';
 import { Update } from '../utils/ngrx-entity-models';
 

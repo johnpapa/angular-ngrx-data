@@ -97,6 +97,8 @@ describe('DefaultDataService', () => {
       const req = httpTestingController.expectOne(heroesUrl);
       expect(req.request.method).toEqual('GET');
 
+      expect(req.request.body).toBeNull('should not send data');
+
       // Respond with the mock heroes
       req.flush(expectedHeroes);
     });
@@ -163,6 +165,8 @@ describe('DefaultDataService', () => {
       // One request to GET hero from expected URL
       const req = httpTestingController.expectOne(heroUrlId1);
 
+      expect(req.request.body).toBeNull('should not send data');
+
       // Respond with the expected hero
       req.flush(expectedHero);
     });
@@ -206,6 +210,8 @@ describe('DefaultDataService', () => {
       // from expected URL with query params
       const req = httpTestingController.expectOne(heroesUrl + '?name=B');
       expect(req.request.method).toEqual('GET');
+
+      expect(req.request.body).toBeNull('should not send data');
 
       // Respond with the mock heroes
       req.flush(expectedHeroes);
@@ -256,11 +262,14 @@ describe('DefaultDataService', () => {
 
     it('should return expected hero with id', () => {
       expectedHero = { id: 42, name: 'A' };
+      const heroData: Hero = { id: undefined, name: 'A' };
 
-      service.add({ name: 'A' } as Hero).subscribe(hero => expect(hero).toEqual(expectedHero, 'should return expected hero'), fail);
+      service.add(heroData).subscribe(hero => expect(hero).toEqual(expectedHero, 'should return expected hero'), fail);
 
       // One request to POST hero from expected URL
       const req = httpTestingController.expectOne(r => r.method === 'POST' && r.url === heroUrl);
+
+      expect(req.request.body).toEqual(heroData, 'should send entity data');
 
       // Respond with the expected hero
       req.flush(expectedHero);
@@ -284,6 +293,8 @@ describe('DefaultDataService', () => {
 
       // One request to DELETE hero from expected URL
       const req = httpTestingController.expectOne(r => r.method === 'DELETE' && r.url === heroUrlId1);
+
+      expect(req.request.body).toBeNull('should not send data');
 
       // Respond with empty nonsense object
       req.flush({});
@@ -342,6 +353,8 @@ describe('DefaultDataService', () => {
 
       // One request to PUT hero from expected URL
       const req = httpTestingController.expectOne(r => r.method === 'PUT' && r.url === heroUrlId1);
+
+      expect(req.request.body).toEqual(updateArg.changes, 'should send update entity data');
 
       // Respond with the expected hero
       req.flush(expectedHero);

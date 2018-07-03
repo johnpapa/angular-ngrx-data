@@ -2,10 +2,11 @@ import { EntityAdapter, EntityState } from '@ngrx/entity';
 
 import { ChangeState, ChangeStateMap, ChangeType, EntityCollection } from './entity-collection';
 import { defaultSelectId } from '../utils/utilities';
-import { Dictionary, IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
+import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityChangeTracker } from './entity-change-tracker';
 import { MergeStrategy } from '../actions/merge-strategy';
+import { UpdateResponseData } from '../actions/update-response-data';
 
 /**
  * The default implementation of EntityChangeTracker with
@@ -128,34 +129,37 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
   /**
    * Merge result of saving updated entities into the collection, adjusting the ChangeState per the mergeStrategy.
    * The default is MergeStrategy.OverwriteChanges.
-   * @param entities Entities returned from saving updated entities to the server.
+   * @param updateResponseData Entity response data returned from saving updated entities to the server.
    * @param collection The entity collection
    * @param [mergeStrategy] How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
    * Defaults to MergeStrategy.OverwriteChanges.
-   * @param [skipUnchanged] True if should skip update when unchanged (for optimistic updates). False by default.
+   * @param [skipUnchanged] True means skip update if server didn't change it. False by default.
+   * If the update was optimistic and the server didn't make more changes of its own
+   * then the updates are already in the collection and shouldn't make them again.
    * @returns The merged EntityCollection.
    */
   mergeSaveUpdates(
-    updates: UpdateData<T>[],
+    updateResponseData: UpdateResponseData<T>[],
     collection: EntityCollection<T>,
     mergeStrategy?: MergeStrategy,
     skipUnchanged?: boolean
   ): EntityCollection<T> {
-    if (updates == null || updates.length === 0) {
+    if (updateResponseData == null || updateResponseData.length === 0) {
       return collection; // nothing to merge.
     }
 
     let didMutate = false;
     let changeState = collection.changeState;
     mergeStrategy = mergeStrategy == null ? MergeStrategy.OverwriteChanges : mergeStrategy;
+    let updates: Update<T>[];
 
     switch (mergeStrategy) {
       case MergeStrategy.IgnoreChanges:
-        updates = purgeUnchanged(updates);
+        updates = filterChanged(updateResponseData);
         return this.adapter.updateMany(updates, collection);
 
       case MergeStrategy.OverwriteChanges:
-        changeState = updates.reduce((chgState, update) => {
+        changeState = updateResponseData.reduce((chgState, update) => {
           const oldId = update.id;
           const change = chgState[oldId];
           if (change) {
@@ -170,12 +174,12 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
 
         collection = didMutate ? { ...collection, changeState } : collection;
 
-        updates = purgeUnchanged(updates);
+        updates = filterChanged(updateResponseData);
         return this.adapter.updateMany(updates, collection);
 
       case MergeStrategy.PreserveChanges: {
-        let updateEntities = [] as UpdateData<T>[];
-        changeState = updates.reduce((chgState, update) => {
+        const updateableEntities = [] as UpdateResponseData<T>[];
+        changeState = updateResponseData.reduce((chgState, update) => {
           const oldId = update.id;
           const change = chgState[oldId];
           if (change) {
@@ -194,25 +198,33 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
             const newOrigValue = { ...(oldChangeState.originalValue as any), ...(update.changes as any) };
             chgState[newId] = { ...oldChangeState, originalValue: newOrigValue };
           } else {
-            updateEntities.push(update);
+            updateableEntities.push(update);
           }
           return chgState;
         }, collection.changeState);
         collection = didMutate ? { ...collection, changeState } : collection;
 
-        updateEntities = purgeUnchanged(updateEntities);
-        return this.adapter.updateMany(updateEntities, collection);
+        updates = filterChanged(updateableEntities);
+        return this.adapter.updateMany(updates, collection);
       }
     }
 
-    /** Exclude the unchanged updates for optimistic saves and strip off the `unchanged` property */
-    function purgeUnchanged(ups: UpdateData<T>[]): UpdateData<T>[] {
+    /**
+     * Conditionally keep only those updates that have additional server changes.
+     * (e.g., for optimistic saves because they updates are already in the current collection)
+     * Strip off the `changed` property.
+     * @responseData Entity response data from server.
+     * May be an UpdateResponseData<T>, a subclass of Update<T> with a 'changed' flag.
+     * @returns Update<T> (without the changed flag)
+     */
+    function filterChanged(responseData: UpdateResponseData<T>[]): Update<T>[] {
       if (skipUnchanged === true) {
-        ups = ups.filter(u => !u.unchanged);
+        // keep only those updates that the server changed (knowable if is UpdateResponseData<T>)
+        responseData = responseData.filter(r => r.changed === true);
       }
-      return ups.map(up => {
-        const { unchanged, ...update } = up;
-        return update;
+      return responseData.map(r => {
+        // strip unchanged property from responseData, leaving just the pure Update<T>
+        return { id: r.id as any, changes: r.changes };
       });
     }
   }

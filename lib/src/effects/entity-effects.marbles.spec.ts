@@ -7,20 +7,18 @@ import { Observable, of, Subject } from 'rxjs';
 import { Actions } from '@ngrx/effects';
 import { provideMockActions } from '@ngrx/effects/testing';
 
+import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
+import { EntityCollectionDataService } from '../dataservices/interfaces';
+import { EntityDataService } from '../dataservices/entity-data.service';
 import { EntityOp, makeErrorOp } from '../actions/entity-op';
-import { MergeStrategy } from '../actions/merge-strategy';
-
-import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
-import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
-import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 import { HttpMethods } from '../dataservices/interfaces';
+import { Logger } from '../utils/interfaces';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
+import { Update } from '../utils/ngrx-entity-models';
 
 import { EntityEffects, ENTITY_EFFECTS_SCHEDULER } from './entity-effects';
-
-import { Logger } from '../utils/interfaces';
-import { Update } from '../utils/ngrx-entity-models';
 import { TestHotObservable } from 'jasmine-marbles/src/test-observables';
 
 //////// Tests begin ////////
@@ -243,9 +241,10 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_UPDATE_ONE_SUCCESS (Optimistic) with the hero on success', () => {
     const updateEntity = { id: 1, name: 'A' };
     const update = { id: 1, changes: updateEntity } as Update<Hero>;
+    const updateResponse = { ...update, changed: true };
 
     const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update, { isOptimistic: true });
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, updateResponse, { isOptimistic: true });
 
     actions = hot('-a---', { a: action });
     // delay the response 3 frames
@@ -259,9 +258,10 @@ describe('EntityEffects (marble testing)', () => {
   it('should return a SAVE_UPDATE_ONE_SUCCESS (Pessimistic) with the hero on success', () => {
     const updateEntity = { id: 1, name: 'A' };
     const update = { id: 1, changes: updateEntity } as Update<Hero>;
+    const updateResponse = { ...update, changed: true };
 
     const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, updateResponse);
 
     actions = hot('-a---', { a: action });
     // delay the response 3 frames

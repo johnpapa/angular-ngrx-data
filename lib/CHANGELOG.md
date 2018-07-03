@@ -1,6 +1,39 @@
 # Angular ngrx-data library ChangeLog
 
-<a id="6.0.2-beta.7"></a>
+<a id="6.0.2-beta.9"></a>
+
+# 6.0.2-beta.9 (2018-07-02)
+
+Fixes #163. Allows Angular peer dependency to change as long as it is version 6.x.x
+
+```
+ -   "@angular/core": "6.0.0",
+ -   "@angular/common": "6.0.0",
+ +   "@angular/core": "^6.0.0",
+ +   "@angular/common": "^6.0.0",
+```
+
+Fixes issue #165 related to the breaking change in Beta.7 in which the
+return type of `EntityCollectionDataService.update()` changed:
+
+```
+-  update(update: Update<T>): Observable<Update<T>>;
++  update(update: Update<T>): Observable<T>;
+```
+
+The re-implementation of `DefaultDataService` accidentally sent the `Update<T>`
+to the server instead of just the entity data, T.
+
+This release corrects that error and adds confirming tests.
+
+It incidentally changes the handling of the changed indicator ()
+that is created by the `EntityEffects` after the update succeeds.
+
+* the indicator property name was renamed from `unchanged` to `changed`.
+* the `EntityEffects` _always sets it_ after update (used to set it only when changed).
+* adjusted `EntityChangeTracker` which consumed the `changed` property .
+
+<a id="6.0.2-beta.8"></a>
 
 # 6.0.2-beta.8 (2018-06-27)
 
@@ -615,6 +648,20 @@ The need for separating these concerns became apparent as we enriched the action
 
 This change breaks apps that registered collection reducers directly with the former `_EntityReducerFactory_`.
 Resolve by importing `EntityCollectionReducerRegistry` instead and calling the same registration methods on it.
+
+#### _EntityCollectionDataService.update()_ signature changed
+
+The return type of `EntityCollectionDataService.update()` changed,
+affecting implementation of `DefaultDataService.ts` and
+any override of that method in an application derived class
+(see issue #165).
+
+```
+-  update(update: Update<T>): Observable<Update<T>>;
++  update(update: Update<T>): Observable<T>;
+```
+
+This lead to a bad bug in the `DefaultDataService.update()`, corrected in [Beta 9](#6.0.2-beta.9)
 
 #### Renamed _DefaultEntityCollectionServiceFactory_ to _EntityCollectionServiceFactoryBase_.
 

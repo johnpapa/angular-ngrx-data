@@ -1,23 +1,7 @@
 import { Injectable } from '@angular/core';
 
-import { Observable } from 'rxjs';
-
-import { EntityAction } from '../actions/entity-action';
+import { EntityCollectionDataService } from './interfaces';
 import { DefaultDataServiceFactory } from './default-data.service';
-import { HttpUrlGenerator } from './http-url-generator';
-import { QueryParams } from './interfaces';
-import { Update } from '../utils/ngrx-entity-models';
-
-/** A service that performs REST-like HTTP data operations */
-export interface EntityCollectionDataService<T> {
-  readonly name: string;
-  add(entity: T): Observable<T>;
-  delete(id: number | string): Observable<number | string>;
-  getAll(): Observable<T[]>;
-  getById(id: any): Observable<T>;
-  getWithQuery(params: QueryParams | string): Observable<T[]>;
-  update(update: Update<T>): Observable<T>;
-}
 
 @Injectable()
 export class EntityDataService {
@@ -54,10 +38,7 @@ export class EntityDataService {
    *   registerService('Hero', myHeroDataService);
    *   registerService('Villain', myVillainDataService);
    */
-  registerService<T>(
-    entityName: string,
-    service: EntityCollectionDataService<T>
-  ) {
+  registerService<T>(entityName: string, service: EntityCollectionDataService<T>) {
     this.services[entityName.trim()] = service;
   }
 
@@ -71,9 +52,7 @@ export class EntityDataService {
    *     Villain: myVillainDataService
    *   });
    */
-  registerServices(services: {
-    [name: string]: EntityCollectionDataService<any>;
-  }) {
+  registerServices(services: { [name: string]: EntityCollectionDataService<any> }) {
     this.services = { ...this.services, ...services };
   }
 }

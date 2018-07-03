@@ -25,16 +25,5 @@ export interface UpdateNum<T> {
   changes: Partial<T>;
 }
 
-/** Update data for an Update action */
+/** Update entity data for an Update action */
 export type Update<T> = UpdateStr<T> | UpdateNum<T>;
-
-export interface UpdateDataStr<T> extends UpdateStr<T> {
-  unchanged?: boolean;
-}
-
-export interface UpdateDataNum<T> extends UpdateNum<T> {
-  unchanged?: boolean;
-}
-
-/** Update data from an Update HTTP response action. See EntityEffects */
-export type UpdateData<T> = UpdateDataStr<T> | UpdateDataNum<T>;

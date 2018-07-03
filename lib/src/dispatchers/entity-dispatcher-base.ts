@@ -3,6 +3,7 @@ import { Action, createSelector, select, Store } from '@ngrx/store';
 import { Observable, of, throwError } from 'rxjs';
 import { filter, first, map, mergeMap, shareReplay, withLatestFrom } from 'rxjs/operators';
 
+import { UpdateResponseData } from '../actions/update-response-data';
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
 import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
@@ -15,7 +16,7 @@ import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCommands } from './entity-commands';
 import { EntityDispatcher, PersistanceCanceled } from './entity-dispatcher';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
-import { IdSelector, Update, UpdateData } from '../utils/ngrx-entity-models';
+import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { MergeStrategy } from '../actions/merge-strategy';
 import { QueryParams } from '../dataservices/interfaces';
 
@@ -274,7 +275,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       this.guard.mustBeEntity(action);
     }
     this.dispatch(action);
-    return this.getResponseData$<UpdateData<T>>(options.correlationId).pipe(
+    return this.getResponseData$<UpdateResponseData<T>>(options.correlationId).pipe(
       // Use the update entity data id to get the entity from the collection
       // as might be different from the entity returned from the server
       // because the id changed or there are unsaved changes.

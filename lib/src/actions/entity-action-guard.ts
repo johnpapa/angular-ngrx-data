@@ -1,5 +1,6 @@
 import { EntityAction } from './entity-action';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
+import { UpdateResponseData } from '../actions/update-response-data';
 
 /**
  * Guard methods that ensure EntityAction payload is as expected.
@@ -81,6 +82,36 @@ export class EntityActionGuard {
 
   /** Throw if the action payload is not an array of updates with valid keys (ids) */
   mustBeUpdates<T = any>(action: EntityAction<Update<any>[]>): Update<T>[] {
+    const data = this.extractData(action);
+    if (!Array.isArray(data)) {
+      this.throwError(action, `should be an array of entity updates`);
+    }
+    data.forEach((item, i) => {
+      const { id, changes } = item;
+      const id2 = this.selectId(changes);
+      if (this.isNotKeyType(id) || this.isNotKeyType(id2)) {
+        this.throwError(action, `, item ${i + 1}, has a missing or invalid entity key (id)`);
+      }
+    });
+    return data;
+  }
+
+  /** Throw if the action payload is not an update response with a valid key (id) */
+  mustBeUpdateResponse<T = any>(action: EntityAction<UpdateResponseData<T>>): UpdateResponseData<T> {
+    const data = this.extractData(action);
+    if (!data) {
+      this.throwError(action, `should be a single entity update`);
+    }
+    const { id, changes } = data;
+    const id2 = this.selectId(changes);
+    if (this.isNotKeyType(id) || this.isNotKeyType(id2)) {
+      this.throwError(action, `has a missing or invalid entity key (id)`);
+    }
+    return data;
+  }
+
+  /** Throw if the action payload is not an array of update responses with valid keys (ids) */
+  mustBeUpdateResponses<T = any>(action: EntityAction<UpdateResponseData<any>[]>): UpdateResponseData<T>[] {
     const data = this.extractData(action);
     if (!Array.isArray(data)) {
       this.throwError(action, `should be an array of entity updates`);

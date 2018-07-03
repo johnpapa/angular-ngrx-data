@@ -6,19 +6,18 @@ import { Actions } from '@ngrx/effects';
 import { Observable, of, merge, ReplaySubject, throwError, timer } from 'rxjs';
 import { delay, first, mergeMap } from 'rxjs/operators';
 
+import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
+import { EntityCollectionDataService } from '../dataservices/interfaces';
+import { EntityDataService } from '../dataservices/entity-data.service';
 import { EntityOp, makeErrorOp } from '../actions/entity-op';
-
-import { EntityCollectionDataService, EntityDataService } from '../dataservices/entity-data.service';
-import { DataServiceError, EntityActionDataServiceError } from '../dataservices/data-service-error';
-import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 import { HttpMethods } from '../dataservices/interfaces';
+import { Logger } from '../utils/interfaces';
+import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
+import { Update } from '../utils/ngrx-entity-models';
 
 import { EntityEffects } from './entity-effects';
-
-import { Logger } from '../utils/interfaces';
-import { Update } from '../utils/ngrx-entity-models';
 
 describe('EntityEffects (normal testing)', () => {
   // factory never changes in these tests
@@ -265,9 +264,10 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_UPDATE_ONE_SUCCESS (Optimistic) with the hero on success', (done: DoneFn) => {
     const updateEntity = { id: 1, name: 'A' };
     const update = { id: 1, changes: updateEntity } as Update<Hero>;
+    const updateResponse = { ...update, changed: true };
 
     const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update, { isOptimistic: true });
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, updateResponse, { isOptimistic: true });
 
     actions$.next(action);
     dataService.setResponse('update', updateEntity);
@@ -278,9 +278,10 @@ describe('EntityEffects (normal testing)', () => {
   it('should return a SAVE_UPDATE_ONE_SUCCESS (Pessimistic) with the hero on success', (done: DoneFn) => {
     const updateEntity = { id: 1, name: 'A' };
     const update = { id: 1, changes: updateEntity } as Update<Hero>;
+    const updateResponse = { ...update, changed: true };
 
     const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE, update);
-    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, update);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPDATE_ONE_SUCCESS, updateResponse);
 
     actions$.next(action);
     dataService.setResponse('update', updateEntity);

@@ -1,3 +1,17 @@
+import { Observable } from 'rxjs';
+import { Update } from '../utils/ngrx-entity-models';
+
+/** A service that performs REST-like HTTP data operations for an entity collection */
+export interface EntityCollectionDataService<T> {
+  readonly name: string;
+  add(entity: T): Observable<T>;
+  delete(id: number | string): Observable<number | string>;
+  getAll(): Observable<T[]>;
+  getById(id: any): Observable<T>;
+  getWithQuery(params: QueryParams | string): Observable<T[]>;
+  update(update: Update<T>): Observable<T>;
+}
+
 export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';
 
 export interface RequestData {

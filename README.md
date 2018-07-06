@@ -103,7 +103,7 @@ export class HeroesComponent implements OnInit {
 
   constructor(entityServices: EntityServices) {
     this.heroesService = entityServices.getEntityCollectionService('Hero');
-    this.heroes$ = heroesService.entities$;
+    this.heroes$ = this.heroesService.entities$;
   }
 
   ngOnInit() {

@@ -122,7 +122,7 @@ It would be great if the library knew about the rules (in `EntityMetadata`?), ra
 
 These might be features in a future version of this library.
 
-<a id="serialization"></a>
+<a name="serialization"></a>
 
 ## Server/client entity mapping
 
@@ -146,7 +146,7 @@ Where do you keep the user's pending, unsaved changes?
 
 One approach is to keep track of pending changes, either in a change-tracker or in the entity data themselves.
 Then you might be able to use one of the
-[_cache-only_ commands](../lib/src/entity-metadata/entity-commands.ts) to
+[_cache-only_ commands](../lib/src/dispatchers/entity-commands.ts) to
 put hold the entity in cache while you waited for restored connectivity.
 
 There is no such facility in the library today.

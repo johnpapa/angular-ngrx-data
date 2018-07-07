@@ -11,7 +11,7 @@ which is an _ngrx_ `ActionReducer<EntityCache, EntityAction>`.
 Such a reducer function takes an `EntityCache` state and an `EntityAction` action
 and returns an `EntityCache` state.
 
-The reducer responds either to an [EntityCache-level action](entity-cache-actions) (rare)
+The reducer responds either to an [EntityCache-level action](#entity-cache-actions) (rare)
 or to an `EntityAction` targeting an entity collection (the usual case).
 All other kinds of `Action` are ignored and the reducer simply returns the given `state`.
 
@@ -51,18 +51,18 @@ the `reducerMap` is a hash of reducers, keyed by _entity-type-name_.
 
 ## Default _EntityCollectionReducer_
 
-The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts`)
+The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts)
 creates a default reducer that leverages the capabilities of the `@ngrx/entity/EntityAdapter`,
-guided by the app's [_entity metadata_](guide/entity-metadata.md).
+guided by the app's [_entity metadata_](entity-metadata.md).
 
 The default reducer decides what to do based on the `EntityAction.op` property,whose string value it expects will be a member of the
-[`EntityOp` enum](../lib/src/actions/entity-actions.ts).
+[`EntityOp` enum](../lib/src/actions/entity-op.ts).
 
 Many of the `EntityOp` values are ignored; the reducer simply returns the
 _entity collection_ as given.
 
 Certain persistence-oriented ops, for example,
-are meant to be handled by the _ngrx-data_ [`persist$` effect](guide/entity-effects.md).
+are meant to be handled by the _ngrx-data_ [`persist$` effect](entity-effects.md).
 They don't update the collection data (other than, perhaps, to flip the `loading` flag).
 
 Others add, update, and remove entities from the collection.
@@ -74,7 +74,7 @@ Others add, update, and remove entities from the collection.
 See the [@ngrx/entity/EntityAdapter collection methods](https://github.com/ngrx/platform/blob/master/docs/entity/adapter.md#adapter-collection-methods) for a basic guide to the
 cache altering operations performed by the default _entity collection reducer_.
 
-The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts`) and its tests are the authority on how the default reducer actually works.
+The [`EntityCollectionReducerFactory`](../lib/src/reducers/entity-collection-reducer.ts) and its tests are the authority on how the default reducer actually works.
 
 <a id='initialize'></a>
 
@@ -109,7 +109,7 @@ providing a custom alternative to the [`EntityReducerFactory`](#reducer-factory)
 
 But quite often you'd like to extend a _collection reducer_ with some additional reducer logic that runs before or after.
 
-<a id="entity-cache-actions"></a>
+<a name="entity-cache-actions"></a>
 
 ## EntityCache-level actions
 

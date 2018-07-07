@@ -91,7 +91,7 @@ It tries to process any action with such an `op` property by looking for a
 
 ### Choose data service for the type
 
-The [_Entity DataService_](guide/entity-dataservice.md) describes the
+The [_Entity DataService_](entity-dataservice.md) describes the
 default service, how to provide a data service for a specific entity type
 or replace the default service entirely.
 
@@ -105,7 +105,7 @@ or replace the default service entirely.
 
 ## Custom _Reducers_
 
-The [_Entity Reducer_ guide](guide/entity-reducer.md#customizing) explains how to
+The [_Entity Reducer_ guide](entity-reducer.md#customizing) explains how to
 customize entity reducers.
 
 ## Custom data service
@@ -130,7 +130,7 @@ You may need _serialization/deserialization_ transformation functions
 to map between the client entity data and the formats expected by the web APIs.
 
 There are no facilities for this within `ngrx-data` itself although
-that is a [limitation](guide/limitations.md#serialization) we might address in a future version.
+that is a [limitation](limitations.md#serialization) we might address in a future version.
 
 One option in the interim is to write such serialization functions and
 inject them into the `HttpClient` pipeline with [`HttpClient` interceptors](https://angular.io/guide/http#intercepting-requests-and-responses).

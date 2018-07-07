@@ -88,9 +88,9 @@ const map = {
 };
 ```
 
-The spelling and case (typically PascalCase) of the `entityName` is important for _ngrx-data_ conventions. It appears in the generated [_entity actions_](docs/entity-actions), in error messages, and in the persistence operations.
+The spelling and case (typically PascalCase) of the `entityName` is important for _ngrx-data_ conventions. It appears in the generated [_entity actions_](entity-actions.md), in error messages, and in the persistence operations.
 
-Importantly, the default [_entity dataservice_](docs/entity-dataservice.md) creates HTTP resource URLs from the lowercase version of this name. For example, if the `entityName` is "Hero", the default data service will POST to a URL such as `'api/hero'`.
+Importantly, the default [_entity dataservice_](entity-dataservice.md) creates HTTP resource URLs from the lowercase version of this name. For example, if the `entityName` is "Hero", the default data service will POST to a URL such as `'api/hero'`.
 
 > By default it generates the _plural_ of the entity name when preparing a _collection_ resource URL.
 >
@@ -226,7 +226,7 @@ The _ngrx-data_ library generates selectors for these properties but has no way 
 
 ## Pluralizing the entity name
 
-The _ngrx-data_ [`DefaultDataService`](docs/entity-dataservice.md) relies on the `HttpUrlGenerator` to create conventional HTTP resource names (URLs) for each entity type.
+The _ngrx-data_ [`DefaultDataService`](entity-dataservice.md) relies on the `HttpUrlGenerator` to create conventional HTTP resource names (URLs) for each entity type.
 
 By convention, an HTTP request targeting a single entity item contains the lowercase, singular version of the entity type name. For example, if the entity type `entityName` is "Hero", the default data service will POST to a URL such as `'api/hero'`.
 

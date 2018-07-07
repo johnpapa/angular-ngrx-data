@@ -72,7 +72,7 @@ It doesn't even know how to create the base resource names.
 It relies on an injected
 [`HttpUrlGenerator` service](../lib/src/dataservices/http-url-generator.ts) those.
 And the default implementation of that generator relies on the
-[`Pluralizer`](../lib/src/utils/pluralizer.ts) service to
+[`Pluralizer`](../lib/src/utils/default-pluralizer.ts) service to
 get the collection resource name.
 The [_Entity Metadata_](entity-metadata.md#plurals) guide
 explains how to configure the default `Pluralizer` .

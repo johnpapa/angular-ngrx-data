@@ -1,6 +1,6 @@
 # EntityCollectionService
 
-An **[`EntityCollectionService<T>`](../lib/src/entity-services/entity.service.ts)**
+An **[`EntityCollectionService<T>`](../lib/src/entity-services/entity-collection-service.ts)**
 is a facade over the _ngrx-data_ **dispatcher** and **selectors$** that manages an entity `T` collection cached in the _ngrx store_.
 
 The **_Dispatcher_** features **command** methods that dispatch [_entity actions_](entity-actions.md) to the _ngrx store_.

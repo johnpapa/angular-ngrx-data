@@ -24,6 +24,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The entity to delete
+   * @param [options] options that influence save and merge behavior
    * @returns A terminating Observable of the deleted key
    * after server reports successful save or the save error.
    */
@@ -32,6 +33,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to delete entity from remote storage by key.
    * @param key The primary key of the entity to remove
+   * @param [options] options that influence save and merge behavior
    * @returns Observable of the deleted key
    * after server reports successful save or the save error.
    */
@@ -40,6 +42,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * merge the queried entities into the cached collection.
+   * @param [options] options that influence merge behavior
    * @returns A terminating Observable of the collection
    * after server reports successful query or the query error.
    * @see load()
@@ -50,6 +53,8 @@ export interface EntityServerCommands<T> {
    * Dispatch action to query remote storage for the entity with this primary key.
    * If the server returns an entity,
    * merge it into the cached collection.
+   * @param key The primary key of the entity to get.
+   * @param [options] options that influence merge behavior
    * @returns A terminating Observable of the queried entities that are in the collection
    * after server reports success or the query error.
    */
@@ -60,6 +65,7 @@ export interface EntityServerCommands<T> {
    * with either a query parameter map or an HTTP URL query string,
    * and merge the results into the cached collection.
    * @params queryParams the query in a form understood by the server
+   * @param [options] options that influence merge behavior
    * @returns A terminating Observable of the queried entities
    * after server reports successful query or the query error.
    */
@@ -68,6 +74,7 @@ export interface EntityServerCommands<T> {
   /**
    * Dispatch action to query remote storage for all entities and
    * completely replace the cached collection with the queried entities.
+   * @param [options] options that influence load behavior
    * @returns A terminating Observable of the entities in the collection
    * after server reports successful query or the query error.
    * @see getAll
@@ -79,6 +86,7 @@ export interface EntityServerCommands<T> {
    * The update entity may be partial (but must have its key)
    * in which case it patches the existing entity.
    * @param entity update entity, which might be a partial of T but must at least have its key.
+   * @param [options] options that influence save and merge behavior
    * @returns A terminating Observable of the updated entity
    * after server reports successful save or the save error.
    */

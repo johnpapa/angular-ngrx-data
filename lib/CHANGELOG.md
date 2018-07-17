@@ -2,7 +2,13 @@
 
 <a id="6.0.2-beta.10"></a>
 
-# 6.0.2-beta.10 (2018-07-??)
+# 6.0.2-beta.10 (2018-07-17)
+
+**Feature: ClearCollections and LoadCollections cache actions**
+
+Added `ClearCollections` and `LoadCollections` entity cache actions so you can
+clear or load multiple collections at the same time.
+See `entity-cache-reducer.spec.ts` for examples.
 
 **Minor tweaks to improve testability**:
 

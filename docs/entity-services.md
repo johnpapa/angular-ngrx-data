@@ -37,17 +37,14 @@ Here's an example.
 
 ```javascript
 import { Injectable } from '@angular/core';
-import {
-  EntityCollectionServiceBase,
-  EntityCollectionServiceFactory
-} from 'ngrx-data';
+import { EntityCollectionServiceBase, EntityCollectionServiceElementsFactory } from 'ngrx-data';
 
 import { Hero } from '../model';
 
 @Injectable()
 export class HeroesService extends EntityCollectionServiceBase<Hero> {
-  constructor(entityCollectionServiceFactory: EntityCollectionServiceFactory) {
-    super('Hero', entityCollectionServiceFactory);
+  constructor(elementsFactory: EntityCollectionServiceElementsFactory) {
+    super('Hero', elementsFactory);
   }
 
   // ... your special sauce here

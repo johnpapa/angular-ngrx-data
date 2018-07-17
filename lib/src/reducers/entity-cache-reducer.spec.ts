@@ -5,7 +5,7 @@ import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityCache } from './entity-cache';
 import { EntityCacheReducerFactory } from './entity-cache-reducer-factory';
-import { EntityCacheQuerySet, MergeQuerySet, SetEntityCache } from '../actions/entity-cache-action';
+import { EntityCacheQuerySet, ClearCollections, LoadCollections, MergeQuerySet, SetEntityCache } from '../actions/entity-cache-action';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducerFactory } from './entity-collection-reducer';
@@ -28,7 +28,9 @@ class Villain {
 }
 
 const metadata: EntityMetadataMap = {
+  Fool: {},
   Hero: {},
+  Knave: {},
   Villain: { selectId: (villain: Villain) => villain.key }
 };
 
@@ -94,54 +96,115 @@ describe('EntityCacheReducer', () => {
       initialCache = createInitialCache({ Hero: initialHeroes });
     });
 
-    describe('ENTITY_CACHE_SET', () => {
-      it('should initialize cache', () => {
-        const cache = createInitialCache({
-          Hero: initialHeroes,
-          Villain: [{ key: 'DE', name: 'Dr. Evil' }]
-        });
+    describe('CLEAR_COLLECTIONS', () => {
+      beforeEach(() => {
+        const heroes = [{ id: 2, name: 'B', power: 'Fast' }, { id: 1, name: 'A', power: 'invisible' }];
+        const villains = [{ key: 'DE', name: 'Dr. Evil' }];
+        const fools = [{ id: 66, name: 'Fool 66' }];
 
-        const action = new SetEntityCache(cache);
-        // const action = {  // equivalent
-        //   type: SET_ENTITY_CACHE,
-        //   payload: cache
-        // };
-
-        const state = entityCacheReducer(cache, action);
-        expect(state['Hero'].ids).toEqual([2, 1], 'Hero ids');
-        expect(state['Hero'].entities).toEqual({
-          1: initialHeroes[1],
-          2: initialHeroes[0]
-        });
-        expect(state['Villain'].ids).toEqual(['DE'], 'Villain ids');
+        initialCache = createInitialCache({ Hero: heroes, Villain: villains, Fool: fools });
       });
 
-      it('should clear the cache when set with empty object', () => {
-        const action = new SetEntityCache({});
+      it('should clear an existing cached collection', () => {
+        const collections = ['Hero'];
+        const action = new ClearCollections(collections);
         const state = entityCacheReducer(initialCache, action);
-        expect(Object.keys(state)).toEqual([]);
+        expect(state['Hero'].ids).toEqual([], 'empty Hero collection');
+        expect(state['Fool'].ids.length).toBeGreaterThan(0, 'Fools remain');
+        expect(state['Villain'].ids.length).toBeGreaterThan(0, 'Villains remain');
       });
 
-      it('should replace prior cache with new cache', () => {
-        const priorCache = createInitialCache({
-          Hero: initialHeroes,
-          Villain: [{ key: 'DE', name: 'Dr. Evil' }]
-        });
+      it('should clear multiple existing cached collections', () => {
+        const collections = ['Hero', 'Villain'];
+        const action = new ClearCollections(collections);
+        const state = entityCacheReducer(initialCache, action);
+        expect(state['Hero'].ids).toEqual([], 'empty Hero collection');
+        expect(state['Villain'].ids).toEqual([], 'empty Villain collection');
+        expect(state['Fool'].ids.length).toBeGreaterThan(0, 'Fools remain');
+      });
 
-        const newHeroes = [{ id: 42, name: 'Bobby' }];
-        const newCache = createInitialCache({ Hero: newHeroes });
+      it('should initialize an empty cache with the collections', () => {
+        // because ANY call to a reducer creates the collection!
+        const collections = ['Hero', 'Villain'];
+        const action = new ClearCollections(collections);
 
-        const action = new SetEntityCache(newCache);
-        const state = entityCacheReducer(priorCache, action);
-        expect(state['Villain']).toBeUndefined('No villains');
+        const state = entityCacheReducer({}, action);
+        expect(Object.keys(state)).toEqual(['Hero', 'Villain'], 'created collections');
+        expect(state['Villain'].ids).toEqual([], 'Hero id');
+        expect(state['Hero'].ids).toEqual([], 'Villain ids');
+      });
 
-        const heroCollection = state['Hero'];
-        expect(heroCollection.ids).toEqual([42], 'hero ids');
-        expect(heroCollection.entities[42]).toEqual(newHeroes[0], 'heroes');
+      it('should return cache matching existing cache for empty collections array', () => {
+        const collections: string[] = [];
+        const action = new ClearCollections(collections);
+        const state = entityCacheReducer(initialCache, action);
+        expect(state).toEqual(initialCache);
+      });
+
+      it('should clear every collection in an existing cache when collections is falsy', () => {
+        const action = new ClearCollections(undefined);
+        const state = entityCacheReducer(initialCache, action);
+        expect(Object.keys(state).sort()).toEqual(['Fool', 'Hero', 'Villain'], 'collections still exist');
+        expect(state['Fool'].ids).toEqual([], 'no Fool ids');
+        expect(state['Hero'].ids).toEqual([], 'no Villain ids');
+        expect(state['Villain'].ids).toEqual([], 'no Hero id');
       });
     });
 
-    describe('ENTITY_CACHE_QUERY_SET_MERGE', () => {
+    describe('LOAD_COLLECTIONS', () => {
+      function shouldHaveExpectedHeroes(entityCache: EntityCache) {
+        const heroCollection = entityCache['Hero'];
+        expect(heroCollection.ids).toEqual([2, 1], 'Hero ids');
+        expect(heroCollection.entities).toEqual({
+          1: initialHeroes[1],
+          2: initialHeroes[0]
+        });
+        expect(heroCollection.loaded).toBe(true, 'Heroes loaded');
+      }
+
+      it('should initialize an empty cache with the collections', () => {
+        const collections: EntityCacheQuerySet = {
+          Hero: initialHeroes,
+          Villain: [{ key: 'DE', name: 'Dr. Evil' }]
+        };
+
+        const action = new LoadCollections(collections);
+
+        const state = entityCacheReducer({}, action);
+        shouldHaveExpectedHeroes(state);
+        expect(state['Villain'].ids).toEqual(['DE'], 'Villain ids');
+        expect(state['Villain'].loaded).toBe(true, 'Villains loaded');
+      });
+
+      it('should return cache matching existing cache when collections set is empty', () => {
+        const action = new LoadCollections({});
+        const state = entityCacheReducer(initialCache, action);
+        expect(state).toEqual(initialCache);
+      });
+
+      it('should add a new collection to existing cache', () => {
+        const collections: EntityCacheQuerySet = {
+          Knave: [{ id: 96, name: 'Sneaky Pete' }]
+        };
+        const action = new LoadCollections(collections);
+        const state = entityCacheReducer(initialCache, action);
+        expect(state['Knave'].ids).toEqual([96], 'Knave ids');
+        expect(state['Knave'].loaded).toBe(true, 'Knave loaded');
+      });
+
+      it('should replace an existing cached collection', () => {
+        const collections: EntityCacheQuerySet = {
+          Hero: [{ id: 42, name: 'Bobby' }]
+        };
+        const action = new LoadCollections(collections);
+        const state = entityCacheReducer(initialCache, action);
+        const heroCollection = state['Hero'];
+        expect(heroCollection.ids).toEqual([42], 'only the loaded hero');
+        expect(heroCollection.entities[42]).toEqual({ id: 42, name: 'Bobby' }, 'loaded hero');
+      });
+    });
+
+    describe('MERGE_QUERY_SET', () => {
       function shouldHaveExpectedHeroes(entityCache: EntityCache) {
         expect(entityCache['Hero'].ids).toEqual([2, 1], 'Hero ids');
         expect(entityCache['Hero'].entities).toEqual({
@@ -189,6 +252,53 @@ describe('EntityCacheReducer', () => {
         const expectedIds = initialHeroes.map(h => h.id).concat(42);
         expect(heroCollection.ids).toEqual(expectedIds, 'merged ids');
         expect(heroCollection.entities[42]).toEqual({ id: 42, name: 'Bobby' }, 'merged hero');
+      });
+    });
+
+    describe('SET_ENTITY_CACHE', () => {
+      it('should initialize cache', () => {
+        const cache = createInitialCache({
+          Hero: initialHeroes,
+          Villain: [{ key: 'DE', name: 'Dr. Evil' }]
+        });
+
+        const action = new SetEntityCache(cache);
+        // const action = {  // equivalent
+        //   type: SET_ENTITY_CACHE,
+        //   payload: cache
+        // };
+
+        const state = entityCacheReducer(cache, action);
+        expect(state['Hero'].ids).toEqual([2, 1], 'Hero ids');
+        expect(state['Hero'].entities).toEqual({
+          1: initialHeroes[1],
+          2: initialHeroes[0]
+        });
+        expect(state['Villain'].ids).toEqual(['DE'], 'Villain ids');
+      });
+
+      it('should clear the cache when set with empty object', () => {
+        const action = new SetEntityCache({});
+        const state = entityCacheReducer(initialCache, action);
+        expect(Object.keys(state)).toEqual([]);
+      });
+
+      it('should replace prior cache with new cache', () => {
+        const priorCache = createInitialCache({
+          Hero: initialHeroes,
+          Villain: [{ key: 'DE', name: 'Dr. Evil' }]
+        });
+
+        const newHeroes = [{ id: 42, name: 'Bobby' }];
+        const newCache = createInitialCache({ Hero: newHeroes });
+
+        const action = new SetEntityCache(newCache);
+        const state = entityCacheReducer(priorCache, action);
+        expect(state['Villain']).toBeUndefined('No villains');
+
+        const heroCollection = state['Hero'];
+        expect(heroCollection.ids).toEqual([42], 'hero ids');
+        expect(heroCollection.entities[42]).toEqual(newHeroes[0], 'heroes');
       });
     });
   });

@@ -29,7 +29,7 @@ export class EntityCollectionServiceElementsFactory {
    * Get the ingredients for making an EntityCollectionService for this entity type
    * @param entityName - name of the entity type
    */
-  getServiceElements<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string): EntityCollectionServiceElements<T, S$> {
+  create<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>(entityName: string): EntityCollectionServiceElements<T, S$> {
     entityName = entityName.trim();
     const definition = this.entityDefinitionService.getDefinition<T>(entityName);
     const dispatcher = this.entityDispatcherFactory.create<T>(entityName, definition.selectId, definition.entityDispatcherOptions);

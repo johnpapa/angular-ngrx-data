@@ -42,7 +42,7 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
     serviceElementsFactory: EntityCollectionServiceElementsFactory
   ) {
     entityName = entityName.trim();
-    const { dispatcher, selectors, selectors$ } = serviceElementsFactory.getServiceElements<T, S$>(entityName);
+    const { dispatcher, selectors, selectors$ } = serviceElementsFactory.create<T, S$>(entityName);
 
     this.entityName = entityName;
     this.dispatcher = dispatcher;

@@ -37,42 +37,54 @@ import { EntityServicesElements } from './entity-services-elements';
  */
 @Injectable()
 export class EntityServicesBase implements EntityServices {
-  // Dear ngrx-data developer: think hard before changing the constructor signature.
+  // Dear ngrx-data developer: think hard before changing the constructor.
   // Doing so will break apps that derive from this base class,
   // and many apps will derive from this class.
-  constructor(entityServicesElements: EntityServicesElements) {
-    this.entityActionErrors$ = entityServicesElements.entitySelectors$Factory.entityActionErrors$;
-    this.entityCache$ = entityServicesElements.entitySelectors$Factory.entityCache$;
-    this.entityCollectionServiceFactory = entityServicesElements.entityCollectionServiceFactory;
-    this.reducedActions$ = entityServicesElements.entityDispatcherFactory.reducedActions$;
-    this.store = entityServicesElements.store;
+  //
+  // Do not give this constructor an implementation.
+  // Doing so makes it hard to mock classes that derive from this class.
+  // Use getter properties instead. For example, see entityCache$
+  constructor(private entityServicesElements: EntityServicesElements) {}
+
+  // #region EntityServicesElement-based properties
+
+  /** Observable of error EntityActions (e.g. QUERY_ALL_ERROR) for all entity types */
+  get entityActionErrors$(): Observable<EntityAction> {
+    return this.entityServicesElements.entityActionErrors$;
   }
+
+  /** Observable of the entire entity cache */
+  get entityCache$(): Observable<EntityCache> | Store<EntityCache> {
+    return this.entityServicesElements.entityCache$;
+  }
+
+  /** Factory to create a default instance of an EntityCollectionService */
+  get entityCollectionServiceFactory(): EntityCollectionServiceFactory {
+    return this.entityServicesElements.entityCollectionServiceFactory;
+  }
+
+  /**
+   * Actions scanned by the store after it processed them with reducers.
+   * A replay observable of the most recent action reduced by the store.
+   */
+  get reducedActions$(): Observable<Action> {
+    return this.entityServicesElements.reducedActions$;
+  }
+
+  /** The ngrx store, scoped to the EntityCache */
+  protected get store(): Store<EntityCache> {
+    return this.entityServicesElements.store;
+  }
+
+  // #endregion EntityServicesElement-based properties
 
   /** Dispatch any action to the store */
   dispatch(action: Action) {
     this.store.dispatch(action);
   }
 
-  /** Observable of error EntityActions (e.g. QUERY_ALL_ERROR) for all entity types */
-  readonly entityActionErrors$: Observable<EntityAction>;
-
-  /** Observable of the entire entity cache */
-  readonly entityCache$: Observable<EntityCache> | Store<EntityCache>;
-
-  /** Factory to create a default instance of an EntityCollectionService */
-  private readonly entityCollectionServiceFactory: EntityCollectionServiceFactory;
-
   /** Registry of EntityCollectionService instances */
   private readonly EntityCollectionServices: EntityCollectionServiceMap = {};
-
-  /**
-   * Actions scanned by the store after it processed them with reducers.
-   * A replay observable of the most recent action reduced by the store.
-   */
-  readonly reducedActions$: Observable<Action>;
-
-  /** The ngrx store, scoped to the EntityCache */
-  protected readonly store: Store<EntityCache>;
 
   /**
    * Create a new default instance of an EntityCollectionService.

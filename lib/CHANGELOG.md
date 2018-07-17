@@ -1,5 +1,29 @@
 # Angular ngrx-data library ChangeLog
 
+<a id="6.0.2-beta.10"></a>
+
+# 6.0.2-beta.10 (2018-07-17)
+
+**Feature: ClearCollections and LoadCollections cache actions**
+
+Added `ClearCollections` and `LoadCollections` entity cache actions so you can
+clear or load multiple collections at the same time.
+See `entity-cache-reducer.spec.ts` for examples.
+
+**Minor tweaks to improve testability**:
+
+* `EntityServicesBase.constructor` implementation is now empty.
+  Public readonly fields that were wired inside the constructor are now getter properties
+  reading from `EntityServicesElements`.
+  This makes it possible to instantiate an `EntityServicesBase` derivative with a null `EntityServicesElement` argument, which makes testing with derivative classes a little easier.
+
+**Breaking changes (unlikely to affect anyone)**:
+
+* `EntityServicesElements` public members changed to deliver what `EntityServices` needs without dotting to get there. This makes it easier to mock.
+
+* `EntityCollectionServiceElementsFactory.getServiceElements()` renamed `create()`,
+  the proper verb for a factory class.
+
 <a id="6.0.2-beta.9"></a>
 
 # 6.0.2-beta.9 (2018-07-02)

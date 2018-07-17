@@ -3,7 +3,7 @@ import { Action, ActionReducer } from '@ngrx/store';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityCache } from './entity-cache';
-import { EntityCacheAction, MergeQuerySet } from '../actions/entity-cache-action';
+import { EntityCacheAction, ClearCollections, LoadCollections, MergeQuerySet } from '../actions/entity-cache-action';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
 import { EntityCollectionReducerRegistry } from './entity-collection-reducer-registry';
@@ -34,15 +34,21 @@ export class EntityCacheReducerFactory {
     ): EntityCache {
       // EntityCache actions
       switch (action.type) {
-        case EntityCacheAction.SET_ENTITY_CACHE: {
-          // Completely replace the EntityCache. Be careful!
-          return action.payload;
+        case EntityCacheAction.CLEAR_COLLECTIONS: {
+          return this.clearCollectionsReducer(entityCache, action as ClearCollections);
         }
 
-        // Merge entities from each collection in the QuerySet
-        // using collection reducer's upsert operation
+        case EntityCacheAction.LOAD_COLLECTIONS: {
+          return this.loadCollectionsReducer(entityCache, action as LoadCollections);
+        }
+
         case EntityCacheAction.MERGE_QUERY_SET: {
           return this.mergeQuerySetReducer(entityCache, action as MergeQuerySet);
+        }
+
+        case EntityCacheAction.SET_ENTITY_CACHE: {
+          // Completely replace the EntityCache. Be careful!
+          return action.payload.cache;
         }
       }
 
@@ -75,13 +81,60 @@ export class EntityCacheReducerFactory {
   }
 
   /**
+   * Reducer to clear multiple collections at the same time.
+   * @param entityCache the entity cache
+   * @param action a ClearCollections action whose payload is an array of collection names.
+   * If empty array, does nothing. If no array, clears all the collections.
+   */
+  protected clearCollectionsReducer(entityCache: EntityCache, action: ClearCollections) {
+    // tslint:disable-next-line:prefer-const
+    let { collections, tag } = action.payload;
+    const entityOp = EntityOp.REMOVE_ALL;
+
+    if (!collections) {
+      // Collections is not defined. Clear all collections.
+      collections = Object.keys(entityCache);
+    }
+
+    entityCache = collections.reduce((newCache, entityName) => {
+      const payload = { entityName, entityOp };
+      const act: EntityAction = { type: `[${entityName}] ${action.type}`, payload };
+      newCache = this.applyCollectionReducer(newCache, act);
+      return newCache;
+    }, entityCache);
+    return entityCache;
+  }
+
+  /**
+   * Reducer to load collection in the form of a hash of entity data for multiple collections.
+   * @param entityCache the entity cache
+   * @param action a LoadCollections action whose payload is the QuerySet of entity collections to load
+   */
+  protected loadCollectionsReducer(entityCache: EntityCache, action: LoadCollections) {
+    const { collections, tag } = action.payload;
+    const entityOp = EntityOp.ADD_ALL;
+    const entityNames = Object.keys(collections);
+    entityCache = entityNames.reduce((newCache, entityName) => {
+      const payload = {
+        entityName,
+        entityOp,
+        data: collections[entityName]
+      };
+      const act: EntityAction = { type: `[${entityName}] ${action.type}`, payload };
+      newCache = this.applyCollectionReducer(newCache, act);
+      return newCache;
+    }, entityCache);
+    return entityCache;
+  }
+
+  /**
    * Reducer to merge query sets in the form of a hash of entity data for multiple collections.
    * @param entityCache the entity cache
    * @param action a MergeQuerySet action with the query set and a MergeStrategy
    */
   protected mergeQuerySetReducer(entityCache: EntityCache, action: MergeQuerySet) {
     // tslint:disable-next-line:prefer-const
-    let { mergeStrategy, querySet } = action.payload;
+    let { mergeStrategy, querySet, tag } = action.payload;
     mergeStrategy = mergeStrategy === null ? MergeStrategy.PreserveChanges : mergeStrategy;
     const entityOp = EntityOp.UPSERT_MANY;
 

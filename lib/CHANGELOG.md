@@ -17,9 +17,22 @@ See `entity-cache-reducer.spec.ts` for examples.
   reading from `EntityServicesElements`.
   This makes it possible to instantiate an `EntityServicesBase` derivative with a null `EntityServicesElement` argument, which makes testing with derivative classes a little easier.
 
-**Breaking changes (unlikely to affect anyone)**:
+**BREAKING CHANGES**:
 
 * `EntityServicesElements` public members changed to deliver what `EntityServices` needs without dotting to get there. This makes it easier to mock.
+
+But it is a breaking change for anyone who derived from `EntityServices` and injected the `store`.
+You might see a message like this one:
+
+```
+zone.js:665 Unhandled Promise rejection: Cannot set property store of [object Object] which has only a getter ;
+Zone: <root> ; Task: Promise.then ; Value: TypeError: Cannot set property store of [object Object] which has only a getter
+at new AppEntityServices (app-entity-services.ts:41) <-- the name of your derived class
+```
+
+You're probably injecting the `Store<EntityCache`> as a public property.
+Remove that from your constructor and you'll be fine.
+It's already exposed as a protected `store` property which you can make public if you wish.
 
 * `EntityCollectionServiceElementsFactory.getServiceElements()` renamed `create()`,
   the proper verb for a factory class.

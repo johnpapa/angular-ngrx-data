@@ -70,7 +70,7 @@ class LazyModule {
 
 ## Metadata Properties
 
-The `EntityMedata<T>` interface describes aspects of an entity type that tell the _ngrx-data_ library how to manage collections of entity data of type `T`.
+The `EntityMetadata<T>` interface describes aspects of an entity type that tell the _ngrx-data_ library how to manage collections of entity data of type `T`.
 
 Type `T` is your application's TypeScript representation of that entity; it can be an interface or a class.
 

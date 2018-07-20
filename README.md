@@ -147,8 +147,8 @@ The key folders in this repository are:
 
 * docs --> the docs for the library and the demo
 * lib ---> the ngrx-data library source code that we publish to npm
-* src/client ---> the demo app source
-* src/server ---> a node server for remote data access
+* src/app ---> the demo app source
+* server ---> a node server for remote data access
 
 <a id="docs-list"></a>
 

@@ -178,7 +178,7 @@ Do this _only_ if your server supports _upsert-with-PUT_ requests.
 ## No request concurrency checking
 
 The user saves a new `Customer`, followed by a query for all customers.
-It the new customer in the query response?
+Is the new customer in the query response?
 
 `Ngrx-data` does not coordinate save and query requests and does not guarantee order of responses.
 

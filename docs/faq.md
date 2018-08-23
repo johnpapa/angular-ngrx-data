@@ -116,9 +116,9 @@ It is notable for:
 
 * An _action_ is like a message. It always has a _type_. It often has a _payload_ which is the data for that message.
 
-* Action instances are immutable
+* Action instances are immutable.
 
-* Action instances are serializable (because the redux dev tools demand it and we should be able to persist them to local browser storage between user sessions);
+* Action instances are serializable (because the redux dev tools demand it and we should be able to persist them to local browser storage between user sessions).
 
 * All store values are immutable and serializable.
 
@@ -154,7 +154,7 @@ In _ngrx_, as in the redux pattern, all stored state is (or should be) _immutabl
 You never change the properties of objects in the store.
 You replace them with new objects, created through a merge of the previous property values and new property values.
 
-Arrays are completely replaced with you add, remove, or replace any of their items.
+Arrays are completely replaced when you add, remove, or replace any of their items.
 
 <a id="rxjs"></a>
 

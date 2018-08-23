@@ -31,7 +31,7 @@ that instance for future reference.
 ## Create a custom _EntityCollectionService_
 
 You'll often create custom `EntityCollectionService` classes with additional capabilities and convenience members,
-as explained in the [EntityCollectionService]((entity-collection-service.m) doc.
+as explained in the [EntityCollectionService](entity-collection-service.md) doc.
 
 Here's an example.
 

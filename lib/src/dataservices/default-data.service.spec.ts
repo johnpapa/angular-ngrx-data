@@ -5,7 +5,8 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 
 import { of } from 'rxjs';
 
-import { DefaultDataService, DefaultDataServiceFactory, DefaultDataServiceConfig } from './default-data.service';
+import { DefaultDataService, DefaultDataServiceFactory } from './default-data.service';
+import { DefaultDataServiceConfig } from './default-data-service-config';
 import { DataServiceError } from './data-service-error';
 import { DefaultHttpUrlGenerator, EntityHttpResourceUrls, HttpUrlGenerator } from './http-url-generator';
 import { Update } from '../utils/ngrx-entity-models';
@@ -378,6 +379,34 @@ describe('DefaultDataService', () => {
         heroes => fail('update succeeded when expected it to fail'),
         err => {
           expect(err.error).toMatch(/No "Hero" update data/);
+        }
+      );
+    });
+  });
+
+  describe('#upsert', () => {
+    let expectedHero: Hero;
+
+    it('should return expected hero with id', () => {
+      expectedHero = { id: 42, name: 'A' };
+      const heroData: Hero = { id: undefined, name: 'A' };
+
+      service.upsert(heroData).subscribe(hero => expect(hero).toEqual(expectedHero, 'should return expected hero'), fail);
+
+      // One request to POST hero from expected URL
+      const req = httpTestingController.expectOne(r => r.method === 'POST' && r.url === heroUrl);
+
+      expect(req.request.body).toEqual(heroData, 'should send entity data');
+
+      // Respond with the expected hero
+      req.flush(expectedHero);
+    });
+
+    it('should throw when no entity given', () => {
+      service.upsert(undefined).subscribe(
+        heroes => fail('add succeeded when expected it to fail'),
+        err => {
+          expect(err.error).toMatch(/No "Hero" entity/);
         }
       );
     });

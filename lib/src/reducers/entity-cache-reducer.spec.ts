@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { Action, ActionReducer } from '@ngrx/store';
 
+import { ChangeSet, ChangeSetOperation } from '../actions/entity-cache-change-set';
+import { DataServiceError } from '../dataservices/data-service-error';
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityCache } from './entity-cache';
-import { EntityCacheReducerFactory } from './entity-cache-reducer-factory';
+import { EntityCacheReducerFactory } from './entity-cache-reducer';
 import { EntityCacheQuerySet, ClearCollections, LoadCollections, MergeQuerySet, SetEntityCache } from '../actions/entity-cache-action';
 import { EntityCollection } from './entity-collection';
 import { EntityCollectionCreator } from './entity-collection-creator';
@@ -16,6 +18,7 @@ import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from '../entity-metadata/ent
 import { EntityOp } from '../actions/entity-op';
 import { IdSelector } from '../utils/ngrx-entity-models';
 import { Logger } from '../utils/interfaces';
+import { SaveEntities, SaveEntitiesCancel, SaveEntitiesError, SaveEntitiesSuccess } from '../actions/entity-cache-action';
 
 class Hero {
   id: number;
@@ -301,6 +304,172 @@ describe('EntityCacheReducer', () => {
         expect(heroCollection.entities[42]).toEqual(newHeroes[0], 'heroes');
       });
     });
+
+    describe('SAVE_ENTITIES', () => {
+      it('should turn on loading flags for affected collections and nothing more when pessimistic', () => {
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntities(changeSet, 'api/save', { isOptimistic: false });
+
+        const entityCache = entityCacheReducer({}, action);
+
+        expect(entityCache['Fool'].ids).toEqual([], 'Fool ids');
+        expect(entityCache['Hero'].ids).toEqual([], 'Hero ids');
+        expect(entityCache['Knave'].ids).toEqual([], 'Knave ids');
+        expect(entityCache['Villain'].ids).toEqual([], 'Villain ids');
+        expectLoadingFlags(entityCache, true);
+      });
+
+      it('should initialize an empty cache with entities when optimistic and turn on loading flags', () => {
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntities(changeSet, 'api/save', { isOptimistic: true });
+
+        const entityCache = entityCacheReducer({}, action);
+
+        expect(entityCache['Fool'].ids).toEqual([], 'Fool ids');
+        expect(entityCache['Hero'].ids).toEqual([42, 43], 'added Hero ids');
+        expect(entityCache['Knave'].ids).toEqual([6, 66], 'Knave ids');
+        expect(entityCache['Villain'].ids).toEqual(['44', '45'], 'added Villain ids');
+        expectLoadingFlags(entityCache, true);
+      });
+
+      it('should modify existing cache with entities when optimistic and turn on loading flags', () => {
+        const initialEntities = createInitialSaveTestEntities();
+        let entityCache = createInitialCache(initialEntities);
+
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntities(changeSet, 'api/save', { isOptimistic: true });
+
+        entityCache = entityCacheReducer(entityCache, action);
+
+        expect(entityCache['Fool'].ids).toEqual([1, 2], 'Fool ids');
+        expect(entityCache['Fool'].entities[1].skill).toEqual('Updated Skill 1');
+
+        expect(entityCache['Hero'].ids).toEqual([4, 42, 43], 'Hero ids - 2 new, {3,5} deleted');
+
+        expect(entityCache['Knave'].ids).toEqual([6, 66], 'Knave ids');
+        expect(entityCache['Knave'].entities[6].name).toEqual('Upsert Update Knave 6');
+        expect(entityCache['Knave'].entities[66].name).toEqual('Upsert Add Knave 66');
+
+        expect(entityCache['Villain'].ids).toEqual(['7', '8', '10', '44', '45'], 'Villain ids');
+
+        expectLoadingFlags(entityCache, true);
+      });
+    });
+
+    describe('SAVE_ENTITIES_CANCEL', () => {
+      const corid = 'CORID42';
+
+      it('should not turn off loading flags if you do not specify collections', () => {
+        const changeSet = createTestChangeSet();
+        let action: Action = new SaveEntities(changeSet, 'api/save', { correlationId: corid, isOptimistic: false });
+
+        // Pessimistic save turns on loading flags
+        let entityCache = entityCacheReducer({}, action);
+        expectLoadingFlags(entityCache, true);
+
+        action = new SaveEntitiesCancel(corid, 'Test Cancel'); // no names so no flags turned off.
+        entityCache = entityCacheReducer(entityCache, action);
+        expectLoadingFlags(entityCache, true);
+      });
+
+      it('should turn off loading flags for collections that you specify', () => {
+        const changeSet = createTestChangeSet();
+        let action: Action = new SaveEntities(changeSet, 'api/save', { correlationId: corid, isOptimistic: false });
+
+        // Pessimistic save turns on loading flags
+        let entityCache = entityCacheReducer({}, action);
+        expectLoadingFlags(entityCache, true);
+
+        action = new SaveEntitiesCancel(corid, 'Test Cancel', ['Hero', 'Fool']);
+        entityCache = entityCacheReducer(entityCache, action);
+        expectLoadingFlags(entityCache, false, ['Hero', 'Fool']);
+        expectLoadingFlags(entityCache, true, ['Knave', 'Villain']);
+      });
+    });
+
+    describe('SAVE_ENTITIES_SUCCESS', () => {
+      it('should initialize an empty cache with entities when pessimistic', () => {
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntitiesSuccess(changeSet, 'api/save', { isOptimistic: false });
+
+        const entityCache = entityCacheReducer({}, action);
+
+        expect(entityCache['Fool'].ids).toEqual([], 'Fool ids');
+        expect(entityCache['Hero'].ids).toEqual([42, 43], 'added Hero ids');
+        expect(entityCache['Knave'].ids).toEqual([6, 66], 'Knave ids');
+        expect(entityCache['Villain'].ids).toEqual(['44', '45'], 'added Villain ids');
+        expectLoadingFlags(entityCache, false);
+      });
+
+      it('should modify existing cache with entities when pessimistic', () => {
+        const initialEntities = createInitialSaveTestEntities();
+        let entityCache = createInitialCache(initialEntities);
+
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntitiesSuccess(changeSet, 'api/save', { isOptimistic: false });
+
+        entityCache = entityCacheReducer(entityCache, action);
+
+        expect(entityCache['Fool'].ids).toEqual([1, 2], 'Fool ids');
+        expect(entityCache['Fool'].entities[1].skill).toEqual('Updated Skill 1');
+
+        expect(entityCache['Hero'].ids).toEqual([4, 42, 43], 'Hero ids - 2 new, {3,5} deleted');
+
+        expect(entityCache['Knave'].ids).toEqual([6, 66], 'Knave ids');
+        expect(entityCache['Knave'].entities[6].name).toEqual('Upsert Update Knave 6');
+        expect(entityCache['Knave'].entities[66].name).toEqual('Upsert Add Knave 66');
+
+        expect(entityCache['Villain'].ids).toEqual(['7', '8', '10', '44', '45'], 'Villain ids');
+
+        expectLoadingFlags(entityCache, false);
+      });
+
+      it('should modify existing cache with entities when optimistic', () => {
+        const initialEntities = createInitialSaveTestEntities();
+        let entityCache = createInitialCache(initialEntities);
+
+        const changeSet = createTestChangeSet();
+        const action = new SaveEntitiesSuccess(changeSet, 'api/save', { isOptimistic: true });
+
+        entityCache = entityCacheReducer(entityCache, action);
+
+        expect(entityCache['Fool'].ids).toEqual([1, 2], 'Fool ids');
+        expect(entityCache['Fool'].entities[1].skill).toEqual('Updated Skill 1');
+
+        expect(entityCache['Hero'].ids).toEqual([4, 42, 43], 'Hero ids - 2 new, {3,5} deleted');
+
+        expect(entityCache['Knave'].ids).toEqual([6, 66], 'Knave ids');
+        expect(entityCache['Knave'].entities[6].name).toEqual('Upsert Update Knave 6');
+        expect(entityCache['Knave'].entities[66].name).toEqual('Upsert Add Knave 66');
+
+        expect(entityCache['Villain'].ids).toEqual(['7', '8', '10', '44', '45'], 'Villain ids');
+
+        expectLoadingFlags(entityCache, false);
+      });
+    });
+
+    describe('SAVE_ENTITIES_ERROR', () => {
+      it('should turn loading flags off', () => {
+        // Begin as if saving optimistically
+        const changeSet = createTestChangeSet();
+        const saveAction = new SaveEntities(changeSet, 'api/save', { isOptimistic: true });
+        let entityCache = entityCacheReducer({}, saveAction);
+
+        expectLoadingFlags(entityCache, true);
+
+        const dsError = new DataServiceError(new Error('Test Error'), { url: 'api/save' } as any);
+        const errorAction = new SaveEntitiesError(dsError, saveAction);
+        entityCache = entityCacheReducer(entityCache, errorAction);
+
+        expectLoadingFlags(entityCache, false);
+
+        // Added entities remain in cache (if not on the server), with pending changeState
+        expect(entityCache['Hero'].ids).toEqual([42, 43], 'added Hero ids');
+        const heroChangeState = entityCache['Hero'].changeState;
+        expect(heroChangeState[42]).toBeDefined('Hero [42] has changeState');
+        expect(heroChangeState[43]).toBeDefined('Hero [43] has changeState');
+      });
+    });
   });
 
   // #region helpers
@@ -327,6 +496,68 @@ describe('EntityCacheReducer', () => {
     }
 
     return cache;
+  }
+
+  function createInitialSaveTestEntities() {
+    const entities: { [entityName: string]: any[] } = {
+      Fool: [{ id: 1, name: 'Fool 1', skill: 'Skill 1' }, { id: 2, name: 'Fool 2', skill: 'Skill 2' }],
+      Hero: [
+        { id: 3, name: 'Hero 3', power: 'Power 3' },
+        { id: 4, name: 'Hero 4', power: 'Power 4' },
+        { id: 5, name: 'Hero 5', power: 'Power 5' }
+      ],
+      Knave: [{ id: 6, name: 'Knave 1', weakness: 'Weakness 6' }],
+      Villain: [
+        { key: '7', name: 'Villain 7', sin: 'Sin 7' },
+        { key: '8', name: 'Villain 8', sin: 'Sin 8' },
+        { key: '9', name: 'Villain 9', sin: 'Sin 9' },
+        { key: '10', name: 'Villain 10', sin: 'Sin 10' }
+      ]
+    };
+    return entities;
+  }
+
+  function createTestChangeSet() {
+    const changeSet: ChangeSet = {
+      changes: [
+        {
+          entityName: 'Hero',
+          op: ChangeSetOperation.Add,
+          entities: [{ id: 42, name: 'Hero 42' }, { id: 43, name: 'Hero 43', power: 'Power 43' }] as Hero[]
+        },
+        { entityName: 'Hero', op: ChangeSetOperation.Delete, entities: [3, 5] },
+        { entityName: 'Villain', op: ChangeSetOperation.Delete, entities: ['9'] },
+        {
+          entityName: 'Villain',
+          op: ChangeSetOperation.Add,
+          entities: [{ key: '44', name: 'Villain 44' }, { key: '45', name: 'Villain 45', sin: 'Sin 45' }] as Villain[]
+        },
+        {
+          entityName: 'Fool',
+          op: ChangeSetOperation.Update,
+          entities: [{ id: 1, changes: { id: 1, skill: 'Updated Skill 1' } }]
+        },
+        {
+          entityName: 'Knave',
+          op: ChangeSetOperation.Upsert,
+          entities: [{ id: 6, name: 'Upsert Update Knave 6' }, { id: 66, name: 'Upsert Add Knave 66' }]
+        }
+      ]
+    };
+    return changeSet;
+  }
+
+  /**
+   * Expect the loading flags of the named EntityCache collections to be in the `flag` state.
+   * @param entityCache cache to check
+   * @param flag True if should be loading; false if should not be loading
+   * @param entityNames names of collections to check; if undefined, check all collections
+   */
+  function expectLoadingFlags(entityCache: EntityCache, flag: boolean, entityNames?: string[]) {
+    entityNames = entityNames ? [] : Object.keys(entityCache);
+    entityNames.forEach(name => {
+      expect(entityCache[name].loading).toBe(flag, `${name}${flag ? '' : ' not'} loading`);
+    });
   }
   // #endregion helpers
 });

@@ -1,11 +1,9 @@
 import { Action, createSelector, select, Store } from '@ngrx/store';
 
 import { Observable, of, throwError } from 'rxjs';
-import { filter, first, map, mergeMap, shareReplay, withLatestFrom } from 'rxjs/operators';
+import { filter, map, mergeMap, shareReplay, withLatestFrom, take } from 'rxjs/operators';
 
-import { UpdateResponseData } from '../actions/update-response-data';
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
-import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { defaultSelectId, toUpdateFactory } from '../utils/utilities';
 import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
@@ -15,11 +13,17 @@ import { EntityCacheSelector } from '../selectors/entity-cache-selector';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCommands } from './entity-commands';
 import { EntityDispatcher, PersistanceCanceled } from './entity-dispatcher';
+import { EntityDispatcherDefaultOptions } from './entity-dispatcher-default-options';
 import { EntityOp, OP_ERROR, OP_SUCCESS } from '../actions/entity-op';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 import { MergeStrategy } from '../actions/merge-strategy';
 import { QueryParams } from '../dataservices/interfaces';
+import { UpdateResponseData } from '../actions/update-response-data';
 
+/**
+ * Dispatches EntityCollection actions to their reducers and effects (default implementation).
+ * All save commands rely on an Ngrx Effect such as `EntityEffects.persist$`.
+ */
 export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   /** Utility class with methods to validate EntityAction payloads.*/
   guard: EntityActionGuard;
@@ -45,7 +49,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
      * Dispatcher options configure dispatcher behavior such as
      * whether add is optimistic or pessimistic by default.
      */
-    public defaultDispatcherOptions: EntityDispatcherDefaultOptions,
+    private defaultDispatcherOptions: EntityDispatcherDefaultOptions,
     /** Actions scanned by the store after it processed them with reducers. */
     private reducedActions$: Observable<Action>,
     /** Store selector for the EntityCache */
@@ -126,11 +130,16 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
   }
 
   /**
-   * Dispatch action to cancel the persistence operation (query or save)
+   * Dispatch action to cancel the persistence operation (query or save).
+   * Will cause save observable to error with a PersistenceCancel error.
+   * Caller is responsible for undoing changes in cache from pending optimistic save
    * @param correlationId The correlation id for the corresponding EntityAction
    * @param [reason] explains why canceled and by whom.
    */
-  cancel(correlationId: any, reason?: string): void {
+  cancel(correlationId: any, reason?: string, options?: EntityActionOptions): void {
+    if (!correlationId) {
+      throw new Error('Missing correlationId');
+    }
     this.createAndDispatch(EntityOp.CANCEL_PERSIST, reason, { correlationId });
   }
 
@@ -280,6 +289,30 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
       // as might be different from the entity returned from the server
       // because the id changed or there are unsaved changes.
       map(updateData => updateData.changes),
+      withLatestFrom(this.entityCollection$),
+      map(([e, collection]) => collection.entities[this.selectId(e)]),
+      shareReplay(1)
+    );
+  }
+
+  /**
+   * Dispatch action to save a new or existing entity to remote storage.
+   * Only dispatch this action if your server supports upsert.
+   * @param entity entity to add, which may omit its key if pessimistic and the server creates the key;
+   * must have a key if optimistic save.
+   * @returns A terminating Observable of the entity
+   * after server reports successful save or the save error.
+   */
+  upsert(entity: T, options?: EntityActionOptions): Observable<T> {
+    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticUpsert);
+    const action = this.createEntityAction(EntityOp.SAVE_ADD_ONE, entity, options);
+    if (options.isOptimistic) {
+      this.guard.mustBeEntity(action);
+    }
+    this.dispatch(action);
+    return this.getResponseData$<T>(options.correlationId).pipe(
+      // Use the returned entity data's id to get the entity from the collection
+      // as it might be different from the entity returned from the server.
       withLatestFrom(this.entityCollection$),
       map(([e, collection]) => collection.entities[this.selectId(e)]),
       shareReplay(1)
@@ -466,7 +499,7 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
           (entityOp.endsWith(OP_SUCCESS) || entityOp.endsWith(OP_ERROR) || entityOp === EntityOp.CANCEL_PERSIST)
         );
       }),
-      first(),
+      take(1),
       mergeMap(act => {
         const { entityOp } = act.payload;
         return entityOp === EntityOp.CANCEL_PERSIST

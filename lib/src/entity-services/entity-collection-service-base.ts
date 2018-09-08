@@ -135,9 +135,10 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
    * Dispatch action to cancel the persistence operation (query or save) with the given correlationId.
    * @param correlationId The correlation id for the corresponding EntityAction
    * @param [reason] explains why canceled and by whom.
+   * @param [options] options such as the tag
    */
-  cancel(correlationId: any, reason?: string): void {
-    this.dispatcher.cancel(correlationId, reason);
+  cancel(correlationId: any, reason?: string, options?: EntityActionOptions): void {
+    this.dispatcher.cancel(correlationId, reason, options);
   }
 
   /**
@@ -222,6 +223,20 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
    */
   update(entity: Partial<T>, options?: EntityActionOptions): Observable<T> {
     return this.dispatcher.update(entity, options);
+  }
+
+  /**
+   * Dispatch action to save a new or existing entity to remote storage.
+   * Call only if the server supports upsert.
+   * @param entity entity to add or upsert.
+   * It may omit its key if an add, and is pessimistic, and the server creates the key;
+   * must have a key if optimistic save.
+   * @param [options] options that influence save and merge behavior
+   * @returns Observable of the entity
+   * after server reports successful save or the save error.
+   */
+  upsert(entity: T, options?: EntityActionOptions): Observable<T> {
+    return this.dispatcher.upsert(entity, options);
   }
 
   /*** Cache-only operations that do not update remote storage ***/

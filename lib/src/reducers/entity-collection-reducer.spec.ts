@@ -22,7 +22,7 @@ import { Dictionary, IdSelector, Update } from '../utils/ngrx-entity-models';
 import { EntityCollectionReducer, EntityCollectionReducerFactory } from './entity-collection-reducer';
 import { EntityCollectionReducerRegistry } from './entity-collection-reducer-registry';
 import { EntityCollectionReducers } from './entity-collection-reducer-registry';
-import { EntityCacheReducerFactory } from './entity-cache-reducer-factory';
+import { EntityCacheReducerFactory } from './entity-cache-reducer';
 
 class Foo {
   id: string;
@@ -509,9 +509,8 @@ describe('EntityCollectionReducer', () => {
       return createAction('Hero', EntityOp.SAVE_ADD_ONE_SUCCESS, hero, { isOptimistic: true });
     }
 
-    // The hero was already added to the collection by SAVE_ADD_ONE.
+    // server returned a hero with different id; not good
     it('should NOT add a new hero to collection', () => {
-      // pretend this hero was added by SAVE_ADD_ONE and returned by server with changes
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
       const action = createTestAction(hero);
       const state = entityReducer(initialCache, action);
@@ -570,7 +569,7 @@ describe('EntityCollectionReducer', () => {
       const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
       const action = createTestAction(hero);
       const collection = entityReducer(initialCache, action)['Hero'];
-      expect(collection.ids).toEqual([2, 1, 13], 'no new hero');
+      expect(collection.ids).toEqual([2, 1, 13], 'added new hero');
     });
 
     it('should error if new hero lacks its pkey', () => {
@@ -603,7 +602,158 @@ describe('EntityCollectionReducer', () => {
         error: new DataServiceError(new Error('Test Error'), { method: 'POST', url: 'foo' }),
         originalAction
       };
-      const action = createAction('Hero', EntityOp.SAVE_ADD_ONE_ERROR, error);
+      const action = createAction('Hero', EntityOp.SAVE_ADD_MANY_ERROR, error);
+      expectOnlySetLoadingFlag(action, entityCache);
+    });
+  });
+
+  describe('SAVE_ADD_MANY (Optimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_ADD_MANY, heroes, { isOptimistic: true });
+    }
+
+    it('should add new heroes to collection', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'should have new hero');
+    });
+
+    it('should error if one of new heroes lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: undefined, name: 'New B', power: 'Swift' } // missing its id
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    it('should NOT update an existing entity in collection', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: 2, name: 'B+' },
+        { id: 14, name: 'New B', power: 'Swift' } // missing its id
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'ids are the same');
+      expect(collection.entities[2].name).toBe('B', 'same old name');
+      // unmentioned property stays the same
+      expect(collection.entities[2].power).toBe('Fast', 'power');
+    });
+  });
+
+  describe('SAVE_ADD_MANY (Pessimistic)', () => {
+    it('should only set the loading flag', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createAction('Hero', EntityOp.SAVE_ADD_MANY, heroes);
+      expectOnlySetLoadingFlag(action, initialCache);
+    });
+  });
+
+  describe('SAVE_ADD_MANY_SUCCESS (Optimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_ADD_MANY_SUCCESS, heroes, { isOptimistic: true });
+    }
+
+    // Server returned heroes with ids that are new and were not sent to the server.
+    // This could be correct or it could be bad (e.g. server changed the id of a new entity)
+    // Regardless, SAVE_ADD_MANY_SUCCESS (optimistic) will add them because it upserts.
+    it('should add heroes that were not previously in the collection', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'adds heroes');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: undefined, name: 'New A', power: 'Strong' }, // missing its id
+        { id: 14, name: 'New B', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    // because the hero was already added to the collection by SAVE_ADD_MANY
+    // should update values (but not id) if the server changed them
+    // as it might with a concurrency property.
+    it('should update an existing entity with that ID in collection', () => {
+      // This example simulates the server updating the name and power
+      const heroes: Hero[] = [
+        { id: 1, name: 'Updated name A', power: 'Test Power A' },
+        { id: 2, name: 'Updated name B', power: 'Test Power B' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[1].name).toBe('Updated name A');
+      expect(collection.entities[2].name).toBe('Updated name B');
+      // unmentioned property updated too
+      expect(collection.entities[1].power).toBe('Test Power A');
+      expect(collection.entities[2].power).toBe('Test Power B');
+    });
+  });
+
+  describe('SAVE_ADD_MANY_SUCCESS (Pessimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_ADD_MANY_SUCCESS, heroes, { isOptimistic: false });
+    }
+
+    it('should add new heroes to collection', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const collection = entityReducer(initialCache, action)['Hero'];
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'added new heroes');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: undefined, name: 'New A', power: 'Strong' }, // missing id
+        { id: 14, name: 'New B', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    it('should update an existing entity in collection', () => {
+      // This example simulates the server updating the name and power
+      const heroes: Hero[] = [{ id: 1, name: 'Updated name A' }, { id: 2, name: 'Updated name B' }];
+      const action = createTestAction(heroes);
+      const collection = entityReducer(initialCache, action)['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[1].name).toBe('Updated name A');
+      expect(collection.entities[2].name).toBe('Updated name B');
+      // unmentioned property stays the same
+      expect(collection.entities[1].power).toBe(initialHeroes[1].power, 'power A');
+      expect(collection.entities[2].power).toBe(initialHeroes[0].power, 'power B');
+    });
+  });
+
+  describe('SAVE_ADD_MANY_ERROR', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache, addedEntity } = createTestTrackedEntities();
+      const originalAction = createAction('Hero', EntityOp.SAVE_ADD_MANY, [addedEntity]);
+      const error: EntityActionDataServiceError = {
+        error: new DataServiceError(new Error('Test Error'), { method: 'POST', url: 'foo' }),
+        originalAction
+      };
+      const action = createAction('Hero', EntityOp.SAVE_ADD_MANY_ERROR, error);
       expectOnlySetLoadingFlag(action, entityCache);
     });
   });
@@ -751,8 +901,7 @@ describe('EntityCollectionReducer', () => {
 
       const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS, hero.id);
 
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
+      const collection = entityReducer(initialCache, action)['Hero'];
 
       expect(collection.entities[hero.id]).toBeUndefined('hero removed');
       expect(collection.loading).toBe(false, 'loading off');
@@ -763,8 +912,7 @@ describe('EntityCollectionReducer', () => {
 
       const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE_SUCCESS, 1000);
 
-      const state = entityReducer(initialCache, action);
-      const collection = state['Hero'];
+      const collection = entityReducer(initialCache, action)['Hero'];
 
       expect(collection.entities[1000]).toBeUndefined('hero removed');
       expect(collection.loading).toBe(false, 'loading off');
@@ -802,6 +950,206 @@ describe('EntityCollectionReducer', () => {
     it('should NOT remove the hero', () => {
       const hero = initialHeroes[0];
       const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE_ERROR, hero);
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities[hero.id]).toBe(hero, 'hero still there');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+  });
+
+  describe('SAVE_DELETE_MANY (Optimistic)', () => {
+    it('should immediately remove the heroes by id ', () => {
+      const ids = initialHeroes.map(h => h.id);
+      expect(initialCache['Hero'].entities[ids[0]]).toBe(initialHeroes[0], 'heroes[0] exists before delete');
+      expect(initialCache['Hero'].entities[ids[1]]).toBe(initialHeroes[1], 'heroes[1] exists before delete');
+
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY, ids, { isOptimistic: true });
+
+      const collection = entityReducer(initialCache, action)['Hero'];
+      expect(collection.entities[ids[0]]).toBeUndefined('heroes[0] removed');
+      expect(collection.entities[ids[1]]).toBeUndefined('heroes[1] removed');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+
+    it('should immediately remove an unsaved added hero', () => {
+      const { entityCache, addedEntity } = createTestTrackedEntities();
+      const id = addedEntity.id;
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY, [id], { isOptimistic: true });
+      const { entities, changeState } = entityReducer(entityCache, action)['Hero'];
+      expect(entities[id]).toBeUndefined('added entity removed');
+      expect(changeState[id]).toBeUndefined('no longer tracked');
+    });
+
+    it('should reclassify change of an unsaved updated hero to "deleted"', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const id = updatedEntity.id;
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY, [id], { isOptimistic: true });
+      const collection = entityReducer(entityCache, action)['Hero'];
+
+      expect(collection.entities[id]).toBeUndefined('updated entity removed from collection');
+      const entityChangeState = collection.changeState[id];
+      expect(entityChangeState).toBeDefined('updated entity still tracked');
+      expect(entityChangeState.changeType).toBe(ChangeType.Deleted);
+    });
+
+    it('should be ok when the id is not in the collection', () => {
+      expect(initialCache['Hero'].entities[1000]).toBeUndefined('should not exist');
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_MANY,
+        [1000], // id of entity that is not in the collection
+        { isOptimistic: true }
+      );
+
+      const collection = entityReducer(initialCache, action)['Hero'];
+      expect(collection.entities[1000]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+  });
+
+  describe('SAVE_DELETE_MANY (Pessimistic)', () => {
+    it('should NOT remove the existing hero', () => {
+      const hero = initialHeroes[0];
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE, hero);
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities[hero.id]).toBe(hero, 'hero still there');
+      expect(collection.loading).toBe(true, 'loading on');
+    });
+
+    it('should immediately remove an unsaved added hero', () => {
+      const { entityCache, addedEntity } = createTestTrackedEntities();
+      const id = addedEntity.id;
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE, id);
+      const { entities, changeState } = entityReducer(entityCache, action)['Hero'];
+      expect(entities[id]).toBeUndefined('added entity removed');
+      expect(changeState[id]).toBeUndefined('no longer tracked');
+      expect(action.payload.skip).toBe(true, 'should skip save');
+    });
+
+    it('should reclassify change of an unsaved updated hero to "deleted"', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const id = updatedEntity.id;
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_ONE, id);
+      const collection = entityReducer(entityCache, action)['Hero'];
+
+      expect(collection.entities[id]).toBeDefined('updated entity still in collection');
+      const entityChangeState = collection.changeState[id];
+      expect(entityChangeState).toBeDefined('updated entity still tracked');
+      expect(entityChangeState.changeType).toBe(ChangeType.Deleted);
+    });
+  });
+
+  describe('SAVE_DELETE_MANY_SUCCESS (Optimistic)', () => {
+    it('should turn loading flag off and clear change tracking for existing entities', () => {
+      const { entityCache, removedEntity, updatedEntity } = createTestTrackedEntities();
+      const ids = [removedEntity.id, updatedEntity.id];
+
+      let action = createAction('Hero', EntityOp.SAVE_DELETE_MANY, ids, { isOptimistic: true });
+
+      let collection = entityReducer(entityCache, action)['Hero'];
+      let changeState = collection.changeState;
+      expect(collection.loading).toBe(true, 'loading on');
+      expect(changeState[ids[0]]).toBeDefined('[0] removed is tracked before save success');
+      expect(changeState[ids[1]]).toBeDefined('[1] removed is tracked before save success');
+
+      action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_MANY_SUCCESS,
+        ids, // After optimistically deleted this hero
+        { isOptimistic: true }
+      );
+
+      collection = entityReducer(entityCache, action)['Hero'];
+      changeState = collection.changeState;
+      expect(collection.loading).toBe(false, 'loading off');
+      expect(changeState[ids[0]]).toBeUndefined('[0] removed no longer tracked');
+      expect(changeState[ids[1]]).toBeUndefined('[1] removed no longer tracked');
+    });
+
+    it('should be ok when the id is not in the collection', () => {
+      expect(initialCache['Hero'].entities[1000]).toBeUndefined('should not exist');
+
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_MANY_SUCCESS,
+        [1000], // id of entity that is not in the collection
+        { isOptimistic: true }
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.entities[1000]).toBeUndefined('hero removed');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+  });
+
+  describe('SAVE_DELETE_MANY_SUCCESS (Pessimistic)', () => {
+    it('should remove heroes by id', () => {
+      const heroes = initialHeroes;
+      const ids = heroes.map(h => h.id);
+
+      expect(initialCache['Hero'].entities[ids[0]]).toBe(heroes[0], 'hero 0 exists before delete success');
+      expect(initialCache['Hero'].entities[ids[1]]).toBe(heroes[1], 'hero 1 exists before delete success');
+
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY_SUCCESS, ids, { isOptimistic: false });
+
+      const collection = entityReducer(initialCache, action)['Hero'];
+
+      expect(collection.entities[ids[0]]).toBeUndefined('heroes[0] gone');
+      expect(collection.entities[ids[1]]).toBeUndefined('heroes[1] gone');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+
+    it('should be ok when an id is not in the collection', () => {
+      const ids = [initialHeroes[0].id, 1000];
+      expect(initialCache['Hero'].entities[1000]).toBeUndefined('should not exist');
+
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY_SUCCESS, ids, { isOptimistic: false });
+
+      const collection = entityReducer(initialCache, action)['Hero'];
+
+      expect(collection.entities[ids[0]]).toBeUndefined('heroes[0] gone');
+      expect(collection.entities[1000]).toBeUndefined('hero[1000] not there now either');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+  });
+
+  describe('SAVE_DELETE_MANY_ERROR', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache, removedEntity } = createTestTrackedEntities();
+      const originalAction = createAction('Hero', EntityOp.SAVE_DELETE_MANY, removedEntity.id);
+      const error: EntityActionDataServiceError = {
+        error: new DataServiceError(new Error('Test Error'), { method: 'DELETE', url: 'foo' }),
+        originalAction
+      };
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY_ERROR, error);
+      expectOnlySetLoadingFlag(action, entityCache);
+    });
+
+    // No compensating action on error (yet)
+    it('should NOT restore the hero after optimistic save', () => {
+      const initialEntities = initialCache['Hero'].entities;
+      const action = createAction(
+        'Hero',
+        EntityOp.SAVE_DELETE_MANY_ERROR,
+        { id: 13, name: 'Deleted' }, // Pretend optimistically deleted this hero
+        { isOptimistic: true }
+      );
+
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+      expect(collection.entities).toBe(initialEntities, 'entities untouched');
+      expect(collection.loading).toBe(false, 'loading off');
+    });
+
+    it('should NOT remove the hero', () => {
+      const hero = initialHeroes[0];
+      const action = createAction('Hero', EntityOp.SAVE_DELETE_MANY_ERROR, hero);
 
       const state = entityReducer(initialCache, action);
       const collection = state['Hero'];
@@ -978,6 +1326,483 @@ describe('EntityCollectionReducer', () => {
       expectOnlySetLoadingFlag(action, entityCache);
     });
   });
+
+  describe('SAVE_UPDATE_MANY (Optimistic)', () => {
+    function createTestAction(heroes: Update<Hero>[]) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_MANY, heroes, { isOptimistic: true });
+    }
+
+    it('should update existing entities in collection', () => {
+      const heroes: Partial<Hero>[] = [{ id: 2, name: 'B+' }, { id: 1, power: 'Updated Power' }];
+      const action = createTestAction(heroes.map(h => toHeroUpdate(h)));
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[1].name).toBe('A', '1 name unchanged');
+      expect(collection.entities[1].power).toBe('Updated Power', '2 power updated');
+      expect(collection.entities[2].name).toBe('B+', '2 name updated');
+      expect(collection.entities[2].power).toBe('Fast', '2 power unchanged');
+    });
+
+    it('can update existing entity key in collection', () => {
+      // Change the pkey (id) and the name of former hero:2
+      const hero: Hero = { id: 42, name: 'Super' };
+      const update = { id: 2, changes: hero };
+      const action = createTestAction([update]);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([42, 1], 'ids are the same');
+      expect(collection.entities[42].name).toBe('Super', 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[42].power).toBe('Fast', 'power');
+    });
+
+    // Changed in v6. It used to add a new entity.
+    it('should NOT add new hero to collection', () => {
+      const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
+      const action = createTestAction([toHeroUpdate(hero)]);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
+    });
+  });
+
+  describe('SAVE_UPDATE_MANY (Pessimistic)', () => {
+    it('should only set the loading flag', () => {
+      const updatedEntity = { ...initialHeroes[0], name: 'Updated' };
+      const update = { id: updatedEntity.id, changes: updatedEntity };
+      const action = createAction('Hero', EntityOp.SAVE_UPDATE_MANY, [update]);
+      expectOnlySetLoadingFlag(action, initialCache);
+    });
+  });
+
+  describe('SAVE_UPDATE_MANY_SUCCESS (Optimistic)', () => {
+    function createInitialAction(updates: Update<Hero>[]) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_MANY, updates, { isOptimistic: true });
+    }
+    function createTestAction(updates: Update<Hero>[]) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_MANY_SUCCESS, updates, { isOptimistic: true });
+    }
+
+    it('should update existing entities when server adds its own changes', () => {
+      const updates = initialHeroes.map(h => {
+        return { id: h.id, changes: { ...h, name: 'Updated ' + h.name } };
+      });
+
+      let action = createInitialAction(updates);
+      let entityCache = entityReducer(initialCache, action);
+      let collection = entityCache['Hero'];
+
+      let name0 = updates[0].changes.name;
+      expect(name0).toContain('Updated', 'name updated before MANY_SUCCESS');
+
+      const id0 = updates[0].id;
+      name0 = 'Re-' + name0; // server's own change
+      updates[0] = { id: id0, changes: { ...updates[0].changes, name: name0 } };
+      action = createTestAction(updates);
+      entityCache = entityReducer(entityCache, action);
+      collection = entityCache['Hero'];
+
+      expect(collection.entities[id0].name).toBe(name0);
+    });
+
+    it('can update existing entity key', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids as number[];
+      const id = updatedEntity.id;
+      // Server changed the pkey (id) and the name
+      const serverEntity = { id: 13, name: 'Server Update Name' };
+      const update = { id: updatedEntity.id, changes: serverEntity };
+      const action = createTestAction([update]);
+      const collection = entityReducer(entityCache, action)['Hero'];
+
+      // Should have replaced updatedEntity.id with 13
+      const newIds = ids.map(i => (i === id ? 13 : i));
+
+      expect(collection.ids).toEqual(newIds, 'server-changed id in the ids');
+      expect(collection.entities[13].name).toBe(serverEntity.name, 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[13].power).toBe(updatedEntity.power, 'power');
+    });
+
+    // Changed in v6. It used to add a new entity.
+    it('should NOT add new hero to collection', () => {
+      const { entityCache } = createTestTrackedEntities();
+      const ids = entityCache['Hero'].ids;
+      const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
+      const action = createTestAction([toHeroUpdate(hero)]);
+      const collection = entityReducer(entityCache, action)['Hero'];
+
+      expect(collection.ids).toEqual(ids, 'no new hero:13');
+    });
+  });
+
+  describe('SAVE_UPDATE_MANY_SUCCESS (Pessimistic)', () => {
+    function createTestAction(updates: Update<Hero>[]) {
+      return createAction('Hero', EntityOp.SAVE_UPDATE_MANY_SUCCESS, updates, { isOptimistic: false });
+    }
+
+    it('should update existing entities in collection', () => {
+      const updates = initialHeroes.map(h => {
+        return { id: h.id, changes: { ...h, name: 'Updated ' + h.name } };
+      });
+
+      const action = createTestAction(updates);
+      const collection = entityReducer(initialCache, action)['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[1].name).toContain('Updated', '[1] name');
+      expect(collection.entities[2].name).toContain('Updated', '[2] name');
+      // unmentioned property stays the same
+      expect(collection.entities[2].power).toBe('Fast', 'power');
+    });
+
+    it('can update existing entity key in collection', () => {
+      // Change the pkey (id) and the name of former hero:2
+      const hero: Hero = { id: 42, name: 'Super' };
+      const update = { id: 2, changes: hero };
+      const action = createTestAction([update]);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([42, 1], 'ids are the same');
+      expect(collection.entities[42].name).toBe('Super', 'name');
+      // unmentioned property stays the same
+      expect(collection.entities[42].power).toBe('Fast', 'power');
+    });
+
+    // Changed in v6. It used to add a new entity.
+    it('should NOT add new hero to collection', () => {
+      const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
+      const action = createTestAction([toHeroUpdate(hero)]);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'no new hero:13');
+    });
+  });
+
+  describe('SAVE_UPDATE_MANY_ERROR', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache, updatedEntity } = createTestTrackedEntities();
+      const originalAction = createAction('Hero', EntityOp.SAVE_UPDATE_MANY, [updatedEntity]);
+      const error: EntityActionDataServiceError = {
+        error: new DataServiceError(new Error('Test Error'), { method: 'PUT', url: 'foo' }),
+        originalAction
+      };
+      const action = createAction('Hero', EntityOp.SAVE_UPDATE_MANY_ERROR, error);
+      expectOnlySetLoadingFlag(action, entityCache);
+    });
+  });
+
+  describe('SAVE_UPSERT_ONE (Optimistic)', () => {
+    function createTestAction(hero: Hero) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_ONE, hero, { isOptimistic: true });
+    }
+
+    it('should add a new hero to collection', () => {
+      const hero: Hero = { id: 13, name: 'New One', power: 'Strong' };
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13], 'should have new hero');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const hero = { name: 'New One', power: 'Strong' };
+      // bad add, no id.
+      const action = createTestAction(<any>hero);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/missing or invalid entity key/);
+    });
+
+    it('should update an existing entity in collection', () => {
+      const hero: Hero = { id: 2, name: 'B+' };
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[2].name).toBe('B+', 'updated name');
+      // unmentioned property stays the same
+      expect(collection.entities[2].power).toBe('Fast', 'power');
+    });
+  });
+
+  describe('SAVE_UPSERT_ONE (Pessimistic)', () => {
+    it('should only set the loading flag', () => {
+      const addedEntity = { id: 42, name: 'New Guy' };
+      const action = createAction('Hero', EntityOp.SAVE_UPSERT_ONE, addedEntity);
+      expectOnlySetLoadingFlag(action, initialCache);
+    });
+  });
+
+  describe('SAVE_UPSERT_ONE_SUCCESS (Optimistic)', () => {
+    function createTestAction(hero: Hero) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, hero, { isOptimistic: true });
+    }
+
+    it('should add a new hero to collection, even if it was not among the saved upserted entities', () => {
+      // pretend this new hero was returned by the server instead of the one added by SAVE_UPSERT_ONE
+      const hero: Hero = { id: 13, name: 'Different New One', power: 'Strong' };
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13]);
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const hero = { name: 'New One', power: 'Strong' };
+      // bad add, no id.
+      const action = createTestAction(<any>hero);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/missing or invalid entity key/);
+    });
+
+    // because the hero was already upserted to the collection by SAVE_UPSERT_ONE
+    // should update values (but not id) if the server changed them
+    // as it might with a concurrency property.
+    it('should update an existing entity with that ID in collection', () => {
+      // This example simulates the server updating the name and power
+      const hero: Hero = { id: 2, name: 'Updated Name', power: 'Test Power' };
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[2].name).toBe('Updated Name');
+      // unmentioned property updated too
+      expect(collection.entities[2].power).toBe('Test Power');
+    });
+
+    // You cannot change the key with SAVE_UPSERT_MANY_SUCCESS
+    // You'd have to do it with SAVE_UPDATE_ONE...
+    it('should NOT change the id of an existing entity hero (will add instead)', () => {
+      const hero = initialHeroes[0];
+      hero.id = 13;
+
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13], 'should add the entity');
+      expect(collection.entities[13].name).toEqual(collection.entities[2].name, 'copied name');
+    });
+  });
+
+  describe('SAVE_UPSERT_ONE_SUCCESS (Pessimistic)', () => {
+    function createTestAction(heroes: Hero) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, heroes, { isOptimistic: false });
+    }
+
+    it('should add new hero to collection', () => {
+      const hero: Hero = { id: 13, name: 'New A', power: 'Strong' };
+      const action = createTestAction(hero);
+      const collection = entityReducer(initialCache, action)['Hero'];
+      expect(collection.ids).toEqual([2, 1, 13], 'added new hero');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const hero: Hero = { id: undefined, name: 'New A', power: 'Strong' }; // missing id
+      const action = createTestAction(hero);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/missing or invalid entity key/);
+    });
+
+    it('should update an existing entity in collection', () => {
+      // This example simulates the server updating the name and power
+      const hero: Hero = { id: 1, name: 'Updated name A', power: 'Updated power A' };
+      const action = createTestAction(hero);
+      const collection = entityReducer(initialCache, action)['Hero'];
+
+      expect(collection.ids).toEqual([2, 1], 'ids are the same');
+      expect(collection.entities[1].name).toBe('Updated name A');
+      expect(collection.entities[1].power).toBe('Updated power A');
+    });
+  });
+
+  describe('SAVE_UPSERT_ONE_ERROR', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache, addedEntity } = createTestTrackedEntities();
+      const originalAction = createAction('Hero', EntityOp.SAVE_UPSERT_ONE, addedEntity);
+      const error: EntityActionDataServiceError = {
+        error: new DataServiceError(new Error('Test Error'), { method: 'POST', url: 'foo' }),
+        originalAction
+      };
+      const action = createAction('Hero', EntityOp.SAVE_UPSERT_ONE_ERROR, error);
+      expectOnlySetLoadingFlag(action, entityCache);
+    });
+  });
+
+  describe('SAVE_UPSERT_MANY (Optimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_MANY, heroes, { isOptimistic: true });
+    }
+
+    it('should add new heroes to collection', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'should have new hero');
+    });
+
+    it('should error if one of new heroes lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: undefined, name: 'New B', power: 'Swift' } // missing its id
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    it('should update an existing entity in collection while adding new ones', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 2, name: 'B+' }, { id: 14, name: 'New C', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'ids are the same');
+      expect(collection.entities[2].name).toBe('B+', 'updated name');
+      // unmentioned property stays the same
+      expect(collection.entities[2].power).toBe('Fast', 'power');
+    });
+  });
+
+  describe('SAVE_UPSERT_MANY (Pessimistic)', () => {
+    it('should only set the loading flag', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createAction('Hero', EntityOp.SAVE_UPSERT_MANY, heroes);
+      expectOnlySetLoadingFlag(action, initialCache);
+    });
+  });
+
+  describe('SAVE_UPSERT_MANY_SUCCESS (Optimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_MANY_SUCCESS, heroes, { isOptimistic: true });
+    }
+
+    // server returned additional heroes
+    it('should add new heroes to collection, even if they were not among the saved upserted entities', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: 2, name: 'Updated name' },
+        { id: 14, name: 'New C', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'should have include added heroes');
+    });
+
+    // You cannot change the key with SAVE_UPSERT_MANY_SUCCESS
+    // You'd have to do it with SAVE_UPDATE_ONE...
+    it('should NOT change the id of an existing entity hero (will add instead)', () => {
+      const hero = initialHeroes[0];
+      hero.id = 13;
+
+      const action = createTestAction([hero]);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13], 'should add the entity');
+      expect(collection.entities[13].name).toEqual(collection.entities[2].name, 'copied name');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: undefined, name: 'New A', power: 'Strong' }, // missing its id
+        { id: 14, name: 'New B', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    // because the hero was already added to the collection by SAVE_UPSERT_MANY
+    // should update values (but not id) if the server changed them
+    // as it might with a concurrency property.
+    it('should update an existing entity with that ID in collection', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: 2, name: 'Updated name', power: 'Updated power' },
+        { id: 14, name: 'New C', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'ids');
+      expect(collection.entities[2].name).toBe('Updated name');
+      expect(collection.entities[2].power).toBe('Updated power');
+    });
+  });
+
+  describe('SAVE_UPSERT_MANY_SUCCESS (Pessimistic)', () => {
+    function createTestAction(heroes: Hero[]) {
+      return createAction('Hero', EntityOp.SAVE_UPSERT_MANY_SUCCESS, heroes, { isOptimistic: false });
+    }
+
+    it('should add new heroes to collection', () => {
+      const heroes: Hero[] = [{ id: 13, name: 'New A', power: 'Strong' }, { id: 14, name: 'New B', power: 'Swift' }];
+      const action = createTestAction(heroes);
+      const collection = entityReducer(initialCache, action)['Hero'];
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'added new heroes');
+    });
+
+    it('should error if new hero lacks its pkey', () => {
+      const heroes: Hero[] = [
+        { id: undefined, name: 'New A', power: 'Strong' }, // missing id
+        { id: 14, name: 'New B', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      expect(state).toBe(initialCache);
+      expect(action.payload.error.message).toMatch(/does not have a valid entity key/);
+    });
+
+    it('should update an existing entity in collection', () => {
+      const heroes: Hero[] = [
+        { id: 13, name: 'New A', power: 'Strong' },
+        { id: 2, name: 'Updated name', power: 'Updated power' },
+        { id: 14, name: 'New C', power: 'Swift' }
+      ];
+      const action = createTestAction(heroes);
+      const state = entityReducer(initialCache, action);
+      const collection = state['Hero'];
+
+      expect(collection.ids).toEqual([2, 1, 13, 14], 'ids');
+      expect(collection.entities[2].name).toBe('Updated name');
+      expect(collection.entities[2].power).toBe('Updated power');
+    });
+  });
+
+  describe('SAVE_UPSERT_MANY_ERROR', () => {
+    it('should only clear the loading flag', () => {
+      const { entityCache, addedEntity, updatedEntity } = createTestTrackedEntities();
+      const originalAction = createAction('Hero', EntityOp.SAVE_UPSERT_MANY, [addedEntity, updatedEntity]);
+      const error: EntityActionDataServiceError = {
+        error: new DataServiceError(new Error('Test Error'), { method: 'POST', url: 'foo' }),
+        originalAction
+      };
+      const action = createAction('Hero', EntityOp.SAVE_UPSERT_MANY_ERROR, error);
+      expectOnlySetLoadingFlag(action, entityCache);
+    });
+  });
+
   // #endregion saves
 
   // #region cache-only

@@ -5,34 +5,10 @@ import { Observable, of, throwError } from 'rxjs';
 import { catchError, delay, map, tap, timeout } from 'rxjs/operators';
 
 import { DataServiceError } from './data-service-error';
+import { DefaultDataServiceConfig } from './default-data-service-config';
 import { EntityCollectionDataService, HttpMethods, QueryParams, RequestData } from './interfaces';
-import { HttpUrlGenerator, EntityHttpResourceUrls } from './http-url-generator';
+import { HttpUrlGenerator } from './http-url-generator';
 import { Update } from '../utils/ngrx-entity-models';
-
-// Pass the observable straight through
-export const noDelay = <K>(source: Observable<K>) => source;
-
-/**
- * Optional configuration settings for an entity collection data service
- * such as the `DefaultDataService<T>`.
- */
-export abstract class DefaultDataServiceConfig {
-  /** root path of the web api (default: 'api') */
-  root?: string;
-  /**
-   * Known entity HttpResourceUrls.
-   * HttpUrlGenerator will create these URLs for entity types not listed here.
-   */
-  entityHttpResourceUrls?: EntityHttpResourceUrls;
-  /** Is a DELETE 404 really OK? (default: true) */
-  delete404OK?: boolean;
-  /** Simulate GET latency in a demo (default: 0) */
-  getDelay?: number;
-  /** Simulate save method (PUT/POST/DELETE) latency in a demo (default: 0) */
-  saveDelay?: number;
-  /** request timeout in MS (default: 0)*/
-  timeout?: number; //
-}
 
 /**
  * A basic, generic entity data service
@@ -110,6 +86,12 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
     return this.execute('PUT', this.entityUrl + id, updateOrError);
   }
 
+  // Important! Only call if the backend service supports upserts as a POST to the target URL
+  upsert(entity: T): Observable<T> {
+    const entityOrError = entity || new Error(`No "${this.entityName}" entity to upsert`);
+    return this.execute('POST', this.entityUrl, entityOrError);
+  }
+
   protected execute(
     method: HttpMethods,
     url: string,
@@ -160,7 +142,7 @@ export class DefaultDataService<T> implements EntityCollectionDataService<T> {
       }
     }
     if (this.timeout) {
-      result$ = result$.pipe(timeout(this.timeout));
+      result$ = result$.pipe(timeout(this.timeout + this.saveDelay));
     }
     return result$.pipe(catchError(this.handleError(req)));
   }

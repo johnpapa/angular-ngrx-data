@@ -7,6 +7,7 @@ import { EntityDispatcherDefaultOptions } from './dispatchers/entity-dispatcher-
 import { EntityAction } from './actions/entity-action';
 import { EntityActionFactory } from './actions/entity-action-factory';
 import { EntityCache } from './reducers/entity-cache';
+import { EntityCacheDispatcher } from './dispatchers/entity-cache-dispatcher';
 import { entityCacheSelectorProvider } from './selectors/entity-cache-selector';
 import { EntityCollectionService } from './entity-services/entity-collection-service';
 import { EntityCollectionServiceElementsFactory } from './entity-services/entity-collection-service-elements-factory';
@@ -22,7 +23,7 @@ import { EntityDefinitionService } from './entity-metadata/entity-definition.ser
 import { EntityEffects } from './effects/entity-effects';
 import { EntityMetadataMap, ENTITY_METADATA_TOKEN } from './entity-metadata/entity-metadata';
 
-import { EntityCacheReducerFactory } from './reducers/entity-cache-reducer-factory';
+import { EntityCacheReducerFactory } from './reducers/entity-cache-reducer';
 import {
   ENTITY_CACHE_NAME,
   ENTITY_CACHE_NAME_TOKEN,
@@ -63,6 +64,7 @@ export interface NgrxDataModuleConfig {
     CorrelationIdGenerator,
     EntityDispatcherDefaultOptions,
     EntityActionFactory,
+    EntityCacheDispatcher,
     EntityCacheReducerFactory,
     entityCacheSelectorProvider,
     EntityCollectionCreator,

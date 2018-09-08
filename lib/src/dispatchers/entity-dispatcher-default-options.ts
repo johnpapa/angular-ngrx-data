@@ -9,10 +9,14 @@ import { Injectable } from '@angular/core';
  */
 @Injectable()
 export class EntityDispatcherDefaultOptions {
-  /** True if added entities are saved optimistically; False if saved pessimistically. */
+  /** True if added entities are saved optimistically; false if saved pessimistically. */
   optimisticAdd = false;
-  /** True if deleted entities are saved optimistically; False if saved pessimistically. */
+  /** True if deleted entities are saved optimistically; false if saved pessimistically. */
   optimisticDelete = true;
-  /** True if updated entities are saved optimistically; False if saved pessimistically. */
+  /** True if updated entities are saved optimistically; false if saved pessimistically. */
   optimisticUpdate = false;
+  /** True if upsert entities are saved optimistically; false if saved pessimistically. */
+  optimisticUpsert = false;
+  /** True if entities in a cache saveEntities request are saved optimistically; false if saved pessimistically. */
+  optimisticSaveEntities = false;
 }

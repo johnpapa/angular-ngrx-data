@@ -3,32 +3,23 @@ import { ModuleWithProviders, NgModule } from '@angular/core';
 import { EffectsModule, EffectSources } from '@ngrx/effects';
 
 import { DefaultDataServiceFactory } from './dataservices/default-data.service';
-import { EntityDataService } from './dataservices/entity-data.service';
-import {
-  PersistenceResultHandler,
-  DefaultPersistenceResultHandler
-} from './dataservices/persistence-result-handler.service';
 
-import {
-  HttpUrlGenerator,
-  DefaultHttpUrlGenerator
-} from './dataservices/http-url-generator';
+import { DefaultPersistenceResultHandler, PersistenceResultHandler } from './dataservices/persistence-result-handler.service';
+
+import { DefaultHttpUrlGenerator, HttpUrlGenerator } from './dataservices/http-url-generator';
+
+import { EntityCacheDataService } from './dataservices/entity-cache-data.service';
+import { EntityCacheEffects } from './effects/entity-cache-effects';
+import { EntityDataService } from './dataservices/entity-data.service';
+import { EntityEffects } from './effects/entity-effects';
 
 import { ENTITY_METADATA_TOKEN } from './entity-metadata/entity-metadata';
 
-import { EntityEffects } from './effects/entity-effects';
-
-import {
-  ENTITY_CACHE_META_REDUCERS,
-  ENTITY_COLLECTION_META_REDUCERS
-} from './reducers/constants';
+import { ENTITY_CACHE_META_REDUCERS, ENTITY_COLLECTION_META_REDUCERS } from './reducers/constants';
 import { Pluralizer, PLURAL_NAMES_TOKEN } from './utils/interfaces';
 import { DefaultPluralizer } from './utils/default-pluralizer';
 
-import {
-  NgrxDataModuleConfig,
-  NgrxDataModuleWithoutEffects
-} from './ngrx-data-without-effects.module';
+import { NgrxDataModuleConfig, NgrxDataModuleWithoutEffects } from './ngrx-data-without-effects.module';
 
 /**
  * Ngrx-data main module includes effects and HTTP data services
@@ -42,13 +33,13 @@ import {
   ],
   providers: [
     DefaultDataServiceFactory,
+    EntityCacheDataService,
     EntityDataService,
+    EntityCacheEffects,
+    EntityEffects,
     { provide: HttpUrlGenerator, useClass: DefaultHttpUrlGenerator },
-    { provide: Pluralizer, useClass: DefaultPluralizer },
-    {
-      provide: PersistenceResultHandler,
-      useClass: DefaultPersistenceResultHandler
-    }
+    { provide: PersistenceResultHandler, useClass: DefaultPersistenceResultHandler },
+    { provide: Pluralizer, useClass: DefaultPluralizer }
   ]
 })
 export class NgrxDataModule {
@@ -56,7 +47,10 @@ export class NgrxDataModule {
     return {
       ngModule: NgrxDataModule,
       providers: [
-        EntityEffects,
+        // TODO: Moved these effects classes up to NgrxDataModule itself
+        // Remove this comment if that was a mistake.
+        // EntityCacheEffects,
+        // EntityEffects,
         {
           provide: ENTITY_METADATA_TOKEN,
           multi: true,
@@ -64,15 +58,11 @@ export class NgrxDataModule {
         },
         {
           provide: ENTITY_CACHE_META_REDUCERS,
-          useValue: config.entityCacheMetaReducers
-            ? config.entityCacheMetaReducers
-            : []
+          useValue: config.entityCacheMetaReducers ? config.entityCacheMetaReducers : []
         },
         {
           provide: ENTITY_COLLECTION_META_REDUCERS,
-          useValue: config.entityCollectionMetaReducers
-            ? config.entityCollectionMetaReducers
-            : []
+          useValue: config.entityCollectionMetaReducers ? config.entityCollectionMetaReducers : []
         },
         {
           provide: PLURAL_NAMES_TOKEN,
@@ -83,10 +73,7 @@ export class NgrxDataModule {
     };
   }
 
-  constructor(
-    private effectSources: EffectSources,
-    entityEffects: EntityEffects
-  ) {
+  constructor(private effectSources: EffectSources, entityCacheEffects: EntityCacheEffects, entityEffects: EntityEffects) {
     // We can't use `forFeature()` because, if we did, the developer could not
     // replace the ngrx-data `EntityEffects` with a custom alternative.
     // Replacing that class is an extensibility point we need.
@@ -95,6 +82,7 @@ export class NgrxDataModule {
     // Warning: this alternative approach relies on an undocumented API
     // to add effect directly rather than through `forFeature()`.
     // The danger is that EffectsModule.forFeature evolves and we no longer perform a crucial step.
+    this.addEffects(entityCacheEffects);
     this.addEffects(entityEffects);
   }
 

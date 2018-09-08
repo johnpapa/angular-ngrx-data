@@ -18,7 +18,8 @@ import { Logger } from '../utils/interfaces';
 import { PersistenceResultHandler, DefaultPersistenceResultHandler } from '../dataservices/persistence-result-handler.service';
 import { Update } from '../utils/ngrx-entity-models';
 
-import { EntityEffects, ENTITY_EFFECTS_SCHEDULER } from './entity-effects';
+import { EntityEffects } from './entity-effects';
+import { ENTITY_EFFECTS_SCHEDULER } from './entity-effects-scheduler';
 import { TestHotObservable } from 'jasmine-marbles/src/test-observables';
 
 //////// Tests begin ////////
@@ -287,6 +288,51 @@ describe('EntityEffects (marble testing)', () => {
     expect(effects.persist$).toBeObservable(expected);
   });
 
+  it('should return a SAVE_UPSERT_ONE_SUCCESS (optimistic) with the hero on success', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, hero, { isOptimistic: true });
+
+    actions = hot('-a---', { a: action });
+    // delay the response 3 frames
+    const response = cold('---a|', { a: hero });
+    const expected = cold('----b', { b: completion });
+    dataService.upsert.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_UPSERT_ONE_SUCCESS (pessimistic) with the hero on success', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, hero);
+
+    actions = hot('-a---', { a: action });
+    // delay the response 3 frames
+    const response = cold('---a|', { a: hero });
+    const expected = cold('----b', { b: completion });
+    dataService.upsert.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
+  it('should return a SAVE_UPSERT_ONE_ERROR when data service fails', () => {
+    const hero = { id: 1, name: 'A' } as Hero;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const error = makeDataServiceError('POST', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
+
+    actions = hot('-a---', { a: action });
+    const response = cold('----#|', {}, error);
+    const expected = cold('------b', { b: completion });
+    dataService.upsert.and.returnValue(response);
+
+    expect(effects.persist$).toBeObservable(expected);
+  });
+
   it(`should not do anything with an irrelevant action`, () => {
     // Would clear the cached collection
     const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);
@@ -346,6 +392,7 @@ export interface TestDataServiceMethod {
   getById: jasmine.Spy;
   getWithQuery: jasmine.Spy;
   update: jasmine.Spy;
+  upsert: jasmine.Spy;
 }
 
 export class TestDataService {
@@ -355,6 +402,7 @@ export class TestDataService {
   getById = jasmine.createSpy('getById');
   getWithQuery = jasmine.createSpy('getWithQuery');
   update = jasmine.createSpy('update');
+  upsert = jasmine.createSpy('upsert');
 
   getService(): TestDataServiceMethod {
     return this;

@@ -1,5 +1,93 @@
 # Angular ngrx-data library ChangeLog
 
+### Version numbering
+
+We're trying to keep the major (first) version digit in sync with Angular's major digit.
+
+But we will make breaking changes between Angular's major releases.
+What to do?
+
+Our convention is that patch releases (the 3rd digit) shouldn't be breaking.
+
+But "minor" releases (the middle digit) may be breaking and are certainly "major" from the perspective of an ngrx-data user.
+
+If you want to install updates but want to prevent accidental installation of a "major" ngrx-data release, use the `~` form of the npm package version constraint.
+
+In other words, it is safer to have something like the following in your `package.json`
+
+```
+   "ngrx-data": "~6.0.2",
+```
+
+as this will keep you from installing `6.1.x`.
+
+<hr>
+
+<a id="6.1.0-alpha.1"></a>
+
+# 6.1.0-alpha.1 (2018-09-09)
+
+A "major" release with significant new features.
+
+There are some breaking changes but they won't affect many users and they are easy to find and fix.
+
+## Feature: Save multiple entities in the same transaction
+
+Many apps must save several entities at the same time in the same transaction.
+
+As of version 6.1, multi-entity saves are a first class feature.
+By "first class" we mean that ngrx-data offers a built-in, multiple-entity save solution that
+is consistent with ngrx-data itself:
+
+* defines a `ChangeSet`, describing `ChangeOperations` to be performed on multiple entities of multiple types.
+* has a set of `SAVE_ENTITIES...` cache-level actions.
+* has an `EntityCacheDispatcher` to dispatch those actions.
+* offers `EntityCacheEffects` that sends `SAVE_ENTITIES` async requests to the server and
+  returns results as `SAVE_ENTITIES_SUCCESS` or `SAVE_ENTITIES_ERROR` actions.
+* offers a default `EntityCacheDataService` to make those http server requests.
+* integrates with change tracking.
+* delegates each collection-level change to the (customizable) `entity-collection-reducer-methods`.
+
+The new ["Multiple Entity Saves" document](../docs/save-entities.md) explains how it works.
+
+## Feature: Save upsert
+
+In an "upsert" save, the entity may be new or exist on the server.
+It is up to the server to accept and implement either alternative when it receives the request.
+
+The `DefaultEntityService` implementation sends an HTTP POST to the supporting resource URL.
+Only call the `upsert` method if your server implement upsert.
+
+The server should return the entity, whether it adds a new one or updates an existing one.
+The `EntityEffects` implementation ensures that the `SAVE_UPSERT_ONE_SUCCESS` payload
+includes original entity data if the server doesn't return an entity.
+
+* Extends `EntityCollectionDataService` interface with `upsert` method
+* Extends `EntityDataService` with the `upsert` method
+* Extends `DefaultDataService` with the `upsert` method
+* Adds `SAVE_UPSERT_ONE...` actions to `EntityOp`
+* Extends `EntityCollectionReducerMethod` with support for `SAVE_UPSERT_ONE...`
+* Extends `EntityEffects` to handle `SAVE_UPSERT_ONE`
+* Extends `EntityCommands` with the `upsert` method
+* Extends `EntityDispatcherBase` with the `upsert` method.
+* Extends `EntityDispatcherDefaultOptions` with `optimisticUpsert: false`
+* Extends `EntityEffects` with support for `SAVE_UPSERT_ONE`
+
+## Feature (minor): _EntityOp.CANCELED_PERSIST_
+
+The `EntityEffect.persist$` emits this action if an `EntityOp.CANCEL_PERSIST` action
+succeeded in blocking the service response to a matching persistence action.
+
+See the ["Entity Effects" document](../docs/entity-entities.md).
+
+**BREAKING CHANGES**:
+
+* Extension of `EntityCollectionDataService` interface with `upsert` method could break
+  custom implementations of that interface.
+
+* Extension of `EntityDispatcherDefaultOptions` may break a custom implementation
+  or may leave the new `optimisticUpsert` and `optimisticSaveEntities` in an unwanted state.
+
 <a id="6.0.2-beta.10"></a>
 
 # 6.0.2-beta.10 (2018-07-17)

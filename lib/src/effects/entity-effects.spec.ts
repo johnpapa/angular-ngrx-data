@@ -302,6 +302,42 @@ describe('EntityEffects (normal testing)', () => {
     expectCompletion(completion, done);
   });
 
+  it('should return a SAVE_UPSERT_ONE_SUCCESS (Optimistic) with the hero on success', (done: DoneFn) => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero, { isOptimistic: true });
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, hero, { isOptimistic: true });
+
+    actions$.next(action);
+    dataService.setResponse('upsert', hero);
+
+    expectCompletion(completion, done);
+  });
+
+  it('should return a SAVE_UPSERT_ONE_SUCCESS (Pessimistic) with the hero on success', (done: DoneFn) => {
+    const hero = { id: 1, name: 'A' } as Hero;
+
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero);
+    const completion = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE_SUCCESS, hero);
+
+    actions$.next(action);
+    dataService.setResponse('upsert', hero);
+
+    expectCompletion(completion, done);
+  });
+
+  it('should return a SAVE_UPSERT_ONE_ERROR when data service fails', (done: DoneFn) => {
+    const hero = { id: 1, name: 'A' } as Hero;
+    const action = entityActionFactory.create('Hero', EntityOp.SAVE_UPSERT_ONE, hero);
+    const httpError = { error: new Error('Test Failure'), status: 501 };
+    const error = makeDataServiceError('POST', httpError);
+    const completion = makeEntityErrorCompletion(action, error);
+
+    actions$.next(action);
+    dataService.setErrorResponse('upsert', error);
+
+    expectCompletion(completion, done);
+  });
   it(`should not do anything with an irrelevant action`, (done: DoneFn) => {
     // Would clear the cached collection
     const action = entityActionFactory.create('Hero', EntityOp.REMOVE_ALL);
@@ -374,6 +410,7 @@ export interface TestDataServiceMethod {
   getById: jasmine.Spy;
   getWithQuery: jasmine.Spy;
   update: jasmine.Spy;
+  upsert: jasmine.Spy;
 }
 export class TestDataService {
   add = jasmine.createSpy('add');
@@ -382,6 +419,7 @@ export class TestDataService {
   getById = jasmine.createSpy('getById');
   getWithQuery = jasmine.createSpy('getWithQuery');
   update = jasmine.createSpy('update');
+  upsert = jasmine.createSpy('upsert');
 
   getService(): TestDataServiceMethod {
     return this;

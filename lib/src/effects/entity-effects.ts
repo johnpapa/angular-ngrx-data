@@ -1,12 +1,13 @@
-import { Inject, Injectable, InjectionToken, Optional } from '@angular/core';
+import { Inject, Injectable, Optional } from '@angular/core';
 import { Action } from '@ngrx/store';
-import { Effect, Actions } from '@ngrx/effects';
+import { Actions, Effect } from '@ngrx/effects';
 
-import { asyncScheduler, Observable, of, SchedulerLike } from 'rxjs';
-import { concatMap, catchError, delay, filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { asyncScheduler, Observable, of, race, SchedulerLike } from 'rxjs';
+import { concatMap, catchError, delay, filter, map, mergeMap } from 'rxjs/operators';
 
 import { EntityAction } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
+import { ENTITY_EFFECTS_SCHEDULER } from './entity-effects-scheduler';
 import { EntityOp, makeSuccessOp } from '../actions/entity-op';
 import { ofEntityOp } from '../actions/entity-action-operators';
 import { Update } from '../utils/ngrx-entity-models';
@@ -22,11 +23,9 @@ export const persistOps: EntityOp[] = [
   EntityOp.QUERY_MANY,
   EntityOp.SAVE_ADD_ONE,
   EntityOp.SAVE_DELETE_ONE,
-  EntityOp.SAVE_UPDATE_ONE
+  EntityOp.SAVE_UPDATE_ONE,
+  EntityOp.SAVE_UPSERT_ONE
 ];
-
-/** Token to inject a special RxJS Scheduler during marble tests. */
-export const ENTITY_EFFECTS_SCHEDULER = new InjectionToken<SchedulerLike>('EntityEffects Scheduler');
 
 @Injectable()
 export class EntityEffects {
@@ -34,11 +33,14 @@ export class EntityEffects {
   /** Delay for error and skip observables. Must be multiple of 10 for marble testing. */
   private responseDelay = 10;
 
+  /**
+   * Observable of non-null cancellation correlation ids from CANCEL_PERSIST actions
+   */
   @Effect({ dispatch: false })
   cancel$: Observable<any> = this.actions.pipe(
     ofEntityOp(EntityOp.CANCEL_PERSIST),
     map((action: EntityAction) => action.payload.correlationId),
-    filter(id => id !== null)
+    filter(id => id != null)
   );
 
   @Effect()
@@ -75,16 +77,18 @@ export class EntityEffects {
       return this.handleError$(action)(action.payload.error);
     }
     try {
-      return this.callDataService(action).pipe(
-        takeUntil(
-          this.cancel$.pipe(
-            // terminate this observable if canceled with this action's correlationId
-            filter(id => action.payload.correlationId === id)
-          )
-        ),
-        map(this.resultHandler.handleSuccess(action)),
-        catchError(this.handleError$(action))
+      // Cancellation: returns Observable of CANCELED_PERSIST for a persistence EntityAction
+      // whose correlationId matches cancellation correlationId
+      const c = this.cancel$.pipe(
+        filter(id => action.payload.correlationId === id),
+        map(id => this.entityActionFactory.createFromAction(action, { entityOp: EntityOp.CANCELED_PERSIST }))
       );
+
+      // Data: entity collection DataService result as a successful persistence EntityAction
+      const d = this.callDataService(action).pipe(map(this.resultHandler.handleSuccess(action)), catchError(this.handleError$(action)));
+
+      // Emit which ever gets there first; the other observable is terminated.
+      return race(c, d);
     } catch (err) {
       return this.handleError$(action)(err);
     }
@@ -128,6 +132,13 @@ export class EntityEffects {
           })
         );
 
+      case EntityOp.SAVE_UPSERT_ONE:
+        return service.upsert(data).pipe(
+          map(upsertedEntity => {
+            const hasData = upsertedEntity && Object.keys(upsertedEntity).length > 0;
+            return hasData ? upsertedEntity : data; // ensure a returned entity value.
+          })
+        );
       default:
         throw new Error(`Persistence action "${entityOp}" is not implemented.`);
     }

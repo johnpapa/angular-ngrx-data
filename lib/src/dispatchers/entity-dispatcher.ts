@@ -8,7 +8,8 @@ import { EntityOp } from '../actions/entity-op';
 import { IdSelector, Update } from '../utils/ngrx-entity-models';
 
 /**
- * Dispatches Entity-related commands to effects and reducers
+ * Dispatches EntityCollection actions to their reducers and effects.
+ * The substance of the interface is in EntityCommands.
  */
 export interface EntityDispatcher<T> extends EntityCommands<T> {
   /** Name of the entity type */

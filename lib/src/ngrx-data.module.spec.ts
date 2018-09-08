@@ -10,14 +10,13 @@ import { map, skip, tap } from 'rxjs/operators';
 
 import { EntityAction } from './actions/entity-action';
 import { EntityActionFactory } from './actions/entity-action-factory';
-import { EntityOp, OP_ERROR } from './actions/entity-op';
-import { ofEntityOp } from './actions/entity-action-operators';
-
 import { EntityCache } from './reducers/entity-cache';
+import { EntityCacheEffects } from './effects/entity-cache-effects';
 import { EntityCollection } from './reducers/entity-collection';
 import { EntityCollectionCreator } from './reducers/entity-collection-creator';
-
 import { EntityEffects, persistOps } from './effects/entity-effects';
+import { EntityOp, OP_ERROR } from './actions/entity-op';
+import { ofEntityOp } from './actions/entity-action-operators';
 import { NgrxDataModule } from './ngrx-data.module';
 
 const TEST_ACTION = 'test/get-everything-succeeded';
@@ -79,7 +78,7 @@ describe('NgrxDataModule', () => {
             entityMetadata: entityMetadata
           })
         ],
-        providers: [{ provide: EntityEffects, useClass: TestEntityEffects }]
+        providers: [{ provide: EntityCacheEffects, useValue: {} }, { provide: EntityEffects, useClass: TestEntityEffects }]
       });
 
       actions$ = TestBed.get(Actions);
@@ -143,6 +142,7 @@ describe('NgrxDataModule', () => {
           })
         ],
         providers: [
+          { provide: EntityCacheEffects, useValue: {} },
           { provide: EntityEffects, useValue: {} },
           {
             // Here's how you add an EntityCache metareducer with an injected service

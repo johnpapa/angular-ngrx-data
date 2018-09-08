@@ -18,8 +18,9 @@ export interface EntityServerCommands<T> {
    * Dispatch action to cancel the persistence operation (query or save) with the given correlationId.
    * @param correlationId The correlation id for the corresponding EntityAction
    * @param [reason] explains why canceled and by whom.
+   * @param [options] options such as the tag
    */
-  cancel(correlationId: any, reason?: string): void;
+  cancel(correlationId: any, reason?: string, options?: EntityActionOptions): void;
 
   /**
    * Dispatch action to delete entity from remote storage by key.
@@ -91,6 +92,16 @@ export interface EntityServerCommands<T> {
    * after server reports successful save or the save error.
    */
   update(entity: Partial<T>, options?: EntityActionOptions): Observable<T>;
+
+  /**
+   * Dispatch action to save a new or update an existing entity to remote storage.
+   * Only dispatch this action if your server supports upsert.
+   * @param entity entity to upsert, which may omit its key if pessimistic and the server creates the key;
+   * must have a key if optimistic save.
+   * @returns A terminating Observable of the entity
+   * after server reports successful save or the save error.
+   */
+  upsert(entity: T, options?: EntityActionOptions): Observable<T>;
 }
 
 /*** A collection's cache-only commands, which do not update remote storage ***/

@@ -12,8 +12,9 @@ import { EntityAction, EntityActionOptions } from '../actions/entity-action';
 import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityOp, makeErrorOp, OP_SUCCESS } from '../actions/entity-op';
 import { EntityCache } from '../reducers/entity-cache';
+import { EntityCacheEffects } from '../effects/entity-cache-effects';
 import { EntityCacheQuerySet, MergeQuerySet } from '../actions/entity-cache-action';
-import { EntityCacheReducerFactory } from '../reducers/entity-cache-reducer-factory';
+import { EntityCacheReducerFactory } from '../reducers/entity-cache-reducer';
 import { EntityCollection } from '../reducers/entity-collection';
 import { EntityCollectionDataService } from '../dataservices/interfaces';
 import { EntityCollectionService } from './entity-collection-service';
@@ -394,8 +395,12 @@ function entityServicesSetup() {
         entityMetadata: entityMetadata
       })
     ],
-    /* tslint:disable-next-line:no-use-before-declare */
-    providers: [{ provide: EntityDataService, useClass: TestDataService }, { provide: Logger, useValue: logger }]
+    providers: [
+      { provide: EntityCacheEffects, useValue: {} },
+      /* tslint:disable-next-line:no-use-before-declare */
+      { provide: EntityDataService, useClass: TestDataService },
+      { provide: Logger, useValue: logger }
+    ]
   });
 
   const actions$: Observable<Action> = TestBed.get(Actions);

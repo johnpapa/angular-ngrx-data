@@ -3,6 +3,10 @@ import { Injectable } from '@angular/core';
 import { EntityCollectionDataService } from './interfaces';
 import { DefaultDataServiceFactory } from './default-data.service';
 
+/**
+ * Registry of EntityCollection data services that make REST-like CRUD calls
+ * to entity collection endpoints.
+ */
 @Injectable()
 export class EntityDataService {
   protected services: { [name: string]: EntityCollectionDataService<any> } = {};

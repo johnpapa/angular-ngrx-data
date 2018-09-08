@@ -164,6 +164,7 @@ The key folders in this repository are:
 * [Entity Actions](docs/entity-actions.md)
 * [Entity Reducer](docs/entity-reducer.md)
 * [Entity Change Tracker](docs/entity-change-tracker.md)
+* [Saving multiple-entities at once](docs/save-entities.md)
 * [Extension Points](docs/extension-points.md)
 * [Limitations](docs/limitations.md)
 * [FAQ: Frequently Asked Questions](docs/faq.md)

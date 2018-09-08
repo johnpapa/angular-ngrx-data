@@ -114,19 +114,6 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
   }
 
   /**
-   * Merge result of saving upserted entities into the collection, adjusting the ChangeState per the mergeStrategy.
-   * The default is MergeStrategy.OverwriteChanges.
-   * @param entities Entities returned from saving upserts to the server.
-   * @param collection The entity collection
-   * @param [mergeStrategy] How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
-   * Defaults to MergeStrategy.OverwriteChanges.
-   * @returns The merged EntityCollection.
-   */
-  mergeSaveUpserts(entities: T[], collection: EntityCollection<T>, mergeStrategy?: MergeStrategy): EntityCollection<T> {
-    return this.mergeServerUpserts(entities, collection, MergeStrategy.OverwriteChanges, mergeStrategy);
-  }
-
-  /**
    * Merge result of saving updated entities into the collection, adjusting the ChangeState per the mergeStrategy.
    * The default is MergeStrategy.OverwriteChanges.
    * @param updateResponseData Entity response data returned from saving updated entities to the server.
@@ -142,7 +129,7 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
     updateResponseData: UpdateResponseData<T>[],
     collection: EntityCollection<T>,
     mergeStrategy?: MergeStrategy,
-    skipUnchanged?: boolean
+    skipUnchanged = false
   ): EntityCollection<T> {
     if (updateResponseData == null || updateResponseData.length === 0) {
       return collection; // nothing to merge.
@@ -222,11 +209,23 @@ export class EntityChangeTrackerBase<T> implements EntityChangeTracker<T> {
         // keep only those updates that the server changed (knowable if is UpdateResponseData<T>)
         responseData = responseData.filter(r => r.changed === true);
       }
-      return responseData.map(r => {
-        // strip unchanged property from responseData, leaving just the pure Update<T>
-        return { id: r.id as any, changes: r.changes };
-      });
+      // Strip unchanged property from responseData, leaving just the pure Update<T>
+      // TODO: Remove? probably not necessary as the Update isn't stored and adapter will ignore `changed`.
+      return responseData.map(r => ({ id: r.id as any, changes: r.changes }));
     }
+  }
+
+  /**
+   * Merge result of saving upserted entities into the collection, adjusting the ChangeState per the mergeStrategy.
+   * The default is MergeStrategy.OverwriteChanges.
+   * @param entities Entities returned from saving upserts to the server.
+   * @param collection The entity collection
+   * @param [mergeStrategy] How to merge a saved entity when the corresponding entity in the collection has an unsaved change.
+   * Defaults to MergeStrategy.OverwriteChanges.
+   * @returns The merged EntityCollection.
+   */
+  mergeSaveUpserts(entities: T[], collection: EntityCollection<T>, mergeStrategy?: MergeStrategy): EntityCollection<T> {
+    return this.mergeServerUpserts(entities, collection, MergeStrategy.OverwriteChanges, mergeStrategy);
   }
   // #endregion merge save results
 

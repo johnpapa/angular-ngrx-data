@@ -5,6 +5,7 @@
 export enum EntityOp {
   // Persistance operations
   CANCEL_PERSIST = 'ngrx-data/cancel-persist',
+  CANCELED_PERSIST = 'ngrx-data/canceled-persist',
 
   QUERY_ALL = 'ngrx-data/query-all',
   QUERY_ALL_SUCCESS = 'ngrx-data/query-all/success',
@@ -22,17 +23,39 @@ export enum EntityOp {
   QUERY_BY_KEY_SUCCESS = 'ngrx-data/query-by-key/success',
   QUERY_BY_KEY_ERROR = 'ngrx-data/query-by-key/error',
 
+  SAVE_ADD_MANY = 'ngrx-data/save/add-many',
+  SAVE_ADD_MANY_ERROR = 'ngrx-data/save/add-many/error',
+  SAVE_ADD_MANY_SUCCESS = 'ngrx-data/save/add-many/success',
+
   SAVE_ADD_ONE = 'ngrx-data/save/add-one',
   SAVE_ADD_ONE_ERROR = 'ngrx-data/save/add-one/error',
   SAVE_ADD_ONE_SUCCESS = 'ngrx-data/save/add-one/success',
+
+  SAVE_DELETE_MANY = 'ngrx-data/save/delete-many',
+  SAVE_DELETE_MANY_SUCCESS = 'ngrx-data/save/delete-many/success',
+  SAVE_DELETE_MANY_ERROR = 'ngrx-data/save/delete-many/error',
 
   SAVE_DELETE_ONE = 'ngrx-data/save/delete-one',
   SAVE_DELETE_ONE_SUCCESS = 'ngrx-data/save/delete-one/success',
   SAVE_DELETE_ONE_ERROR = 'ngrx-data/save/delete-one/error',
 
+  SAVE_UPDATE_MANY = 'ngrx-data/save/update-many',
+  SAVE_UPDATE_MANY_SUCCESS = 'ngrx-data/save/update-many/success',
+  SAVE_UPDATE_MANY_ERROR = 'ngrx-data/save/update-many/error',
+
   SAVE_UPDATE_ONE = 'ngrx-data/save/update-one',
   SAVE_UPDATE_ONE_SUCCESS = 'ngrx-data/save/update-one/success',
   SAVE_UPDATE_ONE_ERROR = 'ngrx-data/save/update-one/error',
+
+  // Use only if the server supports upsert;
+  SAVE_UPSERT_MANY = 'ngrx-data/save/upsert-many',
+  SAVE_UPSERT_MANY_SUCCESS = 'ngrx-data/save/upsert-many/success',
+  SAVE_UPSERT_MANY_ERROR = 'ngrx-data/save/upsert-many/error',
+
+  // Use only if the server supports upsert;
+  SAVE_UPSERT_ONE = 'ngrx-data/save/upsert-one',
+  SAVE_UPSERT_ONE_SUCCESS = 'ngrx-data/save/upsert-one/success',
+  SAVE_UPSERT_ONE_ERROR = 'ngrx-data/save/upsert-one/error',
 
   // Cache operations
   ADD_ALL = 'ngrx-data/add-all',

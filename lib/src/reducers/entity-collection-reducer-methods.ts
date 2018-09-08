@@ -69,17 +69,37 @@ export class EntityCollectionReducerMethods<T> {
     [EntityOp.QUERY_MANY_ERROR]: this.queryManyError.bind(this),
     [EntityOp.QUERY_MANY_SUCCESS]: this.queryManySuccess.bind(this),
 
+    [EntityOp.SAVE_ADD_MANY]: this.saveAddMany.bind(this),
+    [EntityOp.SAVE_ADD_MANY_ERROR]: this.saveAddManyError.bind(this),
+    [EntityOp.SAVE_ADD_MANY_SUCCESS]: this.saveAddManySuccess.bind(this),
+
     [EntityOp.SAVE_ADD_ONE]: this.saveAddOne.bind(this),
     [EntityOp.SAVE_ADD_ONE_ERROR]: this.saveAddOneError.bind(this),
     [EntityOp.SAVE_ADD_ONE_SUCCESS]: this.saveAddOneSuccess.bind(this),
+
+    [EntityOp.SAVE_DELETE_MANY]: this.saveDeleteMany.bind(this),
+    [EntityOp.SAVE_DELETE_MANY_ERROR]: this.saveDeleteManyError.bind(this),
+    [EntityOp.SAVE_DELETE_MANY_SUCCESS]: this.saveDeleteManySuccess.bind(this),
 
     [EntityOp.SAVE_DELETE_ONE]: this.saveDeleteOne.bind(this),
     [EntityOp.SAVE_DELETE_ONE_ERROR]: this.saveDeleteOneError.bind(this),
     [EntityOp.SAVE_DELETE_ONE_SUCCESS]: this.saveDeleteOneSuccess.bind(this),
 
+    [EntityOp.SAVE_UPDATE_MANY]: this.saveUpdateMany.bind(this),
+    [EntityOp.SAVE_UPDATE_MANY_ERROR]: this.saveUpdateManyError.bind(this),
+    [EntityOp.SAVE_UPDATE_MANY_SUCCESS]: this.saveUpdateManySuccess.bind(this),
+
     [EntityOp.SAVE_UPDATE_ONE]: this.saveUpdateOne.bind(this),
     [EntityOp.SAVE_UPDATE_ONE_ERROR]: this.saveUpdateOneError.bind(this),
     [EntityOp.SAVE_UPDATE_ONE_SUCCESS]: this.saveUpdateOneSuccess.bind(this),
+
+    [EntityOp.SAVE_UPSERT_MANY]: this.saveUpsertMany.bind(this),
+    [EntityOp.SAVE_UPSERT_MANY_ERROR]: this.saveUpsertManyError.bind(this),
+    [EntityOp.SAVE_UPSERT_MANY_SUCCESS]: this.saveUpsertManySuccess.bind(this),
+
+    [EntityOp.SAVE_UPSERT_ONE]: this.saveUpsertOne.bind(this),
+    [EntityOp.SAVE_UPSERT_ONE_ERROR]: this.saveUpsertOneError.bind(this),
+    [EntityOp.SAVE_UPSERT_ONE_SUCCESS]: this.saveUpsertOneSuccess.bind(this),
 
     // Do nothing on save errors except turn the loading flag off.
     // See the ChangeTrackerMetaReducers
@@ -223,6 +243,68 @@ export class EntityCollectionReducerMethods<T> {
 
   // #region save operations
 
+  // #region saveAddMany
+  /**
+   * Save multiple new entities.
+   * If saving pessimistically, delay adding to collection until server acknowledges success.
+   * If saving optimistically; add immediately.
+   * @param collection The collection to which the entities should be added.
+   * @param action The action payload holds options, including whether the save is optimistic,
+   * and the data, which must be an array of entities.
+   * If saving optimistically, the entities must have their keys.
+   */
+  protected saveAddMany(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
+    if (this.isOptimistic(action)) {
+      const entities = this.guard.mustBeEntities<T>(action); // ensure the entity has a PK
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.trackAddMany(entities, collection, mergeStrategy);
+      collection = this.adapter.addMany(entities, collection);
+    }
+    return this.setLoadingTrue(collection);
+  }
+
+  /**
+   * Attempt to save new entities failed or timed-out.
+   * Action holds the error.
+   * If saved pessimistically, new entities are not in the collection and
+   * you may not have to compensate for the error.
+   * If saved optimistically, the unsaved entities are in the collection and
+   * you may need to compensate for the error.
+   */
+  protected saveAddManyError(collection: EntityCollection<T>, action: EntityAction<EntityActionDataServiceError>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveAddMany
+
+  // #region saveAddOne
+  /**
+   * Successfully saved new entities to the server.
+   * If saved pessimistically, add the entities from the server to the collection.
+   * If saved optimistically, the added entities are already in the collection.
+   * However, the server might have set or modified other fields (e.g, concurrency field),
+   * and may even return additional new entities.
+   * Therefore, upsert the entities in the collection with the returned values (if any)
+   * Caution: in a race, this update could overwrite unsaved user changes.
+   * Use pessimistic add to avoid this risk.
+   * Note: saveAddManySuccess differs from saveAddOneSuccess when optimistic.
+   * saveAddOneSuccess updates (not upserts) with the lone entity from the server.
+   * There is no effect if the entity is not already in cache.
+   * saveAddManySuccess will add an entity if it is not found in cache.
+   */
+  protected saveAddManySuccess(collection: EntityCollection<T>, action: EntityAction<T[]>) {
+    // For pessimistic save, ensure the server generated the primary key if the client didn't send one.
+    const entities = this.guard.mustBeEntities<T>(action);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    if (this.isOptimistic(action)) {
+      collection = this.entityChangeTracker.mergeSaveUpserts(entities, collection, mergeStrategy);
+    } else {
+      collection = this.entityChangeTracker.mergeSaveAdds(entities, collection, mergeStrategy);
+    }
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveAddMany
+
+  // #region saveAddOne
   /**
    * Save a new entity.
    * If saving pessimistically, delay adding to collection until server acknowledges success.
@@ -268,20 +350,27 @@ export class EntityCollectionReducerMethods<T> {
     const entity = this.guard.mustBeEntity<T>(action);
     const mergeStrategy = this.extractMergeStrategy(action);
     if (this.isOptimistic(action)) {
-      const update: UpdateResponseData<T> = { ...this.toUpdate(entity), changed: true };
-      collection = this.entityChangeTracker.mergeSaveUpdates([update], collection, mergeStrategy, true /*skip unchanged*/);
+      const update: UpdateResponseData<T> = this.toUpdate(entity);
+      // Always update the cache with added entity returned from server
+      collection = this.entityChangeTracker.mergeSaveUpdates([update], collection, mergeStrategy, false /*never skip*/);
     } else {
       collection = this.entityChangeTracker.mergeSaveAdds([entity], collection, mergeStrategy);
     }
     return this.setLoadingFalse(collection);
   }
+  // #endregion saveAddOne
 
+  // #region saveAddMany
+  // TODO MANY
+  // #endregion saveAddMany
+
+  // #region saveDeleteOne
   /**
    * Delete an entity from the server by key and remove it from the collection (if present).
    * If the entity is an unsaved new entity, remove it from the collection immediately
    * and skip the server delete request.
-   * If an existing entity, an optimistic save removes the entity from the collection immediately
-   * and a pessimistic save removes it after the server confirms successful delete.
+   * An optimistic save removes an existing entity from the collection immediately;
+   * a pessimistic save removes it after the server confirms successful delete.
    * @param collection Will remove the entity with this key from the collection.
    * @param action The action payload holds options, including whether the save is optimistic,
    * and the data, which must be a primary key or an entity with a key;
@@ -344,7 +433,80 @@ export class EntityCollectionReducerMethods<T> {
     }
     return this.setLoadingFalse(collection);
   }
+  // #endregion saveDeleteOne
 
+  // #region saveDeleteMany
+  /**
+   * Delete multiple entities from the server by key and remove them from the collection (if present).
+   * Removes unsaved new entities from the collection immediately
+   * but the id is still sent to the server for deletion even though the server will not find that entity.
+   * Therefore, the server must be willing to ignore a delete request for an entity it cannot find.
+   * An optimistic save removes existing entities from the collection immediately;
+   * a pessimistic save removes them after the server confirms successful delete.
+   * @param collection Removes entities from this collection.
+   * @param action The action payload holds options, including whether the save is optimistic,
+   * and the data, which must be an array of primary keys or entities with a key;
+   * this reducer extracts the key from the entity.
+   */
+  protected saveDeleteMany(collection: EntityCollection<T>, action: EntityAction<(number | string | T)[]>): EntityCollection<T> {
+    const deleteIds = this.extractData(action).map(d => (typeof d === 'object' ? this.selectId(d) : d));
+    deleteIds.forEach(deleteId => {
+      const change = collection.changeState[deleteId];
+      // If entity is already tracked ...
+      if (change) {
+        if (change.changeType === ChangeType.Added) {
+          // Remove the added entity immediately and forget about its changes (via commit).
+          collection = this.adapter.removeOne(deleteId as string, collection);
+          collection = this.entityChangeTracker.commitOne(deleteId, collection);
+          // Should not waste effort trying to delete on the server because it can't be there.
+          action.payload.skip = true;
+        } else {
+          // Re-track it as a delete, even if tracking is turned off for this call.
+          collection = this.entityChangeTracker.trackDeleteOne(deleteId, collection);
+        }
+      }
+    });
+    // If optimistic delete, track current state and remove immediately.
+    if (this.isOptimistic(action)) {
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.trackDeleteMany(deleteIds, collection, mergeStrategy);
+      collection = this.adapter.removeMany(deleteIds as string[], collection);
+    }
+    return this.setLoadingTrue(collection);
+  }
+
+  /**
+   * Attempt to delete the entities on the server failed or timed-out.
+   * Action holds the error.
+   * If saved pessimistically, the entities could still be in the collection and
+   * you may not have to compensate for the error.
+   * If saved optimistically, the entities are not in the collection and
+   * you may need to compensate for the error.
+   */
+  protected saveDeleteManyError(collection: EntityCollection<T>, action: EntityAction<EntityActionDataServiceError>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  /**
+   * Successfully deleted entities on the server. The keys of the deleted entities are in the action payload data.
+   * If saved pessimistically, entities that are still in the collection will be removed.
+   * If saved optimistically, the entities have already been removed from the collection.
+   */
+  protected saveDeleteManySuccess(collection: EntityCollection<T>, action: EntityAction<(number | string)[]>): EntityCollection<T> {
+    const deleteIds = this.extractData(action);
+    if (this.isOptimistic(action)) {
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.mergeSaveDeletes(deleteIds, collection, mergeStrategy);
+    } else {
+      // Pessimistic: ignore mergeStrategy. Remove entity from the collection and from change tracking.
+      collection = this.adapter.removeMany(deleteIds as string[], collection);
+      collection = this.entityChangeTracker.commitMany(deleteIds, collection);
+    }
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveDeleteMany
+
+  // #region saveUpdateOne
   /**
    * Save an update to an existing entity.
    * If saving pessimistically, update the entity in the collection after the server confirms success.
@@ -384,16 +546,181 @@ export class EntityCollectionReducerMethods<T> {
    * Caution: in a race, this update could overwrite unsaved user changes.
    * Use pessimistic update to avoid this risk.
    * @param collection The collection to update
-   * @param action The action payload holds options, including if the save is optimistic,
-   * and the data which, must be an Update<T>
+   * @param action The action payload holds options, including if the save is optimistic, and
+   * the update data which, must be an UpdateResponse<T> that corresponds to the Update sent to the server.
+   * You must include an UpdateResponse even if the save was optimistic,
+   * to ensure that the change tracking is properly reset.
    */
   protected saveUpdateOneSuccess(collection: EntityCollection<T>, action: EntityAction<UpdateResponseData<T>>): EntityCollection<T> {
     const update = this.guard.mustBeUpdateResponse<T>(action);
     const isOptimistic = this.isOptimistic(action);
     const mergeStrategy = this.extractMergeStrategy(action);
-    collection = this.entityChangeTracker.mergeSaveUpdates([update], collection, mergeStrategy, isOptimistic /*skip unchanged*/);
+    collection = this.entityChangeTracker.mergeSaveUpdates(
+      [update],
+      collection,
+      mergeStrategy,
+      isOptimistic /*skip unchanged if optimistic */
+    );
     return this.setLoadingFalse(collection);
   }
+  // #endregion saveUpdateOne
+
+  // #region saveUpdateMany
+  /**
+   * Save updated entities.
+   * If saving pessimistically, update the entities in the collection after the server confirms success.
+   * If saving optimistically, update the entities immediately, before the save request.
+   * @param collection The collection to update
+   * @param action The action payload holds options, including if the save is optimistic,
+   * and the data which, must be an array of {Update<T>}.
+   */
+  protected saveUpdateMany(collection: EntityCollection<T>, action: EntityAction<Update<T>[]>): EntityCollection<T> {
+    const updates = this.guard.mustBeUpdates<T>(action);
+    if (this.isOptimistic(action)) {
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.trackUpdateMany(updates, collection, mergeStrategy);
+      collection = this.adapter.updateMany(updates, collection);
+    }
+    return this.setLoadingTrue(collection);
+  }
+
+  /**
+   * Attempt to update entities on the server failed or timed-out.
+   * Action holds the error.
+   * If saved pessimistically, the entities in the collection are in the pre-save state
+   * you may not have to compensate for the error.
+   * If saved optimistically, the entities in the collection were updated
+   * and you may need to compensate for the error.
+   */
+  protected saveUpdateManyError(collection: EntityCollection<T>, action: EntityAction<EntityActionDataServiceError>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  /**
+   * Successfully saved the updated entities to the server.
+   * If saved pessimistically, the entities in the collection will be updated with data from the server.
+   * If saved optimistically, the entities in the collection were already updated.
+   * However, the server might have set or modified other fields (e.g, concurrency field)
+   * Therefore, update the entity in the collection with the returned values (if any)
+   * Caution: in a race, this update could overwrite unsaved user changes.
+   * Use pessimistic update to avoid this risk.
+   * @param collection The collection to update
+   * @param action The action payload holds options, including if the save is optimistic,
+   * and the data which, must be an array of UpdateResponse<T>.
+   * You must include an UpdateResponse for every Update sent to the server,
+   * even if the save was optimistic, to ensure that the change tracking is properly reset.
+   */
+  protected saveUpdateManySuccess(collection: EntityCollection<T>, action: EntityAction<UpdateResponseData<T>[]>): EntityCollection<T> {
+    const updates = this.guard.mustBeUpdateResponses<T>(action);
+    const isOptimistic = this.isOptimistic(action);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    collection = this.entityChangeTracker.mergeSaveUpdates(updates, collection, mergeStrategy, false /* never skip */);
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveUpdateMany
+
+  // #region saveUpsertOne
+  /**
+   * Save a new or existing entity.
+   * If saving pessimistically, delay adding to collection until server acknowledges success.
+   * If saving optimistically; add immediately.
+   * @param collection The collection to which the entity should be upserted.
+   * @param action The action payload holds options, including whether the save is optimistic,
+   * and the data, which must be a whole entity.
+   * If saving optimistically, the entity must have its key.
+   */
+  protected saveUpsertOne(collection: EntityCollection<T>, action: EntityAction<T>): EntityCollection<T> {
+    if (this.isOptimistic(action)) {
+      const entity = this.guard.mustBeEntity<T>(action); // ensure the entity has a PK
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.trackUpsertOne(entity, collection, mergeStrategy);
+      collection = this.adapter.upsertOne(entity, collection);
+    }
+    return this.setLoadingTrue(collection);
+  }
+
+  /**
+   * Attempt to save new or existing entity failed or timed-out.
+   * Action holds the error.
+   * If saved pessimistically, new or updated entity is not in the collection and
+   * you may not have to compensate for the error.
+   * If saved optimistically, the unsaved entities are in the collection and
+   * you may need to compensate for the error.
+   */
+  protected saveUpsertOneError(collection: EntityCollection<T>, action: EntityAction<EntityActionDataServiceError>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  /**
+   * Successfully saved new or existing entities to the server.
+   * If saved pessimistically, add the entities from the server to the collection.
+   * If saved optimistically, the added entities are already in the collection.
+   * However, the server might have set or modified other fields (e.g, concurrency field)
+   * Therefore, update the entities in the collection with the returned values (if any)
+   * Caution: in a race, this update could overwrite unsaved user changes.
+   * Use pessimistic add to avoid this risk.
+   */
+  protected saveUpsertOneSuccess(collection: EntityCollection<T>, action: EntityAction<T>) {
+    // For pessimistic save, ensure the server generated the primary key if the client didn't send one.
+    const entity = this.guard.mustBeEntity<T>(action);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    // Always update the cache with upserted entities returned from server
+    collection = this.entityChangeTracker.mergeSaveUpserts([entity], collection, mergeStrategy);
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveUpsertOne
+
+  // #region saveUpsertMany
+  /**
+   * Save multiple new or existing entities.
+   * If saving pessimistically, delay adding to collection until server acknowledges success.
+   * If saving optimistically; add immediately.
+   * @param collection The collection to which the entities should be upserted.
+   * @param action The action payload holds options, including whether the save is optimistic,
+   * and the data, which must be an array of whole entities.
+   * If saving optimistically, the entities must have their keys.
+   */
+  protected saveUpsertMany(collection: EntityCollection<T>, action: EntityAction<T[]>): EntityCollection<T> {
+    if (this.isOptimistic(action)) {
+      const entities = this.guard.mustBeEntities<T>(action); // ensure the entity has a PK
+      const mergeStrategy = this.extractMergeStrategy(action);
+      collection = this.entityChangeTracker.trackUpsertMany(entities, collection, mergeStrategy);
+      collection = this.adapter.upsertMany(entities, collection);
+    }
+    return this.setLoadingTrue(collection);
+  }
+
+  /**
+   * Attempt to save new or existing entities failed or timed-out.
+   * Action holds the error.
+   * If saved pessimistically, new entities are not in the collection and
+   * you may not have to compensate for the error.
+   * If saved optimistically, the unsaved entities are in the collection and
+   * you may need to compensate for the error.
+   */
+  protected saveUpsertManyError(collection: EntityCollection<T>, action: EntityAction<EntityActionDataServiceError>): EntityCollection<T> {
+    return this.setLoadingFalse(collection);
+  }
+
+  /**
+   * Successfully saved new or existing entities to the server.
+   * If saved pessimistically, add the entities from the server to the collection.
+   * If saved optimistically, the added entities are already in the collection.
+   * However, the server might have set or modified other fields (e.g, concurrency field)
+   * Therefore, update the entities in the collection with the returned values (if any)
+   * Caution: in a race, this update could overwrite unsaved user changes.
+   * Use pessimistic add to avoid this risk.
+   */
+  protected saveUpsertManySuccess(collection: EntityCollection<T>, action: EntityAction<T[]>) {
+    // For pessimistic save, ensure the server generated the primary key if the client didn't send one.
+    const entities = this.guard.mustBeEntities<T>(action);
+    const mergeStrategy = this.extractMergeStrategy(action);
+    // Always update the cache with upserted entities returned from server
+    collection = this.entityChangeTracker.mergeSaveUpserts(entities, collection, mergeStrategy);
+    return this.setLoadingFalse(collection);
+  }
+  // #endregion saveUpsertMany
+
   // #endregion save operations
 
   // #region cache-only operations

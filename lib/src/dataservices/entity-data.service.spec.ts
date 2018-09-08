@@ -59,6 +59,9 @@ export class BazingaDataService implements EntityCollectionDataService<Bazinga> 
   update(update: Update<Bazinga>): Observable<Bazinga> {
     return this.bazinga();
   }
+  upsert(entity: Bazinga): Observable<Bazinga> {
+    return this.bazinga();
+  }
 
   private bazinga(): any {
     bazingaFail();

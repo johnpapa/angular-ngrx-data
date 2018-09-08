@@ -3,15 +3,25 @@
  */
 import { Action } from '@ngrx/store';
 
-import { EntityCache } from '../reducers/entity-cache';
+import { ChangeSet, ChangeSetOperation } from './entity-cache-change-set';
+export { ChangeSet, ChangeSetOperation } from './entity-cache-change-set';
+
+import { DataServiceError } from '../dataservices/data-service-error';
 import { EntityActionOptions } from '../actions/entity-action';
+import { EntityCache } from '../reducers/entity-cache';
 import { MergeStrategy } from '../actions/merge-strategy';
 
 export enum EntityCacheAction {
   CLEAR_COLLECTIONS = 'ngrx-data/entity-cache/clear-collections',
   LOAD_COLLECTIONS = 'ngrx-data/entity-cache/load-collections',
   MERGE_QUERY_SET = 'ngrx-data/entity-cache/merge-query-set',
-  SET_ENTITY_CACHE = 'ngrx-data/entity-cache/set-cache'
+  SET_ENTITY_CACHE = 'ngrx-data/entity-cache/set-cache',
+
+  SAVE_ENTITIES = 'ngrx-data/entity-cache/save-entities',
+  SAVE_ENTITIES_CANCEL = 'ngrx-data/entity-cache/save-entities-cancel',
+  SAVE_ENTITIES_CANCELED = 'ngrx-data/entity-cache/save-entities-canceled',
+  SAVE_ENTITIES_ERROR = 'ngrx-data/entity-cache/save-entities-error',
+  SAVE_ENTITIES_SUCCESS = 'ngrx-data/entity-cache/save-entities-success'
 }
 
 /**
@@ -98,3 +108,89 @@ export class SetEntityCache implements Action {
     this.payload = { cache, tag };
   }
 }
+
+// #region SaveEntities
+export class SaveEntities implements Action {
+  readonly payload: {
+    readonly changeSet: ChangeSet;
+    readonly url: string;
+    readonly correlationId?: any;
+    readonly isOptimistic?: boolean;
+    readonly mergeStrategy?: MergeStrategy;
+    readonly tag?: string;
+    error?: Error;
+    skip?: boolean; // not used
+  };
+  readonly type = EntityCacheAction.SAVE_ENTITIES;
+
+  constructor(changeSet: ChangeSet, url: string, options?: EntityActionOptions) {
+    options = options || {};
+    if (changeSet) {
+      changeSet.tag = changeSet.tag || options.tag;
+    }
+    this.payload = { changeSet, url, ...options, tag: changeSet.tag };
+  }
+}
+
+export class SaveEntitiesCancel implements Action {
+  readonly payload: {
+    readonly correlationId: any;
+    readonly reason: string;
+    readonly entityNames: string[];
+    readonly tag?: string;
+  };
+  readonly type = EntityCacheAction.SAVE_ENTITIES_CANCEL;
+
+  constructor(correlationId: any, reason?: string, entityNames?: string[], tag?: string) {
+    this.payload = { correlationId, reason, entityNames, tag };
+  }
+}
+
+export class SaveEntitiesCanceled implements Action {
+  readonly payload: {
+    readonly correlationId: any;
+    readonly reason: string;
+    readonly tag?: string;
+  };
+  readonly type = EntityCacheAction.SAVE_ENTITIES_CANCEL;
+
+  constructor(correlationId: any, reason?: string, tag?: string) {
+    this.payload = { correlationId, reason, tag };
+  }
+}
+
+export class SaveEntitiesError {
+  readonly payload: {
+    readonly error: DataServiceError;
+    readonly originalAction: SaveEntities;
+    readonly correlationId: any;
+  };
+  readonly type = EntityCacheAction.SAVE_ENTITIES_ERROR;
+  constructor(error: DataServiceError, originalAction: SaveEntities) {
+    const correlationId = originalAction.payload.correlationId;
+    this.payload = { error, originalAction, correlationId };
+  }
+}
+
+export class SaveEntitiesSuccess implements Action {
+  readonly payload: {
+    readonly changeSet: ChangeSet;
+    readonly url: string;
+    readonly correlationId?: any;
+    readonly isOptimistic?: boolean;
+    readonly mergeStrategy?: MergeStrategy;
+    readonly tag?: string;
+    error?: Error;
+    skip?: boolean; // not used
+  };
+  readonly type = EntityCacheAction.SAVE_ENTITIES_SUCCESS;
+
+  constructor(changeSet: ChangeSet, url: string, options?: EntityActionOptions) {
+    options = options || {};
+    if (changeSet) {
+      changeSet.tag = changeSet.tag || options.tag;
+    }
+    this.payload = { changeSet, url, ...options, tag: changeSet.tag };
+  }
+}
+// #endregion SaveEntities

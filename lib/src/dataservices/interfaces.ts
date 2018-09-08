@@ -10,6 +10,7 @@ export interface EntityCollectionDataService<T> {
   getById(id: any): Observable<T>;
   getWithQuery(params: QueryParams | string): Observable<T[]>;
   update(update: Update<T>): Observable<T>;
+  upsert(entity: T): Observable<T>;
 }
 
 export type HttpMethods = 'DELETE' | 'GET' | 'POST' | 'PUT';

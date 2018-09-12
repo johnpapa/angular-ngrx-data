@@ -35,7 +35,7 @@ describe('EntityActionFactory', () => {
 
   it('#create should create an EntityAction with options', () => {
     const options: EntityActionOptions = {
-      correlationId: 'CRID42',
+      correlationId: 'CRUD42',
       isOptimistic: true,
       mergeStrategy: MergeStrategy.OverwriteChanges,
       tag: 'Foo'

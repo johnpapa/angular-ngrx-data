@@ -5,7 +5,12 @@ Please look there.
 
 **_This_** Changelog covers changes to the repository and the demo applications.
 
-<a id="0.6.1">
+<a id="0.6.3">
+# 0.6.3 (2018-09-18)
+
+* Added "Delete All Villains" to demonstrate the multi-entity save feature introduced in ngrx-data v6.1.0.
+
+<a id="0.6.2">
 # 0.6.2 (2018-06-26)
 
 * Significantly refactored for ngrx-data `6.0.2-beta.7`.

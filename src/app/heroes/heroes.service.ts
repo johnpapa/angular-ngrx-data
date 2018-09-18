@@ -12,9 +12,9 @@ export class HeroesService extends EntityCollectionServiceBase<Hero> {
   filterObserver: FilterObserver;
 
   /** Run `getAll` if the datasource changes. */
-  getAllOnDataSourceChange = this.appSelectors.dataSource$().pipe(tap(_ => this.getAll()), shareReplay(1));
+  getAllOnDataSourceChange = this.appSelectors.dataSource$.pipe(tap(_ => this.getAll()), shareReplay(1));
 
-  constructor(serviceElementsFactory: EntityCollectionServiceElementsFactory, private appSelectors: AppSelectors) {
+  constructor(private appSelectors: AppSelectors, serviceElementsFactory: EntityCollectionServiceElementsFactory) {
     super('Hero', serviceElementsFactory);
 
     /** User's filter pattern */

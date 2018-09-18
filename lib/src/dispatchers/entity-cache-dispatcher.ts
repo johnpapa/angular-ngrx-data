@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
-import { Action, createSelector, select, Store } from '@ngrx/store';
+import { Injectable, Inject } from '@angular/core';
+import { Action, createSelector, ScannedActionsSubject, select, Store } from '@ngrx/store';
 
-import { Observable, of, throwError } from 'rxjs';
+import { Observable, of, Subscription, throwError } from 'rxjs';
 import { filter, map, mergeMap, shareReplay, take } from 'rxjs/operators';
 
 import { CorrelationIdGenerator } from '../utils/correlation-id-generator';
@@ -33,6 +33,13 @@ import {
  */
 @Injectable()
 export class EntityCacheDispatcher {
+  /**
+   * Actions scanned by the store after it processed them with reducers.
+   * A replay observable of the most recent action reduced by the store.
+   */
+  reducedActions$: Observable<Action>;
+  private raSubscription: Subscription;
+
   constructor(
     /** Generates correlation ids for query and save methods */
     private correlationIdGenerator: CorrelationIdGenerator,
@@ -42,10 +49,17 @@ export class EntityCacheDispatcher {
      */
     private defaultDispatcherOptions: EntityDispatcherDefaultOptions,
     /** Actions scanned by the store after it processed them with reducers. */
-    private reducedActions$: Observable<Action>,
+    @Inject(ScannedActionsSubject) scannedActions$: Observable<Action>,
     /** The store, scoped to the EntityCache */
     private store: Store<EntityCache>
-  ) {}
+  ) {
+    // Replay because sometimes in tests will fake data service with synchronous observable
+    // which makes subscriber miss the dispatched actions.
+    // Of course that's a testing mistake. But easy to forget, leading to painful debugging.
+    this.reducedActions$ = scannedActions$.pipe(shareReplay(1));
+    // Start listening so late subscriber won't miss the most recent action.
+    this.raSubscription = this.reducedActions$.subscribe();
+  }
 
   /**
    * Dispatch an Action to the store.

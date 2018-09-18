@@ -1,8 +1,8 @@
 <div class="control-panel">
   <div class="button-panel">
     <button mat-raised-button color="primary" type="button" (click)="getVillains()" matTooltip="Refresh the villains">Refresh</button>
-    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!selectedVillain"
-      matTooltip="Add a new villain">Add</button>
+    <button mat-raised-button color="primary" type="button" (click)="enableAddMode()" *ngIf="!selectedVillain">Add</button>
+    <button mat-raised-button color="warn" type="button" (click)="deleteAll()" matTooltip="Delete all villains">Delete All</button>
   </div>
   <app-filter [filterObserver]="filterObserver" filterPlaceholder="Filter by each villain's name and saying"
     class="filter-panel"></app-filter>

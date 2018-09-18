@@ -1,9 +1,4 @@
-import {
-  Component,
-  ChangeDetectionStrategy,
-  OnInit,
-  OnDestroy
-} from '@angular/core';
+import { Component, ChangeDetectionStrategy, OnInit, OnDestroy } from '@angular/core';
 import { FormControl } from '@angular/forms';
 
 import { Observable, Subscription } from 'rxjs';
@@ -18,8 +13,7 @@ import { VillainsService } from '../villains.service';
   styleUrls: ['./villains.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class VillainsComponent
-  implements MasterDetailCommands<Villain>, OnInit, OnDestroy {
+export class VillainsComponent implements MasterDetailCommands<Villain>, OnInit, OnDestroy {
   commands = this;
   selectedVillain: Villain = null;
   subscription: Subscription;
@@ -62,6 +56,11 @@ export class VillainsComponent
   delete(villain: Villain) {
     this.close();
     this.villainsService.delete(villain.id);
+  }
+
+  deleteAll() {
+    this.close();
+    this.villainsService.deleteAll();
   }
 
   select(villain: Villain) {

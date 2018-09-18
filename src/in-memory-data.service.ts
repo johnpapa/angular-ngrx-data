@@ -3,11 +3,9 @@
  */
 import { Injectable } from '@angular/core';
 
-import {
-  RequestInfo,
-  RequestInfoUtilities,
-  ParsedRequestUrl
-} from 'angular-in-memory-web-api';
+import { RequestInfo, RequestInfoUtilities, ParsedRequestUrl, ResponseOptions, STATUS } from 'angular-in-memory-web-api';
+
+import { ChangeSet } from 'ngrx-data';
 
 /** In-memory database data */
 interface Db {
@@ -47,9 +45,7 @@ export class InMemoryDataService {
    * Seed grows by highest id seen in any of the collections.
    */
   genId(collection: { id: number }[], collectionName: string) {
-    this.maxId =
-      1 +
-      collection.reduce((prev, cur) => Math.max(prev, cur.id || 0), this.maxId);
+    this.maxId = 1 + collection.reduce((prev, cur) => Math.max(prev, cur.id || 0), this.maxId);
     return this.maxId;
   }
 
@@ -63,10 +59,44 @@ export class InMemoryDataService {
    */
   parseRequestUrl(url: string, utils: RequestInfoUtilities): ParsedRequestUrl {
     const parsed = utils.parseRequestUrl(url);
-    parsed.collectionName = this.active
-      ? mapCollectionName(parsed.collectionName)
-      : undefined;
+    parsed.collectionName = this.active ? mapCollectionName(parsed.collectionName) : undefined;
     return parsed;
+  }
+
+  /**
+   * Special-cases for POST methods
+   */
+  post(req: RequestInfo) {
+    if (req.url.endsWith('/save/delete-villains')) {
+      return this.mockDeleteVillains(req);
+    }
+
+    // Let all other POST requests through
+    return null;
+  }
+
+  private mockDeleteVillains(requestInfo: RequestInfo) {
+    const originalRequest = requestInfo.req as any;
+    const changeSet: ChangeSet = originalRequest.body;
+
+    const changes = changeSet.changes;
+    changes.forEach(item => {
+      // Only know how to delete villains
+      if (item.entityName === 'Villain') {
+        const deleteIds = item.entities as number[];
+        this.db['villains'] = this.db['villains'].filter(v => !deleteIds.includes(v.id));
+      }
+    });
+
+    // Respond with the changeSet in the request.
+    // That is a typical SaveEntities response.
+    const options: ResponseOptions = {
+      url: requestInfo.url,
+      status: STATUS.OK,
+      statusText: 'OK',
+      body: changeSet
+    };
+    return requestInfo.utils.createResponse$(() => options);
   }
 }
 

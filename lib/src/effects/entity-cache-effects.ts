@@ -6,6 +6,7 @@ import { asyncScheduler, Observable, of, race, SchedulerLike } from 'rxjs';
 import { catchError, delay, filter, map, mergeMap } from 'rxjs/operators';
 
 import { DataServiceError } from '../dataservices/data-service-error';
+import { excludeEmptyChangeSetItems } from '../actions/entity-cache-change-set';
 import {
   EntityCacheAction,
   SaveEntities,
@@ -62,12 +63,19 @@ export class EntityCacheEffects {
    * @param action The SaveEntities action
    */
   saveEntities(action: SaveEntities): Observable<Action> {
-    const { changeSet, url, correlationId, error, mergeStrategy, tag } = action.payload;
+    const error = action.payload.error;
     if (error) {
       return this.handleSaveEntitiesError$(action)(error);
     }
     try {
+      const changeSet = excludeEmptyChangeSetItems(action.payload.changeSet);
+      const { correlationId, mergeStrategy, tag, url } = action.payload;
       const options = { correlationId, mergeStrategy, tag };
+
+      if (changeSet.changes.length === 0) {
+        // nothing to save
+        return of(new SaveEntitiesSuccess(changeSet, url, options));
+      }
 
       // Cancellation: returns Observable<SaveEntitiesCanceled> for a saveEntities action
       // whose correlationId matches the cancellation correlationId
@@ -79,7 +87,10 @@ export class EntityCacheEffects {
       // Data: SaveEntities result as a SaveEntitiesSuccess action
       const d = this.dataService
         .saveEntities(changeSet, url)
-        .pipe(map(result => new SaveEntitiesSuccess(result, url, options)), catchError(this.handleSaveEntitiesError$(action)));
+        .pipe(
+          map(result => new SaveEntitiesSuccess(result, url, options)),
+          catchError(this.handleSaveEntitiesError$(action))
+        );
 
       // Emit which ever gets there first; the other observable is terminated.
       return race(c, d);
@@ -89,13 +100,17 @@ export class EntityCacheEffects {
   }
 
   /** Handle error result of saveEntities, returning a scalar observable of error action */
-  private handleSaveEntitiesError$(action: SaveEntities): (err: DataServiceError | Error) => Observable<Action> {
+  private handleSaveEntitiesError$(
+    action: SaveEntities
+  ): (err: DataServiceError | Error) => Observable<Action> {
     // Although error may return immediately,
     // ensure observable takes some time,
     // as app likely assumes asynchronous response.
     return (err: DataServiceError | Error) => {
       const error = err instanceof DataServiceError ? err : new DataServiceError(err, null);
-      return of(new SaveEntitiesError(error, action)).pipe(delay(this.responseDelay, this.scheduler || asyncScheduler));
+      return of(new SaveEntitiesError(error, action)).pipe(
+        delay(this.responseDelay, this.scheduler || asyncScheduler)
+      );
     };
   }
 }

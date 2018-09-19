@@ -30,23 +30,45 @@ methods make it easier to create and dispatch all of the entity cache actions.
 Save a bunch of entity changes with the `saveEntities()` dispatcher method.
 Call it with a URL and a `ChangeSet` describing the entity changes that the server API (at the URL endpoint) should save.
 
-Here's an example.
+The sample application demonstrates a simple `saveEntities` scenario.
+A button on the _Villains_ page deletes all of the villains.
+
+In the following example, we want to add a `Hero` and delete two `Villains` in the same transaction.
+We assume a server is ready to handle such a request.
+
+First create the `ChangeSetItems` for the `ChangeSet`.
 
 ```
-// Add a Hero; delete two Villains by their ids
-const changes: ChangeSetItem[] =  [
+import { ChangeSetOperation } from 'ngrx-data';
+...
+const changes =  [
   {
     op: ChangeSetOperation.Add,
     entityName: 'Hero',
-    entities: [{ id: 1, name: 'A1 Add' }]
+    entities: [hero]
   },
   {
     op: ChangeSetOperation.Delete,
     entityName: 'Villain',
-    entities: [2, 3]
+    entities: [2, 3] // delete by their ids
   }
 ];
+```
 
+The `changeSetItemFactory` makes it easier to write these changes.
+
+```
+import { changeSetItemFactory as cif } from 'ngrx-data';
+...
+const changes = [
+  cif.add('Hero', hero),
+  cif.delete('Villain', [2, 3])
+];
+```
+
+Now dispatch a `saveEntities` with a `ChangeSet` for those changes.
+
+```
 const changeSet: ChangeSet = { changes, tag: 'Hello World'}
 
 cacheEntityDispatcher.saveEntities(changeSet, saveUrl).subscribe(
@@ -54,8 +76,9 @@ cacheEntityDispatcher.saveEntities(changeSet, saveUrl).subscribe(
 );
 ```
 
-The `saveEntities(changeSet, url)` returns an `Observable<ChangeSet>`,
-which emits a new `ChangeSet` after the server returns a successful response.
+The `saveEntities(changeSet, saveUrl)` returns an `Observable<ChangeSet>`,
+which emits a new `ChangeSet` after the server API (at the `saveUrl` endpoint) returns a successful response.
+
 That emitted `ChangeSet` holds the server's response data for all affected entities.
 
 The app can wait for the `saveEntities()` observable to terminate (either successfully or with an error), before proceeding (e.g., routing to another page).

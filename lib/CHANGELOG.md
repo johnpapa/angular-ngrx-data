@@ -22,10 +22,26 @@ In other words, it is safer to have something like the following in your `packag
 as this will keep you from installing `6.1.x`.
 
 <hr>
+<a id="6.1.0-alpha.2"></a>
+
+# 6.1.0-alpha.2 (2018-09-19)
+
+Non-breaking enhancements
+
+* add `ChangeSetItemFactory` and `changeSetItemFactory` instance to make creating a `ChangeSet` easier.
+* add `excludeEmptyChangeSetItems` function that filters out empty changes in `ChangeSet`s.
+* `EntityCacheDataService.saveEntities` calls `excludeEmptyChangeSetItems` before sending to the server.
+* if no changes to save, `EntityCacheEffect.saveEntities` returns success immediately, w/o calling data service.
+* changed _prettier_ line length from 140 to 100 which will cause innocuous file changes over time.
+
+_TODO: more unit tests_
+
+* `EntityCacheDataService`
+* `EntityCacheDispatcher`
 
 <a id="6.1.0-alpha.1"></a>
 
-# 6.1.0-alpha.1 (2018-09-09)
+# 6.1.0-alpha.1 (2018-09-18)
 
 A "major" release with significant new features.
 

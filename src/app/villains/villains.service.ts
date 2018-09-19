@@ -6,7 +6,7 @@ import { filter, first, map, shareReplay, tap } from 'rxjs/operators';
 
 import {
   ChangeSet,
-  ChangeSetOperation,
+  changeSetItemFactory as cif,
   EntityCacheDispatcher,
   EntityCollectionServiceBase,
   EntityCollectionServiceElementsFactory
@@ -20,7 +20,10 @@ export class VillainsService extends EntityCollectionServiceBase<Villain> {
   filterObserver: FilterObserver;
 
   /** Run `getAll` if the datasource changes. */
-  getAllOnDataSourceChange = this.appSelectors.dataSource$.pipe(tap(_ => this.getAll()), shareReplay(1));
+  getAllOnDataSourceChange = this.appSelectors.dataSource$.pipe(
+    tap(_ => this.getAll()),
+    shareReplay(1)
+  );
   constructor(
     private appSelectors: AppSelectors,
     private entityCacheDispatcher: EntityCacheDispatcher,
@@ -54,13 +57,7 @@ export class VillainsService extends EntityCollectionServiceBase<Villain> {
     const deleteAllChangeSet$ = (this.keys$ as Observable<number[]>).pipe(
       map(keys => {
         const changeSet: ChangeSet = {
-          changes: [
-            {
-              entityName: 'Villain',
-              op: ChangeSetOperation.Delete,
-              entities: keys
-            }
-          ],
+          changes: [cif.delete('Villain', keys)],
           tag: 'DELETE ALL VILLAINS' // optional descriptive tag
         };
         return changeSet;

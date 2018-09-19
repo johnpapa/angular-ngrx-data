@@ -6,7 +6,12 @@ import { Actions } from '@ngrx/effects';
 import { asapScheduler, Observable, of, merge, ReplaySubject, Subject, throwError } from 'rxjs';
 import { first, mergeMap, observeOn, tap } from 'rxjs/operators';
 
-import { ChangeSetOperation, ChangeSet, ChangeSetItem, ChangeSetUpdate } from '../actions/entity-cache-change-set';
+import {
+  ChangeSetOperation,
+  ChangeSet,
+  ChangeSetItem,
+  ChangeSetUpdate
+} from '../actions/entity-cache-change-set';
 import { DataServiceError } from '../dataservices/data-service-error';
 import { EntityCacheDataService } from '../dataservices/entity-cache-data.service';
 import { EntityCacheDispatcher } from '../dispatchers/entity-cache-dispatcher';
@@ -103,8 +108,14 @@ describe('EntityCacheEffects (normal testing)', () => {
     setTimeout(() => actions$.next(cancel), 1);
   });
 
-  it('should emit SAVE_ENTITIES_SUCCESS if cancel arrives late', (done: DoneFn) => {
-    done();
+  it('should emit SAVE_ENTITIES_SUCCESS immediately if no changes to save', (done: DoneFn) => {
+    const action = new SaveEntities({ changes: [] }, 'test/save', options);
+    effects.saveEntities$.subscribe(result => {
+      expect(result instanceof SaveEntitiesSuccess).toBe(true);
+      expect(dataService.saveEntities).not.toHaveBeenCalled();
+      done();
+    }, done.fail);
+    actions$.next(action);
   });
 
   it('should return a SAVE_ENTITIES_ERROR when data service fails', (done: DoneFn) => {
@@ -125,7 +136,9 @@ describe('EntityCacheEffects (normal testing)', () => {
 export class TestEntityCacheDataService {
   response$ = new Subject<any>();
 
-  saveEntities = jasmine.createSpy('saveEntities').and.returnValue(this.response$.pipe(observeOn(asapScheduler)));
+  saveEntities = jasmine
+    .createSpy('saveEntities')
+    .and.returnValue(this.response$.pipe(observeOn(asapScheduler)));
 
   setResponse(data: any) {
     this.response$.next(data);

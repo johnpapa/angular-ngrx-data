@@ -4,7 +4,13 @@ import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http'
 import { Observable, throwError } from 'rxjs';
 import { catchError, delay, map, timeout } from 'rxjs/operators';
 
-import { ChangeSetOperation, ChangeSet, ChangeSetItem, ChangeSetUpdate } from '../actions/entity-cache-change-set';
+import {
+  ChangeSetOperation,
+  ChangeSet,
+  ChangeSetItem,
+  ChangeSetUpdate,
+  excludeEmptyChangeSetItems
+} from '../actions/entity-cache-change-set';
 import { DataServiceError } from './data-service-error';
 import { DefaultDataServiceConfig } from './default-data-service-config';
 import { EntityDefinitionService } from '../entity-metadata/entity-definition.service';
@@ -23,7 +29,11 @@ export class EntityCacheDataService {
   protected saveDelay = 0;
   protected timeout = 0;
 
-  constructor(protected entityDefinitionService: EntityDefinitionService, protected http: HttpClient, config?: DefaultDataServiceConfig) {
+  constructor(
+    protected entityDefinitionService: EntityDefinitionService,
+    protected http: HttpClient,
+    config?: DefaultDataServiceConfig
+  ) {
     const { saveDelay = 0, timeout: to = 0 } = config || {};
     this.saveDelay = saveDelay;
     this.timeout = to;
@@ -36,17 +46,22 @@ export class EntityCacheDataService {
    * This implementation extracts the entity changes from a ChangeSet Update<T>[] and sends those.
    * It then reconstructs Update<T>[] in the returned observable result.
    * @param changeSet  An array of SaveEntityItems.
-   * Each SaveEntityItem describe a change operation for one or more entities of a single collection, known by its 'entityName'.
+   * Each SaveEntityItem describe a change operation for one or more entities of a single collection,
+   * known by its 'entityName'.
    * @param url The server endpoint that receives this request.
    */
   saveEntities(changeSet: ChangeSet, url: string): Observable<ChangeSet> {
+    changeSet = this.filterChangeSet(changeSet);
     // Assume server doesn't understand @ngrx/entity Update<T> structure;
     // Extract the entity changes from the Update<T>[] and restore on the return from server
-    const data = this.flattenUpdates(changeSet);
+    changeSet = this.flattenUpdates(changeSet);
 
     let result$: Observable<ChangeSet> = this.http
-      .post<ChangeSet>(url, data)
-      .pipe(map(result => this.restoreUpdates(result)), catchError(this.handleError({ method: 'POST', url, data })));
+      .post<ChangeSet>(url, changeSet)
+      .pipe(
+        map(result => this.restoreUpdates(result)),
+        catchError(this.handleError({ method: 'POST', url, data: changeSet }))
+      );
 
     if (this.timeout) {
       result$ = result$.pipe(timeout(this.timeout));
@@ -67,9 +82,25 @@ export class EntityCacheDataService {
     };
   }
 
+  /**
+   * Filter changeSet to remove unwanted ChangeSetItems.
+   * This implementation excludes null and empty ChangeSetItems.
+   * @param changeSet ChangeSet with changes to filter
+   */
+  protected filterChangeSet(changeSet: ChangeSet): ChangeSet {
+    return excludeEmptyChangeSetItems(changeSet);
+  }
+
+  /**
+   * Convert the entities in update changes from @ngrx Update<T> structure to just T.
+   * Reverse of restoreUpdates().
+   */
   protected flattenUpdates(changeSet: ChangeSet): ChangeSet {
-    let hasMutated = false;
     let changes = changeSet.changes;
+    if (changes.length === 0) {
+      return changeSet;
+    }
+    let hasMutated = false;
     changes = changes.map(item => {
       if (item.op === updateOp) {
         hasMutated = true;
@@ -84,9 +115,16 @@ export class EntityCacheDataService {
     return hasMutated ? { ...changeSet, changes } : changeSet;
   }
 
+  /**
+   * Convert the flattened T entities in update changes back to @ngrx Update<T> structures.
+   * Reverse of flattenUpdates().
+   */
   protected restoreUpdates(changeSet: ChangeSet): ChangeSet {
-    let hasMutated = false;
     let changes = changeSet.changes;
+    if (changes.length === 0) {
+      return changeSet;
+    }
+    let hasMutated = false;
     changes = changes.map(item => {
       if (item.op === updateOp) {
         // These are entities, not Updates; convert back to Updates
@@ -103,6 +141,10 @@ export class EntityCacheDataService {
     return hasMutated ? { ...changeSet, changes } : changeSet;
   }
 
+  /**
+   * Get the id (primary key) selector function for an entity type
+   * @param entityName name of the entity type
+   */
   protected getIdSelector(entityName: string) {
     let idSelector = this.idSelectors[entityName];
     if (!idSelector) {

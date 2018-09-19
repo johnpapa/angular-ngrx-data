@@ -55,3 +55,50 @@ export interface ChangeSet<T = any> {
   /** An arbitrary string, identifying the ChangeSet and perhaps its purpose */
   tag?: string;
 }
+
+/**
+ * Factory to create a ChangeSetItem for a ChangeSetOperation
+ */
+export class ChangeSetItemFactory {
+  /** Create the ChangeSetAdd for new entities of the given entity type */
+  add<T>(entityName: string, entities: T | T[]): ChangeSetAdd<T> {
+    entities = Array.isArray(entities) ? entities : entities ? [entities] : [];
+    return { entityName, op: ChangeSetOperation.Add, entities };
+  }
+
+  /** Create the ChangeSetDelete for primary keys of the given entity type */
+  delete(entityName: string, keys: number | number[] | string | string[]): ChangeSetDelete {
+    const ids = Array.isArray(keys) ? keys : keys ? ([keys] as string[] | number[]) : [];
+    return { entityName, op: ChangeSetOperation.Delete, entities: ids };
+  }
+
+  /** Create the ChangeSetUpdate for Updates of entities of the given entity type */
+  update<T extends { id: string }>(
+    entityName: string,
+    updates: Update<T> | Update<T>[]
+  ): ChangeSetUpdate<T> {
+    updates = Array.isArray(updates) ? updates : updates ? [updates] : [];
+    return { entityName, op: ChangeSetOperation.Update, entities: updates };
+  }
+
+  /** Create the ChangeSetUpsert for new or existing entities of the given entity type */
+  upsert<T>(entityName: string, entities: T | T[]): ChangeSetUpsert<T> {
+    entities = Array.isArray(entities) ? entities : entities ? [entities] : [];
+    return { entityName, op: ChangeSetOperation.Upsert, entities };
+  }
+}
+
+/**
+ * Instance of a factory to create a ChangeSetItem for a ChangeSetOperation
+ */
+export const changeSetItemFactory = new ChangeSetItemFactory();
+
+/**
+ * Return ChangeSet after filtering out null and empty ChangeSetItems.
+ * @param changeSet ChangeSet with changes to filter
+ */
+export function excludeEmptyChangeSetItems(changeSet: ChangeSet): ChangeSet {
+  changeSet = changeSet && changeSet.changes ? changeSet : { changes: [] };
+  const changes = changeSet.changes.filter(c => c != null && c.entities && c.entities.length > 0);
+  return { ...changeSet, changes };
+}

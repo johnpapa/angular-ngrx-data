@@ -245,16 +245,26 @@ You need the results from the server to update the cache.
 The server API is supposed to return all changed entity data in the
 form of a `ChangeSet`.
 
-The default `EntityCacheDataService.saveEntities()` implementation assumes that it does.
+Often the server processes the saved entities without changing them.
+There's no real need for the server to return the data.
+The original request `ChangeSet` has all the information necessary to update the cache.
+Responding with a `"204-No Content"` instead would save time, bandwidth, and processing.
 
-The default `EntityCacheEffects.saveEntities$` dispatches
-the `SAVE_ENTITIES_SUCCESS` action with these changes in
-its `payload.changeSet`.
+The server can respond `"204-No Content"` and send back nothing.
+The `EntityCacheEffects` recognizes this condition and
+returns a success action _derived_ from the original request `ChangeSet`.
+
+If the save was pessimistic, it returns a `SaveEntitiesSuccess` action with the original `ChangeSet` in the payload.
+
+If the save was optimistic, the changes are already in the cache and there's no point in updating the cache.
+Instead, the effect returns a merge observable that clears the loading flags
+for each entity type in the original `CacheSet`.
 
 #### New _EntityOPs_ for multiple entity save
 
-The `ChangeSet` in the payload of the `SAVE_ENTITIES_SUCCESS` has the save structure as
-the `ChangeSet` in the `SAVE_ENTITIES` action, which was the source of the HTTP request.
+When the server responds with a `ChangeSet`, or the effect re-uses the original request `ChangeSet`, the effect returns a `SAVE_ENTITIES_SUCCESS` action with the `ChangeSet` in the payload.
+
+This `ChangeSet` has the save structure as the one in the `SAVE_ENTITIES` action, which was the source of the HTTP request.
 
 The `EntityCacheReducer` converts the `ChangeSet.changes` into
 a sequence of `EntityActions` to the entity collection reducers.

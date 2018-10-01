@@ -13,6 +13,7 @@ import {
   ChangeSetUpdate
 } from '../actions/entity-cache-change-set';
 import { DataServiceError } from '../dataservices/data-service-error';
+import { EntityActionFactory } from '../actions/entity-action-factory';
 import { EntityCacheDataService } from '../dataservices/entity-cache-data.service';
 import { EntityCacheDispatcher } from '../dispatchers/entity-cache-dispatcher';
 import { EntityCacheEffects } from './entity-cache-effects';
@@ -51,9 +52,12 @@ describe('EntityCacheEffects (normal testing)', () => {
     mergeStrategy = undefined;
     options = { correlationId, mergeStrategy };
 
+    const eaFactory = new EntityActionFactory(); // doesn't change.
+
     TestBed.configureTestingModule({
       providers: [
         EntityCacheEffects,
+        { provide: EntityActionFactory, useValue: eaFactory },
         { provide: Actions, useValue: actions$ },
         /* tslint:disable-next-line:no-use-before-declare */
         { provide: EntityCacheDataService, useClass: TestEntityCacheDataService },

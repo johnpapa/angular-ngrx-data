@@ -2,11 +2,14 @@ import { Inject, Injectable, Optional } from '@angular/core';
 import { Action } from '@ngrx/store';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 
-import { asyncScheduler, Observable, of, race, SchedulerLike } from 'rxjs';
-import { catchError, delay, filter, map, mergeMap } from 'rxjs/operators';
+import { asyncScheduler, Observable, of, merge, race, SchedulerLike } from 'rxjs';
+import { concatMap, catchError, delay, filter, map, mergeMap } from 'rxjs/operators';
 
 import { DataServiceError } from '../dataservices/data-service-error';
-import { excludeEmptyChangeSetItems } from '../actions/entity-cache-change-set';
+import { ChangeSet, excludeEmptyChangeSetItems } from '../actions/entity-cache-change-set';
+import { EntityActionFactory } from '../actions/entity-action-factory';
+import { EntityOp } from '../actions/entity-op';
+
 import {
   EntityCacheAction,
   SaveEntities,
@@ -29,6 +32,7 @@ export class EntityCacheEffects {
   constructor(
     private actions: Actions,
     private dataService: EntityCacheDataService,
+    private entityActionFactory: EntityActionFactory,
     private logger: Logger,
     /**
      * Injecting an optional Scheduler that will be undefined
@@ -88,7 +92,9 @@ export class EntityCacheEffects {
       const d = this.dataService
         .saveEntities(changeSet, url)
         .pipe(
-          map(result => new SaveEntitiesSuccess(result, url, options)),
+          concatMap(result =>
+            this.handleSaveEntitiesSuccess$(action, this.entityActionFactory)(result)
+          ),
           catchError(this.handleSaveEntitiesError$(action))
         );
 
@@ -99,7 +105,7 @@ export class EntityCacheEffects {
     }
   }
 
-  /** Handle error result of saveEntities, returning a scalar observable of error action */
+  /** return handler of error result of saveEntities, returning a scalar observable of error action */
   private handleSaveEntitiesError$(
     action: SaveEntities
   ): (err: DataServiceError | Error) => Observable<Action> {
@@ -110,6 +116,42 @@ export class EntityCacheEffects {
       const error = err instanceof DataServiceError ? err : new DataServiceError(err, null);
       return of(new SaveEntitiesError(error, action)).pipe(
         delay(this.responseDelay, this.scheduler || asyncScheduler)
+      );
+    };
+  }
+
+  /** return handler of the ChangeSet result of successful saveEntities() */
+  private handleSaveEntitiesSuccess$(
+    action: SaveEntities,
+    entityActionFactory: EntityActionFactory
+  ): (changeSet: ChangeSet) => Observable<Action> {
+    const { url, correlationId, mergeStrategy, tag } = action.payload;
+    const options = { correlationId, mergeStrategy, tag };
+
+    return changeSet => {
+      // DataService returned a ChangeSet with possible updates to the saved entities
+      if (changeSet) {
+        return of(new SaveEntitiesSuccess(changeSet, url, options));
+      }
+
+      // No ChangeSet = Server probably responded '204 - No Content' because
+      // it made no changes to the inserted/updated entities.
+      // Respond with success action best on the ChangeSet in the request.
+      changeSet = action.payload.changeSet;
+
+      // If pessimistic save, return success action with the original ChangeSet
+      if (!action.payload.isOptimistic) {
+        return of(new SaveEntitiesSuccess(changeSet, url, options));
+      }
+
+      // If optimistic save, avoid cache grinding by just turning off the loading flags
+      // for all collections in the original ChangeSet
+      const entityNames = changeSet.changes.reduce(
+        (acc, item) => (acc.indexOf(item.entityName) === -1 ? acc.concat(item.entityName) : acc),
+        [] as string[]
+      );
+      return merge(
+        entityNames.map(name => entityActionFactory.create(name, EntityOp.SET_LOADING, false))
       );
     };
   }

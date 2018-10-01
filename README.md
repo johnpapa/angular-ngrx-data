@@ -204,6 +204,8 @@ Then follow these steps:
     ng serve -o
     ```
 
+Refer to the [troubleshooting](#installation) section if you run into installation issues.
+
 ## Run the library tests
 
 The _ngrx-data_ library ships with unit and E2E (end-to-end) tests to validate functionality and guard against regressions.
@@ -378,6 +380,12 @@ Out of the box you can run the demo with an in memory data service instead of a 
    COSMOSDB_PORT=10255
    ```
 -->
+
+## Troubleshooting
+
+### Installation
+
+1.  If you are on Windows and run into this error during `npm install`: _"snyk couldn't patch the specified vulnerabilities because gnu's patch is not available"_, refer to this [issue](https://github.com/linnovate/mean/issues/1711) for the fix. In short, your `Git` installation is not correct or `C:\Program Files\Git\usr\bin` (typically) is not added to your system environment variable `%PATH%`.
 
 ## Problems or Suggestions
 

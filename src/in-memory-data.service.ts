@@ -3,7 +3,13 @@
  */
 import { Injectable } from '@angular/core';
 
-import { RequestInfo, RequestInfoUtilities, ParsedRequestUrl, ResponseOptions, STATUS } from 'angular-in-memory-web-api';
+import {
+  RequestInfo,
+  RequestInfoUtilities,
+  ParsedRequestUrl,
+  ResponseOptions,
+  STATUS
+} from 'angular-in-memory-web-api';
 
 import { ChangeSet } from 'ngrx-data';
 
@@ -88,14 +94,25 @@ export class InMemoryDataService {
       }
     });
 
-    // Respond with the changeSet in the request.
-    // That is a typical SaveEntities response.
+    // In this example, the server processes the request
+    // w/o changing the data that it inserts or updates.
+    // There's no reason to expect the server to return anything.
+    // So this API responds with 204-No Content and no body.
     const options: ResponseOptions = {
       url: requestInfo.url,
-      status: STATUS.OK,
-      statusText: 'OK',
-      body: changeSet
+      status: STATUS.NO_CONTENT,
+      statusText: 'NO CONTENT',
+      body: null
     };
+
+    // But if it did return updated entities it might respond with this
+    // const options: ResponseOptions = {
+    //   url: requestInfo.url,
+    //   status: STATUS.OK,
+    //   statusText: 'OK',
+    //   body: changeSet
+    // };
+
     return requestInfo.utils.createResponse$(() => options);
   }
 }

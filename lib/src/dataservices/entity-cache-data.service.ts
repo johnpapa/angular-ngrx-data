@@ -102,7 +102,7 @@ export class EntityCacheDataService {
     }
     let hasMutated = false;
     changes = changes.map(item => {
-      if (item.op === updateOp) {
+      if (item.op === updateOp && item.entities.length > 0) {
         hasMutated = true;
         return {
           ...item,
@@ -120,6 +120,10 @@ export class EntityCacheDataService {
    * Reverse of flattenUpdates().
    */
   protected restoreUpdates(changeSet: ChangeSet): ChangeSet {
+    if (changeSet == null) {
+      // Nothing? Server probably responded with 204 - No Content because it made no changes to the inserted or updated entities
+      return changeSet;
+    }
     let changes = changeSet.changes;
     if (changes.length === 0) {
       return changeSet;

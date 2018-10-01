@@ -22,6 +22,30 @@ In other words, it is safer to have something like the following in your `packag
 as this will keep you from installing `6.1.x`.
 
 <hr>
+<a id="6.1.0-alpha.3"></a>
+
+# 6.1.0-alpha.3 (2018-12-02)
+
+Non-breaking enhancements to _saveEntities_
+
+The ngrx-data reducers that handle a successful save need a `ChangeSet` to update the cache.
+For this reason, in prior versions, _the server had to respond with a_ `ChangeSet`.
+
+Often the server processes the saved entities without changing them.
+There's no need to return a result.
+The original request `ChangeSet` has all the information necessary to update the cache.
+Responding with a `"204-No Content"` instead would save time, bandwidth, and processing.
+
+In this version, a server can respond `"204-No Content"` and send back nothing.
+The `EntityCacheEffects` recognizes this condition and
+returns a success action _derived_ from the original request `ChangeSet`.
+
+If the save was pessimistic, it returns `SaveEntitiesSuccess` with the original `ChangeSet`.
+
+If the save was optimistic, the changes are already in the cache and there's no point in updating the cache;
+instead, the effect returns a merge observable that clears the loading flags for each entity type
+in the original `CacheSet`.
+
 <a id="6.1.0-alpha.2"></a>
 
 # 6.1.0-alpha.2 (2018-09-19)

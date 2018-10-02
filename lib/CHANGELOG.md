@@ -22,9 +22,15 @@ In other words, it is safer to have something like the following in your `packag
 as this will keep you from installing `6.1.x`.
 
 <hr>
+<a id="6.1.0-alpha.4"></a>
+
+# 6.1.0-alpha.4 (2018-10-01)
+
+Fix: missing `@Optional()` on `EntityCacheDataService` constructor parameter
+
 <a id="6.1.0-alpha.3"></a>
 
-# 6.1.0-alpha.3 (2018-12-02)
+# 6.1.0-alpha.3 (2018-10-01)
 
 Non-breaking enhancements to _saveEntities_
 

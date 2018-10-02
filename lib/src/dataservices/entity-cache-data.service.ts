@@ -32,7 +32,7 @@ export class EntityCacheDataService {
   constructor(
     protected entityDefinitionService: EntityDefinitionService,
     protected http: HttpClient,
-    config?: DefaultDataServiceConfig
+    @Optional() config?: DefaultDataServiceConfig
   ) {
     const { saveDelay = 0, timeout: to = 0 } = config || {};
     this.saveDelay = saveDelay;

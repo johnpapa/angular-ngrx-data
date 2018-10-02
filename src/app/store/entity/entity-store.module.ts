@@ -52,8 +52,7 @@ const defaultDataServiceConfig: DefaultDataServiceConfig = {
     { provide: Logger, useClass: AppLogger },
     { provide: Pluralizer, useClass: AppPluralizer },
 
-    HeroDataService,
-    NgrxDataToastService
+    HeroDataService
   ]
 })
 export class EntityStoreModule {

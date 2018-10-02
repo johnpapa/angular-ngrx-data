@@ -6,16 +6,26 @@ import { EntityAction, ofEntityOp, OP_ERROR, OP_SUCCESS, EntityCacheAction } fro
 import { ToastService } from '../../core/toast.service';
 
 /** Report ngrx-data success/error actions as toast messages **/
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class NgrxDataToastService {
   constructor(actions$: Actions, toast: ToastService) {
     actions$
-      .pipe(ofEntityOp(), filter((ea: EntityAction) => ea.payload.entityOp.endsWith(OP_SUCCESS) || ea.payload.entityOp.endsWith(OP_ERROR)))
+      .pipe(
+        ofEntityOp(),
+        filter(
+          (ea: EntityAction) =>
+            ea.payload.entityOp.endsWith(OP_SUCCESS) || ea.payload.entityOp.endsWith(OP_ERROR)
+        )
+      )
       // this service never dies so no need to unsubscribe
-      .subscribe(action => toast.openSnackBar(`${action.payload.entityName} action`, action.payload.entityOp));
+      .subscribe(action =>
+        toast.openSnackBar(`${action.payload.entityName} action`, action.payload.entityOp)
+      );
 
     actions$
       .pipe(ofType(EntityCacheAction.SAVE_ENTITIES_SUCCESS, EntityCacheAction.SAVE_ENTITIES_ERROR))
-      .subscribe((action: any) => toast.openSnackBar(`${action.type} - url: ${action.payload.url}`, 'SaveEntities'));
+      .subscribe((action: any) =>
+        toast.openSnackBar(`${action.type} - url: ${action.payload.url}`, 'SaveEntities')
+      );
   }
 }

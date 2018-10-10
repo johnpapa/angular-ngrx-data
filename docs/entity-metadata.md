@@ -236,14 +236,17 @@ The `HttpUrlGenerator` can't pluralize the entity type name on its own. It deleg
 
 The `Pluralizer` class has a _pluralize()_ method that takes the singular string and returns the plural string.
 
-The default `Pluralizer` handles many of the common English pluralization rules such as appending an `'s'`. That's fine for the `Villain` type (which becomes "villains").
-That's the wrong technique for pluralizing the `Hero` type (which becomes "heros").
+The default `Pluralizer` handles many of the common English pluralization rules such as appending an `'s'`.
+That's fine for the `Villain` type (which becomes "Villains") and even for `Company` (which becomes "Companies").
+
+It's far from perfect. For example, it incorrectly turns `Hero` into "Heros" instead of "Heroes".
 
 Fortunately, the default `Pluralizer` also injects a map of singular to plural strings (with the `PLURAL_NAMES_TOKEN`).
 
-Its `pluralize()` method looks for the singular entity name in that map and uses the corresponding plural value if found. Otherwise, it returns the entity name plus `'s'`.
+Its `pluralize()` method looks for the singular entity name in that map and uses the corresponding plural value if found.
+Otherwise, it returns the default pluralization of the entity name.
 
-If this scheme works for you, create a map of _singular-to-plural_ entity names for the exceptional cases, as the demo app does:
+If this scheme works for you, create a map of _singular-to-plural_ entity names for the exceptional cases:
 
 ```javascript
 export const pluralNames = {

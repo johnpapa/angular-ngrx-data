@@ -1,8 +1,4 @@
-import {
-  defaultSelectId,
-  EntityMetadataMap,
-  PropsFilterFnFactory
-} from 'ngrx-data';
+import { defaultSelectId, EntityMetadataMap, PropsFilterFnFactory } from 'ngrx-data';
 
 export const entityMetadata: EntityMetadataMap = {
   Hero: {
@@ -24,20 +20,26 @@ export const entityMetadata: EntityMetadataMap = {
   }
 };
 
+// Special pluralization mapping for words the defaultPluralizer can't pluralize
+// The plural of "Hero" is not "Heros"; it's "Heroes"
+// Important: Case matters. Match the case of the entity name.
 export const pluralNames = {
-  // Not needed for data access when set Hero's HttpResourceUrls; see `entity-store.module.ts`.
-  // Case matters. Match the case of the entity name.
   Hero: 'Heroes'
 };
 
-// Can't just put the function in the entityMetadata literal
-// AOT obliges us to encapsulate the logic in wrapper functions
+// ----------------
+// In _this particular example_, this pluralNames mapping is not actually needed
+// because the example set the Hero's `HttpResourceUrls` directly rather than relying on pluralization;
+// see `entity-store.module.ts`.
+// ----------------
+
+// FILTERS AND SORTERS
+
+// Can't embed these functions directly in the entityMetadata literal because
+// AOT requires us to encapsulate the logic in wrapper functions
 
 /** Filter for entities whose name matches the case-insensitive pattern */
-export function nameFilter<T extends { name: string }>(
-  entities: T[],
-  pattern: string
-) {
+export function nameFilter<T extends { name: string }>(entities: T[], pattern: string) {
   return PropsFilterFnFactory(['name'])(entities, pattern);
 }
 

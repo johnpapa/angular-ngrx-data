@@ -41,12 +41,16 @@ You can make your own calls to the server and update the cached entity collectio
 
 You can see the _ngrx machinery_ at work with the [_redux developer tools_](#redux-dev-tools). You can listen to the flow of actions directly. You can _intercept and override anything_ ... but you only have to intervene where you want to add custom logic.
 
-### Show me
+### Learn about it
 
-For a hands-on experience, try the [QuickStart](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md).
-In this section, we summarize the key points.
+For a hands-on experience, try the [QuickStart](https://github.com/johnpapa/ngrx-data-lab/blob/master/README.md)
+in the tutorial git repo, **[ngrx-data-lab](https://github.com/johnpapa/ngrx-data-lab/)**,
+which guides you on the few, simple steps necessary to migrate from a typical service-based Angular app, to an app that manages state with _ngrx-data_.
 
-The _ngrx-data_ repository includes a demo app for editing _Heroes_ and _Villains_ in the `src/client/app/` folder.
+_This_ **ngrx-data repository** has the main documentation and its own sample app.
+
+The sample app in the `src/client/app/` folder presents an editor for viewing and changing _Heroes_ and _Villains_.
+
 The following _reduced_ extract from that demo illustrates the essential mechanics of configuring and using _ngrx-data_.
 
 You begin with a description of the entity model in a few lines of metadata.

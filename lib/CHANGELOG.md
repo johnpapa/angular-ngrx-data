@@ -24,6 +24,12 @@ as this will keep you from installing `6.1.x`.
 <hr>
 <a id="6.1.0-alpha.4"></a>
 
+# 6.1.0-beta.0 (2018-10-09)
+
+Advance to Beta. No changes. The new APIs are working well in a production application and there are no reported issues with them.
+
+<a id="6.1.0-alpha.4"></a>
+
 # 6.1.0-alpha.4 (2018-10-01)
 
 Fix: missing `@Optional()` on `EntityCacheDataService` constructor parameter

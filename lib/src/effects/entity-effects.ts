@@ -44,9 +44,11 @@ export class EntityEffects {
   );
 
   @Effect()
-  // Concurrent persistence requests considered unsafe.
   // `mergeMap` allows for concurrent requests which may return in any order
-  persist$: Observable<Action> = this.actions.pipe(ofEntityOp(persistOps), mergeMap(action => this.persist(action)));
+  persist$: Observable<Action> = this.actions.pipe(
+    ofEntityOp(persistOps),
+    mergeMap(action => this.persist(action))
+  );
 
   constructor(
     private actions: Actions,
@@ -81,11 +83,16 @@ export class EntityEffects {
       // whose correlationId matches cancellation correlationId
       const c = this.cancel$.pipe(
         filter(id => action.payload.correlationId === id),
-        map(id => this.entityActionFactory.createFromAction(action, { entityOp: EntityOp.CANCELED_PERSIST }))
+        map(id =>
+          this.entityActionFactory.createFromAction(action, { entityOp: EntityOp.CANCELED_PERSIST })
+        )
       );
 
       // Data: entity collection DataService result as a successful persistence EntityAction
-      const d = this.callDataService(action).pipe(map(this.resultHandler.handleSuccess(action)), catchError(this.handleError$(action)));
+      const d = this.callDataService(action).pipe(
+        map(this.resultHandler.handleSuccess(action)),
+        catchError(this.handleError$(action))
+      );
 
       // Emit which ever gets there first; the other observable is terminated.
       return race(c, d);
@@ -153,7 +160,9 @@ export class EntityEffects {
     // ensure observable takes some time,
     // as app likely assumes asynchronous response.
     return (error: Error) =>
-      of(this.resultHandler.handleError(action)(error)).pipe(delay(this.responseDelay, this.scheduler || asyncScheduler));
+      of(this.resultHandler.handleError(action)(error)).pipe(
+        delay(this.responseDelay, this.scheduler || asyncScheduler)
+      );
   }
 
   /**
@@ -162,7 +171,9 @@ export class EntityEffects {
    */
   private handleSkipSuccess$(originalAction: EntityAction): Observable<EntityAction> {
     const successOp = makeSuccessOp(originalAction.payload.entityOp);
-    const successAction = this.entityActionFactory.createFromAction(originalAction, { entityOp: successOp });
+    const successAction = this.entityActionFactory.createFromAction(originalAction, {
+      entityOp: successOp
+    });
     // Although returns immediately,
     // ensure observable takes one tick (by using a promise),
     // as app likely assumes asynchronous response.

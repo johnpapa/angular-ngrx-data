@@ -101,6 +101,21 @@ by setting this flag to `true`, which is the default for the `DefaultDataService
 
 When running a demo app locally, the server may respond more quickly than it will in production. You can simulate real-world by setting the `getDelay` and `saveDelay` properties.
 
+#### How to provide a custom configuration
+First, create config object and specify the custom configuration:
+```
+const defaultDataServiceConfig: DefaultDataServiceConfig = {
+  root: 'api'
+}
+```
+Provide it in the NgModule:
+
+```
+@NgModule({
+  providers: [{ provide: DefaultDataServiceConfig, useValue: defaultDataServiceConfig }]
+})
+```
+
 ## Custom _EntityDataService_
 
 While the _ngrx-data_ library provides a configuration object to modify certain aspects of the _DefaultDataService_,

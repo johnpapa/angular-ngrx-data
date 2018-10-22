@@ -101,14 +101,18 @@ by setting this flag to `true`, which is the default for the `DefaultDataService
 
 When running a demo app locally, the server may respond more quickly than it will in production. You can simulate real-world by setting the `getDelay` and `saveDelay` properties.
 
-#### How to provide a custom configuration
-First, create config object and specify the custom configuration:
+#### Provide a custom configuration
+
+First, create a custom configuration object of type `DefaultDataServiceConfig` :
+
 ```
 const defaultDataServiceConfig: DefaultDataServiceConfig = {
-  root: 'api'
+  root: 'api',
+  timeout: 3000, // request timeout
 }
 ```
-Provide it in the NgModule:
+
+Provide it in an eagerly-loaded `NgModule` such as the `EntityStoreModule` in the sample application:
 
 ```
 @NgModule({
@@ -148,7 +152,13 @@ It only overrides what it really needs.
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { EntityCollectionDataService, DefaultDataService, HttpUrlGenerator, Logger, QueryParams } from 'ngrx-data';
+import {
+  EntityCollectionDataService,
+  DefaultDataService,
+  HttpUrlGenerator,
+  Logger,
+  QueryParams
+} from 'ngrx-data';
 
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';

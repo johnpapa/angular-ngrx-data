@@ -1,14 +1,14 @@
 {
   "name": "ngrx-data",
-  "version": "6.1.0-beta.0",
+  "version": "6.1.0-beta.1",
   "repository": "https://github.com/johnpapa/angular-ngrx-data.git",
   "license": "MIT",
   "peerDependencies": {
-    "@angular/core": "^6.0.0",
-    "@angular/common": "^6.0.0",
-    "@ngrx/effects": "^6.0.0",
-    "@ngrx/entity": "^6.0.0",
-    "@ngrx/store": "^6.0.0",
+    "@angular/core": ">6.1.0 <8.0.0",
+    "@angular/common": ">6.1.0 <8.0.0",
+    "@ngrx/effects": ">6.1.0 <8.0.0",
+    "@ngrx/entity": ">6.1.0 <8.0.0",
+    "@ngrx/store": ">6.1.0 <8.0.0",
     "rxjs": "^6.1.0",
     "tslib": "^1.9.0"
   },

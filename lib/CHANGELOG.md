@@ -16,13 +16,19 @@ If you want to install updates but want to prevent accidental installation of a 
 In other words, it is safer to have something like the following in your `package.json`
 
 ```
-   "ngrx-data": "~6.0.2",
+"ngrx-data": "~6.0.2",
 ```
 
 as this will keep you from installing `6.1.x`.
 
 <hr>
-<a id="6.1.0-alpha.4"></a>
+<a id="6.1.0-beta.1"></a>
+
+# 6.1.0-beta.1 (2018-10-22)
+
+No functional changes. Extend `peerDependencies` to include all Angular v7 versions.
+
+<a id="6.1.0-beta.0"></a>
 
 # 6.1.0-beta.0 (2018-10-09)
 

@@ -22,11 +22,13 @@ In other words, it is safer to have something like the following in your `packag
 as this will keep you from installing `6.1.x`.
 
 <hr>
-<a id="6.1.0-beta.1"></a>
+<a id="6.1.0-beta.2"></a>
 
-# 6.1.0-beta.1 (2018-10-22)
+# 6.1.0-beta.2 (2018-10-22)
 
-No functional changes. Extend `peerDependencies` to include all Angular v7 versions.
+No functional changes. Extend `peerDependencies` to include Angular v7 versions.
+
+* corrects mistaken change to @ngrx peer dependencies in briefly-lived beta.1
 
 <a id="6.1.0-beta.0"></a>
 

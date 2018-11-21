@@ -29,6 +29,7 @@ as this will keep you from installing `6.1.x`.
 No breaking changes
 
 * DataServiceError does better job of creating a useful message from the error passed to its ctor.
+* Fix `EntityDispatcherBase.upsert` action (should upsert not add) issue #201.
 
 <a id="6.1.0-beta.2"></a>
 

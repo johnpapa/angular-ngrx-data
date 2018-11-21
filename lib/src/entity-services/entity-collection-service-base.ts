@@ -25,7 +25,8 @@ import { QueryParams } from '../dataservices/interfaces';
  * @param EntityCollectionServiceElements The ingredients for this service
  * as a source of supporting services for creating an EntityCollectionService<T> instance.
  */
-export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>> implements EntityCollectionService<T> {
+export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = EntitySelectors$<T>>
+  implements EntityCollectionService<T> {
   /** Dispatcher of EntityCommands (EntityActions) */
   readonly dispatcher: EntityDispatcher<T>;
 
@@ -73,7 +74,11 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
    * @param [options] additional options
    * @returns the EntityAction
    */
-  createEntityAction<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+  createEntityAction<P = any>(
+    op: EntityOp,
+    data?: P,
+    options?: EntityActionOptions
+  ): EntityAction<P> {
     return this.dispatcher.createEntityAction(op, data, options);
   }
 
@@ -85,7 +90,11 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
    * @param [options] additional options
    * @returns the dispatched EntityAction
    */
-  createAndDispatch<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+  createAndDispatch<P = any>(
+    op: EntityOp,
+    data?: P,
+    options?: EntityActionOptions
+  ): EntityAction<P> {
     return this.dispatcher.createAndDispatch(op, data, options);
   }
 
@@ -180,7 +189,7 @@ export class EntityCollectionServiceBase<T, S$ extends EntitySelectors$<T> = Ent
    * merge it into the cached collection.
    * @param key The primary key of the entity to get.
    * @param [options] options that influence merge behavior
-   * @returns Observable of the queried entities that are in the collection
+   * @returns Observable of the queried entity that is in the collection
    * after server reports success or the query error.
    */
   getByKey(key: any, options?: EntityActionOptions): Observable<T> {

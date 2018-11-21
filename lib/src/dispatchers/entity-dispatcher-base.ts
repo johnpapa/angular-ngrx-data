@@ -60,7 +60,10 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     this.guard = new EntityActionGuard(entityName, selectId);
     this.toUpdate = toUpdateFactory<T>(selectId);
 
-    const collectionSelector = createSelector(entityCacheSelector, cache => cache[entityName] as EntityCollection<T>);
+    const collectionSelector = createSelector(
+      entityCacheSelector,
+      cache => cache[entityName] as EntityCollection<T>
+    );
     this.entityCollection$ = store.select(collectionSelector);
   }
 
@@ -71,7 +74,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * @param [options] additional options
    * @returns the EntityAction
    */
-  createEntityAction<P = any>(entityOp: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+  createEntityAction<P = any>(
+    entityOp: EntityOp,
+    data?: P,
+    options?: EntityActionOptions
+  ): EntityAction<P> {
     return this.entityActionFactory.create({
       entityName: this.entityName,
       entityOp,
@@ -88,7 +95,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * @param [options] additional options
    * @returns the dispatched EntityAction
    */
-  createAndDispatch<P = any>(op: EntityOp, data?: P, options?: EntityActionOptions): EntityAction<P> {
+  createAndDispatch<P = any>(
+    op: EntityOp,
+    data?: P,
+    options?: EntityActionOptions
+  ): EntityAction<P> {
     const action = this.createEntityAction(op, data, options);
     this.dispatch(action);
     return action;
@@ -159,12 +170,18 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    */
   delete(key: number | string, options?: EntityActionOptions): Observable<number | string>;
   delete(arg: number | string | T, options?: EntityActionOptions): Observable<number | string> {
-    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticDelete);
+    options = this.setSaveEntityActionOptions(
+      options,
+      this.defaultDispatcherOptions.optimisticDelete
+    );
     const key = this.getKey(arg);
     const action = this.createEntityAction(EntityOp.SAVE_DELETE_ONE, key, options);
     this.guard.mustBeKey(action);
     this.dispatch(action);
-    return this.getResponseData$<number | string>(options.correlationId).pipe(map(() => key), shareReplay(1));
+    return this.getResponseData$<number | string>(options.correlationId).pipe(
+      map(() => key),
+      shareReplay(1)
+    );
   }
 
   /**
@@ -278,7 +295,10 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
     // update entity might be a partial of T but must at least have its key.
     // pass the Update<T> structure as the payload
     const update: Update<T> = this.toUpdate(entity);
-    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticUpdate);
+    options = this.setSaveEntityActionOptions(
+      options,
+      this.defaultDispatcherOptions.optimisticUpdate
+    );
     const action = this.createEntityAction(EntityOp.SAVE_UPDATE_ONE, update, options);
     if (options.isOptimistic) {
       this.guard.mustBeEntity(action);
@@ -304,8 +324,11 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
    * after server reports successful save or the save error.
    */
   upsert(entity: T, options?: EntityActionOptions): Observable<T> {
-    options = this.setSaveEntityActionOptions(options, this.defaultDispatcherOptions.optimisticUpsert);
-    const action = this.createEntityAction(EntityOp.SAVE_ADD_ONE, entity, options);
+    options = this.setSaveEntityActionOptions(
+      options,
+      this.defaultDispatcherOptions.optimisticUpsert
+    );
+    const action = this.createEntityAction(EntityOp.SAVE_UPSERT_ONE, entity, options);
     if (options.isOptimistic) {
       this.guard.mustBeEntity(action);
     }
@@ -496,7 +519,9 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
         return (
           entityName === this.entityName &&
           correlationId === crid &&
-          (entityOp.endsWith(OP_SUCCESS) || entityOp.endsWith(OP_ERROR) || entityOp === EntityOp.CANCEL_PERSIST)
+          (entityOp.endsWith(OP_SUCCESS) ||
+            entityOp.endsWith(OP_ERROR) ||
+            entityOp === EntityOp.CANCEL_PERSIST)
         );
       }),
       take(1),
@@ -513,14 +538,20 @@ export class EntityDispatcherBase<T> implements EntityDispatcher<T> {
 
   private setQueryEntityActionOptions(options: EntityActionOptions): EntityActionOptions {
     options = options || {};
-    const correlationId = options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
+    const correlationId =
+      options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
     return { ...options, correlationId };
   }
 
-  private setSaveEntityActionOptions(options: EntityActionOptions, defaultOptimism: boolean): EntityActionOptions {
+  private setSaveEntityActionOptions(
+    options: EntityActionOptions,
+    defaultOptimism: boolean
+  ): EntityActionOptions {
     options = options || {};
-    const correlationId = options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
-    const isOptimistic = options.isOptimistic == null ? defaultOptimism || false : options.isOptimistic === true;
+    const correlationId =
+      options.correlationId == null ? this.correlationIdGenerator.next() : options.correlationId;
+    const isOptimistic =
+      options.isOptimistic == null ? defaultOptimism || false : options.isOptimistic === true;
     return { ...options, correlationId, isOptimistic };
   }
   // #endregion private helpers

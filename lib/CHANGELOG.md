@@ -22,6 +22,15 @@ In other words, it is safer to have something like the following in your `packag
 as this will keep you from installing `6.1.x`.
 
 <hr>
+<a id="6.1.0-beta.3"></a>
+
+# 6.1.0-beta.3 (2018-11-20)
+
+No breaking changes
+
+* DataServiceError does better job of creating a useful message from the error passed to its ctor.
+* Fix `EntityDispatcherBase.upsert` action (should upsert not add) issue #201.
+
 <a id="6.1.0-beta.2"></a>
 
 # 6.1.0-beta.2 (2018-10-22)

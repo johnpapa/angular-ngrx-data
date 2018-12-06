@@ -54,11 +54,11 @@ There are two basic ways to create the service class.
 1.  Derive from `EntityCollectionServiceBase<T>`
 1.  Write a `HeroEntityService` with just the API you need.
 
-When `HeroEntityService` derives from `EntityCollectionServiceBase<T>` it must inject the `EntityCollectionServiceFactory` into its constructor.
+When `HeroEntityService` derives from `EntityCollectionServiceBase<T>` it must inject the `EntityCollectionServiceElementsFactory` into its constructor.
 There are examples of this approach in the demo app.
 
 When defining an `HeroEntityService` with a limited API,
-you may also inject `EntityCollectionServiceFactory` as a source of the
+you may also inject `EntityCollectionServiceElementsFactory` as a source of the
 functionality that you choose to expose.
 
 Let your preferred style and app needs determine which creation technique you choose.

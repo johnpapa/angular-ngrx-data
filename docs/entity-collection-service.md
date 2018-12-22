@@ -81,7 +81,7 @@ Note that these component and `EntityCollectionService` selector property names 
 All _selector observable_ properties of an `EntityCollectionService` follow this convention.
 For brevity, we'll refer to them going forward as _`selector$` properties_ or _`selectors$`_.
 
-> Note that these _`selector$`_ properties (with an `'s'`) differ from the closely-related `selector` properties (no `'$'` suffix),
+> Note that these _`selector$`_ properties (with an `'$'`) differ from the closely-related `selector` properties (no `'$'` suffix),
 > discussed elsewhere.
 >
 > A `selector` property returns a _function_ that selects from the entity collection.

@@ -222,6 +222,92 @@ The property values become the initial collection values for those properties wh
 
 The _ngrx-data_ library generates selectors for these properties but has no way to update them. You'll have to create or extend the existing reducers to do that yourself.
 
+If the property you want to add comes from `backend`, you will need some additional work to make sure the property can be saved into store from `Effects` correctly.
+
+1.  You need to create a `AdditioanlPersistenceResultHandler extends DefaultPersistenceResultHandler` and overwrite [handleSuccess](../lib/src/dataservices/persistence-result-handler.service.ts) method, the purpose is to parse the data got from `DataService` and retrieve the additional property then save it to `action.payload`. Here is a sample.
+
+```typescript
+export class AdditionalPropertyPersistenceResultHandler {
+  handleSuccess(originalAction: EntityAction): (data: any) => Action {
+    const actionHandler = super.handleSuccess(originalAction);
+    // here will return a factory to get a data handler to
+    // parse data from DataService and save to action.payload
+    return function(data: any) {
+      const action = actionHandler.call(this, data);
+      if (action && data && data.foo) {
+        // save the data.foo to action.payload.foo
+        (action as any).payload.foo = data.foo;
+      }
+      return action;
+    };
+  }
+}
+```
+
+2.  Now the additional property is set to `action.payload`, but we still need to set it to the instance of EntityCollection in `reducer`, to do that, we need to create a `AdditionalEntityCollectionReducerMethods extends EntityCollectionReducerMethods`, and overwrite the method match your `action`, for example, if the additional property `foo` only available in `getWithQuery action`, we can do like this.
+
+```typescript
+export class AdditionalEntityCollectionReducerMethods<T> extends EntityCollectionReducerMethods<T> {
+  constructor(public entityName: string, public definition: EntityDefinition<T>) {
+    super(entityName, definition);
+  }
+
+  protected queryManySuccess(
+    collection: EntityCollection<T>,
+    action: EntityAction<T[]>
+  ): EntityCollection<T> {
+    const ec = super.queryManySuccess(collection, action);
+    if ((action.payload as any).foo) {
+      // save the foo property from action.payload to entityCollection instance
+      (ec as any).foo = (action.payload as any).foo;
+    }
+    return ec;
+  }
+}
+```
+
+3.  Finally we need to register the `AdditionalPersistenceResultHandler` and `AdditionalEntityCollectionReducerMethods` to replace the default implementation.
+
+* Register `AdditionalPersistenceResultHandler` in `NgModule`,
+
+```typescript
+@NgModule({
+  ...
+    { provide: PersistenceResultHandler, useClass: PagePersistenceResultHandler },
+})
+```
+
+* Register `AdditionalEntityCollectionReducerMethods`, to do that, we need to create a `AdditionalEntityCollectionReducerMethodFactory`, for detail, please see this [doc](./entity-reducer.md)
+
+```typescript
+@Injectable()
+export class AdditionalEntityCollectionReducerMethodsFactory {
+  constructor(private entityDefinitionService: EntityDefinitionService) {}
+
+  /** Create the  {EntityCollectionReducerMethods} for the named entity type */
+  create<T>(entityName: string): EntityCollectionReducerMethodMap<T> {
+    const definition = this.entityDefinitionService.getDefinition<T>(entityName);
+    const methodsClass = new AdditionalEntityCollectionReducerMethods(entityName, definition);
+
+    return methodsClass.methods;
+  }
+}
+```
+
+then register this `AdditionalEntityCollectionReducerMethodsFactory` to `NgModule`,
+
+```typescript
+@NgModule({
+  ...
+  {
+    provide: EntityCollectionReducerMethodsFactory,
+    useClass: AdditionalEntityCollectionReducerMethodsFactory
+  },
+})
+```
+
+Now you can get `foo` from `backend` just like other `EntityCollection` level property.
+
 <a id="plurals"></a>
 
 ## Pluralizing the entity name

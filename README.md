@@ -1,6 +1,6 @@
 # Angular ngrx-data
 
-> This repository is now merged with @ngrx into @ngrx/data. You can find the [ngrx/data docs here](https://ngrx.io/guide/data) and the [github repository with ngrx/data in it here](https://github.com/ngrx/platform)
+> **This repository is now merged with @ngrx into @ngrx/data. You can find the [ngrx/data docs here](https://ngrx.io/guide/data) and the [github repository with ngrx/data in it here](https://github.com/ngrx/platform)**
 
 **Please read the note above**
 

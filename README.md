@@ -1,5 +1,9 @@
 # Angular ngrx-data
 
+> This repository is now merged with @ngrx into @ngrx/data. You can find the [ngrx/data docs here](https://ngrx.io/guide/data) and the [github repository with ngrx/data in it here](https://github.com/ngrx/platform)
+
+**Please read the note above**
+
 [![prettier](https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat-square)](https://prettier.io/)
 
 ## Zero Ngrx Boilerplate

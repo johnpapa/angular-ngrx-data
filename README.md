@@ -322,7 +322,7 @@ Please don't create issues for them
 
 ### Create a MongoDb
 
-1. Create a [CosmosDB instance](https://docs.microsoft.com/en-us/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4)
+1. Create a [CosmosDB instance](https://docs.microsoft.com/azure/cosmos-db/tutorial-develop-mongodb-nodejs-part4?WT.mc_id=angularngrxdata-github-jopapa)
 
 ### Build and launch the node server
 

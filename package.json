@@ -83,7 +83,7 @@
     "prettier": "1.12.1",
     "pretty-quick": "^1.4.1",
     "protractor": "~5.1.2",
-    "snyk": "^1.79.0",
+    "snyk": "^1.1024.0",
     "ts-node": "~3.2.0",
     "tslint": "^5.10.0",
     "typescript": "2.7.2",

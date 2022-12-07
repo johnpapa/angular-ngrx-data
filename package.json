@@ -49,7 +49,7 @@
     "body-parser": "^1.18.2",
     "core-js": "^2.5.4",
     "dotenv": "^5.0.1",
-    "express": "^4.16.3",
+    "express": "^4.17.3",
     "hammerjs": "^2.0.8",
     "handlebars": "^4.0.11",
     "mongoose": "^5.0.12",
